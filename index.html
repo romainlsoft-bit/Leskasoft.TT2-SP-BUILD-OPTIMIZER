@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0e1220">
+<meta name="description" content="Free Tap Titans 2 skill tree optimizer for TT2 8.4. Optimize skill points for Clan Ship, Pet, Shadow Clone, Heavenly Strike, Dagger or Gold Gun. Import game data or configure manually.">
+<meta property="og:type" content="website"><meta property="og:title" content="Tap Titans 2 Skill Tree Optimizer | TT2 8.4">
+<meta property="og:description" content="Import or manually configure your TT2 account. Find an optimized skill tree in seconds. Open source and mobile friendly.">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://romainlsoft-bit.github.io/Leskasoft.TT2-SP-BUILD-OPTIMIZER/">
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg"><link rel="stylesheet" href="styles.css">
+<title>TT2 Skill Tree Optimizer 8.4 — Free Skill Point Calculator | Leskasoft</title>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"TT2 Skill Tree Optimizer","description":"Free Tap Titans 2 skill-point optimizer and skill-tree calculator","applicationCategory":"GameApplication","operatingSystem":"Web","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"url":"https://romainlsoft-bit.github.io/Leskasoft.TT2-SP-BUILD-OPTIMIZER/"}</script>
+<script type="module" src="src/app.js" defer></script>
+</head>
+<body>
+<div class="site">
+<header class="topbar">
+ <a class="brand" href="./"><span class="logo">✦</span><span>TT2 <strong>Skill Optimizer</strong><small>crafted by Leskasoft</small></span></a>
+ <div class="header-right"><span class="version">TT2 8.4 <span class="version-dot">●</span></span><a href="https://github.com/romainlsoft-bit/Leskasoft.TT2-SP-BUILD-OPTIMIZER" target="_blank" rel="noopener noreferrer">GitHub ↗</a></div>
+</header>
+<main>
+<section class="hero">
+ <div class="eyebrow"><span class="pulse"></span> FREE · OPEN SOURCE · NO ACCOUNT</div>
+ <h1>Your strongest build.<br><em>Less guesswork.</em></h1>
+ <p>Spend your <strong>Tap Titans 2</strong> skill points with confidence. Import your stats or enter them yourself, choose your playstyle, and get a skill-tree recommendation you can export back to the game.</p>
+</section>
+<div class="workspace">
+<section class="panel setup" aria-labelledby="setup-title">
+ <div class="panel-head"><div><span class="eyebrow mini">STEP 01 — PLAYER</span><h2 id="setup-title">Your account</h2></div><span class="subtle" id="source-label">Manual setup</span></div>
+ <div class="import-box">
+  <div class="import-title"><span class="import-symbol">↗</span><div><h3>Quick import</h3><p>Load SP, stage, equipment & existing skill tree</p></div></div>
+  <div class="button-row"><button id="paste-button" class="btn primary" type="button">Paste from clipboard</button><button id="upload-button" class="btn secondary" type="button">Choose JSON file</button></div>
+  <input type="file" id="upload-file" accept=".json,application/json,text/plain" hidden>
+  <details class="import-expand" id="paste-details"><summary>Or paste the export manually</summary><textarea id="import-json" rows="4" spellcheck="false" placeholder='Paste TT2 JSON export here…' aria-label="Paste TT2 JSON export"></textarea><button class="btn secondary" type="button" id="import-button">Import pasted JSON</button></details>
+  <p class="hint">Private by design — your save is processed locally in this browser.</p>
+ </div>
+ <div class="field-grid">
+  <label>Skill Points <input id="skill-points" type="number" min="0" max="25000" step="1" inputmode="numeric" placeholder="e.g. 4200" required></label>
+  <label>Max stage <input id="max-stage" type="number" min="0" step="1" inputmode="numeric" placeholder="Optional"></label>
+ </div>
+ <div class="form-group"><h3>Damage build</h3><div class="choice-grid" id="damage-choices" role="group" aria-label="Damage build"></div></div>
+ <div class="form-group"><h3>Gold source</h3><div class="segmented" id="gold-choices" role="group" aria-label="Gold source"></div></div>
+ <hr>
+ <div class="panel-head"><div><span class="eyebrow mini">STEP 02 — PLAYSTYLE</span><h2>Make it yours</h2></div></div>
+ <div class="playstyles" id="playstyle-choices">
+  <button type="button" class="playstyle" data-playstyle="farm"><span class="emoji">⚡</span><strong>Fast farm</strong><small>Faster, easier runs</small></button>
+  <button type="button" class="playstyle selected" data-playstyle="balanced"><span class="emoji">⚖</span><strong>Balanced</strong><small>Power + comfort</small></button>
+  <button type="button" class="playstyle" data-playstyle="push"><span class="emoji">⚔</span><strong>Push</strong><small>Damage-first</small></button>
+ </div>
+ <div class="select-line"><label for="qol-mode">Quality of life</label><select id="qol-mode"><option value="recommended">Recommended automatically</option><option value="none">Off (pure damage score)</option><option value="custom">Custom minimum levels</option></select></div>
+ <p class="hint">QoL represents recommended comfort skills, not a simulated run-time speed.</p>
+ <details class="advanced" id="advanced-settings"><summary><span>Advanced settings & manual skill tree</span><span>⌄</span></summary>
+  <div class="advanced-body">
+    <div class="field-grid">
+      <label>Gold weight <input id="gold-weight" type="number" min="0" max="2" step=".05" value=".7"></label>
+      <label>Crafting power <input id="crafting-power" type="number" min="1" step="1" value="1"></label>
+      <label>Time to kill (sec) <input id="time-to-kill" type="number" min=".1" step=".5" value="8"></label>
+      <label>Shadow Clone spell level <input id="clone-level" type="number" min="1" max="35" step="1" value="30"></label>
+    </div>
+    <label class="toggle"><input type="checkbox" id="preserve-current">Keep current levels as minimums</label>
+    <label class="toggle"><input type="checkbox" id="efficiency-mode">Maximize score per newly spent SP</label>
+    <h3>Owned equipment sets</h3>
+    <p class="hint">Automatically detected from TT2 player exports when present.</p>
+    <div class="equipment-grid" id="equipment-choices"></div>
+    <h3>Individual skills</h3>
+    <p class="hint">Enter your current level for comparisons. Set a minimum level to require the skill. Excluded skills receive no additional investment.</p>
+    <div class="skill-filter"><input type="search" id="skill-search" placeholder="Find a skill or branch…" aria-label="Search skills"><button type="button" class="btn tiny secondary" id="clear-minimums">Clear minimums</button></div>
+    <div id="skill-editor" class="skill-editor"></div>
+  </div>
+ </details>
+ <button id="optimize-button" type="button" class="btn primary full call-to-action"><span>✦ &nbsp; Optimize my build</span><span>→</span></button>
+ <p id="status" class="status" role="status" aria-live="polite">Import your account or enter your skill points to begin.</p>
+</section>
+<section class="panel results" id="results" aria-labelledby="results-title">
+ <div class="panel-head"><div><span class="eyebrow mini">STEP 03 — RESULT</span><h2 id="results-title">Your optimized tree</h2></div><span class="subtle" id="result-mode">Ready when you are</span></div>
+ <div id="empty-results" class="empty-state"><span class="empty-graphic">✧</span><h3>Your next build starts here</h3><p>Import or configure your stats, choose a playstyle and optimize.</p><div class="placeholders"><span></span><span></span><span></span><span></span><span></span><span></span></div></div>
+ <div id="actual-results" hidden>
+   <div class="result-banner"><div><span class="eyebrow mini">RECOMMENDED ALLOCATION</span><h3 id="build-title">Clan Ship · Fairy</h3><p id="build-subtitle">Balanced</p></div><span class="success-symbol">✓</span></div>
+   <div class="metric-grid"><div class="metric"><small>SP used</small><strong id="spent">0</strong></div><div class="metric"><small>Remaining</small><strong id="remaining">0</strong></div><div class="metric"><small>Skill changes</small><strong id="change-count">0</strong></div></div>
+   <h3>Allocation by skill tree</h3><div class="branches" id="branch-chart"></div>
+   <div class="result-buttons"><button id="copy-build" type="button" class="btn primary">Copy TT2 skill tree</button><button id="share-build" type="button" class="btn secondary">Copy shareable link</button></div>
+   <details class="result-detail"><summary>All skill levels</summary><div id="full-tree"></div></details>
+   <details class="result-detail"><summary>Comparison with your current build <span id="delta-count"></span></summary><div id="diff-list"></div></details>
+   <details class="result-detail"><summary>Exported JSON</summary><textarea aria-label="Generated export JSON" id="export-json" readonly rows="5"></textarea></details>
+   <p class="hint math-disclaimer">Mathematically optimized for a weighted damage/gold proxy. Actual in-game performance, run speed and conditional synergies can differ. This is not an official game tool.</p>
+ </div>
+</section>
+</div>
+<section class="seo"><span class="eyebrow mini">FREE TOOLS FOR TITAN SLAYERS</span><h2>Tap Titans 2 Skill Points Calculator — TT2 8.4</h2><div class="seo-grid">
+<article><h3>Six damage types</h3><p>Optimize Clan Ship, Pet, Shadow Clone, Heavenly Strike, Dagger and Gold Gun builds with Fairy, Heart of Gold or Chesterson income.</p></article>
+<article><h3>Import or enter manually</h3><p>Paste a player or skill-tree JSON export, or enter your own Skill Points, equipment sets, QoL preferences and skill constraints.</p></article>
+<article><h3>Open and verifiable</h3><p>Our solver respects tier requirements, uses log-space mathematics and publishes its assumptions and automated verification tests.</p></article>
+</div><p class="hint">Game data and solver assumptions are versioned. Current tree coefficients were compared with the September 2026 dataset; verification of every 8.4 equipment interaction remains in progress.</p></section>
+</main>
+<footer><div><strong>TT2 Skill Optimizer</strong><span>Independent community tool. Not affiliated with Game Hive.</span></div><div class="footer-links"><a href="https://www.leskasoft.fr/en" target="_blank" rel="noopener noreferrer">More tools by Leskasoft ↗</a><a href="https://remanence.leskasoft.fr" target="_blank" rel="noopener noreferrer">Remanence — damaged video recovery ↗</a><a href="https://github.com/romainlsoft-bit/Leskasoft.TT2-SP-BUILD-OPTIMIZER" target="_blank" rel="noopener noreferrer">Source code ↗</a></div></footer>
+</div>
+</body></html>
