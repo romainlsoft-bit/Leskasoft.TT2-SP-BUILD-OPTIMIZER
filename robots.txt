@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://romainlsoft-bit.github.io/Leskasoft.TT2-SP-BUILD-OPTIMIZER/sitemap.xml
