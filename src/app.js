@@ -1,5 +1,6 @@
 import {SKILLS,SKILL_IDS,BRANCH_NAMES,SETS,PRESETS,DAMAGE_TYPES,GOLD_TYPES,GAME_VERSION,parseExport,exportBuild,spentPoints} from "./engine.js";
 import { t, localizeDocument, SUPPORTED_LANGUAGES } from "./i18n.js";
+import { readClipboardText } from "./clipboard.js";
 const $=id=>document.getElementById(id);
 let locale="en";
 let lastStatus={message:"Import your account or enter your skill points to begin.",type:"",params:{}};
@@ -51,7 +52,27 @@ const iconMap={"Clan Ship":"⛵","Pet":"🐾","Shadow Clone":"◈","Heavenly Str
 const branchColors={Knight:"#d77879",Summoner:"#edab66",Warlord:"#e7ca75",Sorcerer:"#86adf7",Rogue:"#7ad0a0",Alchemist:"#b595ed"};
 const fresh=()=>({damage:"Clan Ship",gold:"Fairy",skillPoints:0,maxStage:0,playstyle:"balanced",qol:"recommended",goldWeight:.7,craftingPower:1,timeToKill:8,sClone:30,sets:{},currentLevels:{},minimums:{},excluded:[],preserveCurrent:false,mode:"power"});
 let state=fresh(),lastResult=null,worker=null;
-function status(message,type="",params={}){lastStatus={message,type,params};const el=$("status");const normalized={...params};if(normalized.phase)normalized.phase=tr(normalized.phase);const translated=tr(message,normalized);el.textContent=type==="error"&&translated===message?engineError(message):translated;el.className="status "+type;}
+// All failures, regardless of where they originate, appear in an accessible
+// fixed-position notification. Errors persist until the user dismisses them.
+function showToast(text){
+ const toast=$("app-toast");
+ $("toast-title").textContent=tr("Error");
+ $("toast-message").textContent=text;
+ toast.hidden=false;
+}
+function hideToast(){$("app-toast").hidden=true;}
+function status(message,type="",params={}){
+ lastStatus={message,type,params};
+ const el=$("status");
+ const normalized={...params};
+ if(normalized.phase)normalized.phase=tr(normalized.phase);
+ const translated=tr(message,normalized);
+ const display=type==="error"&&translated===message?engineError(message):translated;
+ el.textContent=display;
+ el.className="status "+type;
+ if(type==="error")showToast(display);
+ else if(type==="success")hideToast();
+}
 function resetOptimizeButton(){const b=$("optimize-button");b.disabled=false;b.innerHTML='<span>✦ &nbsp; '+safe(tr("Optimize my build"))+'</span><span>→</span>';}
 function safe(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 function persist(){try{localStorage.setItem("tt2_skill_optimizer_v1",JSON.stringify(state));}catch{}}
@@ -99,9 +120,33 @@ function importRaw(raw){
  fillInputs();remember();
  status("Account data imported. Review the damage/gold choices and optimize.","success");
 }
+function offerManualPaste(message,params={},clipboardContent=null){
+ const panel=$("paste-details");
+ panel.open=true;
+ const field=$("import-json");
+ // If we could read clipboard but import failed, preserve its text for review.
+ if(clipboardContent!==null)field.value=clipboardContent;
+ try{field.focus({preventScroll:true});}catch{field.focus();}
+ status(message,"error",params);
+}
 async function pasteClipboard(){
- try{const raw=await navigator.clipboard.readText();importRaw(raw);}
- catch(e){$("paste-details").open=true;status("Clipboard unavailable or invalid export. Paste the JSON in the box instead: {detail}","error",{detail:engineError(e.message)});}
+ // The clipboard API may be blocked by browser permissions, insecure origins
+ // or embedded browsers. Preserve a manual-paste fallback, rather than saying
+ // the user's valid TT2 JSON is malformed.
+ const result=await readClipboardText(navigator.clipboard);
+ if(!result.ok){
+   const reason=result.reason==="empty"
+     ?"Clipboard is empty. Copy your TT2 export and try again."
+     :result.reason==="unsupported"
+     ?"Automatic clipboard access is unavailable. Paste your export into the field below (Ctrl+V on desktop, or Paste on mobile)."
+     :"Browser denied clipboard access. Paste your export into the field below (Ctrl+V on desktop, or Paste on mobile).";
+   offerManualPaste(reason);
+   return;
+ }
+ try{importRaw(result.text);}
+ catch(error){
+   offerManualPaste("Clipboard data could not be imported: {detail}",{detail:engineError(error.message)},result.text);
+ }
 }
 async function copyText(value){
  if(navigator.clipboard?.writeText){try{await navigator.clipboard.writeText(value);return true;}catch{}}
@@ -201,6 +246,7 @@ function initialize(){
  }
  setLocale(pathLang);
  $("language-select").addEventListener("change",e=>changeLanguage(e.target.value));
+ $("toast-close").addEventListener("click",hideToast);
  const help=$("export-help-dialog");
  $("export-help-button").addEventListener("click",()=>help.showModal());
  for(const id of ["export-help-close","export-help-done"])$(id).addEventListener("click",()=>help.close());
