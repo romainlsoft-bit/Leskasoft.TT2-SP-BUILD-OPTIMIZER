@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0e1220">
+<meta name="description" data-static-localized="true" content="Калькулятор очок навичок Tap Titans 2: імпорт JSON, ручне введення, налаштування QoL та експорт збірки до 50 000 очок.">
+<meta property="og:type" content="website"><meta property="og:url" content="https://tap-titans.leskasoft.com/uk/"><meta property="og:site_name" content="TT2 Skill Optimizer"><meta property="og:locale" content="uk_UA"><meta name="twitter:card" content="summary"><meta property="og:title" content="Оптимізатор дерева навичок Tap Titans 2 | Leskasoft">
+<meta property="og:description" content="Калькулятор очок навичок Tap Titans 2: імпорт JSON, ручне введення, налаштування QoL та експорт збірки до 50 000 очок.">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://tap-titans.leskasoft.com/uk/">
+<link rel="alternate" hreflang="en" href="https://tap-titans.leskasoft.com/">
+<link rel="alternate" hreflang="fr" href="https://tap-titans.leskasoft.com/fr/">
+<link rel="alternate" hreflang="uk" href="https://tap-titans.leskasoft.com/uk/">
+<link rel="alternate" hreflang="ru" href="https://tap-titans.leskasoft.com/ru/">
+<link rel="alternate" hreflang="x-default" href="https://tap-titans.leskasoft.com/">
+<link rel="icon" type="image/svg+xml" href="../assets/favicon.svg"><link rel="stylesheet" href="../styles.css">
+<title>Оптимізатор дерева навичок TT2 8.4 — безкоштовний калькулятор | Leskasoft</title>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Оптимізатор дерева навичок Tap Titans 2","description":"Калькулятор очок навичок Tap Titans 2: імпорт JSON, ручне введення, налаштування QoL та експорт збірки до 50 000 очок.","applicationCategory":"GameApplication","operatingSystem":"Any","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"url":"https://tap-titans.leskasoft.com/uk/","inLanguage":"uk","@id":"https://tap-titans.leskasoft.com/uk/#tool"}</script>
+<script type="module" src="../src/app.js" defer></script>
+</head>
+<body>
+<div class="site">
+<header class="topbar">
+ <a class="brand" href="./"><span class="logo">✦</span><span>TT2 <strong>Оптимізатор навичок</strong><small>створено Leskasoft</small></span></a>
+ <div class="header-right"><span class="version">TT2 8.4 <span class="version-dot">●</span></span><label class="language-picker" for="language-select"><span class="sr-only">Мова</span><select id="language-select" aria-label="Мова"><option value="en">English</option><option value="fr">Français</option><option value="uk">Українська</option><option value="ru">Русский</option></select></label><a href="https://github.com/romainlsoft-bit/Leskasoft.TT2-SP-BUILD-OPTIMIZER" target="_blank" rel="noopener noreferrer">GitHub ↗</a></div>
+</header>
+<main>
+<div class="page-description">
+ <h1>Оптимізатор дерева навичок Tap Titans 2</h1>
+ <p>Вкажіть очки навичок, джерела шкоди та золота й бажані навички. Обчислення виконуються локально у вашому браузері.</p>
+</div>
+<div class="workspace">
+<section class="panel setup" aria-labelledby="setup-title">
+ <div class="panel-head"><div><span class="eyebrow mini">КРОК 01 — ГРАВЕЦЬ</span><h2 id="setup-title">Ваш обліковий запис</h2></div><div class="panel-head-actions"><span class="subtle" id="source-label">Ручне налаштування</span><button type="button" id="export-help-button" class="help-button" aria-label="Як експортувати дані TT2" aria-haspopup="dialog" aria-controls="export-help-dialog" title="Як експортувати дані TT2">?</button></div></div>
+ <div class="import-box">
+  <div class="import-title"><span class="import-symbol">↗</span><div><h3>Швидкий імпорт</h3><p>Завантаження очок навичок, етапу, спорядження й поточного дерева</p></div></div>
+  <div class="button-row"><button id="paste-button" class="btn primary" type="button">Вставити з буфера</button><button id="upload-button" class="btn secondary" type="button">Вибрати файл JSON</button></div>
+  <input type="file" id="upload-file" accept=".json,application/json,text/plain" hidden>
+  <details class="import-expand" id="paste-details"><summary>Або вставити експорт вручну</summary><textarea id="import-json" rows="4" spellcheck="false" placeholder='Paste TT2 JSON export here…' aria-label="Вставити JSON-експорт TT2"></textarea><button class="btn secondary" type="button" id="import-button">Імпортувати JSON</button></details>
+  <p class="hint">Приватність за замовчуванням: дані обробляються локально у вашому браузері.</p>
+ </div>
+ <div class="field-grid">
+  <label>Очки навичок <input id="skill-points" type="number" min="0" max="50000" step="1" inputmode="numeric" placeholder="наприклад, 4200" required></label>
+  <label>Максимальний етап <input id="max-stage" type="number" min="0" step="1" inputmode="numeric" placeholder="Необов’язково"></label>
+ </div>
+ <div class="form-group"><h3>Тип шкоди</h3><div class="choice-grid" id="damage-choices" role="group" aria-label="Тип шкоди"></div></div>
+ <div class="form-group"><h3>Джерело золота</h3><div class="segmented" id="gold-choices" role="group" aria-label="Джерело золота"></div></div>
+</section>
+<section class="panel preferences" aria-labelledby="preferences-title">
+ <div class="panel-head"><div><span class="eyebrow mini">КРОК 02 — СТИЛЬ ГРИ</span><h2 id="preferences-title">Налаштуйте збірку</h2></div></div>
+ <div class="playstyles" id="playstyle-choices">
+  <button type="button" class="playstyle" data-playstyle="farm"><span class="emoji">⚡</span><strong>Швидкий фарм</strong><small>Швидші та простіші проходження</small></button>
+  <button type="button" class="playstyle selected" data-playstyle="balanced"><span class="emoji">⚖</span><strong>Збалансовано</strong><small>Сила та зручність</small></button>
+  <button type="button" class="playstyle" data-playstyle="push"><span class="emoji">⚔</span><strong>Просування</strong><small>Пріоритет шкоди</small></button>
+ </div>
+ <div class="select-line"><label for="qol-mode">Зручність гри (QoL)</label><select id="qol-mode"><option value="recommended">Автоматично рекомендоване</option><option value="none">Вимкнено (лише шкода)</option><option value="custom">Власні мінімальні рівні</option></select></div>
+ <p class="hint">QoL означає навички для зручності, а не симуляцію швидкості проходження.</p>
+ <details class="advanced" id="advanced-settings"><summary><span>Розширені налаштування та ручне дерево</span><span>⌄</span></summary>
+  <div class="advanced-body">
+    <div class="field-grid">
+      <label>Вага золота <input id="gold-weight" type="number" min="0" max="2" step=".05" value=".7"></label>
+      <label>Сила виготовлення <input id="crafting-power" type="number" min="1" step="1" value="1"></label>
+      <label>Час убивства (с) <input id="time-to-kill" type="number" min=".1" step=".5" value="8"></label>
+      <label>Рівень закляття тіньового клону <input id="clone-level" type="number" min="1" max="35" step="1" value="30"></label>
+    </div>
+    <label class="toggle"><input type="checkbox" id="preserve-current">Зберігати поточні рівні як мінімальні</label>
+    <label class="toggle"><input type="checkbox" id="efficiency-mode">Максимізувати ефект на додаткове очко</label>
+    <h3>Наявні набори спорядження</h3>
+    <p class="hint">Автоматично визначаються з експорту гравця TT2, якщо доступні.</p>
+    <div class="equipment-grid" id="equipment-choices"></div>
+    <h3>Окремі навички</h3>
+    <p class="hint">Вкажіть поточний рівень для порівняння. Задайте обов’язковий мінімум. Виключені навички не отримають додаткових очок.</p>
+    <div class="skill-filter"><input type="search" id="skill-search" placeholder="Пошук навички або дерева…" aria-label="Пошук навичок"><button type="button" class="btn tiny secondary" id="clear-minimums">Очистити мінімуми</button></div>
+    <div id="skill-editor" class="skill-editor"></div>
+  </div>
+ </details>
+ <button id="optimize-button" type="button" class="btn primary full call-to-action"><span>✦ &nbsp; Optimize my build</span><span>→</span></button>
+ <p id="status" class="status" role="status" aria-live="polite">Щоб почати, імпортуйте дані або введіть кількість очок навичок.</p>
+</section>
+<section class="panel results" id="results" aria-labelledby="results-title">
+ <div class="panel-head"><div><span class="eyebrow mini">КРОК 03 — РЕЗУЛЬТАТ</span><h2 id="results-title">Оптимізоване дерево</h2></div><span class="subtle" id="result-mode">Очікування даних</span></div>
+ <div id="empty-results" class="empty-state"><span class="empty-graphic">✧</span><h3>Ваша наступна збірка починається тут</h3><p>Імпортуйте або введіть характеристики, оберіть стиль і запустіть оптимізацію.</p><div class="placeholders"><span></span><span></span><span></span><span></span><span></span><span></span></div></div>
+ <div id="actual-results" hidden>
+   <div class="result-banner"><div><span class="eyebrow mini">РЕКОМЕНДОВАНИЙ РОЗПОДІЛ</span><h3 id="build-title">Clan Ship · Fairy</h3><p id="build-subtitle">Збалансовано</p></div><span class="success-symbol">✓</span></div>
+   <div class="metric-grid"><div class="metric"><small>Витрачено очок</small><strong id="spent">0</strong></div><div class="metric"><small>Залишилось</small><strong id="remaining">0</strong></div><div class="metric"><small>Змінено навичок</small><strong id="change-count">0</strong></div></div>
+   <h3>Розподіл за деревами</h3><div class="branches" id="branch-chart"></div>
+   <div class="result-buttons"><button id="copy-build" type="button" class="btn primary">Копіювати дерево TT2</button><button id="share-build" type="button" class="btn secondary">Копіювати посилання</button></div>
+   <details class="result-detail"><summary>Усі рівні навичок</summary><div id="full-tree"></div></details>
+   <details class="result-detail"><summary>Порівняння з поточною збіркою <span id="delta-count"></span></summary><div id="diff-list"></div></details>
+   <details class="result-detail"><summary>Експортований JSON</summary><textarea aria-label="Згенерований JSON" id="export-json" readonly rows="5"></textarea></details>
+   <p class="hint math-disclaimer">Математична оптимізація зваженої моделі шкоди й золота. Реальна ефективність, швидкість і умовні синергії можуть відрізнятися. Неофіційний інструмент.</p>
+ </div>
+</section>
+</div>
+<section class="methodology" aria-labelledby="method-title">
+ <h2 id="method-title">Модель обчислення та обмеження</h2>
+ <p>Калькулятор оптимізує зважену оцінку шкоди та золота. Він не моделює час престижу й не гарантує найсильнішу збірку в грі.</p>
+ <p>Для бюджетів понад 12 000 очок загальний розподіл використовує наближення з обмеженою похибкою. Оптимізація кожного дерева залишається точною.</p>
+ <a href="https://github.com/romainlsoft-bit/Leskasoft.TT2-SP-BUILD-OPTIMIZER/blob/main/docs/MATH_AUDIT.md" target="_blank" rel="noopener noreferrer">Переглянути математичний аудит</a>
+</section>
+</main>
+<dialog id="export-help-dialog" class="export-help-dialog" aria-labelledby="export-help-title">
+ <div class="modal-head"><h2 id="export-help-title">Як експортувати ваші дані TT2</h2><button type="button" id="export-help-close" class="dialog-close" aria-label="Закрити довідку" title="Закрити довідку">×</button></div>
+ <ol>
+  <li>Відкрийте Tap Titans 2 на телефоні.</li>
+  <li>У грі відкрийте Options → Services → Export.</li>
+  <li>Скопіюйте експортовані дані гравця.</li>
+  <li>Поверніться на цю сторінку та натисніть «Вставити з буфера» або вставте JSON вручну.</li>
+ </ol>
+ <p>Щоб імпортувати готову збірку в TT2, відкрийте Skill Tree → Saves → Import.</p>
+ <p class="hint">Використовуйте експорт даних гравця або JSON збереженої збірки, а не Player API Token. Дані залишаються у браузері.</p>
+ <div class="dialog-actions"><button id="export-help-done" type="button" class="btn primary">Зрозуміло</button></div>
+</dialog>
+
+<footer><div><strong>Оптимізатор TT2</strong><span>Незалежний інструмент спільноти, не пов'язаний із Game Hive.</span></div><div class="footer-links"><span><span>Оригінальний оптимізатор від</span> <a href="https://github.com/rawrzcookie/rawrzcookie.github.io" target="_blank" rel="noopener noreferrer">rawrzcookie</a> · <a href="https://github.com/romainlsoft-bit/Leskasoft.TT2-SP-BUILD-OPTIMIZER/blob/main/THIRD_PARTY_NOTICES.md" target="_blank" rel="noopener noreferrer">Умови ліцензії MIT</a></span><a href="https://www.leskasoft.fr/en" target="_blank" rel="noopener noreferrer">Leskasoft ↗</a><a href="https://github.com/romainlsoft-bit/Leskasoft.TT2-SP-BUILD-OPTIMIZER" target="_blank" rel="noopener noreferrer">Вихідний код ↗</a></div></footer>
+</div>
+</body></html>

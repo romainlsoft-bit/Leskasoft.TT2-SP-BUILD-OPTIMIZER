@@ -2,7 +2,7 @@
 
 Free, open-source, mobile-first **Tap Titans 2 skill points calculator and TT2 skill tree optimizer**, maintained by [Leskasoft](https://www.leskasoft.fr/en).
 
-> **Status: public preview (v0.1).** The solver is mathematically exact **for the stated weighted damage/gold proxy**, not necessarily for real gameplay. The underlying skill-tree table matches the latest skill CSV compared on 15 November 2026. Other game mechanics, equipment sets and live game changes require ongoing verification. No site is deployed until GitHub Pages is enabled.
+> **Status: public preview (v0.1).** The solver is exact per branch for its weighted damage/gold proxy; cross-branch allocations above 12,000 SP use a certified bounded approximation. This does **not** establish the best real gameplay build. The underlying skill-tree table matches the latest skill CSV compared on 15 November 2026. Other game mechanics, equipment sets and live game changes require ongoing verification. Hosting and DNS availability must be verified independently after publication.
 
 ## Features
 
@@ -42,7 +42,7 @@ The test suite includes property-like seeded cases comparing the solver against 
 
 ## Deploy with GitHub Pages
 
-In **Settings → Pages** choose **Deploy from a branch**, branch `main`, folder `/(root)`; add `tap-titans.leskasoft.com` as the Custom domain, then enable Enforce HTTPS when available. Configure the DNS CNAME `tap-titans` → `romainlsoft-bit.github.io` (without the repository path).. After merging the PR and enabling Pages, the site URL will be:
+In **Settings → Pages** choose **Deploy from a branch**, branch `main`, folder `/(root)`; add `tap-titans.leskasoft.com` as the Custom domain, then enable Enforce HTTPS when available. Configure the DNS CNAME `tap-titans` → `romainlsoft-bit.github.io` (without the repository path). After enabling Pages, the intended site URL is:
 
 https://tap-titans.leskasoft.com/
 
@@ -52,7 +52,7 @@ Change `index.html` canonical/OG URLs if deploying under a different domain.
 
 - Independent compatibility checks for TT2 8.4+ active effects, equipment and clan technologies.
 - Better conditional cross-skill synergy handling (contracts and other shared multipliers).
-- Benchmarks at high SP, optimization progress reporting and optional exactness certification logs.
+- Browser/mobile benchmarks at high SP and further memory/solver optimizations.
 - Automated patch detection and reviewable data update PRs without blindly merging game changes.
 - Progressive web app/offline support.
 
@@ -72,10 +72,23 @@ The certification is for the declared additive weighted score **only**; new TT2 
 
 ## Interface languages and accessibility
 
-The interface is available in **English (default), French, Ukrainian and Russian**. Players can switch languages in the header; the selection is remembered locally. `?lang=fr`, `?lang=uk` and `?lang=ru` provide explicit links. Internal skill identifiers and export JSON remain untranslated so the game can still import them.
+The interface is available in **English (default), French, Ukrainian and Russian**. Players can switch languages in the header; the selection is remembered locally. The translations are also served as directly indexable HTML at `/fr/`, `/uk/` and `/ru/`; the English root `/` is the default. Legacy `?lang=...` links navigate to the appropriate language-specific path. Internal skill identifiers and export JSON remain untranslated so the game can still import them.
 
 The three steps (account, playstyle, result) are full-width and vertically stacked on desktop and mobile. An accessible “?” help dialog next to Step 1 explains where the in-game export command is located. All game calculations and algorithms remain unchanged by localization.
 
 ## Licenses and acknowledgements
 
 This repository is distributed under the [MIT License](LICENSE), © 2026 romainlsoft-bit. The third-party code and reference tables adapted from [rawrzcookie's original TT2 optimizer](https://github.com/rawrzcookie/rawrzcookie.github.io) retain its original 2022 copyright and MIT permission notice in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). Both notices must be kept in copies or substantial portions of redistributed code.
+
+## 22,000+ SP review and search indexing
+
+A reproducible high-SP benchmark is available:
+
+```sh
+npm run bench:22k
+# or: node scripts/benchmark-22k.mjs 22500 --all
+```
+
+In a JavaScript execution environment on 16 November 2026, two 22,500-SP reference configurations completed in approximately **10.5 seconds** (Clan Ship/Fairy/QoL) and **17.3 seconds** (Shadow Clone/Fairy/no QoL), respectively. Both respected the SP limit and returned bounded model-score gaps. These measurements **do not predict performance on Android**. Do not commit game exports with account or personal data to this repository.
+
+Static translated HTML, one factual H1 per language, self-canonical URLs, reciprocal hreflang, a four-language sitemap and factual methodology content are supplied for crawling. The site deliberately avoids star ratings or review statistics that cannot be substantiated. Google Search Console verification and actual indexing cannot be carried out from source code alone. See [SEO and indexing checklist](docs/SEO_INDEXING.md).

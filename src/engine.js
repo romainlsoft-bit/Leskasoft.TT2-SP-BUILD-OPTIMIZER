@@ -1,7 +1,7 @@
 import { skillInfo } from "../vendor/skills.js";
 import { baseline } from "../vendor/qol-baseline.js";
 import { optimizeExact } from "./solver-core.js";
-import { scoreAtLevel, assertFiniteScores } from "./effects.js";
+import { scoreAtLevel } from "./effects.js";
 
 export const GAME_VERSION = "8.4.0";
 export const DATASET_REVISION = "2026-09-18"; // SkillTreeInfo2.0.csv comparison
@@ -97,9 +97,21 @@ export function optimizeBuild(settings,onProgress){
     if(min[id]>max)throw new Error(s.Name+" cannot reach the required minimum at your current stage.");
     return {id,branch:s.Branch,parent:s.TalentReq,spReq:Number(s.SPReq),min:min[id],max,excluded:settings.excluded?.includes(id)||false,costs:COSTS[id]};
   });
-  const issues=assertFiniteScores(SKILL_IDS,{...settings,minimums:min});
-  if(issues.length)throw new Error("Some score coefficients are invalid: "+issues[0]);
-  const result=optimizeExact(skills,SP,(s,level)=>scoreAtLevel(s.id,level,{...settings,minimums:min}),settings.mode||"power",onProgress);
+  // Evaluate and validate each (skill, level) score exactly once. The old
+  // code recomputed every score for validation and again during branch DP,
+  // including costly conditional/multicast mechanics at high SP budgets.
+  const scoreContext={...settings,minimums:min};
+  const scoreCache=new Map();
+  for(const id of SKILL_IDS){
+    const scores=new Float64Array(Number(skillInfo[id].MaxLevel)+1);
+    for(let level=0;level<scores.length;level++){
+      const value=scoreAtLevel(id,level,scoreContext);
+      if(!Number.isFinite(value))throw new Error("Some score coefficients are invalid: "+id+" level "+level);
+      scores[level]=value;
+    }
+    scoreCache.set(id,scores);
+  }
+  const result=optimizeExact(skills,SP,(skill,level)=>scoreCache.get(skill.id)[level],settings.mode||"power",onProgress);
   const points=spentPoints(result.levels);
   if(points>SP)throw new Error("Internal validation failed: allocation exceeds SP budget.");
   for(const item of skills){

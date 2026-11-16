@@ -8,8 +8,6 @@ const numberText=value=>Number(value).toLocaleString({en:"en-US",fr:"fr-FR",uk:"
 function setLocale(next){
  locale=SUPPORTED_LANGUAGES.includes(next)?next:"en";
  try{localStorage.setItem("tt2_site_language",locale)}catch{}
- const u=new URL(location.href);
- if(u.searchParams.has("lang")){u.searchParams.set("lang",locale);history.replaceState(null,"",u.toString());}
  $("language-select").value=locale;
  localizeDocument(document,locale);
  renderChoices();renderEditor($("skill-search").value);
@@ -19,6 +17,25 @@ function setLocale(next){
  status(lastStatus.message,lastStatus.type,lastStatus.params);
  if(!worker)resetOptimizeButton();
  else $("optimize-button").textContent=tr("Cancel optimization");
+}
+// Stable, crawlable static HTML per language. Keep URLs relative so the same
+// code also works under the repository subpath on github.io.
+function localizedUrl(lang){
+ const current=new URL(location.href);
+ const segments=current.pathname.split("/").filter(Boolean);
+ if(segments.at(-1)==="index.html")segments.pop();
+ if(["fr","uk","ru"].includes(segments.at(-1)))segments.pop();
+ const prefix="/"+segments.join("/")+(segments.length?"/":"");
+ const path=prefix+(lang==="en"?"":lang+"/");
+ const params=new URLSearchParams(current.search);
+ params.delete("lang");
+ return current.origin+path+(params.size?"?"+params.toString():"")+current.hash;
+}
+function changeLanguage(lang){
+ if(!SUPPORTED_LANGUAGES.includes(lang))return;
+ readInputs();persist();
+ try{localStorage.setItem("tt2_site_language",lang)}catch{}
+ location.assign(localizedUrl(lang));
 }
 function engineError(message){
  const value=String(message||"Optimization failed.");
@@ -176,9 +193,14 @@ function initialize(){
  try{const saved=JSON.parse(localStorage.getItem("tt2_skill_optimizer_v1")||"null");if(saved&&typeof saved==="object")state={...fresh(),...saved};}catch{}
  decodeLink();fillInputs();
  const queryLang=new URL(location.href).searchParams.get("lang");
+ const pathLang=document.documentElement.lang;
  let savedLang="en";try{savedLang=localStorage.getItem("tt2_site_language")||"en"}catch{}
- setLocale(SUPPORTED_LANGUAGES.includes(queryLang)?queryLang:savedLang);
- $("language-select").addEventListener("change",e=>setLocale(e.target.value));
+ const desired=SUPPORTED_LANGUAGES.includes(queryLang)?queryLang:(pathLang==="en"&&SUPPORTED_LANGUAGES.includes(savedLang)?savedLang:pathLang);
+ if(desired!==pathLang || queryLang){
+   location.replace(localizedUrl(desired)); return;
+ }
+ setLocale(pathLang);
+ $("language-select").addEventListener("change",e=>changeLanguage(e.target.value));
  const help=$("export-help-dialog");
  $("export-help-button").addEventListener("click",()=>help.showModal());
  for(const id of ["export-help-close","export-help-done"])$(id).addEventListener("click",()=>help.close());
