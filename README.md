@@ -62,3 +62,7 @@ The app runs the calculations locally. Player exports are not sent to Leskasoft.
 The solver and data tables incorporate modified MIT-licensed third-party work; see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for the required attribution. Tap Titans 2 is the property of its respective owners; this is an independent, unofficial tool.
 
 Other practical tools by [Leskasoft](https://www.leskasoft.fr/en) include [Remanence](https://remanence.leskasoft.fr), a solution for exploring and recovering damaged or corrupted video files.
+
+### High-SP support
+
+The accepted skill-point budget is **0–50,000**. Exact optimization is performed in a Web Worker and may require substantial memory/time on phones at high budgets. Raising the input limit does not constitute a 50,000-SP performance benchmark or proof of an exact real-game optimum. See [math audit](docs/MATH_AUDIT.md).

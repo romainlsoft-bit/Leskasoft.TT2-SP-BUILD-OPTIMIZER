@@ -74,7 +74,7 @@ export function qosFloors(damage,gold,SP){
 }
 export function optimizeBuild(settings){
   const SP=Number(settings.skillPoints), goldWeight=Number(settings.goldWeight);
-  if(!Number.isSafeInteger(SP)||SP<0||SP>25000)throw new Error("Enter 0–25,000 Skill Points.");
+  if(!Number.isSafeInteger(SP)||SP<0||SP>50000)throw new Error("Enter 0–50,000 Skill Points.");
   if(!DAMAGE_TYPES.includes(settings.damage))throw new Error("Select a damage source.");
   if(!GOLD_TYPES.includes(settings.gold))throw new Error("Select a gold source.");
   if(!Number.isFinite(goldWeight)||goldWeight<0||goldWeight>2)throw new Error("Gold weight must be between 0 and 2.");
