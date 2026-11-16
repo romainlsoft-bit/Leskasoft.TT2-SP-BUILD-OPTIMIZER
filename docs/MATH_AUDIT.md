@@ -35,7 +35,7 @@ On 15 November 2026, the 72 rows of the existing skill-table module were compare
 - **Weighted proxy**: The mathematical optimum is only guaranteed for the modeled additive log-damage/gold objective. It cannot be labeled the *best real-world TT2 build* without comparative in-game results.
 - **Conditional interactions**: Cross-skill combinations and dynamic equipment activation are not yet represented exactly. The conservative treatment of contracts can undervalue some real synergies.
 - **Scope of data updates**: Skill data, spells, reductions and QoL baselines are versioned separately. Equipment bonuses and Clan Technology introduced in 8.4 require dedicated model validation.
-- **Very large SP budgets**: The exact dynamic program has potentially high computational cost for many thousands of SP and should be benchmarked on mid-range phones. The UI currently caps the budget at 25,000 SP. Neither elapsed time nor memory is guaranteed.
+- **Very large SP budgets**: The exact dynamic program has potentially high computational cost for many thousands of SP and should be benchmarked on mid-range phones. The UI currently caps the budget at 50,000 SP. Neither elapsed time nor memory is guaranteed.
 - **UI import compatibility**: Game export formats may change; importers must be validated against real 8.4 player exports.
 - **Upper envelope assumptions**: Convolution correctness depends on the upper concave envelope being a valid bound. The implementation is verified by exhaustive randomized cases, and should receive additional property tests at larger budgets and numeric extremes.
 - **Gameplay verification**: Before marking the version as fully validated, independently check the formulas against the actual patch and playtest multiple builds.

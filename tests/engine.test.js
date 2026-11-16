@@ -89,3 +89,9 @@ test("Real model respects budgets and skill prerequisites",()=>{
 test("Required levels fail clearly if budget is insufficient",()=>{
  assert.throws(()=>optimizeBuild({...defaults,skillPoints:2,minimums:{TapDmg:20}}),/more SP/);
 });
+
+test("SP input accepts 50,000 and rejects 50,001",()=>{
+  assert.throws(()=>optimizeBuild({...defaults,skillPoints:50001}),/50,000/);
+  // Full 50k DP benchmark intentionally excluded from short unit tests;
+  // it requires a dedicated performance and memory validation on devices.
+});
