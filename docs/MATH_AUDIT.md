@@ -75,3 +75,14 @@ Under Pet/Fairy and gold weight 0.7 with basic default score inputs, the old add
 The advanced panel now exposes these three explicit combat conditions with conservative defaults (inactive Hayst, inactive Snap, zero Astral taps). These assumptions are included in shared settings links and recorded with the solver result. This is **partial remediation only**. It cannot explain or guarantee reversal of a 750-stage loss without actual settings and a multi-profile in-game validation.
 
 Still to investigate: hero-power counts in Tactical Insight, mana/uptime for contracts, effect interactions, QoL floors and constraints, all other skill effect conversions, current patch differences. No cap based on a player's previous Warlord allocation is permitted.
+
+
+## Observed Pet/Fairy regression — 16 November 2026
+
+An anonymized pair of TT2 8.4 skill trees provides a real gameplay comparison: **750 additional stages** for the better tree. The two valid trees spend **22,640 / 22,642 SP**. The better tree spends **1,650 SP in Warlord** versus **1,414**, disproving a proposed arbitrary Warlord cap. The optimizer tree spends **3,728 SP in Sorcerer**, versus **2,989**, primarily because it raises **Terrifying Pact from level 22 to 25** (+737 SP).
+
+Under the corrected conservative boss assumptions (no Hayst, Snap, Astral taps or contract maxima), the weighted log-score prefers the real better tree (847.43 vs 822.17). The earlier calculation (936.06 vs 913.81) still incorrectly credited maximum Forbidden/Royal Contract bonuses as unconditional. When the two contracts are treated as guaranteed active at maximum, the old score reverses this ranking. Thus the regression implicates scenario assumptions and the proxy's validity; it does not yet prove that the dynamic-programming solver itself is incorrect. Exact optimizer settings that generated the losing tree are not known. Neither build fully respects the current `qol=recommended` floors.
+
+**Partial fix:** `ForbiddenContract` and `RoyalContract` table maxima require sustained mana and time. They, and the conditional `TerrifyingPact` bonuses, are now scored at zero by default at the limit-stage boss unless `assumeContractsAtMax` is explicitly enabled. The opt-in scenario requires both contract skills to have at least one level, which makes the selected scenario internally consistent. It does **not** simulate time-to-max, mana drain, cooldowns or gameplay, and must not be described as complete resolution of the 750-stage regression. A standalone anonymous regression fixture preserves the exact pair of submitted trees.
+
+Mechanics: https://www.tt2-compendium.com/en/wiki/skills/terrifyingpact ; https://www.tt2-compendium.com/en/wiki/skills/forbiddencontract ; https://www.tt2-compendium.com/en/wiki/skills/royalcontract .

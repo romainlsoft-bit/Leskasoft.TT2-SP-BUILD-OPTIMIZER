@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {exactConvolution,optimizeExact,branchDynamicProgram,upperConcaveEnvelope} from "../src/solver-core.js";
 import {SKILLS,SKILL_IDS,GAME_VERSION,DAMAGE_TYPES,GOLD_TYPES,parseExport,exportBuild,spentPoints,optimizeBuild} from "../src/engine.js";
 import {scoreAtLevel,assertFiniteScores} from "../src/effects.js";
+import {observedPetFairy} from "./fixtures/pet-fairy-comparison-20261116.js";
 const defaults={damage:"Clan Ship",gold:"Fairy",goldWeight:0.7,skillPoints:0,qol:"none",sets:{},minimums:{},currentLevels:{},maxStage:0,craftingPower:1,timeToKill:8,sClone:30};
 let seed=712367;const rng=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296};
 function bruteConvolution(a,b){return a.map((_,budget)=>Math.max(...Array.from({length:budget+1},(_,i)=>a[i]+b[budget-i])))}
@@ -178,4 +179,41 @@ test("Combat conditions survive optimization and out-of-range taps are rejected"
  const out=optimizeBuild({...defaults,skillPoints:50,damage:"Pet",gold:"Fairy",
   assumeSnapActive:true,assumeHaystActive:false,astralActivations:2});
  assert.deepEqual(out.combatAssumptions,{hayst:false,snap:true,astralActivations:2});
+});
+
+test("Max-ramped contracts require explicit peak activation at the boss",()=>{
+ const s={...defaults,damage:"Pet",gold:"Fairy"};
+ for(const id of ["ForbiddenContract","RoyalContract","TerrifyingPact"])
+   assert.equal(scoreAtLevel(id,20,s),0,id+" must be inactive by default");
+ assert.ok(scoreAtLevel("ForbiddenContract",20,{...s,assumeContractsAtMax:true})>0);
+ assert.ok(scoreAtLevel("RoyalContract",20,{...s,assumeContractsAtMax:true})>0);
+ assert.equal(scoreAtLevel("TerrifyingPact",20,{...s,assumeContractsAtMax:true}),0);
+ assert.ok(scoreAtLevel("TerrifyingPact",20,{...s,assumeContractsAtMax:true,minimums:{ForbiddenContract:1,RoyalContract:1}})>0);
+});
+test("Explicit peak-contract scenario includes both required contracts",()=>{
+ const r=optimizeBuild({...defaults,damage:"Pet",gold:"Fairy",skillPoints:400,qol:"none",assumeContractsAtMax:true});
+ assert.ok(r.levels.ForbiddenContract>=1);
+ assert.ok(r.levels.RoyalContract>=1);
+ assert.equal(r.combatAssumptions.contractsAtMax,true);
+ assert.ok(r.spent<=400);
+ const conservative=optimizeBuild({...defaults,damage:"Pet",gold:"Fairy",skillPoints:400,qol:"none"});
+ assert.equal(conservative.combatAssumptions.contractsAtMax,false);
+});
+test("Observed Pet/Fairy stage regression compares equally affordable trees",()=>{
+ const {better,optimizer,observedStageDifference}=observedPetFairy;
+ assert.equal(observedStageDifference,750);
+ assert.equal(spentPoints(better),22640);
+ assert.equal(spentPoints(optimizer),22642);
+ const costIn=(levels,branch)=>SKILL_IDS.filter(id=>SKILLS[id].Branch===branch)
+  .reduce((sum,id)=>sum+spentPoints({[id]:levels[id]||0}),0);
+ assert.equal(costIn(better,"BranchYellow"),1650);
+ assert.equal(costIn(optimizer,"BranchYellow"),1414);
+ assert.equal(costIn(better,"BranchBlue"),2989);
+ assert.equal(costIn(optimizer,"BranchBlue"),3728);
+ const scenario={...defaults,damage:"Pet",gold:"Fairy",goldWeight:0.7,
+  assumeHaystActive:false,assumeSnapActive:false,astralActivations:0,
+  assumeContractsAtMax:false};
+ const score=levels=>SKILL_IDS.reduce((sum,id)=>sum+scoreAtLevel(id,levels[id]||0,scenario),0);
+ // Agreement in a proxy metric cannot validate the observed 750-stage gain.
+ assert.ok(score(better)>score(optimizer));
 });

@@ -522,6 +522,10 @@ Object.assign(translations.ru,{
   "Astral Awakening activations must be between 0 and 5.": "Число нажатий Astral Awakening должно быть от 0 до 5."
 });
 
+Object.assign(translations.fr,{"Both contracts reach maximum bonuses at your hardest boss (mana-intensive)":"Les deux contrats atteignent leur bonus maximal contre votre boss le plus difficile (consomme beaucoup de mana)","Contracts at full bonus: {status}":"Contrats au bonus maximal : {status}","yes":"oui","no":"non"});
+Object.assign(translations.uk,{"Both contracts reach maximum bonuses at your hardest boss (mana-intensive)":"Обидва контракти досягають максимальних бонусів проти найскладнішого боса (потребує багато мани)","Contracts at full bonus: {status}":"Контракти з максимальним бонусом: {status}","yes":"так","no":"ні"});
+Object.assign(translations.ru,{"Both contracts reach maximum bonuses at your hardest boss (mana-intensive)":"Оба контракта достигают максимальных бонусов против самого сложного босса (требует много маны)","Contracts at full bonus: {status}":"Контракты с максимальным бонусом: {status}","yes":"да","no":"нет"});
+
 export function t(message, lang="en", parameters={}){
   const selected=SUPPORTED_LANGUAGES.includes(lang)?lang:"en";
   const value=translations[selected]?.[message] ?? message;
