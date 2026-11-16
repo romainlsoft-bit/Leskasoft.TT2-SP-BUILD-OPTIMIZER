@@ -84,7 +84,7 @@
    <div class="result-banner"><div><span class="eyebrow mini">РЕКОМЕНДУЕМОЕ РАСПРЕДЕЛЕНИЕ</span><h3 id="build-title">Clan Ship · Fairy</h3><p id="build-subtitle">Сбалансированный</p></div><span class="success-symbol">✓</span></div>
    <div class="metric-grid"><div class="metric"><small>Потрачено очков</small><strong id="spent">0</strong></div><div class="metric"><small>Осталось</small><strong id="remaining">0</strong></div><div class="metric"><small>Изменено навыков</small><strong id="change-count">0</strong></div></div>
    <h3>Распределение по деревьям</h3><div class="branches" id="branch-chart"></div>
-   <div class="result-buttons"><button id="copy-build" type="button" class="btn primary">Копировать дерево TT2</button><button id="share-build" type="button" class="btn secondary">Копировать ссылку</button></div>
+   <div class="result-buttons"><button id="copy-build" type="button" class="btn primary">Копировать дерево TT2</button><button id="share-build" type="button" class="btn secondary">Копировать ссылку</button><button id="import-help-button" type="button" class="btn secondary" aria-haspopup="dialog" aria-controls="import-help-dialog">Как импортировать в TT2?</button></div>
    <details class="result-detail"><summary>Все уровни навыков</summary><div id="full-tree"></div></details>
    <details class="result-detail"><summary>Сравнение с текущим билдом <span id="delta-count"></span></summary><div id="diff-list"></div></details>
    <details class="result-detail"><summary>Экспортированный JSON</summary><textarea aria-label="Сгенерированный JSON" id="export-json" readonly rows="5"></textarea></details>
@@ -112,7 +112,20 @@
  <div class="dialog-actions"><button id="export-help-done" type="button" class="btn primary">Понятно</button></div>
 </dialog>
 
-<footer><div><strong>Оптимизатор TT2</strong><span>Независимый инструмент сообщества. Не связан с Game Hive.</span></div><div class="footer-links"><span><span>Автор исходного оптимизатора</span> <a href="https://github.com/rawrzcookie/rawrzcookie.github.io" target="_blank" rel="noopener noreferrer">rawrzcookie</a> · <a href="https://github.com/romainlsoft-bit/Leskasoft.TT2-SP-BUILD-OPTIMIZER/blob/main/THIRD_PARTY_NOTICES.md" target="_blank" rel="noopener noreferrer">Условия лицензии MIT</a></span><a href="https://www.leskasoft.fr/en" target="_blank" rel="noopener noreferrer">Leskasoft ↗</a><a href="https://github.com/romainlsoft-bit/Leskasoft.TT2-SP-BUILD-OPTIMIZER" target="_blank" rel="noopener noreferrer">Исходный код ↗</a></div></footer>
+<dialog id="import-help-dialog" class="export-help-dialog" aria-labelledby="import-help-title">
+ <div class="modal-head"><h2 id="import-help-title">Как импортировать оптимизированный билд в TT2</h2><button type="button" id="import-help-close" class="dialog-close" aria-label="Закрыть справку" title="Закрыть справку">×</button></div>
+ <ol>
+  <li>После оптимизации нажмите «Копировать дерево TT2», чтобы скопировать готовый билд.</li>
+  <li>Откройте Tap Titans 2 и перейдите к дереву навыков.</li>
+  <li>Откройте Saves (сохранённые билды), выберите слот и нажмите Import.</li>
+  <li>Импортируйте билд из буфера обмена, когда игра предложит это сделать.</li>
+  <li>Нажмите Load to Tree, чтобы загрузить билд в дерево, и подтвердите изменения в TT2.</li>
+ </ol>
+ <p class="hint">Используйте билд, скопированный оптимизатором, а не экспорт данных игрока из Options → Services → Export.</p>
+ <div class="dialog-actions"><button id="import-help-done" type="button" class="btn primary">Понятно</button></div>
+</dialog>
+
+<footer><div><strong>Оптимизатор TT2</strong><span>Независимый инструмент сообщества. Не связан с Game Hive.</span></div><div class="footer-links"><span><span>Автор исходного оптимизатора</span> <a href="https://github.com/rawrzcookie/rawrzcookie.github.io" target="_blank" rel="noopener noreferrer">rawrzcookie</a> · <a href="https://github.com/romainlsoft-bit/Leskasoft.TT2-SP-BUILD-OPTIMIZER/blob/main/THIRD_PARTY_NOTICES.md" target="_blank" rel="noopener noreferrer">Условия лицензии MIT</a></span><a href="https://leskasoft.com" target="_blank" rel="noopener noreferrer">Leskasoft ↗</a><a href="https://github.com/romainlsoft-bit/Leskasoft.TT2-SP-BUILD-OPTIMIZER" target="_blank" rel="noopener noreferrer">Исходный код ↗</a></div></footer>
 </div>
 
 <!-- Visible immediately even when the status line is far down the page. -->

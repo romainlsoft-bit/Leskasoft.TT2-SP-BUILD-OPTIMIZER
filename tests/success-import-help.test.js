@@ -1,0 +1,44 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import {readFileSync} from "node:fs";
+import {t} from "../src/i18n.js";
+
+const src=path=>readFileSync(new URL("../"+path,import.meta.url),"utf8");
+const app=src("src/app.js");
+const css=src("styles.css");
+const pages=["index.html","fr/index.html","uk/index.html","ru/index.html"];
+
+test("every successful action shows the positive toast and errors remain visible",()=>{
+ assert.match(app,/else if\(type==="success"\)showToast\(display,"success"\)/);
+ assert.match(app,/if\(type==="error"\)showToast\(display\)/);
+ assert.match(app,/toast\.dataset\.kind=type/);
+ assert.match(app,/success\?"status":"alert"/);
+ assert.match(app,/success\?"polite":"assertive"/);
+ assert.match(app,/setTimeout\(\(\)=>\{toastDismissTimer=null;toast\.hidden=true;\},6000\)/);
+ assert.match(css,/\.app-toast\[data-kind="success"\]/);
+});
+test("copy failures are not reported as success",()=>{
+ assert.match(app,/copied\?"success":"error"/g);
+ assert.match(app,/const copied=await copyText\(exportBuild\(lastResult\.levels\)\)/);
+ assert.match(app,/const copied=await copyText\(link\)/);
+});
+test("result import help and Leskasoft link are present in all localized HTML",()=>{
+ for(const p of pages){
+  const html=src(p);
+  assert.ok(html.includes('id="import-help-button"'),p);
+  assert.ok(html.includes('id="import-help-dialog"'),p);
+  assert.ok(html.includes('id="import-help-close"'),p);
+  assert.ok(html.includes('id="import-help-done"'),p);
+  assert.ok(html.includes('aria-controls="import-help-dialog"'),p);
+  assert.ok(html.includes("Saves"),p);
+  assert.ok(html.includes("Import"),p);
+  assert.ok(html.includes("Load to Tree"),p);
+  assert.ok(html.includes('href="https://leskasoft.com"'),p);
+ }
+ assert.match(app,/importHelp\.showModal\(\)/);
+ assert.match(app,/import-help-close","import-help-done/);
+});
+test("success notification title is localized in all supported languages",()=>{
+ for(const lang of ["fr","uk","ru"])assert.notEqual(t("Success",lang),"Success",lang);
+ assert.equal(t("Success","en"),"Success");
+});

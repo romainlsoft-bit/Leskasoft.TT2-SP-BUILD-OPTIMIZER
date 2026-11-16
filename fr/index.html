@@ -84,7 +84,7 @@
    <div class="result-banner"><div><span class="eyebrow mini">RÉPARTITION RECOMMANDÉE</span><h3 id="build-title">Clan Ship · Fairy</h3><p id="build-subtitle">Équilibré</p></div><span class="success-symbol">✓</span></div>
    <div class="metric-grid"><div class="metric"><small>SP utilisés</small><strong id="spent">0</strong></div><div class="metric"><small>Restants</small><strong id="remaining">0</strong></div><div class="metric"><small>Compétences modifiées</small><strong id="change-count">0</strong></div></div>
    <h3>Répartition par arbre</h3><div class="branches" id="branch-chart"></div>
-   <div class="result-buttons"><button id="copy-build" type="button" class="btn primary">Copier le build TT2</button><button id="share-build" type="button" class="btn secondary">Copier un lien de partage</button></div>
+   <div class="result-buttons"><button id="copy-build" type="button" class="btn primary">Copier le build TT2</button><button id="share-build" type="button" class="btn secondary">Copier un lien de partage</button><button id="import-help-button" type="button" class="btn secondary" aria-haspopup="dialog" aria-controls="import-help-dialog">Comment importer dans TT2 ?</button></div>
    <details class="result-detail"><summary>Tous les niveaux de compétences</summary><div id="full-tree"></div></details>
    <details class="result-detail"><summary>Comparaison avec votre build actuel <span id="delta-count"></span></summary><div id="diff-list"></div></details>
    <details class="result-detail"><summary>JSON exporté</summary><textarea aria-label="JSON du build généré" id="export-json" readonly rows="5"></textarea></details>
@@ -112,7 +112,20 @@
  <div class="dialog-actions"><button id="export-help-done" type="button" class="btn primary">Compris</button></div>
 </dialog>
 
-<footer><div><strong>Optimiseur TT2</strong><span>Outil communautaire indépendant, sans affiliation à Game Hive.</span></div><div class="footer-links"><span><span>Optimiseur d'origine par</span> <a href="https://github.com/rawrzcookie/rawrzcookie.github.io" target="_blank" rel="noopener noreferrer">rawrzcookie</a> · <a href="https://github.com/romainlsoft-bit/Leskasoft.TT2-SP-BUILD-OPTIMIZER/blob/main/THIRD_PARTY_NOTICES.md" target="_blank" rel="noopener noreferrer">Mentions MIT</a></span><a href="https://www.leskasoft.fr/en" target="_blank" rel="noopener noreferrer">Leskasoft ↗</a><a href="https://github.com/romainlsoft-bit/Leskasoft.TT2-SP-BUILD-OPTIMIZER" target="_blank" rel="noopener noreferrer">Code source ↗</a></div></footer>
+<dialog id="import-help-dialog" class="export-help-dialog" aria-labelledby="import-help-title">
+ <div class="modal-head"><h2 id="import-help-title">Comment importer le build optimisé dans TT2</h2><button type="button" id="import-help-close" class="dialog-close" aria-label="Fermer l'aide" title="Fermer l'aide">×</button></div>
+ <ol>
+  <li>Après l’optimisation, appuyez sur « Copier l’arbre TT2 » pour copier le build généré.</li>
+  <li>Ouvrez Tap Titans 2 et accédez à l’arbre de compétences.</li>
+  <li>Ouvrez Saves (builds sauvegardés), sélectionnez un emplacement puis choisissez Import.</li>
+  <li>Importez le build présent dans le presse-papiers lorsque le jeu le propose.</li>
+  <li>Choisissez Load to Tree pour charger ce build dans l’arbre, puis confirmez les modifications dans TT2.</li>
+ </ol>
+ <p class="hint">Utilisez le build copié par l’optimiseur, et non l’export du joueur obtenu via Options → Services → Export.</p>
+ <div class="dialog-actions"><button id="import-help-done" type="button" class="btn primary">Compris</button></div>
+</dialog>
+
+<footer><div><strong>Optimiseur TT2</strong><span>Outil communautaire indépendant, sans affiliation à Game Hive.</span></div><div class="footer-links"><span><span>Optimiseur d'origine par</span> <a href="https://github.com/rawrzcookie/rawrzcookie.github.io" target="_blank" rel="noopener noreferrer">rawrzcookie</a> · <a href="https://github.com/romainlsoft-bit/Leskasoft.TT2-SP-BUILD-OPTIMIZER/blob/main/THIRD_PARTY_NOTICES.md" target="_blank" rel="noopener noreferrer">Mentions MIT</a></span><a href="https://leskasoft.com" target="_blank" rel="noopener noreferrer">Leskasoft ↗</a><a href="https://github.com/romainlsoft-bit/Leskasoft.TT2-SP-BUILD-OPTIMIZER" target="_blank" rel="noopener noreferrer">Code source ↗</a></div></footer>
 </div>
 
 <!-- Visible immediately even when the status line is far down the page. -->
