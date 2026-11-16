@@ -69,3 +69,13 @@ Other practical tools by [Leskasoft](https://www.leskasoft.fr/en) include [Reman
 For a 50,000-SP Clan Ship / Fairy Gold build without QoL floors, the bounded model returned 49,973 SP allocated, using a 20-SP grid and a **1.2556 log10-score-unit worst-case upper gap** against the exact modeled optimum. In a JavaScript execution benchmark the calculation took approximately 17.4 seconds. This is an implementation test, **not a mobile performance guarantee** or validation of actual in-game damage.
 
 The certification is for the declared additive weighted score **only**; new TT2 8.4 equipment effects and conditional interactions still require independent verification.
+
+## Interface languages and accessibility
+
+The interface is available in **English (default), French, Ukrainian and Russian**. Players can switch languages in the header; the selection is remembered locally. `?lang=fr`, `?lang=uk` and `?lang=ru` provide explicit links. Internal skill identifiers and export JSON remain untranslated so the game can still import them.
+
+The three steps (account, playstyle, result) are full-width and vertically stacked on desktop and mobile. An accessible “?” help dialog next to Step 1 explains where the in-game export command is located. All game calculations and algorithms remain unchanged by localization.
+
+## Licenses and acknowledgements
+
+This repository is distributed under the [MIT License](LICENSE), © 2026 romainlsoft-bit. The third-party code and reference tables adapted from [rawrzcookie's original TT2 optimizer](https://github.com/rawrzcookie/rawrzcookie.github.io) retain its original 2022 copyright and MIT permission notice in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). Both notices must be kept in copies or substantial portions of redistributed code.
