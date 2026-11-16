@@ -63,6 +63,11 @@
       <label>Temps pour tuer (s) <input id="time-to-kill" type="number" min=".1" step=".5" value="8"></label>
       <label>Niveau du sort Clone d'ombre <input id="clone-level" type="number" min="1" max="35" step="1" value="30"></label>
     </div>
+    <h3>Conditions de combat à l’étage maximal</h3>
+    <p class="hint">Ne comptez les bonus temporaires que si vous pouvez les utiliser contre votre boss le plus difficile. Inactif/zéro est l’hypothèse prudente par défaut.</p>
+    <label class="toggle"><input type="checkbox" id="hayst-active"> Hayst actif contre votre boss le plus difficile</label>
+    <label class="toggle"><input type="checkbox" id="snap-active"> Snap actif contre votre boss le plus difficile</label>
+    <label>Orbes Astral Awakening activés (0–5) <input type="number" id="astral-activations" min="0" max="5" step="1" inputmode="numeric" value="0"></label>
     <label class="toggle"><input type="checkbox" id="preserve-current">Conserver les niveaux actuels comme minimums</label>
     <label class="toggle"><input type="checkbox" id="efficiency-mode">Maximiser le score par SP supplémentaire</label>
     <h3>Ensembles d'équipements possédés</h3>
@@ -83,7 +88,7 @@
  <div id="actual-results" hidden>
    <div class="result-banner"><div><span class="eyebrow mini">RÉPARTITION RECOMMANDÉE</span><h3 id="build-title">Clan Ship · Fairy</h3><p id="build-subtitle">Équilibré</p></div><span class="success-symbol">✓</span></div>
    <div class="metric-grid"><div class="metric"><small>SP utilisés</small><strong id="spent">0</strong></div><div class="metric"><small>Restants</small><strong id="remaining">0</strong></div><div class="metric"><small>Compétences modifiées</small><strong id="change-count">0</strong></div></div>
-   <h3>Répartition par arbre</h3><div class="branches" id="branch-chart"></div>
+   <h3>Répartition par arbre</h3><div class="branches" id="branch-chart"></div><p class="hint" id="combat-assumptions-summary" role="note"></p>
    <div class="result-buttons"><button id="copy-build" type="button" class="btn primary">Copier le build TT2</button><button id="share-build" type="button" class="btn secondary">Copier un lien de partage</button><button id="import-help-button" type="button" class="btn secondary" aria-haspopup="dialog" aria-controls="import-help-dialog">Comment importer dans TT2 ?</button></div>
    <details class="result-detail"><summary>Tous les niveaux de compétences</summary><div id="full-tree"></div></details>
    <details class="result-detail"><summary>Comparaison avec votre build actuel <span id="delta-count"></span></summary><div id="diff-list"></div></details>

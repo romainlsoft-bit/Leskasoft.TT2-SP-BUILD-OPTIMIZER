@@ -152,3 +152,30 @@ test("Bounded cross-tree score is bracketed by rigorous bounds (oracle)",()=>{
   assert.ok(result.optimality.upperBound+1e-9>=expected);
  }
 });
+
+test("Conditional Hayst and Snap bonuses must be active to count for Pet/Fairy boss push",()=>{
+ const settings={...defaults,damage:"Pet",gold:"Fairy"};
+ for(const level of [1,12,20]){
+   assert.equal(scoreAtLevel("QuickFortune",level,settings),0);
+   assert.equal(scoreAtLevel("PhilosophersFlux",level,settings),0);
+   assert.ok(scoreAtLevel("QuickFortune",level,{...settings,assumeHaystActive:true})>0);
+   assert.ok(scoreAtLevel("PhilosophersFlux",level,{...settings,assumeSnapActive:true})>0);
+ }
+ assert.ok(scoreAtLevel("LoadedDice",12,settings)>0);
+ assert.equal(scoreAtLevel("LoadedDice",12,settings),
+   scoreAtLevel("LoadedDice",12,{...settings,assumeHaystActive:true}));
+});
+test("Astral Awakening uses actual orb taps (0 to 5) instead of permanently assuming five",()=>{
+ const settings={...defaults,damage:"Pet",gold:"Fairy"};
+ const gain=n=>scoreAtLevel("HelperDmgQTE",12,{...settings,astralActivations:n});
+ assert.equal(gain(0),0);
+ assert.ok(gain(1)>0);
+ assert.ok(Math.abs(gain(5)-5*gain(1))<1e-9);
+});
+test("Combat conditions survive optimization and out-of-range taps are rejected",()=>{
+ for(const n of [-1,1.5,6])
+  assert.throws(()=>optimizeBuild({...defaults,skillPoints:50,astralActivations:n}),/between 0 and 5/);
+ const out=optimizeBuild({...defaults,skillPoints:50,damage:"Pet",gold:"Fairy",
+  assumeSnapActive:true,assumeHaystActive:false,astralActivations:2});
+ assert.deepEqual(out.combatAssumptions,{hayst:false,snap:true,astralActivations:2});
+});

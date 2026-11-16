@@ -63,6 +63,11 @@
       <label>Time to kill (sec) <input id="time-to-kill" type="number" min=".1" step=".5" value="8"></label>
       <label>Shadow Clone spell level <input id="clone-level" type="number" min="1" max="35" step="1" value="30"></label>
     </div>
+    <h3>Push-limit combat conditions</h3>
+    <p class="hint">Count temporary bonuses only when you can use them against your hardest boss. Inactive/zero is the conservative default.</p>
+    <label class="toggle"><input type="checkbox" id="hayst-active"> Hayst active at your hardest boss</label>
+    <label class="toggle"><input type="checkbox" id="snap-active"> Snap active at your hardest boss</label>
+    <label>Astral Awakening orb taps (0–5) <input type="number" id="astral-activations" min="0" max="5" step="1" inputmode="numeric" value="0"></label>
     <label class="toggle"><input type="checkbox" id="preserve-current">Keep current levels as minimums</label>
     <label class="toggle"><input type="checkbox" id="efficiency-mode">Maximize score per newly spent SP</label>
     <h3>Owned equipment sets</h3>
@@ -83,7 +88,7 @@
  <div id="actual-results" hidden>
    <div class="result-banner"><div><span class="eyebrow mini">RECOMMENDED ALLOCATION</span><h3 id="build-title">Clan Ship · Fairy</h3><p id="build-subtitle">Balanced</p></div><span class="success-symbol">✓</span></div>
    <div class="metric-grid"><div class="metric"><small>SP used</small><strong id="spent">0</strong></div><div class="metric"><small>Remaining</small><strong id="remaining">0</strong></div><div class="metric"><small>Skill changes</small><strong id="change-count">0</strong></div></div>
-   <h3>Allocation by skill tree</h3><div class="branches" id="branch-chart"></div>
+   <h3>Allocation by skill tree</h3><div class="branches" id="branch-chart"></div><p class="hint" id="combat-assumptions-summary" role="note"></p>
    <div class="result-buttons"><button id="copy-build" type="button" class="btn primary">Copy TT2 skill tree</button><button id="share-build" type="button" class="btn secondary">Copy shareable link</button><button id="import-help-button" type="button" class="btn secondary" aria-haspopup="dialog" aria-controls="import-help-dialog">How to import into TT2?</button></div>
    <details class="result-detail"><summary>All skill levels</summary><div id="full-tree"></div></details>
    <details class="result-detail"><summary>Comparison with your current build <span id="delta-count"></span></summary><div id="diff-list"></div></details>

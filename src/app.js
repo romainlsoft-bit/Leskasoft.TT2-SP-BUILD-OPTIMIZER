@@ -53,7 +53,7 @@ function engineError(message){
 }
 const iconMap={"Clan Ship":"⛵","Pet":"🐾","Shadow Clone":"◈","Heavenly Strike":"⚡","Dagger":"🗡","Gold Gun":"✦"};
 const branchColors={Knight:"#d77879",Summoner:"#edab66",Warlord:"#e7ca75",Sorcerer:"#86adf7",Rogue:"#7ad0a0",Alchemist:"#b595ed"};
-const fresh=()=>({damage:"Clan Ship",gold:"Fairy",skillPoints:0,maxStage:0,playstyle:"balanced",qol:"recommended",goldWeight:.7,craftingPower:1,timeToKill:8,sClone:30,sets:{},currentLevels:{},minimums:{},excluded:[],preserveCurrent:false,mode:"power"});
+const fresh=()=>({damage:"Clan Ship",gold:"Fairy",skillPoints:0,maxStage:0,playstyle:"balanced",qol:"recommended",goldWeight:.7,craftingPower:1,timeToKill:8,sClone:30,sets:{},currentLevels:{},minimums:{},excluded:[],preserveCurrent:false,assumeHaystActive:false,assumeSnapActive:false,astralActivations:0,mode:"power"});
 let state=fresh(),lastResult=null,worker=null;
 // Fixed-position notifications are shared by errors and successful actions.
 // Errors stay visible until dismissed; successes auto-dismiss after six seconds.
@@ -111,6 +111,9 @@ function fillInputs(){
  $("clone-level").value=state.sClone;
  $("qol-mode").value=state.qol;
  $("preserve-current").checked=state.preserveCurrent;
+ $("hayst-active").checked=state.assumeHaystActive===true;
+ $("snap-active").checked=state.assumeSnapActive===true;
+ $("astral-activations").value=state.astralActivations??0;
  $("efficiency-mode").checked=state.mode==="efficiency";
  renderChoices();renderEditor($("skill-search").value);
 }
@@ -175,6 +178,9 @@ function readInputs(){
  state.sClone=Number($("clone-level").value);
  state.qol=$("qol-mode").value;
  state.preserveCurrent=$("preserve-current").checked;
+ state.assumeHaystActive=$("hayst-active").checked;
+ state.assumeSnapActive=$("snap-active").checked;
+ state.astralActivations=Number($("astral-activations").value);
  state.mode=$("efficiency-mode").checked?"efficiency":"power";
  persist();
 }
@@ -211,6 +217,11 @@ function renderResults(result,scroll=true){
  $("result-mode").textContent=tr(bounded?"Optimized · bounded grid":"Optimized · exact DP");
  $("build-title").textContent=tr(state.damage)+" · "+tr(state.gold==="HoG"?"Heart of Gold":state.gold);
  $("build-subtitle").textContent=tr(PRESETS[state.playstyle]?.label||"Balanced")+" · "+tr("Weighted log-damage/gold model");
+ const assumptions=result.combatAssumptions||{};
+ $("combat-assumptions-summary").textContent=tr(
+   "Modeled at the limit-stage boss: Hayst {hayst}, Snap {snap}, Astral Awakening {stacks}/5 taps.",
+   {hayst:tr(assumptions.hayst?"active":"inactive"),
+    snap:tr(assumptions.snap?"active":"inactive"),stacks:assumptions.astralActivations??0});
  const accuracy=document.querySelector(".math-disclaimer");
  if(bounded&&accuracy){
    const o=result.optimality;
@@ -234,7 +245,7 @@ function renderResults(result,scroll=true){
 function sharePayload(){
  // Compact URL encoding; the exported skill tree itself is intentionally
  // not encrypted. Sharing the link discloses the included game settings.
- return {sp:state.skillPoints,st:state.maxStage,da:state.damage,go:state.gold,p:state.playstyle,q:state.qol,w:state.goldWeight,cp:state.craftingPower,tk:state.timeToKill,cl:state.sClone,s:state.sets,cur:state.currentLevels,min:state.minimums,exc:state.excluded,keep:state.preserveCurrent,mode:state.mode};
+ return {sp:state.skillPoints,st:state.maxStage,da:state.damage,go:state.gold,p:state.playstyle,q:state.qol,w:state.goldWeight,cp:state.craftingPower,tk:state.timeToKill,cl:state.sClone,s:state.sets,cur:state.currentLevels,min:state.minimums,exc:state.excluded,keep:state.preserveCurrent,hay:state.assumeHaystActive,snap:state.assumeSnapActive,astral:state.astralActivations,mode:state.mode};
 }
 function decodeLink(){
  const hash=window.location.hash;
@@ -242,7 +253,8 @@ function decodeLink(){
  try{
   const payload=JSON.parse(decodeURIComponent(escape(atob(hash.slice(7)))));
   if(!payload||typeof payload!=="object")return;
-  state={...fresh(),skillPoints:payload.sp??0,maxStage:payload.st??0,damage:payload.da??"Clan Ship",gold:payload.go??"Fairy",playstyle:payload.p??"balanced",qol:payload.q??"recommended",goldWeight:payload.w??.7,craftingPower:payload.cp??1,timeToKill:payload.tk??8,sClone:payload.cl??30,sets:payload.s||{},currentLevels:payload.cur||{},minimums:payload.min||{},excluded:Array.isArray(payload.exc)?payload.exc:[],preserveCurrent:Boolean(payload.keep),mode:payload.mode||"power"};
+  state={...fresh(),skillPoints:payload.sp??0,maxStage:payload.st??0,damage:payload.da??"Clan Ship",gold:payload.go??"Fairy",playstyle:payload.p??"balanced",qol:payload.q??"recommended",goldWeight:payload.w??.7,craftingPower:payload.cp??1,timeToKill:payload.tk??8,sClone:payload.cl??30,sets:payload.s||{},currentLevels:payload.cur||{},minimums:payload.min||{},excluded:Array.isArray(payload.exc)?payload.exc:[],preserveCurrent:Boolean(payload.keep),assumeHaystActive:payload.hay===true,
+    assumeSnapActive:payload.snap===true,astralActivations:payload.astral??0,mode:payload.mode||"power"};
   window.history.replaceState(null,"",window.location.pathname+window.location.search);
   status("Shared build settings loaded. Optimize to calculate a new recommendation.","success");
  }catch(e){status("Could not load this shared build link.","error");}
@@ -280,7 +292,7 @@ function initialize(){
   remember();
  });
  $("clear-minimums").addEventListener("click",()=>{state.minimums={};fillInputs();remember();});
- for(const id of ["skill-points","max-stage","gold-weight","crafting-power","time-to-kill","clone-level","qol-mode","preserve-current","efficiency-mode"])$(id).addEventListener("change",()=>{readInputs();remember();});
+ for(const id of ["skill-points","max-stage","gold-weight","crafting-power","time-to-kill","clone-level","qol-mode","preserve-current","hayst-active","snap-active","astral-activations","efficiency-mode"])$(id).addEventListener("change",()=>{readInputs();remember();});
  $("paste-button").addEventListener("click",pasteClipboard);
  $("upload-button").addEventListener("click",()=>$("upload-file").click());
  $("upload-file").addEventListener("change",async e=>{const f=e.target.files?.[0];if(!f)return;try{if(f.size>2_000_000)throw new Error(tr("File exceeds 2 MB."));importRaw(await f.text());}catch(err){status(err.message,"error");}e.target.value="";});

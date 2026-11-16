@@ -92,3 +92,9 @@ npm run bench:22k
 In a JavaScript execution environment on 16 November 2026, two 22,500-SP reference configurations completed in approximately **10.5 seconds** (Clan Ship/Fairy/QoL) and **17.3 seconds** (Shadow Clone/Fairy/no QoL), respectively. Both respected the SP limit and returned bounded model-score gaps. These measurements **do not predict performance on Android**. Do not commit game exports with account or personal data to this repository.
 
 Static translated HTML, one factual H1 per language, self-canonical URLs, reciprocal hreflang, a four-language sitemap and factual methodology content are supplied for crawling. The site deliberately avoids star ratings or review statistics that cannot be substantiated. Google Search Console verification and actual indexing cannot be carried out from source code alone. See [SEO and indexing checklist](docs/SEO_INDEXING.md).
+
+## Model limitation and measured Pet/Fairy regression (issue #9)
+
+A player reported a build **750 stages better** than the optimizer's previous output with almost identical SP (22,640 vs 22,642). This is evidence of a gameplay-model problem or incompatible optimization settings, not a reason to lock branch budgets to their old values. Some temporary effects were previously scored without checking activation: Hayst (Quick Fortune), Snap (Philosopher's Flux) and five Astral Awakening orb taps. Advanced settings now make these conditions explicit and default to inactive for a conservative boss-push scenario.
+
+These changes do **not** establish a guaranteed in-game improvement or close issue #9. Compare real game outcomes. See [mathematical audit](docs/MATH_AUDIT.md).

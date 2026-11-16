@@ -78,6 +78,12 @@ export function optimizeBuild(settings,onProgress){
   if(!DAMAGE_TYPES.includes(settings.damage))throw new Error("Select a damage source.");
   if(!GOLD_TYPES.includes(settings.gold))throw new Error("Select a gold source.");
   if(!Number.isFinite(goldWeight)||goldWeight<0||goldWeight>2)throw new Error("Gold weight must be between 0 and 2.");
+  const astralActivations=Number(settings.astralActivations ?? 0);
+  if(!Number.isInteger(astralActivations)||astralActivations<0||astralActivations>5)
+    throw new Error("Astral Awakening activations must be between 0 and 5.");
+  const combatContext={...settings,astralActivations,
+    assumeHaystActive:settings.assumeHaystActive===true,
+    assumeSnapActive:settings.assumeSnapActive===true};
   const current=levelsFrom(settings.currentLevels||{});
   const min=Object.fromEntries(SKILL_IDS.map(id=>[id,settings.preserveCurrent?current[id]:0]));
   if(settings.qol==="recommended"){
@@ -100,7 +106,7 @@ export function optimizeBuild(settings,onProgress){
   // Evaluate and validate each (skill, level) score exactly once. The old
   // code recomputed every score for validation and again during branch DP,
   // including costly conditional/multicast mechanics at high SP budgets.
-  const scoreContext={...settings,minimums:min};
+  const scoreContext={...combatContext,minimums:min};
   const scoreCache=new Map();
   for(const id of SKILL_IDS){
     const scores=new Float64Array(Number(skillInfo[id].MaxLevel)+1);
@@ -132,5 +138,7 @@ export function optimizeBuild(settings,onProgress){
     SKILL_IDS.filter(id=>skillInfo[id].Branch===branch).reduce((sum,id)=>sum+COSTS[id][result.levels[id]],0)
   ]));
   return {...result,prior:current,spent:points,remaining:SP-points,changes,branchTotals,
+    combatAssumptions:{hayst:combatContext.assumeHaystActive,
+      snap:combatContext.assumeSnapActive,astralActivations},
     model:"TT2 weighted log-damage/gold proxy; not a gameplay performance guarantee",gameVersion:GAME_VERSION};
 }
