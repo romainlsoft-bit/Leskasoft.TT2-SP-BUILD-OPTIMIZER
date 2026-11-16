@@ -11,6 +11,9 @@ function setLocale(next){
  try{localStorage.setItem("tt2_site_language",locale)}catch{}
  $("language-select").value=locale;
  localizeDocument(document,locale);
+ // Main Leskasoft site uses the same four locale codes as this optimizer.
+ const leskasoft=$("leskasoft-link");
+ if(leskasoft)leskasoft.href="https://www.leskasoft.fr/"+locale;
  renderChoices();renderEditor($("skill-search").value);
  $("source-label").textContent=tr(state.sourceImported?"Imported from TT2":"Manual setup");
  $("result-mode").textContent=lastResult?(lastResult.solver==="bounded-grid-dp"?tr("Optimized · bounded grid"):tr("Optimized · exact DP")):tr("Ready when you are");
