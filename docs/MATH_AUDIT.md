@@ -59,3 +59,19 @@ The worker reports per-branch/combination progress and supports cancellation. A 
 **Important:** A bounded score gap is not a guarantee of build performance in the real game. The ratio-based efficiency option at >12,000 SP uses a grid approximation without a separately certified optimum for the score-per-SP ratio.
 
 Additional automated tests compare 500 mixed dense/sparse max-plus cases to brute-force results, 300 constrained small-tree cases to an exhaustive oracle, and bounded-grid upper/lower certificates against exact small-model optima.
+
+## 16 November 2026 — issue #9, Pet/Fairy vs in-game stage progression
+
+A user supplied two genuine game-version 8.4 skill trees. The first **reaches 750 more stages** than the optimizer's previous allocation. The first costs 22,640 SP, the second 22,642 SP. Per branch, the first vs second allocation is Knight 3,088/3,006, Summoner 6,870/6,484, Warlord 1,650/1,414, Sorcerer 2,989/3,728, Rogue 4,288/4,303 and Alchemist 3,755/3,707. Thus the original assumption that the optimizer overspent Warlord **was incorrect**.
+
+Under Pet/Fairy and gold weight 0.7 with basic default score inputs, the old additive model itself preferred the first tree by +22.694 log10 score units (1041.063 vs 1018.370). Re-optimizing at 22,642 SP with default QoL produces a third, different allocation (score ~1113.874, reconstructed score matching exactly). The two JSON exports do not include the input settings/constraints that produced the earlier optimizer output. We must not claim the solver is defective merely from outputs obtained under unknown settings.
+
+**Verified corrections to scoring assumptions**:
+
+- Quick Fortune has `AllGoldDuringHayst`, so its gold multiplier should not count at a hard boss when Hayst is absent. Its cloaking chance is not a damage multiplier. See [TT2 Compendium — Quick Fortune](https://www.tt2-compendium.com/en/wiki/skills/quickfortune).
+- Philosopher's Flux has `BossDamageDuringSnap` and a separate non-boss titan bonus. Its boss multiplier must not be credited when Snap is absent. See [TT2 Compendium — Philosopher's Flux](https://www.tt2-compendium.com/en/wiki/skills/philosophersflux).
+- Astral Awakening (internal `HelperDmgQTE`) increases hero damage per orb tap, up to five taps. The previous code multiplied by five unconditionally; now the player may configure 0–5 taps achievable during a boss fight. See [TT2 Compendium — Astral Awakening](https://www.tt2-compendium.com/de/wiki/skills/astralawakening).
+
+The advanced panel now exposes these three explicit combat conditions with conservative defaults (inactive Hayst, inactive Snap, zero Astral taps). These assumptions are included in shared settings links and recorded with the solver result. This is **partial remediation only**. It cannot explain or guarantee reversal of a 750-stage loss without actual settings and a multi-profile in-game validation.
+
+Still to investigate: hero-power counts in Tactical Insight, mana/uptime for contracts, effect interactions, QoL floors and constraints, all other skill effect conversions, current patch differences. No cap based on a player's previous Warlord allocation is permitted.

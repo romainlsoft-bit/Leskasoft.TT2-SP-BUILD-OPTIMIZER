@@ -486,6 +486,42 @@ Object.assign(translations.ru,{
   "Use the optimizer’s copied skill-tree build, not the player-data export from Options → Services → Export.": "Используйте билд, скопированный оптимизатором, а не экспорт данных игрока из Options → Services → Export."
 });
 
+
+// Conditional effects when pushing at the hardest boss (issue #9).
+Object.assign(translations.fr,{
+  "Push-limit combat conditions": "Conditions de combat à l’étage maximal",
+  "Count temporary bonuses only when you can use them against your hardest boss. Inactive/zero is the conservative default.": "Ne comptez les bonus temporaires que si vous pouvez les utiliser contre votre boss le plus difficile. Inactif/zéro est l’hypothèse prudente par défaut.",
+  "Hayst active at your hardest boss": "Hayst actif contre votre boss le plus difficile",
+  "Snap active at your hardest boss": "Snap actif contre votre boss le plus difficile",
+  "Astral Awakening orb taps (0–5)": "Orbes Astral Awakening activés (0–5)",
+  "Modeled at the limit-stage boss: Hayst {hayst}, Snap {snap}, Astral Awakening {stacks}/5 taps.": "Hypothèses au boss de l’étage maximal : Hayst {hayst}, Snap {snap}, Astral Awakening {stacks}/5 activations.",
+  "active": "actif",
+  "inactive": "inactif",
+  "Astral Awakening activations must be between 0 and 5.": "Les activations d’Astral Awakening doivent être comprises entre 0 et 5."
+});
+Object.assign(translations.uk,{
+  "Push-limit combat conditions": "Умови бою на найвищому етапі",
+  "Count temporary bonuses only when you can use them against your hardest boss. Inactive/zero is the conservative default.": "Враховуйте тимчасові бонуси лише якщо можете застосувати їх проти найскладнішого боса. Неактивні ефекти та нуль — обережне припущення.",
+  "Hayst active at your hardest boss": "Hayst активний проти найскладнішого боса",
+  "Snap active at your hardest boss": "Snap активний проти найскладнішого боса",
+  "Astral Awakening orb taps (0–5)": "Натискання сфер Astral Awakening (0–5)",
+  "Modeled at the limit-stage boss: Hayst {hayst}, Snap {snap}, Astral Awakening {stacks}/5 taps.": "Умови найскладнішого бою: Hayst {hayst}, Snap {snap}, Astral Awakening {stacks}/5 натискань.",
+  "active": "активний",
+  "inactive": "неактивний",
+  "Astral Awakening activations must be between 0 and 5.": "Кількість натискань Astral Awakening має бути від 0 до 5."
+});
+Object.assign(translations.ru,{
+  "Push-limit combat conditions": "Условия боя на максимальном этапе",
+  "Count temporary bonuses only when you can use them against your hardest boss. Inactive/zero is the conservative default.": "Учитывайте временные бонусы, только если можете использовать их против самого сложного босса. Неактивные эффекты и ноль — осторожное допущение.",
+  "Hayst active at your hardest boss": "Hayst активен против самого сложного босса",
+  "Snap active at your hardest boss": "Snap активен против самого сложного босса",
+  "Astral Awakening orb taps (0–5)": "Нажатия на сферы Astral Awakening (0–5)",
+  "Modeled at the limit-stage boss: Hayst {hayst}, Snap {snap}, Astral Awakening {stacks}/5 taps.": "Условия самого сложного боя: Hayst {hayst}, Snap {snap}, Astral Awakening {stacks}/5 нажатий.",
+  "active": "активен",
+  "inactive": "неактивен",
+  "Astral Awakening activations must be between 0 and 5.": "Число нажатий Astral Awakening должно быть от 0 до 5."
+});
+
 export function t(message, lang="en", parameters={}){
   const selected=SUPPORTED_LANGUAGES.includes(lang)?lang:"en";
   const value=translations[selected]?.[message] ?? message;

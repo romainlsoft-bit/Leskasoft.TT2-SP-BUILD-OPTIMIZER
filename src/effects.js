@@ -56,10 +56,21 @@ export function scoreAtLevel(id,level,settings){
       return r*lr(n=>logA(n)+logB(n));
     case "HelperBoost":
       return r*lr(n=>Math.log10(1+A(n)));
-    case "HelperDmgQTE":
-      return 5*r*lr(logA);
-    case "LoadedDice":
+    case "HelperDmgQTE": {
+      // Astral Awakening damage is gained per tapped orb (up to five).
+      // Previously the optimizer silently assumed all five were activated.
+      const activations=Number(settings.astralActivations ?? 0);
+      return activations*r*lr(logA);
+    }
+    case "PhilosophersFlux":
+      // Skill A is BossDamageDuringSnap, C is non-boss TitanDamage.
+      // Only the former matters for the limit-stage boss.
+      return settings.assumeSnapActive===true ? r*lr(logA) : 0;
     case "QuickFortune":
+      // Skill B is AllGoldDuringHayst. A is cloaking chance, not damage.
+      return settings.assumeHaystActive===true ? goldWeight*lr(logB) : 0;
+    case "LoadedDice":
+      // Unlike Quick Fortune, B is unconditionally AllGold.
       return r*lr(logA)+goldWeight*lr(logB);
     case "CloneDmg":
       return r*lr(n=>logA(n)+Math.log10((4+B(n))/4));

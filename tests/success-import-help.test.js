@@ -52,3 +52,14 @@ test("Leskasoft link preserves the chosen locale in all four static pages",()=>{
  }
  assert.ok(app.includes('leskasoft.href="https://www.leskasoft.fr/"+locale'));
 });
+
+test("Conditional boss-push parameters appear in every localized page",()=>{
+ for(const lang of ["en","fr","uk","ru"]){
+  const path=lang==="en"?"index.html":lang+"/index.html";
+  const html=src(path);
+  for(const id of ["hayst-active","snap-active","astral-activations","combat-assumptions-summary"])
+    assert.ok(html.includes('id="'+id+'"'),lang+": "+id);
+ }
+ assert.ok(app.includes("state.assumeHaystActive"));
+ assert.ok(app.includes("state.astralActivations"));
+});

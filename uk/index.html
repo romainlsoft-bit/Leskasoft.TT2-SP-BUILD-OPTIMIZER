@@ -63,6 +63,11 @@
       <label>Час убивства (с) <input id="time-to-kill" type="number" min=".1" step=".5" value="8"></label>
       <label>Рівень закляття тіньового клону <input id="clone-level" type="number" min="1" max="35" step="1" value="30"></label>
     </div>
+    <h3>Умови бою на найвищому етапі</h3>
+    <p class="hint">Враховуйте тимчасові бонуси лише якщо можете застосувати їх проти найскладнішого боса. Неактивні ефекти та нуль — обережне припущення.</p>
+    <label class="toggle"><input type="checkbox" id="hayst-active"> Hayst активний проти найскладнішого боса</label>
+    <label class="toggle"><input type="checkbox" id="snap-active"> Snap активний проти найскладнішого боса</label>
+    <label>Натискання сфер Astral Awakening (0–5) <input type="number" id="astral-activations" min="0" max="5" step="1" inputmode="numeric" value="0"></label>
     <label class="toggle"><input type="checkbox" id="preserve-current">Зберігати поточні рівні як мінімальні</label>
     <label class="toggle"><input type="checkbox" id="efficiency-mode">Максимізувати ефект на додаткове очко</label>
     <h3>Наявні набори спорядження</h3>
@@ -83,7 +88,7 @@
  <div id="actual-results" hidden>
    <div class="result-banner"><div><span class="eyebrow mini">РЕКОМЕНДОВАНИЙ РОЗПОДІЛ</span><h3 id="build-title">Clan Ship · Fairy</h3><p id="build-subtitle">Збалансовано</p></div><span class="success-symbol">✓</span></div>
    <div class="metric-grid"><div class="metric"><small>Витрачено очок</small><strong id="spent">0</strong></div><div class="metric"><small>Залишилось</small><strong id="remaining">0</strong></div><div class="metric"><small>Змінено навичок</small><strong id="change-count">0</strong></div></div>
-   <h3>Розподіл за деревами</h3><div class="branches" id="branch-chart"></div>
+   <h3>Розподіл за деревами</h3><div class="branches" id="branch-chart"></div><p class="hint" id="combat-assumptions-summary" role="note"></p>
    <div class="result-buttons"><button id="copy-build" type="button" class="btn primary">Копіювати дерево TT2</button><button id="share-build" type="button" class="btn secondary">Копіювати посилання</button><button id="import-help-button" type="button" class="btn secondary" aria-haspopup="dialog" aria-controls="import-help-dialog">Як імпортувати в TT2?</button></div>
    <details class="result-detail"><summary>Усі рівні навичок</summary><div id="full-tree"></div></details>
    <details class="result-detail"><summary>Порівняння з поточною збіркою <span id="delta-count"></span></summary><div id="diff-list"></div></details>
