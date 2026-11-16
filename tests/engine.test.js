@@ -90,8 +90,65 @@ test("Required levels fail clearly if budget is insufficient",()=>{
  assert.throws(()=>optimizeBuild({...defaults,skillPoints:2,minimums:{TapDmg:20}}),/more SP/);
 });
 
-test("SP input accepts 50,000 and rejects 50,001",()=>{
-  assert.throws(()=>optimizeBuild({...defaults,skillPoints:50001}),/50,000/);
-  // Full 50k DP benchmark intentionally excluded from short unit tests;
-  // it requires a dedicated performance and memory validation on devices.
+test("50,000 SP input is valid, 50,001 and non-integers are rejected",()=>{
+ const one=[{id:"only",branch:"A",parent:"None",spReq:0,min:0,max:1,costs:[0,1]}];
+ assert.doesNotThrow(()=>optimizeExact(one,50000,(_,lvl)=>lvl));
+ assert.throws(()=>optimizeExact(one,50001,(_,lvl)=>lvl),/50,000/);
+ assert.throws(()=>optimizeBuild({...defaults,skillPoints:50001}),/50,000/);
+});
+
+test("Variable branch capacity convolution agrees with exhaustive oracle",()=>{
+ for(let trial=0;trial<160;trial++){
+  const lengthA=1+Math.floor(rng()*35),lengthB=1+Math.floor(rng()*35),cap=Math.floor(rng()*(lengthA+lengthB+3));
+  const startA=Math.floor(rng()*Math.min(lengthA,4)),startB=Math.floor(rng()*Math.min(lengthB,4));
+  const a=new Float64Array(lengthA).fill(-Infinity),b=new Float64Array(lengthB).fill(-Infinity);
+  let scoreA=0,scoreB=0;
+  for(let i=startA;i<lengthA;i++){scoreA+=Math.floor(rng()*9)*.21;a[i]=scoreA;}
+  for(let i=startB;i<lengthB;i++){scoreB+=Math.floor(rng()*11)*.31;b[i]=scoreB;}
+  const result=exactConvolution(a,b,cap);
+  for(let sp=0;sp<result.values.length;sp++){
+    let expected=-Infinity;
+    for(let split=Math.max(0,sp-lengthB+1);split<=Math.min(sp,lengthA-1);split++)
+      expected=Math.max(expected,a[split]+b[sp-split]);
+    const got=result.values[sp];
+    if(!Number.isFinite(expected))assert.equal(got,expected);
+    else assert.ok(Math.abs(got-expected)<1e-7,`trial ${trial}, budget ${sp}, expected ${expected}, got ${got}`);
+  }
+ }
+});
+
+test("Bounded 50k solver finishes for large gaps in skill costs",()=>{
+ const skills=[
+ {id:"a",branch:"A",parent:"None",spReq:0,min:0,max:2,costs:[0,1,50000]},
+ {id:"b",branch:"B",parent:"None",spReq:0,min:0,max:2,costs:[0,2,50000]},
+ {id:"c",branch:"C",parent:"None",spReq:0,min:0,max:2,costs:[0,3,50000]}
+ ];
+ const r=optimizeExact(skills,50000,(item,lvl)=>lvl===2?100+item.id.charCodeAt(0):lvl);
+ assert.equal(r.solver,"bounded-grid-dp");
+ assert.equal(r.score,199);
+ assert.ok(r.optimality.upperBound>=r.score);
+ assert.ok(skills.reduce((sum,s)=>sum+s.costs[r.levels[s.id]],0)<=50000);
+});
+
+test("Bounded cross-tree score is bracketed by rigorous bounds (oracle)",()=>{
+ for(let caseNum=0;caseNum<100;caseNum++){
+  const skills=[
+   {id:"first",branch:"A",parent:"None",spReq:0,min:Math.floor(rng()*2),max:3,costs:[0,2,5,10]},
+   {id:"second",branch:"B",parent:"None",spReq:0,min:Math.floor(rng()*2),max:3,costs:[0,1,4,9]},
+   {id:"third",branch:"C",parent:"None",spReq:0,min:Math.floor(rng()*2),max:3,costs:[0,3,6,13]}
+  ];
+  const gains=skills.map(()=>Array.from({length:4},(_,lvl)=>lvl* (1+Math.floor(rng()*5))));
+  const score=(skill,lvl)=>gains[skills.indexOf(skill)][lvl];
+  const budget=15+Math.floor(rng()*20);
+  let expected=-Infinity;
+  for(let a=skills[0].min;a<=3;a++)for(let b=skills[1].min;b<=3;b++)for(let c=skills[2].min;c<=3;c++){
+    const used=skills[0].costs[a]+skills[1].costs[b]+skills[2].costs[c];
+    if(used<=budget)expected=Math.max(expected,gains[0][a]+gains[1][b]+gains[2][c]);
+  }
+  const result=optimizeExact(skills,budget,score,"power",()=>{},{gridThreshold:5,gridTarget:5});
+  const spent=skills.reduce((sum,s)=>sum+s.costs[result.levels[s.id]],0);
+  assert.ok(spent<=budget);
+  assert.ok(result.score<=expected+1e-9);
+  assert.ok(result.optimality.upperBound+1e-9>=expected);
+ }
 });
