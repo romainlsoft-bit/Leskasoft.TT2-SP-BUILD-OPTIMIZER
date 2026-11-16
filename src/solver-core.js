@@ -239,7 +239,7 @@ export function gridConvolutionExact(a,b,targetBudget) {
   return {values,split};
 }
 
-export function optimizeExact(skills, budget, scoreFor, mode="power", onProgress=()=>{}, {gridThreshold=12000,gridTarget=2500}={}) {
+export function optimizeExact(skills, budget, scoreFor, _retiredMode="power", onProgress=()=>{}, {gridThreshold=12000,gridTarget=2500}={}) {
   if (!Number.isInteger(budget)||budget<0||budget>50000) throw new Error("SP budget must be from 0 to 50,000.");
   const groups=[];
   for(const skill of skills){
@@ -289,17 +289,6 @@ export function optimizeExact(skills, budget, scoreFor, mode="power", onProgress
   const scoreAtFullBudget=global[selectedBudget];
   const boundAt=Math.min(highGridBudget,global.length-1);
   const upperBound=global[boundAt];
-  if(mode==="efficiency"){
-    const floorExpense=gridded?0:floorTotal;
-    let rate=NEG;
-    for(let b=gridded?1:Math.floor(floorExpense/quantum)+1;b<=selectedBudget;b++){
-      if(!Number.isFinite(global[b]))continue;
-      const cost=b*quantum-floorExpense;
-      if(cost<=0)continue;
-      const current=global[b]/cost;
-      if(current>rate){rate=current;selectedBudget=b;}
-    }
-  }
   if(!Number.isFinite(global[selectedBudget]))throw new Error("No valid allocation fits these settings. Check QoL and minimums.");
   const levels={};
   let b=selectedBudget;
@@ -315,10 +304,10 @@ export function optimizeExact(skills, budget, scoreFor, mode="power", onProgress
     solver:gridded?"bounded-grid-dp":"exact-dp",
     capacity:gridded?floorTotal+selectedBudget*quantum:selectedBudget,
     optimality:gridded?{
-      mode:mode==="efficiency"?"uncertified-ratio":"bounded-power",
+      mode:"bounded-power",
       quantum,lowerBound:scoreAtFullBudget,upperBound,
       gap:Math.max(0,upperBound-scoreAtFullBudget),
-      certifiedExact:mode!=="efficiency"&&Math.abs(upperBound-scoreAtFullBudget)<1e-8
+      certifiedExact:Math.abs(upperBound-scoreAtFullBudget)<1e-8
     }:{mode:"exact",certifiedExact:true,quantum:1,lowerBound:score,upperBound:score,gap:0}
   };
 }

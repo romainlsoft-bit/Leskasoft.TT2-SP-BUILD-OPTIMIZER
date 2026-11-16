@@ -86,3 +86,10 @@ Under the corrected conservative boss assumptions (no Hayst, Snap, Astral taps o
 **Partial fix:** `ForbiddenContract` and `RoyalContract` table maxima require sustained mana and time. They, and the conditional `TerrifyingPact` bonuses, are now scored at zero by default at the limit-stage boss unless `assumeContractsAtMax` is explicitly enabled. The opt-in scenario requires both contract skills to have at least one level, which makes the selected scenario internally consistent. It does **not** simulate time-to-max, mana drain, cooldowns or gameplay, and must not be described as complete resolution of the 750-stage regression. A standalone anonymous regression fixture preserves the exact pair of submitted trees.
 
 Mechanics: https://www.tt2-compendium.com/en/wiki/skills/terrifyingpact ; https://www.tt2-compendium.com/en/wiki/skills/forbiddencontract ; https://www.tt2-compendium.com/en/wiki/skills/royalcontract .
+
+
+## November 2026 — fix for catastrophic unspent-SP ratio mode
+
+The legacy “Maximize score per newly spent SP” option selected the maximum average score per SP, **not** the strongest build under the player's total SP budget. It reproduced a 22,642-SP Pet/Fairy recommendation using only **10 SP** with QoL disabled. This is a fundamental mismatch of objectives, not an issue parsing the entered budget.
+
+The ratio option has been removed from all UI locales and ignored in both the engine and the backward-compatible solver signature. Previously persisted mode settings and shared links are normalized to full-budget power; versioned UI/worker entry points prevent cached old JS from silently reactivating the retired option. Tests cover legacy settings and a high-SP Pet/Fairy benchmark. At-most-budget optimization can still leave a small remainder due to cost granularity; it is not an instruction to buy low-value skills. This does not yet validate actual stage outcomes (#9).

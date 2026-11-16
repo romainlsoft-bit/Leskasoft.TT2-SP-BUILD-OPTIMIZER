@@ -115,7 +115,6 @@ function fillInputs(){
  $("snap-active").checked=state.assumeSnapActive===true;
  $("contracts-at-max").checked=state.assumeContractsAtMax===true;
  $("astral-activations").value=state.astralActivations??0;
- $("efficiency-mode").checked=state.mode==="efficiency";
  renderChoices();renderEditor($("skill-search").value);
 }
 function remember(){persist();lastResult=null;$("actual-results").hidden=true;$("empty-results").hidden=false;$("result-mode").textContent=tr("Settings changed");}
@@ -183,7 +182,7 @@ function readInputs(){
  state.assumeSnapActive=$("snap-active").checked;
  state.assumeContractsAtMax=$("contracts-at-max").checked;
  state.astralActivations=Number($("astral-activations").value);
- state.mode=$("efficiency-mode").checked?"efficiency":"power";
+ state.mode="power";
  persist();
 }
 function optimize(){
@@ -197,7 +196,7 @@ function optimize(){
  if(!$("skill-points").value){status("Enter your total Skill Points or import a player export.","error");return;}
  button.disabled=false;button.textContent=tr("Cancel optimization");
  status("Checking prerequisites and calculating the best allocation for the chosen scoring model…");
- worker=new Worker(new URL("./worker.js",import.meta.url),{type:"module"});
+ worker=new Worker(new URL("./worker.js?v=20261116-sp-budget-fix",import.meta.url),{type:"module"});
  worker.onmessage=event=>{
    const data=event.data;
    if(data.progress){
@@ -215,7 +214,7 @@ function optimize(){
 }
 function renderResults(result,scroll=true){
  $("empty-results").hidden=true;$("actual-results").hidden=false;if(scroll)$("results").scrollIntoView({behavior:"smooth",block:"start"});
- const bounded=result.optimality?.mode==="bounded-power"||result.optimality?.mode==="uncertified-ratio";
+ const bounded=result.optimality?.mode==="bounded-power";
  $("result-mode").textContent=tr(bounded?"Optimized · bounded grid":"Optimized · exact DP");
  $("build-title").textContent=tr(state.damage)+" · "+tr(state.gold==="HoG"?"Heart of Gold":state.gold);
  $("build-subtitle").textContent=tr(PRESETS[state.playstyle]?.label||"Balanced")+" · "+tr("Weighted log-damage/gold model");
@@ -228,9 +227,7 @@ function renderResults(result,scroll=true){
  const accuracy=document.querySelector(".math-disclaimer");
  if(bounded&&accuracy){
    const o=result.optimality;
-   const suffix=o.mode==="uncertified-ratio"
-     ?tr("This efficiency-mode allocation uses a grid approximation, without a certified optimum for the score-per-SP ratio.")
-      :tr("Per-branch optimizations are exact. The combined build has a mathematically certified score gap of at most {gap} log10 units (grid step {quantum} SP) relative to the modeled optimum.",{gap:o.gap.toFixed(4),quantum:o.quantum});
+   const suffix=tr("Per-branch optimizations are exact. The combined build has a mathematically certified score gap of at most {gap} log10 units (grid step {quantum} SP) relative to the modeled optimum.",{gap:o.gap.toFixed(4),quantum:o.quantum});
    accuracy.textContent=suffix+" "+tr("These bounds describe the weighted damage/gold proxy only, not actual in-game farming performance. Independent community tool.");
  }else if(accuracy){
    accuracy.textContent=tr("Exact optimization for the documented weighted damage/gold score model. Actual game damage, run speed and conditional skill synergies can differ. Independent community tool.");
@@ -248,7 +245,7 @@ function renderResults(result,scroll=true){
 function sharePayload(){
  // Compact URL encoding; the exported skill tree itself is intentionally
  // not encrypted. Sharing the link discloses the included game settings.
- return {sp:state.skillPoints,st:state.maxStage,da:state.damage,go:state.gold,p:state.playstyle,q:state.qol,w:state.goldWeight,cp:state.craftingPower,tk:state.timeToKill,cl:state.sClone,s:state.sets,cur:state.currentLevels,min:state.minimums,exc:state.excluded,keep:state.preserveCurrent,hay:state.assumeHaystActive,snap:state.assumeSnapActive,contracts:state.assumeContractsAtMax,astral:state.astralActivations,mode:state.mode};
+ return {sp:state.skillPoints,st:state.maxStage,da:state.damage,go:state.gold,p:state.playstyle,q:state.qol,w:state.goldWeight,cp:state.craftingPower,tk:state.timeToKill,cl:state.sClone,s:state.sets,cur:state.currentLevels,min:state.minimums,exc:state.excluded,keep:state.preserveCurrent,hay:state.assumeHaystActive,snap:state.assumeSnapActive,contracts:state.assumeContractsAtMax,astral:state.astralActivations};
 }
 function decodeLink(){
  const hash=window.location.hash;
@@ -257,14 +254,14 @@ function decodeLink(){
   const payload=JSON.parse(decodeURIComponent(escape(atob(hash.slice(7)))));
   if(!payload||typeof payload!=="object")return;
   state={...fresh(),skillPoints:payload.sp??0,maxStage:payload.st??0,damage:payload.da??"Clan Ship",gold:payload.go??"Fairy",playstyle:payload.p??"balanced",qol:payload.q??"recommended",goldWeight:payload.w??.7,craftingPower:payload.cp??1,timeToKill:payload.tk??8,sClone:payload.cl??30,sets:payload.s||{},currentLevels:payload.cur||{},minimums:payload.min||{},excluded:Array.isArray(payload.exc)?payload.exc:[],preserveCurrent:Boolean(payload.keep),assumeHaystActive:payload.hay===true,
-    assumeSnapActive:payload.snap===true,assumeContractsAtMax:payload.contracts===true,astralActivations:payload.astral??0,mode:payload.mode||"power"};
+    assumeSnapActive:payload.snap===true,assumeContractsAtMax:payload.contracts===true,astralActivations:payload.astral??0,mode:"power"};
   window.history.replaceState(null,"",window.location.pathname+window.location.search);
   status("Shared build settings loaded. Optimize to calculate a new recommendation.","success");
  }catch(e){status("Could not load this shared build link.","error");}
 }
 function initialize(){
  try{const saved=JSON.parse(localStorage.getItem("tt2_skill_optimizer_v1")||"null");if(saved&&typeof saved==="object")state={...fresh(),...saved};}catch{}
- decodeLink();fillInputs();
+ decodeLink();state.mode="power";fillInputs();
  const queryLang=new URL(location.href).searchParams.get("lang");
  const pathLang=document.documentElement.lang;
  let savedLang="en";try{savedLang=localStorage.getItem("tt2_site_language")||"en"}catch{}
@@ -295,7 +292,7 @@ function initialize(){
   remember();
  });
  $("clear-minimums").addEventListener("click",()=>{state.minimums={};fillInputs();remember();});
- for(const id of ["skill-points","max-stage","gold-weight","crafting-power","time-to-kill","clone-level","qol-mode","preserve-current","hayst-active","snap-active","contracts-at-max","astral-activations","efficiency-mode"])$(id).addEventListener("change",()=>{readInputs();remember();});
+ for(const id of ["skill-points","max-stage","gold-weight","crafting-power","time-to-kill","clone-level","qol-mode","preserve-current","hayst-active","snap-active","contracts-at-max","astral-activations"])$(id).addEventListener("change",()=>{readInputs();remember();});
  $("paste-button").addEventListener("click",pasteClipboard);
  $("upload-button").addEventListener("click",()=>$("upload-file").click());
  $("upload-file").addEventListener("change",async e=>{const f=e.target.files?.[0];if(!f)return;try{if(f.size>2_000_000)throw new Error(tr("File exceeds 2 MB."));importRaw(await f.text());}catch(err){status(err.message,"error");}e.target.value="";});
