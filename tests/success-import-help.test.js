@@ -42,3 +42,13 @@ test("success notification title is localized in all supported languages",()=>{
  for(const lang of ["fr","uk","ru"])assert.notEqual(t("Success",lang),"Success",lang);
  assert.equal(t("Success","en"),"Success");
 });
+
+test("Leskasoft link preserves the chosen locale in all four static pages",()=>{
+ for(const [lang,path] of Object.entries({
+  en:"index.html",fr:"fr/index.html",uk:"uk/index.html",ru:"ru/index.html"
+ })){
+  const html=src(path);
+  assert.ok(html.includes('id="leskasoft-link" href="https://www.leskasoft.fr/'+lang+'"'),lang);
+ }
+ assert.ok(app.includes('leskasoft.href="https://www.leskasoft.fr/"+locale'));
+});
