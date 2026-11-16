@@ -52,15 +52,25 @@ const iconMap={"Clan Ship":"⛵","Pet":"🐾","Shadow Clone":"◈","Heavenly Str
 const branchColors={Knight:"#d77879",Summoner:"#edab66",Warlord:"#e7ca75",Sorcerer:"#86adf7",Rogue:"#7ad0a0",Alchemist:"#b595ed"};
 const fresh=()=>({damage:"Clan Ship",gold:"Fairy",skillPoints:0,maxStage:0,playstyle:"balanced",qol:"recommended",goldWeight:.7,craftingPower:1,timeToKill:8,sClone:30,sets:{},currentLevels:{},minimums:{},excluded:[],preserveCurrent:false,mode:"power"});
 let state=fresh(),lastResult=null,worker=null;
-// All failures, regardless of where they originate, appear in an accessible
-// fixed-position notification. Errors persist until the user dismisses them.
-function showToast(text){
- const toast=$("app-toast");
- $("toast-title").textContent=tr("Error");
+// Fixed-position notifications are shared by errors and successful actions.
+// Errors stay visible until dismissed; successes auto-dismiss after six seconds.
+let toastDismissTimer=null;
+function showToast(text,type="error"){
+ if(toastDismissTimer!==null){clearTimeout(toastDismissTimer);toastDismissTimer=null;}
+ const toast=$("app-toast"),success=type==="success";
+ toast.dataset.kind=type;
+ toast.setAttribute("role",success?"status":"alert");
+ toast.setAttribute("aria-live",success?"polite":"assertive");
+ $("toast-title").textContent=tr(success?"Success":"Error");
  $("toast-message").textContent=text;
+ toast.querySelector(".toast-symbol").textContent=success?"✓":"!";
  toast.hidden=false;
+ if(success)toastDismissTimer=setTimeout(()=>{toastDismissTimer=null;toast.hidden=true;},6000);
 }
-function hideToast(){$("app-toast").hidden=true;}
+function hideToast(){
+ if(toastDismissTimer!==null){clearTimeout(toastDismissTimer);toastDismissTimer=null;}
+ $("app-toast").hidden=true;
+}
 function status(message,type="",params={}){
  lastStatus={message,type,params};
  const el=$("status");
@@ -71,7 +81,7 @@ function status(message,type="",params={}){
  el.textContent=display;
  el.className="status "+type;
  if(type==="error")showToast(display);
- else if(type==="success")hideToast();
+ else if(type==="success")showToast(display,"success");
 }
 function resetOptimizeButton(){const b=$("optimize-button");b.disabled=false;b.innerHTML='<span>✦ &nbsp; '+safe(tr("Optimize my build"))+'</span><span>→</span>';}
 function safe(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
@@ -250,6 +260,9 @@ function initialize(){
  const help=$("export-help-dialog");
  $("export-help-button").addEventListener("click",()=>help.showModal());
  for(const id of ["export-help-close","export-help-done"])$(id).addEventListener("click",()=>help.close());
+ const importHelp=$("import-help-dialog");
+ $("import-help-button").addEventListener("click",()=>importHelp.showModal());
+ for(const id of ["import-help-close","import-help-done"])$(id).addEventListener("click",()=>importHelp.close());
  $("damage-choices").addEventListener("click",e=>{const b=e.target.closest("[data-damage]");if(b){state.damage=b.dataset.damage;fillInputs();remember();}});
  $("gold-choices").addEventListener("click",e=>{const b=e.target.closest("[data-gold]");if(b){state.gold=b.dataset.gold;fillInputs();remember();}});
  $("playstyle-choices").addEventListener("click",e=>{const b=e.target.closest("[data-playstyle]");if(b)applyPreset(b.dataset.playstyle);});
@@ -270,7 +283,16 @@ function initialize(){
  $("upload-file").addEventListener("change",async e=>{const f=e.target.files?.[0];if(!f)return;try{if(f.size>2_000_000)throw new Error(tr("File exceeds 2 MB."));importRaw(await f.text());}catch(err){status(err.message,"error");}e.target.value="";});
  $("import-button").addEventListener("click",()=>{try{importRaw($("import-json").value);}catch(e){status(e.message,"error");}});
  $("optimize-button").addEventListener("click",optimize);
- $("copy-build").addEventListener("click",async()=>{if(!lastResult)return;status(await copyText(exportBuild(lastResult.levels))?"Build JSON copied. Paste it into your TT2 skill-tree importer.":"Please select and copy the JSON from the Exported JSON panel.","success");});
- $("share-build").addEventListener("click",async()=>{const json=JSON.stringify(sharePayload());const link=window.location.href.split("#")[0]+"#build="+btoa(unescape(encodeURIComponent(json)));status(await copyText(link)?"Shareable link copied. Note: it contains the TT2 settings you entered.":"Copy failed. Check browser clipboard permissions.","success");});
+ $("copy-build").addEventListener("click",async()=>{
+  if(!lastResult)return;
+  const copied=await copyText(exportBuild(lastResult.levels));
+  status(copied?"Build JSON copied. Paste it into your TT2 skill-tree importer.":"Please select and copy the JSON from the Exported JSON panel.",copied?"success":"error");
+ });
+ $("share-build").addEventListener("click",async()=>{
+  const json=JSON.stringify(sharePayload());
+  const link=window.location.href.split("#")[0]+"#build="+btoa(unescape(encodeURIComponent(json)));
+  const copied=await copyText(link);
+  status(copied?"Shareable link copied. Note: it contains the TT2 settings you entered.":"Copy failed. Check browser clipboard permissions.",copied?"success":"error");
+ });
 }
 initialize();

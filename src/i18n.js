@@ -448,6 +448,44 @@ Object.assign(translations.ru,{
   "Clipboard data could not be imported: {detail}": "Не удалось импортировать данные из буфера: {detail}"
 });
 
+// Labels for positive notifications.
+Object.assign(translations.fr,{"Success":"Succès"});
+Object.assign(translations.uk,{"Success":"Успішно"});
+Object.assign(translations.ru,{"Success":"Успешно"});
+
+
+// Import-into-game walkthrough, matching the static indexable pages.
+Object.assign(translations.fr,{
+  "How to import into TT2?": "Comment importer dans TT2 ?",
+  "How to import your optimized build into TT2": "Comment importer le build optimisé dans TT2",
+  "After optimization, tap “Copy TT2 skill tree” to put the generated build on your clipboard.": "Après l’optimisation, appuyez sur « Copier l’arbre TT2 » pour copier le build généré.",
+  "Open Tap Titans 2 and go to Skill Tree.": "Ouvrez Tap Titans 2 et accédez à l’arbre de compétences.",
+  "Open Saves (saved builds), select a save slot and choose Import.": "Ouvrez Saves (builds sauvegardés), sélectionnez un emplacement puis choisissez Import.",
+  "Import the build copied to your clipboard when the game prompts you.": "Importez le build présent dans le presse-papiers lorsque le jeu le propose.",
+  "Choose Load to Tree to apply the imported saved build; confirm the changes in TT2.": "Choisissez Load to Tree pour charger ce build dans l’arbre, puis confirmez les modifications dans TT2.",
+  "Use the optimizer’s copied skill-tree build, not the player-data export from Options → Services → Export.": "Utilisez le build copié par l’optimiseur, et non l’export du joueur obtenu via Options → Services → Export."
+});
+Object.assign(translations.uk,{
+  "How to import into TT2?": "Як імпортувати в TT2?",
+  "How to import your optimized build into TT2": "Як імпортувати оптимізовану збірку в TT2",
+  "After optimization, tap “Copy TT2 skill tree” to put the generated build on your clipboard.": "Після оптимізації натисніть «Копіювати дерево TT2», щоб скопіювати створену збірку.",
+  "Open Tap Titans 2 and go to Skill Tree.": "Відкрийте Tap Titans 2 і перейдіть до дерева навичок.",
+  "Open Saves (saved builds), select a save slot and choose Import.": "Відкрийте Saves (збережені збірки), виберіть слот і натисніть Import.",
+  "Import the build copied to your clipboard when the game prompts you.": "Імпортуйте збірку з буфера обміну, коли гра запропонує це зробити.",
+  "Choose Load to Tree to apply the imported saved build; confirm the changes in TT2.": "Натисніть Load to Tree, щоб завантажити збірку в дерево, та підтвердьте зміни у TT2.",
+  "Use the optimizer’s copied skill-tree build, not the player-data export from Options → Services → Export.": "Використовуйте збірку, скопійовану оптимізатором, а не експорт даних гравця з Options → Services → Export."
+});
+Object.assign(translations.ru,{
+  "How to import into TT2?": "Как импортировать в TT2?",
+  "How to import your optimized build into TT2": "Как импортировать оптимизированный билд в TT2",
+  "After optimization, tap “Copy TT2 skill tree” to put the generated build on your clipboard.": "После оптимизации нажмите «Копировать дерево TT2», чтобы скопировать готовый билд.",
+  "Open Tap Titans 2 and go to Skill Tree.": "Откройте Tap Titans 2 и перейдите к дереву навыков.",
+  "Open Saves (saved builds), select a save slot and choose Import.": "Откройте Saves (сохранённые билды), выберите слот и нажмите Import.",
+  "Import the build copied to your clipboard when the game prompts you.": "Импортируйте билд из буфера обмена, когда игра предложит это сделать.",
+  "Choose Load to Tree to apply the imported saved build; confirm the changes in TT2.": "Нажмите Load to Tree, чтобы загрузить билд в дерево, и подтвердите изменения в TT2.",
+  "Use the optimizer’s copied skill-tree build, not the player-data export from Options → Services → Export.": "Используйте билд, скопированный оптимизатором, а не экспорт данных игрока из Options → Services → Export."
+});
+
 export function t(message, lang="en", parameters={}){
   const selected=SUPPORTED_LANGUAGES.includes(lang)?lang:"en";
   const value=translations[selected]?.[message] ?? message;
