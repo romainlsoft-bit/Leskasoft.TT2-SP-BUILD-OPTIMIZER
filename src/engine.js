@@ -72,7 +72,7 @@ export function qosFloors(damage,gold,SP){
   const keys=Object.keys(presets).map(Number).filter(Number.isFinite).filter(value=>value<=SP).sort((a,b)=>b-a);
   return keys.length?{...presets[String(keys[0])]}:{};
 }
-export function optimizeBuild(settings){
+export function optimizeBuild(settings,onProgress){
   const SP=Number(settings.skillPoints), goldWeight=Number(settings.goldWeight);
   if(!Number.isSafeInteger(SP)||SP<0||SP>50000)throw new Error("Enter 0–50,000 Skill Points.");
   if(!DAMAGE_TYPES.includes(settings.damage))throw new Error("Select a damage source.");
@@ -99,7 +99,7 @@ export function optimizeBuild(settings){
   });
   const issues=assertFiniteScores(SKILL_IDS,{...settings,minimums:min});
   if(issues.length)throw new Error("Some score coefficients are invalid: "+issues[0]);
-  const result=optimizeExact(skills,SP,(s,level)=>scoreAtLevel(s.id,level,{...settings,minimums:min}),settings.mode||"power");
+  const result=optimizeExact(skills,SP,(s,level)=>scoreAtLevel(s.id,level,{...settings,minimums:min}),settings.mode||"power",onProgress);
   const points=spentPoints(result.levels);
   if(points>SP)throw new Error("Internal validation failed: allocation exceeds SP budget.");
   for(const item of skills){

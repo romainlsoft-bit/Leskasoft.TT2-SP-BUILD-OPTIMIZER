@@ -72,16 +72,26 @@ function readInputs(){
  persist();
 }
 function optimize(){
+ const button=$("optimize-button");
+ if(worker){
+   worker.terminate();worker=null;
+   button.disabled=false;button.innerHTML="<span>✦ &nbsp; Optimize my build</span><span>→</span>";
+   status("Optimization cancelled. Your settings are unchanged.");return;
+ }
  readInputs();
  if(!$("skill-points").value){status("Enter your total Skill Points or import a player export.","error");return;}
- if(worker)worker.terminate();
- const button=$("optimize-button");button.disabled=true;button.textContent="Optimizing in your browser…";
+ button.disabled=false;button.textContent="Cancel optimization";
  status("Checking prerequisites and calculating the best allocation for the chosen scoring model…");
  worker=new Worker(new URL("./worker.js",import.meta.url),{type:"module"});
  worker.onmessage=event=>{
-   button.disabled=false;button.innerHTML="<span>✦ &nbsp; Optimize my build</span><span>→</span>";
    const data=event.data;
-   if(data.ok){lastResult=data.result;renderResults(data.result);persist();status("Build optimized. Copy the result to import it into TT2.","success");}
+   if(data.progress){
+     const phase=data.progress.phase==="skills"?"Building skill-tree options":"Combining skill trees";
+     status(phase+": "+data.progress.completed+"/"+data.progress.total+" complete. You can cancel at any time.");
+     return;
+   }
+   button.disabled=false;button.innerHTML="<span>✦ &nbsp; Optimize my build</span><span>→</span>";
+   if(data.ok){lastResult=data.result;renderResults(data.result);persist();status(data.result.optimality?.mode==="bounded-power"?"Build ready with a certified upper bound on the score gap. See accuracy details below.":"Build optimized. Copy the result to import it into TT2.","success");}
    else{status(data.error||"Optimization failed.","error");$("result-mode").textContent="Could not optimize";}
    worker.terminate();worker=null;
  };
@@ -90,9 +100,20 @@ function optimize(){
 }
 function renderResults(result){
  $("empty-results").hidden=true;$("actual-results").hidden=false;$("results").scrollIntoView({behavior:"smooth",block:"start"});
- $("result-mode").textContent="Optimized · exact DP";
+ const bounded=result.optimality?.mode==="bounded-power"||result.optimality?.mode==="uncertified-ratio";
+ $("result-mode").textContent=bounded?"Optimized · bounded grid":"Optimized · exact DP";
  $("build-title").textContent=state.damage+" · "+(state.gold==="HoG"?"Heart of Gold":state.gold)+" Gold";
  $("build-subtitle").textContent=PRESETS[state.playstyle]?.label+" · Weighted log-damage/gold model";
+ const accuracy=document.querySelector(".math-disclaimer");
+ if(bounded&&accuracy){
+   const o=result.optimality;
+   const suffix=o.mode==="uncertified-ratio"
+     ?"This efficiency-mode allocation uses a grid approximation, without a certified optimum for the score-per-SP ratio."
+     :"Per-branch optimizations are exact. The combined build has a mathematically certified score gap of at most "+o.gap.toFixed(4)+" log10 units (grid step "+o.quantum+" SP) relative to the modeled optimum.";
+   accuracy.textContent=suffix+" These bounds describe the weighted damage/gold proxy only, not actual in-game farming performance. Independent community tool.";
+ }else if(accuracy){
+   accuracy.textContent="Exact optimization for the documented weighted damage/gold score model. Actual game damage, run speed and conditional skill synergies can differ. Independent community tool.";
+ }
  $("spent").textContent=result.spent.toLocaleString("en-US");
  $("remaining").textContent=result.remaining.toLocaleString("en-US");
  $("change-count").textContent=result.changes.length;

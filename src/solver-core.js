@@ -40,27 +40,64 @@ export function upperConcaveEnvelope(values) {
  * Concave envelopes are upper bounds and never replace a real candidate.
  * Exactness is independently tested against O(B²) reference code.
  */
-export function exactConvolution(a, b) {
-  const limit = Math.min(a.length,b.length) - 1;
+export function exactConvolution(a, b, targetBudget = Math.min(a.length,b.length) - 1) {
+  // Allow different prefix / branch capacities. An at-most budget above a
+  // branch's maximum possible spend is represented by its final score.
+  const limit = Math.min(targetBudget,a.length+b.length-2);
   const out = new Float64Array(limit + 1).fill(NEG);
   const split = new Int32Array(limit + 1);
   const minA=a.findIndex(Number.isFinite), minB=b.findIndex(Number.isFinite);
   if(minA<0||minB<0)return {values:out,split};
+
+  // At-most-budget frontiers: entries that do not improve the score cannot
+  // participate in a better solution. When the frontier is sparse, enumerate
+  // its Pareto points exactly rather than scanning a very loose hull bound.
+  // This also makes large, widely-spaced skill costs practical (e.g. 50k).
+  const frontier=(arr)=>{
+    const points=[];let high=NEG;
+    for(let i=0;i<arr.length;i++){
+      const val=arr[i];
+      if(Number.isFinite(val) && val>high){points.push(i);high=val;}
+    }
+    return points;
+  };
+  const fa=frontier(a),fb=frontier(b);
+  if(fa.length*fb.length<=1_000_000){
+    for(const i of fa)for(const j of fb){
+      const k=i+j;
+      if(k>limit)break;
+      const sum=a[i]+b[j];
+      if(sum>out[k]){out[k]=sum;split[k]=i;}
+    }
+    let top=NEG,chosenI=0;
+    for(let k=0;k<=limit;k++){
+      if(out[k]>top){top=out[k];chosenI=split[k];}
+      else {out[k]=top;split[k]=chosenI;}
+    }
+    return {values:out,split};
+  }
   const aConstant=a.every((v,i)=>i<minA || v===a[minA]);
   const bConstant=b.every((v,i)=>i<minB || v===b[minB]);
   if(aConstant){
-    for(let budget=minA+minB;budget<=limit;budget++){out[budget]=a[minA]+b[budget-minA];split[budget]=minA;}
+    for(let budget=minA+minB;budget<=limit;budget++){
+      const chosenA = Math.max(minA,budget-b.length+1);
+      out[budget]=a[chosenA]+b[budget-chosenA];split[budget]=chosenA;
+    }
     return {values:out,split};
   }
   if(bConstant){
-    for(let budget=minA+minB;budget<=limit;budget++){out[budget]=a[budget-minB]+b[minB];split[budget]=budget-minB;}
+    for(let budget=minA+minB;budget<=limit;budget++){
+      const chosenA = Math.min(a.length-1,budget-minB);
+      out[budget]=a[chosenA]+b[budget-chosenA];split[budget]=chosenA;
+    }
     return {values:out,split};
   }
   const ha = upperConcaveEnvelope(a), hb = upperConcaveEnvelope(b);
   for (let budget = 0; budget <= limit; budget++) {
     const upper = x => ha[x] + hb[budget - x];
     if(budget<minA+minB)continue;
-    let lo=minA, hi=budget-minB;
+    const minX=Math.max(minA,budget-b.length+1), maxX=Math.min(a.length-1,budget-minB);
+    let lo=minX, hi=maxX;
     while (lo<hi) {
       const mid=(lo+hi)>>1;
       if (upper(mid+1)>upper(mid)) lo=mid+1; else hi=mid;
@@ -69,7 +106,7 @@ export function exactConvolution(a, b) {
     let best=NEG, bestJ=0;
     for(let d=-1;d<=1;d+=2) {
       let x=d<0?peak:peak+1;
-      while(x>=minA&&x<=budget-minB) {
+      while(x>=minX&&x<=maxX) {
         if(Number.isFinite(best) && upper(x)<best-EPS*(1+Math.abs(best))) break;
         const score=a[x]+b[budget-x];
         if(score>best+1e-10 || (Math.abs(score-best)<=1e-10 && x<bestJ)){best=score;bestJ=x;}
@@ -84,10 +121,12 @@ export function exactConvolution(a, b) {
 
 export function branchDynamicProgram(skills, budget, scoreFor) {
   if (!Number.isInteger(budget)||budget<0) throw new Error("Invalid skill-point budget.");
-  const width=budget+1;
+  // The cost capacity of a branch *prefix* is often dramatically lower than
+  // the requested budget (especially at 50,000 SP). Store only reachable
+  // capacities, not 50,001 slots for every skill in every branch.
   const traces=[];
-  let dp=Array.from({length:8},()=>new Float64Array(width).fill(NEG));
-  dp[0][0]=0;
+  let frontier=0;
+  let dp=Array.from({length:8},(_,mask)=>Float64Array.of(mask===0?0:NEG));
   const byId=new Map(skills.map((skill,i)=>[skill.id,i]));
   for (let i=0;i<skills.length;i++) {
     const skill=skills[i], parentIndex=byId.get(skill.parent);
@@ -105,12 +144,29 @@ export function branchDynamicProgram(skills, budget, scoreFor) {
         if(!Number.isFinite(score))throw new Error("Non-finite score for "+skill.id+" level "+level);
         choices.push({level,cost,score}); }
     }
-    const next=Array.from({length:8},()=>new Float64Array(width).fill(NEG));
-    const prevMask=Array.from({length:8},()=>new Int8Array(width).fill(-1));
-    const choiceLevel=Array.from({length:8},()=>new Int8Array(width).fill(-1));
+    // A skill that gives exactly zero modeled score cannot improve the
+    // objective by overspending after all future branch tier thresholds are
+    // satisfied. Keep its 0/positive prerequisite choices, plus the minimum
+    // level that reaches the highest remaining SP gate. This is a dominance
+    // reduction for the at-most-budget model, not an approximation.
+    let effectiveMax=max;
+    if(choices.length && choices.every(option=>option.score===0)){
+      const lastGate=skills.slice(i+1).reduce((maxGate,item)=>Math.max(maxGate,item.spReq),0);
+      const firstGate=choices.find(option=>option.level>0 && option.cost>=lastGate);
+      if(firstGate)effectiveMax=Math.max(min,firstGate.level);
+      else if(lastGate===0)effectiveMax=Math.max(min,1);
+      if(effectiveMax<max){
+        while(choices.length && choices[choices.length-1].level>effectiveMax)choices.pop();
+      }
+    }
+    const nextFrontier = Math.min(budget,frontier+skill.costs[effectiveMax]);
+    const nextWidth = nextFrontier+1;
+    const next=Array.from({length:8},()=>new Float64Array(nextWidth).fill(NEG));
+    const prevMask=Array.from({length:8},()=>new Int8Array(nextWidth).fill(-1));
+    const choiceLevel=Array.from({length:8},()=>new Int8Array(nextWidth).fill(-1));
     for(let mask=0;mask<8;mask++) {
       const array=dp[mask];
-      for(let spent=0;spent<=budget;spent++) {
+      for(let spent=0;spent<array.length;spent++) {
         const base=array[spent];
         if(!Number.isFinite(base))continue;
         for(const option of choices) {
@@ -119,7 +175,7 @@ export function branchDynamicProgram(skills, budget, scoreFor) {
             if(distance>0 && (mask & (1 << (distance-1)))===0)continue;
           }
           const sum=spent+option.cost;
-          if(sum>budget)continue;
+          if(sum>nextFrontier)continue;
           const nmask=((mask<<1)|(option.level>0?1:0))&7;
           const total=base+option.score;
           if(total>next[nmask][sum]+1e-10) {
@@ -131,15 +187,16 @@ export function branchDynamicProgram(skills, budget, scoreFor) {
       }
     }
     traces.push({prevMask,choiceLevel});
-    dp=next;
+    dp=next;frontier=nextFrontier;
   }
+  const width=frontier+1;
   const exact=new Float64Array(width).fill(NEG),endMasks=new Int8Array(width).fill(-1);
-  for(let spent=0;spent<=budget;spent++)for(let mask=0;mask<8;mask++) {
+  for(let spent=0;spent<width;spent++)for(let mask=0;mask<8;mask++) {
     if(dp[mask][spent]>exact[spent]) {exact[spent]=dp[mask][spent];endMasks[spent]=mask;}
   }
   const atMost=new Float64Array(width).fill(NEG),chosenSpend=new Int32Array(width);
   let best=NEG,choice=0;
-  for(let b=0;b<=budget;b++) {
+  for(let b=0;b<width;b++) {
     if(exact[b]>best+1e-10){best=exact[b];choice=b;}
     atMost[b]=best; chosenSpend[b]=choice;
   }
@@ -162,29 +219,84 @@ export function branchDynamicProgram(skills, budget, scoreFor) {
  * All branches are independent for skill-tree eligibility. Cross-branch
  * effect synergies are approximated by the caller's score model.
  */
-export function optimizeExact(skills, budget, scoreFor, mode="power") {
-  if (!Number.isInteger(budget)||budget<0||budget>25000) throw new Error("SP budget must be from 0 to 25,000.");
+/**
+ * Unpruned, exact O(N^2) convolution on reduced grid budgets.
+ * Unlike a concave-envelope heuristic, this is a straightforward reference
+ * implementation: each possible split is evaluated without approximation.
+ */
+export function gridConvolutionExact(a,b,targetBudget) {
+  const length=Math.min(targetBudget,a.length+b.length-2)+1;
+  const values=new Float64Array(length).fill(NEG);
+  const split=new Int32Array(length);
+  for(let i=0;i<a.length&&i<length;i++){
+    if(!Number.isFinite(a[i]))continue;
+    for(let j=0;j<b.length&&i+j<length;j++){
+      if(!Number.isFinite(b[j]))continue;
+      const sum=a[i]+b[j],k=i+j;
+      if(sum>values[k]){values[k]=sum;split[k]=i;}
+    }
+  }
+  return {values,split};
+}
+
+export function optimizeExact(skills, budget, scoreFor, mode="power", onProgress=()=>{}, {gridThreshold=12000,gridTarget=2500}={}) {
+  if (!Number.isInteger(budget)||budget<0||budget>50000) throw new Error("SP budget must be from 0 to 50,000.");
   const groups=[];
   for(const skill of skills){
     let group=groups.find(g=>g.branch===skill.branch);
     if(!group){group={branch:skill.branch,skills:[]};groups.push(group)}
     group.skills.push(skill);
   }
-  const branchSolutions=groups.map(g=>branchDynamicProgram(g.skills,budget,scoreFor));
+  const branchSolutions=[];
+  for(let i=0;i<groups.length;i++){
+    const group=groups[i];
+    const maxBranchSpend=group.skills.reduce((sum,skill)=>sum+skill.costs[skill.excluded?skill.min:skill.max],0);
+    branchSolutions.push(branchDynamicProgram(group.skills,Math.min(budget,maxBranchSpend),scoreFor));
+    onProgress({phase:"skills",completed:i+1,total:groups.length});
+  }
+  // Exact cross-branch convolution has quadratic worst-case cost. Above
+  // 12k SP, solve each branch EXACTLY at native SP resolution, then combine
+  // them on a 2,500-point coarse grid. This is a bounded approximation.
+  // A feasible grid allocation is a LOWER bound on the exact optimum. By
+  // rounding each true branch budget UP by q, the exact optimum is at most
+  // the grid optimum for budget floor(B/q)+branchCount. That is a rigorous
+  // UPPER bound for the additive score model.
+  const gridded=budget>gridThreshold;
+  const floorCosts=groups.map(g=>g.skills.reduce((sum,skill)=>sum+skill.costs[skill.min||0],0));
+  const floorTotal=floorCosts.reduce((sum,x)=>sum+x,0);
+  if(floorTotal>budget)throw new Error("Required minimum levels exceed your SP budget.");
+  // Work on ADDITIONAL points after mandatory minimums, making every coarse
+  // candidate feasible even when minimums use almost the entire SP budget.
+  const freeBudget=budget-floorTotal;
+  const quantum=gridded?Math.max(1,Math.ceil(freeBudget/gridTarget)):1;
+  const lowerGridBudget=gridded?Math.floor(freeBudget/quantum):budget;
+  const highGridBudget=lowerGridBudget+(gridded?branchSolutions.length:0);
   const steps=[];
-  let global=new Float64Array(budget+1).fill(0);
-  for(const branch of branchSolutions){
-    const merged=exactConvolution(global,branch.values);
+  let global=Float64Array.of(0);
+  for(let i=0;i<branchSolutions.length;i++){
+    const full=branchSolutions[i].values;
+    const values=gridded
+      ? Float64Array.from({length:Math.ceil(freeBudget/quantum)+1},(_,k)=>full[Math.min(floorCosts[i]+k*quantum,full.length-1)])
+      : full;
+    const merged=gridded
+      ? gridConvolutionExact(global,values,highGridBudget)
+      : exactConvolution(global,values,budget);
     steps.push(merged);
     global=merged.values;
+    onProgress({phase:"combine",completed:i+1,total:branchSolutions.length});
   }
-  let selectedBudget=budget;
+  let selectedBudget=Math.min(lowerGridBudget,global.length-1);
+  const scoreAtFullBudget=global[selectedBudget];
+  const boundAt=Math.min(highGridBudget,global.length-1);
+  const upperBound=global[boundAt];
   if(mode==="efficiency"){
-    const floorExpense=skills.reduce((sum,s)=>sum+s.costs[s.min||0],0);
+    const floorExpense=gridded?0:floorTotal;
     let rate=NEG;
-    for(let b=floorExpense+1;b<=budget;b++){
+    for(let b=gridded?1:Math.floor(floorExpense/quantum)+1;b<=selectedBudget;b++){
       if(!Number.isFinite(global[b]))continue;
-      const current=global[b]/(b-floorExpense);
+      const cost=b*quantum-floorExpense;
+      if(cost<=0)continue;
+      const current=global[b]/cost;
       if(current>rate){rate=current;selectedBudget=b;}
     }
   }
@@ -193,8 +305,20 @@ export function optimizeExact(skills, budget, scoreFor, mode="power") {
   let b=selectedBudget;
   for(let i=branchSolutions.length-1;i>=0;i--) {
     const branchBudget=b-steps[i].split[b];
-    Object.assign(levels,branchSolutions[i].reconstruct(branchBudget));
+    const physicalBudget=gridded?floorCosts[i]+branchBudget*quantum:branchBudget;
+    Object.assign(levels,branchSolutions[i].reconstruct(Math.min(physicalBudget,branchSolutions[i].values.length-1)));
     b=steps[i].split[b];
   }
-  return {levels,score:global[selectedBudget],solver:"exact-dp",capacity:selectedBudget};
+  const score=global[selectedBudget];
+  return {
+    levels,score,
+    solver:gridded?"bounded-grid-dp":"exact-dp",
+    capacity:gridded?floorTotal+selectedBudget*quantum:selectedBudget,
+    optimality:gridded?{
+      mode:mode==="efficiency"?"uncertified-ratio":"bounded-power",
+      quantum,lowerBound:scoreAtFullBudget,upperBound,
+      gap:Math.max(0,upperBound-scoreAtFullBudget),
+      certifiedExact:mode!=="efficiency"&&Math.abs(upperBound-scoreAtFullBudget)<1e-8
+    }:{mode:"exact",certifiedExact:true,quantum:1,lowerBound:score,upperBound:score,gap:0}
+  };
 }

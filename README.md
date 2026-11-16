@@ -12,7 +12,8 @@ Free, open-source, mobile-first **Tap Titans 2 skill points calculator and TT2 s
 - Three styles: Fast Farm, Balanced and Push (these change the scoring weights and QoL presets, **not** a simulator of farming speed).
 - Interactive allocation by tree, differences from current levels, TT2-format JSON export and shareable links.
 - Works **entirely in the browser** with a module Web Worker: no account and no server-side player export processing.
-- An exact dynamic program enforces skill-tree tier and parent prerequisites; cross-branch allocations are combined with a certified bounding technique rather than unchecked pruning.
+- Supports budgets of **up to 50,000 Skill Points** with compact per-branch states, a progress indicator and a cancel control. Above 12,000 SP the grid combination is bounded rather than globally exact. Performance on mobile hardware is not guaranteed.
+- An exact dynamic program enforces skill-tree tier and parent prerequisites. Up to 12,000 SP, cross-branch optimization uses exact convolution. Above 12,000 SP, each branch remains exact, while branch combinations use a **bounded grid optimizer with a mathematically certified upper bound on the model-score gap**. The UI clearly labels approximate solutions.
 - Numerical formulas evaluated in log10 space to avoid overflow on large game multipliers.
 
 ## Run locally
@@ -41,9 +42,9 @@ The test suite includes property-like seeded cases comparing the solver against 
 
 ## Deploy with GitHub Pages
 
-In **Settings → Pages** choose **Deploy from a branch**, branch `main`, folder `/(root)`. After merging the PR and enabling Pages, the site URL will be:
+In **Settings → Pages** choose **Deploy from a branch**, branch `main`, folder `/(root)`; add `tap-titans.leskasoft.com` as the Custom domain, then enable Enforce HTTPS when available. Configure the DNS CNAME `tap-titans` → `romainlsoft-bit.github.io` (without the repository path).. After merging the PR and enabling Pages, the site URL will be:
 
-https://romainlsoft-bit.github.io/Leskasoft.TT2-SP-BUILD-OPTIMIZER/
+https://tap-titans.leskasoft.com/
 
 Change `index.html` canonical/OG URLs if deploying under a different domain.
 
@@ -63,6 +64,8 @@ The solver and data tables incorporate modified MIT-licensed third-party work; s
 
 Other practical tools by [Leskasoft](https://www.leskasoft.fr/en) include [Remanence](https://remanence.leskasoft.fr), a solution for exploring and recovering damaged or corrupted video files.
 
-### High-SP support
+### 50,000-SP numerical validation
 
-The accepted skill-point budget is **0–50,000**. Exact optimization is performed in a Web Worker and may require substantial memory/time on phones at high budgets. Raising the input limit does not constitute a 50,000-SP performance benchmark or proof of an exact real-game optimum. See [math audit](docs/MATH_AUDIT.md).
+For a 50,000-SP Clan Ship / Fairy Gold build without QoL floors, the bounded model returned 49,973 SP allocated, using a 20-SP grid and a **1.2556 log10-score-unit worst-case upper gap** against the exact modeled optimum. In a JavaScript execution benchmark the calculation took approximately 17.4 seconds. This is an implementation test, **not a mobile performance guarantee** or validation of actual in-game damage.
+
+The certification is for the declared additive weighted score **only**; new TT2 8.4 equipment effects and conditional interactions still require independent verification.
