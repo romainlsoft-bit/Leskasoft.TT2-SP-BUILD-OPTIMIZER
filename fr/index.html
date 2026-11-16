@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0e1220">
+<meta name="description" data-static-localized="true" content="Optimisez vos points de compétences Tap Titans 2 : import JSON, saisie manuelle, confort de jeu (QoL) et export du build jusqu’à 50 000 SP.">
+<meta property="og:type" content="website"><meta property="og:url" content="https://tap-titans.leskasoft.com/fr/"><meta property="og:site_name" content="TT2 Skill Optimizer"><meta property="og:locale" content="fr_FR"><meta name="twitter:card" content="summary"><meta property="og:title" content="Optimiseur d’arbre de compétences Tap Titans 2 | Leskasoft">
+<meta property="og:description" content="Optimisez vos points de compétences Tap Titans 2 : import JSON, saisie manuelle, confort de jeu (QoL) et export du build jusqu’à 50 000 SP.">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://tap-titans.leskasoft.com/fr/">
+<link rel="alternate" hreflang="en" href="https://tap-titans.leskasoft.com/">
+<link rel="alternate" hreflang="fr" href="https://tap-titans.leskasoft.com/fr/">
+<link rel="alternate" hreflang="uk" href="https://tap-titans.leskasoft.com/uk/">
+<link rel="alternate" hreflang="ru" href="https://tap-titans.leskasoft.com/ru/">
+<link rel="alternate" hreflang="x-default" href="https://tap-titans.leskasoft.com/">
+<link rel="icon" type="image/svg+xml" href="../assets/favicon.svg"><link rel="stylesheet" href="../styles.css">
+<title>Optimiseur de compétences TT2 8.4 — Calculateur SP gratuit | Leskasoft</title>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Optimiseur d’arbre de compétences Tap Titans 2","description":"Optimisez vos points de compétences Tap Titans 2 : import JSON, saisie manuelle, confort de jeu (QoL) et export du build jusqu’à 50 000 SP.","applicationCategory":"GameApplication","operatingSystem":"Any","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"url":"https://tap-titans.leskasoft.com/fr/","inLanguage":"fr","@id":"https://tap-titans.leskasoft.com/fr/#tool"}</script>
+<script type="module" src="../src/app.js" defer></script>
+</head>
+<body>
+<div class="site">
+<header class="topbar">
+ <a class="brand" href="./"><span class="logo">✦</span><span>TT2 <strong>Optimiseur de compétences</strong><small>créé par Leskasoft</small></span></a>
+ <div class="header-right"><span class="version">TT2 8.4 <span class="version-dot">●</span></span><label class="language-picker" for="language-select"><span class="sr-only">Langue</span><select id="language-select" aria-label="Langue"><option value="en">English</option><option value="fr">Français</option><option value="uk">Українська</option><option value="ru">Русский</option></select></label><a href="https://github.com/romainlsoft-bit/Leskasoft.TT2-SP-BUILD-OPTIMIZER" target="_blank" rel="noopener noreferrer">GitHub ↗</a></div>
+</header>
+<main>
+<div class="page-description">
+ <h1>Optimiseur d’arbre de compétences Tap Titans 2</h1>
+ <p>Renseignez vos points de compétences, vos sources de dégâts et d’or, ainsi que vos compétences préférées. Les calculs sont effectués localement dans votre navigateur.</p>
+</div>
+<div class="workspace">
+<section class="panel setup" aria-labelledby="setup-title">
+ <div class="panel-head"><div><span class="eyebrow mini">ÉTAPE 01 — JOUEUR</span><h2 id="setup-title">Votre compte</h2></div><div class="panel-head-actions"><span class="subtle" id="source-label">Saisie manuelle</span><button type="button" id="export-help-button" class="help-button" aria-label="Comment exporter les données de TT2" aria-haspopup="dialog" aria-controls="export-help-dialog" title="Comment exporter les données de TT2">?</button></div></div>
+ <div class="import-box">
+  <div class="import-title"><span class="import-symbol">↗</span><div><h3>Import rapide</h3><p>Charge les SP, l'étage atteint, les équipements et l'arbre actuel</p></div></div>
+  <div class="button-row"><button id="paste-button" class="btn primary" type="button">Coller depuis le presse-papiers</button><button id="upload-button" class="btn secondary" type="button">Choisir un fichier JSON</button></div>
+  <input type="file" id="upload-file" accept=".json,application/json,text/plain" hidden>
+  <details class="import-expand" id="paste-details"><summary>Ou coller les données manuellement</summary><textarea id="import-json" rows="4" spellcheck="false" placeholder='Paste TT2 JSON export here…' aria-label="Coller l'export JSON TT2"></textarea><button class="btn secondary" type="button" id="import-button">Importer le JSON collé</button></details>
+  <p class="hint">Confidentialité préservée : vos données sont traitées localement dans ce navigateur.</p>
+ </div>
+ <div class="field-grid">
+  <label>Points de compétences <input id="skill-points" type="number" min="0" max="50000" step="1" inputmode="numeric" placeholder="ex. 4200" required></label>
+  <label>Étage maximal <input id="max-stage" type="number" min="0" step="1" inputmode="numeric" placeholder="Facultatif"></label>
+ </div>
+ <div class="form-group"><h3>Type de dégâts</h3><div class="choice-grid" id="damage-choices" role="group" aria-label="Type de dégâts"></div></div>
+ <div class="form-group"><h3>Source d'or</h3><div class="segmented" id="gold-choices" role="group" aria-label="Source d'or"></div></div>
+</section>
+<section class="panel preferences" aria-labelledby="preferences-title">
+ <div class="panel-head"><div><span class="eyebrow mini">ÉTAPE 02 — STYLE DE JEU</span><h2 id="preferences-title">Personnalisez votre build</h2></div></div>
+ <div class="playstyles" id="playstyle-choices">
+  <button type="button" class="playstyle" data-playstyle="farm"><span class="emoji">⚡</span><strong>Farm rapide</strong><small>Prestiges rapides et faciles</small></button>
+  <button type="button" class="playstyle selected" data-playstyle="balanced"><span class="emoji">⚖</span><strong>Équilibré</strong><small>Puissance et confort</small></button>
+  <button type="button" class="playstyle" data-playstyle="push"><span class="emoji">⚔</span><strong>Progression</strong><small>Priorité aux dégâts</small></button>
+ </div>
+ <div class="select-line"><label for="qol-mode">Confort de jeu (QoL)</label><select id="qol-mode"><option value="recommended">Recommandé automatiquement</option><option value="none">Désactivé (score de dégâts uniquement)</option><option value="custom">Niveaux minimaux personnalisés</option></select></div>
+ <p class="hint">Le QoL correspond à des compétences de confort, pas à une simulation du temps de prestige.</p>
+ <details class="advanced" id="advanced-settings"><summary><span>Réglages avancés et arbre manuel</span><span>⌄</span></summary>
+  <div class="advanced-body">
+    <div class="field-grid">
+      <label>Pondération de l'or <input id="gold-weight" type="number" min="0" max="2" step=".05" value=".7"></label>
+      <label>Puissance de fabrication <input id="crafting-power" type="number" min="1" step="1" value="1"></label>
+      <label>Temps pour tuer (s) <input id="time-to-kill" type="number" min=".1" step=".5" value="8"></label>
+      <label>Niveau du sort Clone d'ombre <input id="clone-level" type="number" min="1" max="35" step="1" value="30"></label>
+    </div>
+    <label class="toggle"><input type="checkbox" id="preserve-current">Conserver les niveaux actuels comme minimums</label>
+    <label class="toggle"><input type="checkbox" id="efficiency-mode">Maximiser le score par SP supplémentaire</label>
+    <h3>Ensembles d'équipements possédés</h3>
+    <p class="hint">Détectés automatiquement dans les exports TT2 quand ils sont disponibles.</p>
+    <div class="equipment-grid" id="equipment-choices"></div>
+    <h3>Compétences individuelles</h3>
+    <p class="hint">Renseignez votre niveau actuel pour la comparaison. Imposez un niveau minimal si nécessaire. Les compétences exclues ne recevront aucun SP supplémentaire.</p>
+    <div class="skill-filter"><input type="search" id="skill-search" placeholder="Rechercher une compétence ou un arbre…" aria-label="Rechercher des compétences"><button type="button" class="btn tiny secondary" id="clear-minimums">Effacer les minimums</button></div>
+    <div id="skill-editor" class="skill-editor"></div>
+  </div>
+ </details>
+ <button id="optimize-button" type="button" class="btn primary full call-to-action"><span>✦ &nbsp; Optimize my build</span><span>→</span></button>
+ <p id="status" class="status" role="status" aria-live="polite">Importez votre compte ou saisissez vos points de compétences pour commencer.</p>
+</section>
+<section class="panel results" id="results" aria-labelledby="results-title">
+ <div class="panel-head"><div><span class="eyebrow mini">ÉTAPE 03 — RÉSULTAT</span><h2 id="results-title">Votre arbre optimisé</h2></div><span class="subtle" id="result-mode">En attente de vos données</span></div>
+ <div id="empty-results" class="empty-state"><span class="empty-graphic">✧</span><h3>Votre prochain build commence ici</h3><p>Importez ou saisissez vos statistiques, choisissez un style de jeu et lancez le calcul.</p><div class="placeholders"><span></span><span></span><span></span><span></span><span></span><span></span></div></div>
+ <div id="actual-results" hidden>
+   <div class="result-banner"><div><span class="eyebrow mini">RÉPARTITION RECOMMANDÉE</span><h3 id="build-title">Clan Ship · Fairy</h3><p id="build-subtitle">Équilibré</p></div><span class="success-symbol">✓</span></div>
+   <div class="metric-grid"><div class="metric"><small>SP utilisés</small><strong id="spent">0</strong></div><div class="metric"><small>Restants</small><strong id="remaining">0</strong></div><div class="metric"><small>Compétences modifiées</small><strong id="change-count">0</strong></div></div>
+   <h3>Répartition par arbre</h3><div class="branches" id="branch-chart"></div>
+   <div class="result-buttons"><button id="copy-build" type="button" class="btn primary">Copier le build TT2</button><button id="share-build" type="button" class="btn secondary">Copier un lien de partage</button></div>
+   <details class="result-detail"><summary>Tous les niveaux de compétences</summary><div id="full-tree"></div></details>
+   <details class="result-detail"><summary>Comparaison avec votre build actuel <span id="delta-count"></span></summary><div id="diff-list"></div></details>
+   <details class="result-detail"><summary>JSON exporté</summary><textarea aria-label="JSON du build généré" id="export-json" readonly rows="5"></textarea></details>
+   <p class="hint math-disclaimer">Optimisation mathématique d'un modèle pondéré dégâts/or. Les performances réelles, la vitesse de prestige et les synergies conditionnelles peuvent différer. Outil non officiel.</p>
+ </div>
+</section>
+</div>
+<section class="methodology" aria-labelledby="method-title">
+ <h2 id="method-title">Modèle de calcul et limites</h2>
+ <p>Ce calculateur optimise un score pondéré de dégâts et d’or. Il ne simule pas le temps de prestige et ne garantit pas le meilleur build dans le jeu.</p>
+ <p>Au-delà de 12 000 SP, la répartition entre les arbres utilise une approximation bornée. Le calcul à l’intérieur de chaque arbre reste exact.</p>
+ <a href="https://github.com/romainlsoft-bit/Leskasoft.TT2-SP-BUILD-OPTIMIZER/blob/main/docs/MATH_AUDIT.md" target="_blank" rel="noopener noreferrer">Consulter l’audit mathématique</a>
+</section>
+</main>
+<dialog id="export-help-dialog" class="export-help-dialog" aria-labelledby="export-help-title">
+ <div class="modal-head"><h2 id="export-help-title">Comment exporter vos données TT2</h2><button type="button" id="export-help-close" class="dialog-close" aria-label="Fermer l'aide" title="Fermer l'aide">×</button></div>
+ <ol>
+  <li>Ouvrez Tap Titans 2 sur votre téléphone.</li>
+  <li>Dans le jeu, ouvrez Options → Services → Export.</li>
+  <li>Copiez les données du joueur exportées.</li>
+  <li>Revenez sur cette page et choisissez « Coller depuis le presse-papiers », ou collez le JSON manuellement.</li>
+ </ol>
+ <p>Pour importer ensuite un build optimisé dans TT2, ouvrez Arbre de compétences → Sauvegardes → Importer.</p>
+ <p class="hint">Utilisez l'export des données du joueur ou le JSON d'un build enregistré, jamais un Player API Token. Vos données restent dans le navigateur.</p>
+ <div class="dialog-actions"><button id="export-help-done" type="button" class="btn primary">Compris</button></div>
+</dialog>
+
+<footer><div><strong>Optimiseur TT2</strong><span>Outil communautaire indépendant, sans affiliation à Game Hive.</span></div><div class="footer-links"><span><span>Optimiseur d'origine par</span> <a href="https://github.com/rawrzcookie/rawrzcookie.github.io" target="_blank" rel="noopener noreferrer">rawrzcookie</a> · <a href="https://github.com/romainlsoft-bit/Leskasoft.TT2-SP-BUILD-OPTIMIZER/blob/main/THIRD_PARTY_NOTICES.md" target="_blank" rel="noopener noreferrer">Mentions MIT</a></span><a href="https://www.leskasoft.fr/en" target="_blank" rel="noopener noreferrer">Leskasoft ↗</a><a href="https://github.com/romainlsoft-bit/Leskasoft.TT2-SP-BUILD-OPTIMIZER" target="_blank" rel="noopener noreferrer">Code source ↗</a></div></footer>
+</div>
+</body></html>

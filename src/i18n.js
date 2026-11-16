@@ -394,6 +394,33 @@ Object.assign(translations.ru,{
   "Internal validation failed: {detail}":"Ошибка внутренней проверки: {detail}"
 });
 
+
+// Search-indexable factual introduction and methodology (no advertising text).
+Object.assign(translations.fr,{
+  "Tap Titans 2 Skill Tree Optimizer": "Optimiseur d’arbre de compétences Tap Titans 2",
+  "Configure your skill points, damage and gold sources, and preferred skills. Calculations run locally in your browser.": "Renseignez vos points de compétences, vos sources de dégâts et d’or, ainsi que vos compétences préférées. Les calculs sont effectués localement dans votre navigateur.",
+  "Calculation model and limits": "Modèle de calcul et limites",
+  "This calculator optimizes a weighted damage and gold score. It does not simulate prestige times or guarantee the strongest build in the game.": "Ce calculateur optimise un score pondéré de dégâts et d’or. Il ne simule pas le temps de prestige et ne garantit pas le meilleur build dans le jeu.",
+  "For budgets above 12,000 SP, the combined allocation uses a bounded approximation. Exactness within each skill branch is retained.": "Au-delà de 12 000 SP, la répartition entre les arbres utilise une approximation bornée. Le calcul à l’intérieur de chaque arbre reste exact.",
+  "View the mathematical audit": "Consulter l’audit mathématique"
+});
+Object.assign(translations.uk,{
+  "Tap Titans 2 Skill Tree Optimizer": "Оптимізатор дерева навичок Tap Titans 2",
+  "Configure your skill points, damage and gold sources, and preferred skills. Calculations run locally in your browser.": "Вкажіть очки навичок, джерела шкоди та золота й бажані навички. Обчислення виконуються локально у вашому браузері.",
+  "Calculation model and limits": "Модель обчислення та обмеження",
+  "This calculator optimizes a weighted damage and gold score. It does not simulate prestige times or guarantee the strongest build in the game.": "Калькулятор оптимізує зважену оцінку шкоди та золота. Він не моделює час престижу й не гарантує найсильнішу збірку в грі.",
+  "For budgets above 12,000 SP, the combined allocation uses a bounded approximation. Exactness within each skill branch is retained.": "Для бюджетів понад 12 000 очок загальний розподіл використовує наближення з обмеженою похибкою. Оптимізація кожного дерева залишається точною.",
+  "View the mathematical audit": "Переглянути математичний аудит"
+});
+Object.assign(translations.ru,{
+  "Tap Titans 2 Skill Tree Optimizer": "Оптимизатор дерева навыков Tap Titans 2",
+  "Configure your skill points, damage and gold sources, and preferred skills. Calculations run locally in your browser.": "Укажите очки навыков, источники урона и золота, а также предпочтительные навыки. Расчёты выполняются локально в браузере.",
+  "Calculation model and limits": "Модель расчёта и ограничения",
+  "This calculator optimizes a weighted damage and gold score. It does not simulate prestige times or guarantee the strongest build in the game.": "Калькулятор оптимизирует взвешенную оценку урона и золота. Он не моделирует время престижа и не гарантирует самый сильный билд в игре.",
+  "For budgets above 12,000 SP, the combined allocation uses a bounded approximation. Exactness within each skill branch is retained.": "При бюджете свыше 12 000 очков используется приближение с ограниченной погрешностью. Оптимизация внутри каждого дерева остаётся точной.",
+  "View the mathematical audit": "Посмотреть математический аудит"
+});
+
 export function t(message, lang="en", parameters={}){
   const selected=SUPPORTED_LANGUAGES.includes(lang)?lang:"en";
   const value=translations[selected]?.[message] ?? message;
@@ -433,5 +460,5 @@ export function localizeDocument(doc=document,lang="en"){
   doc.title=t(title,lang);
   const description="Free Tap Titans 2 skill tree optimizer for TT2 8.4. Optimize skill points for Clan Ship, Pet, Shadow Clone, Heavenly Strike, Dagger or Gold Gun. Import game data or configure manually.";
   const meta=doc.querySelector('meta[name="description"]');
-  if(meta)meta.content=t(description,lang);
+  if(meta && !meta.hasAttribute("data-static-localized"))meta.content=t(description,lang);
 }

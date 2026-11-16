@@ -4,18 +4,18 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0e1220">
 <meta name="description" content="Free Tap Titans 2 skill tree optimizer for TT2 8.4. Optimize skill points for Clan Ship, Pet, Shadow Clone, Heavenly Strike, Dagger or Gold Gun. Import game data or configure manually.">
-<meta property="og:type" content="website"><meta property="og:title" content="Tap Titans 2 Skill Tree Optimizer | TT2 8.4">
-<meta property="og:description" content="Import or manually configure your TT2 account. Find an optimized skill tree in seconds. Open source and mobile friendly.">
+<meta property="og:type" content="website"><meta property="og:url" content="https://tap-titans.leskasoft.com/"><meta property="og:site_name" content="TT2 Skill Optimizer"><meta property="og:locale" content="en_US"><meta name="twitter:card" content="summary"><meta property="og:title" content="Tap Titans 2 Skill Tree Optimizer | TT2 8.4">
+<meta property="og:description" content="Tap Titans 2 skill tree calculator: import game data, choose damage and gold sources, set QoL preferences, and export an optimized skill tree.">
 <meta name="robots" content="index,follow">
 <link rel="canonical" href="https://tap-titans.leskasoft.com/">
-<link rel="alternate" hreflang="en" href="https://tap-titans.leskasoft.com/?lang=en">
-<link rel="alternate" hreflang="fr" href="https://tap-titans.leskasoft.com/?lang=fr">
-<link rel="alternate" hreflang="uk" href="https://tap-titans.leskasoft.com/?lang=uk">
-<link rel="alternate" hreflang="ru" href="https://tap-titans.leskasoft.com/?lang=ru">
+<link rel="alternate" hreflang="en" href="https://tap-titans.leskasoft.com/">
+<link rel="alternate" hreflang="fr" href="https://tap-titans.leskasoft.com/fr/">
+<link rel="alternate" hreflang="uk" href="https://tap-titans.leskasoft.com/uk/">
+<link rel="alternate" hreflang="ru" href="https://tap-titans.leskasoft.com/ru/">
 <link rel="alternate" hreflang="x-default" href="https://tap-titans.leskasoft.com/">
 <link rel="icon" type="image/svg+xml" href="assets/favicon.svg"><link rel="stylesheet" href="styles.css">
 <title>TT2 Skill Tree Optimizer 8.4 — Free Skill Point Calculator | Leskasoft</title>
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"TT2 Skill Tree Optimizer","description":"Free Tap Titans 2 skill-point optimizer and skill-tree calculator","applicationCategory":"GameApplication","operatingSystem":"Web","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"url":"https://tap-titans.leskasoft.com/"}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"TT2 Skill Tree Optimizer","description":"Tap Titans 2 skill tree optimizer with manual and JSON import, QoL preferences and 50,000 Skill Point support.","applicationCategory":"GameApplication","operatingSystem":"Any","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"url":"https://tap-titans.leskasoft.com/","inLanguage":"en","@id":"https://tap-titans.leskasoft.com/#tool"}</script>
 <script type="module" src="src/app.js" defer></script>
 </head>
 <body>
@@ -25,6 +25,10 @@
  <div class="header-right"><span class="version">TT2 8.4 <span class="version-dot">●</span></span><label class="language-picker" for="language-select"><span class="sr-only">Language</span><select id="language-select" aria-label="Language"><option value="en">English</option><option value="fr">Français</option><option value="uk">Українська</option><option value="ru">Русский</option></select></label><a href="https://github.com/romainlsoft-bit/Leskasoft.TT2-SP-BUILD-OPTIMIZER" target="_blank" rel="noopener noreferrer">GitHub ↗</a></div>
 </header>
 <main>
+<div class="page-description">
+ <h1>Tap Titans 2 Skill Tree Optimizer</h1>
+ <p>Configure your skill points, damage and gold sources, and preferred skills. Calculations run locally in your browser.</p>
+</div>
 <div class="workspace">
 <section class="panel setup" aria-labelledby="setup-title">
  <div class="panel-head"><div><span class="eyebrow mini">STEP 01 — PLAYER</span><h2 id="setup-title">Your account</h2></div><div class="panel-head-actions"><span class="subtle" id="source-label">Manual setup</span><button type="button" id="export-help-button" class="help-button" aria-label="How to export data from TT2" aria-haspopup="dialog" aria-controls="export-help-dialog" title="How to export data from TT2">?</button></div></div>
@@ -88,6 +92,12 @@
  </div>
 </section>
 </div>
+<section class="methodology" aria-labelledby="method-title">
+ <h2 id="method-title">Calculation model and limits</h2>
+ <p>This calculator optimizes a weighted damage and gold score. It does not simulate prestige times or guarantee the strongest build in the game.</p>
+ <p>For budgets above 12,000 SP, the combined allocation uses a bounded approximation. Exactness within each skill branch is retained.</p>
+ <a href="https://github.com/romainlsoft-bit/Leskasoft.TT2-SP-BUILD-OPTIMIZER/blob/main/docs/MATH_AUDIT.md" target="_blank" rel="noopener noreferrer">View the mathematical audit</a>
+</section>
 </main>
 <dialog id="export-help-dialog" class="export-help-dialog" aria-labelledby="export-help-title">
  <div class="modal-head"><h2 id="export-help-title">How to export your TT2 data</h2><button type="button" id="export-help-close" class="dialog-close" aria-label="Close help" title="Close help">×</button></div>
