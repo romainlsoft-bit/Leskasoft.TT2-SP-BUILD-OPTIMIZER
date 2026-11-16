@@ -83,7 +83,8 @@ export function optimizeBuild(settings,onProgress){
     throw new Error("Astral Awakening activations must be between 0 and 5.");
   const combatContext={...settings,astralActivations,
     assumeHaystActive:settings.assumeHaystActive===true,
-    assumeSnapActive:settings.assumeSnapActive===true};
+    assumeSnapActive:settings.assumeSnapActive===true,
+    assumeContractsAtMax:settings.assumeContractsAtMax===true};
   const current=levelsFrom(settings.currentLevels||{});
   const min=Object.fromEntries(SKILL_IDS.map(id=>[id,settings.preserveCurrent?current[id]:0]));
   if(settings.qol==="recommended"){
@@ -95,6 +96,12 @@ export function optimizeBuild(settings,onProgress){
     const lvl=Number(v);
     if(!Number.isInteger(lvl)||lvl<0||lvl>skillInfo[id].MaxLevel)throw new Error("Invalid minimum for "+skillInfo[id].Name);
     min[id]=Math.max(min[id],lvl);
+  }
+  if(combatContext.assumeContractsAtMax){
+    // Opt-in means both contracts exist and reach full bonus at the boss.
+    // Minimums also make the conditional Terrifying Pact score consistent.
+    min.ForbiddenContract=Math.max(min.ForbiddenContract,1);
+    min.RoyalContract=Math.max(min.RoyalContract,1);
   }
   if(spentPoints(min)>SP)throw new Error("The required QoL or minimum skills cost more SP than available. Disable automatic QoL or lower constraints.");
   const skills=SKILL_IDS.map(id=>{
@@ -139,6 +146,7 @@ export function optimizeBuild(settings,onProgress){
   ]));
   return {...result,prior:current,spent:points,remaining:SP-points,changes,branchTotals,
     combatAssumptions:{hayst:combatContext.assumeHaystActive,
-      snap:combatContext.assumeSnapActive,astralActivations},
+      snap:combatContext.assumeSnapActive,astralActivations,
+      contractsAtMax:combatContext.assumeContractsAtMax},
     model:"TT2 weighted log-damage/gold proxy; not a gameplay performance guarantee",gameVersion:GAME_VERSION};
 }

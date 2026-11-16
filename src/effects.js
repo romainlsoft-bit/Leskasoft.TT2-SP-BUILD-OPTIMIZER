@@ -72,11 +72,19 @@ export function scoreAtLevel(id,level,settings){
     case "LoadedDice":
       // Unlike Quick Fortune, B is unconditionally AllGold.
       return r*lr(logA)+goldWeight*lr(logB);
+    case "ForbiddenContract":
+    case "RoyalContract":
+      // The table gives MAXIMUM ramped bonuses, not always-on effects.
+      // These require sustained mana and time at the push-limit boss.
+      return settings.assumeContractsAtMax===true ? r*lr(logA) : 0;
     case "CloneDmg":
       return r*lr(n=>logA(n)+Math.log10((4+B(n))/4));
     case "CritSkillBoost":
       return r*lightningStrike(info,level,settings);
     case "TerrifyingPact": {
+      // Pact applies only while the corresponding contract is active.
+      // Never score its max gold/damage buffs as unconditional bonuses.
+      if(settings.assumeContractsAtMax!==true)return 0;
       // Do not assume contracts are enabled merely because they are selectable.
       // Include synergy only when minimum/preserved levels guarantee activation.
       const force=id=>num(settings.minimums?.[id]||(settings.preserveCurrent?settings.currentLevels?.[id]:0))>0;
