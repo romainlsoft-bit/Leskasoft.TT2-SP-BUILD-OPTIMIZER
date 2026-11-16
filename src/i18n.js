@@ -421,6 +421,33 @@ Object.assign(translations.ru,{
   "View the mathematical audit": "Посмотреть математический аудит"
 });
 
+
+// Persistent error toast and browser-permission clipboard fallback.
+Object.assign(translations.fr,{
+  "Error": "Erreur",
+  "Close notification": "Fermer la notification",
+  "Clipboard is empty. Copy your TT2 export and try again.": "Le presse-papiers est vide. Copiez votre export TT2, puis réessayez.",
+  "Automatic clipboard access is unavailable. Paste your export into the field below (Ctrl+V on desktop, or Paste on mobile).": "La lecture automatique du presse-papiers n'est pas disponible. Collez votre export dans le champ ci-dessous (Ctrl+V sur ordinateur, ou Coller sur mobile).",
+  "Browser denied clipboard access. Paste your export into the field below (Ctrl+V on desktop, or Paste on mobile).": "Le navigateur a refusé l'accès au presse-papiers. Collez votre export dans le champ ci-dessous (Ctrl+V sur ordinateur, ou Coller sur mobile).",
+  "Clipboard data could not be imported: {detail}": "Impossible d'importer les données du presse-papiers : {detail}"
+});
+Object.assign(translations.uk,{
+  "Error": "Помилка",
+  "Close notification": "Закрити повідомлення",
+  "Clipboard is empty. Copy your TT2 export and try again.": "Буфер обміну порожній. Скопіюйте експорт TT2 і спробуйте ще раз.",
+  "Automatic clipboard access is unavailable. Paste your export into the field below (Ctrl+V on desktop, or Paste on mobile).": "Автоматичний доступ до буфера обміну недоступний. Вставте експорт у поле нижче (Ctrl+V на комп’ютері або «Вставити» на телефоні).",
+  "Browser denied clipboard access. Paste your export into the field below (Ctrl+V on desktop, or Paste on mobile).": "Браузер заборонив доступ до буфера обміну. Вставте експорт у поле нижче (Ctrl+V на комп’ютері або «Вставити» на телефоні).",
+  "Clipboard data could not be imported: {detail}": "Не вдалося імпортувати дані з буфера: {detail}"
+});
+Object.assign(translations.ru,{
+  "Error": "Ошибка",
+  "Close notification": "Закрыть уведомление",
+  "Clipboard is empty. Copy your TT2 export and try again.": "Буфер обмена пуст. Скопируйте экспорт TT2 и повторите попытку.",
+  "Automatic clipboard access is unavailable. Paste your export into the field below (Ctrl+V on desktop, or Paste on mobile).": "Автоматический доступ к буферу обмена недоступен. Вставьте экспорт в поле ниже (Ctrl+V на компьютере или «Вставить» на телефоне).",
+  "Browser denied clipboard access. Paste your export into the field below (Ctrl+V on desktop, or Paste on mobile).": "Браузер запретил доступ к буферу обмена. Вставьте экспорт в поле ниже (Ctrl+V на компьютере или «Вставить» на телефоне).",
+  "Clipboard data could not be imported: {detail}": "Не удалось импортировать данные из буфера: {detail}"
+});
+
 export function t(message, lang="en", parameters={}){
   const selected=SUPPORTED_LANGUAGES.includes(lang)?lang:"en";
   const value=translations[selected]?.[message] ?? message;

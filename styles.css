@@ -95,3 +95,66 @@ hr{border:0;border-top:1px solid #384158;margin:27px 0}.playstyles{display:grid;
  .page-description h1{font-size:23px}
  .methodology{padding:17px;margin:24px 0 32px}
 }
+
+/* Accessible, dismissible toast for errors in any step.
+   Errors intentionally remain visible until explicitly dismissed. */
+.app-toast[hidden]{display:none!important}
+.app-toast{
+ position:fixed;
+ z-index:1200;
+ top:calc(14px + env(safe-area-inset-top, 0px));
+ right:calc(14px + env(safe-area-inset-right, 0px));
+ width:min(440px,calc(100vw - 28px));
+ max-height:min(65vh,560px);
+ overflow-y:auto;
+ display:flex;
+ align-items:flex-start;
+ gap:12px;
+ padding:15px 14px;
+ border:1px solid #e78b98;
+ border-left:5px solid #ff9b9b;
+ border-radius:12px;
+ background:#30202a;
+ color:#fff0f2;
+ box-shadow:0 15px 44px #0009;
+ font-size:13px;
+ line-height:1.45;
+}
+.toast-symbol{
+ flex:0 0 27px;
+ height:27px;
+ border:1px solid #f9b7c0;
+ border-radius:50%;
+ display:grid;
+ place-items:center;
+ color:#ffdbe1;
+ font-weight:850;
+ font-size:16px;
+}
+.toast-content{min-width:0;flex:1}
+.toast-content strong{display:block;font-size:13px;margin-bottom:3px}
+.toast-content p{margin:0;color:#ffe1e5;overflow-wrap:anywhere;white-space:pre-wrap}
+.toast-close{
+ flex:0 0 32px;
+ width:32px;
+ height:32px;
+ display:grid;
+ place-items:center;
+ border:1px solid #f0a6b177;
+ border-radius:8px;
+ background:#59303c;
+ color:#fff;
+ font-size:24px;
+ line-height:1;
+ cursor:pointer;
+}
+.toast-close:hover{background:#733e4d}
+@media (max-width:550px){
+ .app-toast{
+  top:calc(9px + env(safe-area-inset-top, 0px));
+  right:calc(9px + env(safe-area-inset-right, 0px));
+  left:calc(9px + env(safe-area-inset-left, 0px));
+  width:auto;
+  padding:12px 10px;
+ }
+}
