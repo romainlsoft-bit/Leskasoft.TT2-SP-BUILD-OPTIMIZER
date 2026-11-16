@@ -124,7 +124,7 @@ export function optimizeBuild(settings,onProgress){
     }
     scoreCache.set(id,scores);
   }
-  const result=optimizeExact(skills,SP,(skill,level)=>scoreCache.get(skill.id)[level],settings.mode||"power",onProgress);
+  const result=optimizeExact(skills,SP,(skill,level)=>scoreCache.get(skill.id)[level],"power",onProgress);
   const points=spentPoints(result.levels);
   if(points>SP)throw new Error("Internal validation failed: allocation exceeds SP budget.");
   for(const item of skills){

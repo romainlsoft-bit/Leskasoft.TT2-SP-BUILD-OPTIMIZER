@@ -1,4 +1,4 @@
-import { optimizeBuild } from "./engine.js";
+import { optimizeBuild } from "./engine.js?v=20261116-sp-budget-fix";
 self.onmessage = event => {
   if(event.data?.type!=="optimize") return;
   try {

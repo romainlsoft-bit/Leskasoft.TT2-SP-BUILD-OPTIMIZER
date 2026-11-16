@@ -98,3 +98,8 @@ Static translated HTML, one factual H1 per language, self-canonical URLs, recipr
 A player reported a build **750 stages better** than the optimizer's previous output with almost identical SP (22,640 vs 22,642). This is evidence of a gameplay-model problem or incompatible optimization settings, not a reason to lock branch budgets to their old values. Some temporary effects were previously scored without checking activation: Hayst (Quick Fortune), Snap (Philosopher's Flux) and five Astral Awakening orb taps. Advanced settings now make these conditions explicit and default to inactive for a conservative boss-push scenario.
 
 These changes do **not** establish a guaranteed in-game improvement or close issue #9. Compare real game outcomes. See [mathematical audit](docs/MATH_AUDIT.md).
+
+
+## SP budget regression fix (November 2026)
+
+The retired score-per-SP ratio setting could allocate just a handful of points even when a player owned more than 22,000 SP. The calculator now always maximizes **total modeled score within the entered budget**; old persisted/share-linked ratio settings cannot reactivate the previous behavior. The 22k+ Pet/Fairy benchmark is available with `node scripts/benchmark-22k.mjs 22642 --all`. This does not resolve the separate validation of in-game stages tracked in issue #9.

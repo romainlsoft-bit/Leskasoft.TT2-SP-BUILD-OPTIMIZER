@@ -217,3 +217,17 @@ test("Observed Pet/Fairy stage regression compares equally affordable trees",()=
  // Agreement in a proxy metric cannot validate the observed 750-stage gain.
  assert.ok(score(better)>score(optimizer));
 });
+
+test("Retired efficiency objective cannot discard the SP budget",()=>{
+ const s={...defaults,damage:"Pet",gold:"Fairy",skillPoints:400,qol:"none"};
+ const full=optimizeBuild({...s,mode:"power"}),legacy=optimizeBuild({...s,mode:"efficiency"});
+ assert.deepEqual(legacy.levels,full.levels);
+ assert.equal(legacy.spent,full.spent);
+ assert.ok(full.spent>=350,`400 SP reduced to ${full.spent}`);
+});
+test("Legacy direct solver ratio mode is normalized to full-budget power",()=>{
+ const skills=[{id:"root",branch:"A",parent:"None",spReq:0,min:0,max:3,costs:[0,1,2,3]}];
+ const result=optimizeExact(skills,3,(_,level)=>[0,10,11,12][level],"efficiency");
+ assert.equal(result.levels.root,3);
+ assert.equal(result.score,12);
+});
