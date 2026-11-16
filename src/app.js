@@ -1,24 +1,55 @@
 import {SKILLS,SKILL_IDS,BRANCH_NAMES,SETS,PRESETS,DAMAGE_TYPES,GOLD_TYPES,GAME_VERSION,parseExport,exportBuild,spentPoints} from "./engine.js";
+import { t, localizeDocument, SUPPORTED_LANGUAGES } from "./i18n.js";
 const $=id=>document.getElementById(id);
+let locale="en";
+let lastStatus={message:"Import your account or enter your skill points to begin.",type:"",params:{}};
+const tr=(message,params={})=>t(message,locale,params);
+const numberText=value=>Number(value).toLocaleString({en:"en-US",fr:"fr-FR",uk:"uk-UA",ru:"ru-RU"}[locale]);
+function setLocale(next){
+ locale=SUPPORTED_LANGUAGES.includes(next)?next:"en";
+ try{localStorage.setItem("tt2_site_language",locale)}catch{}
+ const u=new URL(location.href);
+ if(u.searchParams.has("lang")){u.searchParams.set("lang",locale);history.replaceState(null,"",u.toString());}
+ $("language-select").value=locale;
+ localizeDocument(document,locale);
+ renderChoices();renderEditor($("skill-search").value);
+ $("source-label").textContent=tr(state.sourceImported?"Imported from TT2":"Manual setup");
+ $("result-mode").textContent=lastResult?(lastResult.solver==="bounded-grid-dp"?tr("Optimized · bounded grid"):tr("Optimized · exact DP")):tr("Ready when you are");
+ if(lastResult)renderResults(lastResult,false);
+ status(lastStatus.message,lastStatus.type,lastStatus.params);
+ if(!worker)resetOptimizeButton();
+ else $("optimize-button").textContent=tr("Cancel optimization");
+}
+function engineError(message){
+ const value=String(message||"Optimization failed.");
+ let match=value.match(/^Invalid minimum for (.+)$/);
+ if(match)return tr("Invalid minimum for {name}",{name:match[1]});
+ match=value.match(/^(.+) cannot reach the required minimum at your current stage\.$/);
+ if(match)return tr("{name} cannot reach the required minimum at your current stage.",{name:match[1]});
+ match=value.match(/^Internal validation failed: (.+)$/);
+ if(match)return tr("Internal validation failed: {detail}",{detail:match[1]});
+ return tr(value);
+}
 const iconMap={"Clan Ship":"⛵","Pet":"🐾","Shadow Clone":"◈","Heavenly Strike":"⚡","Dagger":"🗡","Gold Gun":"✦"};
 const branchColors={Knight:"#d77879",Summoner:"#edab66",Warlord:"#e7ca75",Sorcerer:"#86adf7",Rogue:"#7ad0a0",Alchemist:"#b595ed"};
 const fresh=()=>({damage:"Clan Ship",gold:"Fairy",skillPoints:0,maxStage:0,playstyle:"balanced",qol:"recommended",goldWeight:.7,craftingPower:1,timeToKill:8,sClone:30,sets:{},currentLevels:{},minimums:{},excluded:[],preserveCurrent:false,mode:"power"});
 let state=fresh(),lastResult=null,worker=null;
-function status(message,type=""){const el=$("status");el.textContent=message;el.className="status "+type;}
+function status(message,type="",params={}){lastStatus={message,type,params};const el=$("status");const normalized={...params};if(normalized.phase)normalized.phase=tr(normalized.phase);const translated=tr(message,normalized);el.textContent=type==="error"&&translated===message?engineError(message):translated;el.className="status "+type;}
+function resetOptimizeButton(){const b=$("optimize-button");b.disabled=false;b.innerHTML='<span>✦ &nbsp; '+safe(tr("Optimize my build"))+'</span><span>→</span>';}
 function safe(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 function persist(){try{localStorage.setItem("tt2_skill_optimizer_v1",JSON.stringify(state));}catch{}}
 function renderChoices(){
-  $("damage-choices").innerHTML=DAMAGE_TYPES.map(x=>`<button class="choice ${state.damage===x?"selected":""}" type="button" data-damage="${safe(x)}" aria-pressed="${state.damage===x}"><span>${iconMap[x]}</span>${safe(x)}</button>`).join("");
-  $("gold-choices").innerHTML=GOLD_TYPES.map(x=>`<button class="${state.gold===x?"selected":""}" type="button" data-gold="${safe(x)}" aria-pressed="${state.gold===x}">${x==="HoG"?"Heart of Gold":safe(x)}</button>`).join("");
+  $("damage-choices").innerHTML=DAMAGE_TYPES.map(x=>`<button class="choice ${state.damage===x?"selected":""}" type="button" data-damage="${safe(x)}" aria-pressed="${state.damage===x}"><span>${iconMap[x]}</span>${safe(tr(x))}</button>`).join("");
+  $("gold-choices").innerHTML=GOLD_TYPES.map(x=>`<button class="${state.gold===x?"selected":""}" type="button" data-gold="${safe(x)}" aria-pressed="${state.gold===x}">${safe(tr(x==="HoG"?"Heart of Gold":x))}</button>`).join("");
   document.querySelectorAll("[data-playstyle]").forEach(btn=>{const active=btn.dataset.playstyle===state.playstyle;btn.classList.toggle("selected",active);btn.setAttribute("aria-pressed",String(active));});
   $("equipment-choices").innerHTML=Object.entries(SETS).map(([id,label])=>`<label><input type="checkbox" data-set="${id}" ${state.sets?.[id]?"checked":""}><span>${safe(label)}</span></label>`).join("");
 }
 function renderEditor(filter=""){
- const q=filter.trim().toLowerCase();const matches=SKILL_IDS.filter(id=>SKILLS[id].Name.toLowerCase().includes(q)||BRANCH_NAMES[SKILLS[id].Branch].toLowerCase().includes(q));
- $("skill-editor").innerHTML='<div class="skill-colhead"><span>Skill</span><span>Current</span><span>Minimum</span><span>Exclude</span></div>'+matches.map(id=>{
-  const s=SKILLS[id];return `<div class="skill-row"><span class="skill-name">${safe(s.Name)}<small>${safe(BRANCH_NAMES[s.Branch])} · max ${s.MaxLevel}</small></span><input type="number" data-level="${id}" min="0" max="${s.MaxLevel}" step="1" value="${state.currentLevels?.[id]||0}" aria-label="Current level for ${safe(s.Name)}"><input type="number" data-minimum="${id}" min="0" max="${s.MaxLevel}" step="1" value="${state.minimums?.[id]||0}" aria-label="Minimum level for ${safe(s.Name)}"><div class="center"><input type="checkbox" data-exclude="${id}" aria-label="Exclude ${safe(s.Name)}" ${state.excluded?.includes(id)?"checked":""}></div></div>`;
+ const q=filter.trim().toLowerCase();const matches=SKILL_IDS.filter(id=>SKILLS[id].Name.toLowerCase().includes(q)||BRANCH_NAMES[SKILLS[id].Branch].toLowerCase().includes(q)||tr(BRANCH_NAMES[SKILLS[id].Branch]).toLowerCase().includes(q));
+ $("skill-editor").innerHTML='<div class="skill-colhead"><span>'+safe(tr("Skill"))+'</span><span>'+safe(tr("Current"))+'</span><span>'+safe(tr("Minimum"))+'</span><span>'+safe(tr("Exclude"))+'</span></div>'+matches.map(id=>{
+  const s=SKILLS[id];return `<div class="skill-row"><span class="skill-name">${safe(s.Name)}<small>${safe(tr(BRANCH_NAMES[s.Branch]))} · max ${s.MaxLevel}</small></span><input type="number" data-level="${id}" min="0" max="${s.MaxLevel}" step="1" value="${state.currentLevels?.[id]||0}" aria-label="${safe(tr("Current level for {name}",{name:s.Name}))}"><input type="number" data-minimum="${id}" min="0" max="${s.MaxLevel}" step="1" value="${state.minimums?.[id]||0}" aria-label="${safe(tr("Minimum level for {name}",{name:s.Name}))}"><div class="center"><input type="checkbox" data-exclude="${id}" aria-label="${safe(tr("Exclude {name}",{name:s.Name}))}" ${state.excluded?.includes(id)?"checked":""}></div></div>`;
  }).join("");
- if(!matches.length)$("skill-editor").innerHTML="<p class='hint'>No skills match your search.</p>";
+ if(!matches.length)$("skill-editor").innerHTML="<p class='hint'>"+safe(tr("No skills match your search."))+"</p>";
 }
 function fillInputs(){
  $("skill-points").value=state.skillPoints||"";
@@ -32,7 +63,7 @@ function fillInputs(){
  $("efficiency-mode").checked=state.mode==="efficiency";
  renderChoices();renderEditor($("skill-search").value);
 }
-function remember(){persist();lastResult=null;$("actual-results").hidden=true;$("empty-results").hidden=false;$("result-mode").textContent="Settings changed";}
+function remember(){persist();lastResult=null;$("actual-results").hidden=true;$("empty-results").hidden=false;$("result-mode").textContent=tr("Settings changed");}
 function applyPreset(id){
  const preset=PRESETS[id];state.playstyle=id;state.goldWeight=preset.goldWeight;state.qol=preset.qol;
  fillInputs();remember();
@@ -46,13 +77,14 @@ function importRaw(raw){
  state.sClone=state.sets.tFA?35:30;
  if(parsed.damage)state.damage=parsed.damage;
  if(parsed.gold)state.gold=parsed.gold;
- $("source-label").textContent="Imported from TT2";
+ state.sourceImported=true;
+ $("source-label").textContent=tr("Imported from TT2");
  fillInputs();remember();
  status("Account data imported. Review the damage/gold choices and optimize.","success");
 }
 async function pasteClipboard(){
  try{const raw=await navigator.clipboard.readText();importRaw(raw);}
- catch(e){$("paste-details").open=true;status("Clipboard unavailable or invalid export. Paste the JSON in the box instead: "+e.message,"error");}
+ catch(e){$("paste-details").open=true;status("Clipboard unavailable or invalid export. Paste the JSON in the box instead: {detail}","error",{detail:engineError(e.message)});}
 }
 async function copyText(value){
  if(navigator.clipboard?.writeText){try{await navigator.clipboard.writeText(value);return true;}catch{}}
@@ -75,53 +107,53 @@ function optimize(){
  const button=$("optimize-button");
  if(worker){
    worker.terminate();worker=null;
-   button.disabled=false;button.innerHTML="<span>✦ &nbsp; Optimize my build</span><span>→</span>";
+   resetOptimizeButton();
    status("Optimization cancelled. Your settings are unchanged.");return;
  }
  readInputs();
  if(!$("skill-points").value){status("Enter your total Skill Points or import a player export.","error");return;}
- button.disabled=false;button.textContent="Cancel optimization";
+ button.disabled=false;button.textContent=tr("Cancel optimization");
  status("Checking prerequisites and calculating the best allocation for the chosen scoring model…");
  worker=new Worker(new URL("./worker.js",import.meta.url),{type:"module"});
  worker.onmessage=event=>{
    const data=event.data;
    if(data.progress){
      const phase=data.progress.phase==="skills"?"Building skill-tree options":"Combining skill trees";
-     status(phase+": "+data.progress.completed+"/"+data.progress.total+" complete. You can cancel at any time.");
+     status("{phase}: {completed}/{total} complete. You can cancel at any time.","",{phase,completed:data.progress.completed,total:data.progress.total});
      return;
    }
-   button.disabled=false;button.innerHTML="<span>✦ &nbsp; Optimize my build</span><span>→</span>";
+   resetOptimizeButton();
    if(data.ok){lastResult=data.result;renderResults(data.result);persist();status(data.result.optimality?.mode==="bounded-power"?"Build ready with a certified upper bound on the score gap. See accuracy details below.":"Build optimized. Copy the result to import it into TT2.","success");}
    else{status(data.error||"Optimization failed.","error");$("result-mode").textContent="Could not optimize";}
    worker.terminate();worker=null;
  };
- worker.onerror=event=>{button.disabled=false;button.innerHTML="<span>✦ &nbsp; Optimize my build</span><span>→</span>";status("Optimizer worker failed: "+(event.message||"unknown error"),"error");worker?.terminate();worker=null;};
+ worker.onerror=event=>{resetOptimizeButton();status("Optimizer worker failed: {detail}","error",{detail:event.message||"unknown error"});worker?.terminate();worker=null;};
  worker.postMessage({type:"optimize",settings:structuredClone(state)});
 }
-function renderResults(result){
- $("empty-results").hidden=true;$("actual-results").hidden=false;$("results").scrollIntoView({behavior:"smooth",block:"start"});
+function renderResults(result,scroll=true){
+ $("empty-results").hidden=true;$("actual-results").hidden=false;if(scroll)$("results").scrollIntoView({behavior:"smooth",block:"start"});
  const bounded=result.optimality?.mode==="bounded-power"||result.optimality?.mode==="uncertified-ratio";
- $("result-mode").textContent=bounded?"Optimized · bounded grid":"Optimized · exact DP";
- $("build-title").textContent=state.damage+" · "+(state.gold==="HoG"?"Heart of Gold":state.gold)+" Gold";
- $("build-subtitle").textContent=PRESETS[state.playstyle]?.label+" · Weighted log-damage/gold model";
+ $("result-mode").textContent=tr(bounded?"Optimized · bounded grid":"Optimized · exact DP");
+ $("build-title").textContent=tr(state.damage)+" · "+tr(state.gold==="HoG"?"Heart of Gold":state.gold);
+ $("build-subtitle").textContent=tr(PRESETS[state.playstyle]?.label||"Balanced")+" · "+tr("Weighted log-damage/gold model");
  const accuracy=document.querySelector(".math-disclaimer");
  if(bounded&&accuracy){
    const o=result.optimality;
    const suffix=o.mode==="uncertified-ratio"
-     ?"This efficiency-mode allocation uses a grid approximation, without a certified optimum for the score-per-SP ratio."
-     :"Per-branch optimizations are exact. The combined build has a mathematically certified score gap of at most "+o.gap.toFixed(4)+" log10 units (grid step "+o.quantum+" SP) relative to the modeled optimum.";
-   accuracy.textContent=suffix+" These bounds describe the weighted damage/gold proxy only, not actual in-game farming performance. Independent community tool.";
+     ?tr("This efficiency-mode allocation uses a grid approximation, without a certified optimum for the score-per-SP ratio.")
+      :tr("Per-branch optimizations are exact. The combined build has a mathematically certified score gap of at most {gap} log10 units (grid step {quantum} SP) relative to the modeled optimum.",{gap:o.gap.toFixed(4),quantum:o.quantum});
+   accuracy.textContent=suffix+" "+tr("These bounds describe the weighted damage/gold proxy only, not actual in-game farming performance. Independent community tool.");
  }else if(accuracy){
-   accuracy.textContent="Exact optimization for the documented weighted damage/gold score model. Actual game damage, run speed and conditional skill synergies can differ. Independent community tool.";
+   accuracy.textContent=tr("Exact optimization for the documented weighted damage/gold score model. Actual game damage, run speed and conditional skill synergies can differ. Independent community tool.");
  }
- $("spent").textContent=result.spent.toLocaleString("en-US");
- $("remaining").textContent=result.remaining.toLocaleString("en-US");
+ $("spent").textContent=numberText(result.spent);
+ $("remaining").textContent=numberText(result.remaining);
  $("change-count").textContent=result.changes.length;
  const max=Math.max(1,...Object.values(result.branchTotals));
- $("branch-chart").innerHTML=Object.entries(result.branchTotals).map(([name,points])=>`<div class="branch-row"><div class="branch-header"><span>${safe(name)}</span><strong>${points.toLocaleString("en-US")} SP</strong></div><div class="progress-track"><div class="progress-fill" style="width:${points/max*100}%;background:${branchColors[name]}"></div></div></div>`).join("");
- $("full-tree").innerHTML=Object.entries(BRANCH_NAMES).map(([code,name])=>`<h4 class="group-title">${safe(name)}</h4>`+SKILL_IDS.filter(id=>SKILLS[id].Branch===code&&result.levels[id]>0).map(id=>`<div class="tree-row"><span>${safe(SKILLS[id].Name)}</span><strong>${result.levels[id]}</strong></div>`).join("")).join("");
+ $("branch-chart").innerHTML=Object.entries(result.branchTotals).map(([name,points])=>`<div class="branch-row"><div class="branch-header"><span>${safe(tr(name))}</span><strong>${numberText(points)} SP</strong></div><div class="progress-track"><div class="progress-fill" style="width:${points/max*100}%;background:${branchColors[name]}"></div></div></div>`).join("");
+ $("full-tree").innerHTML=Object.entries(BRANCH_NAMES).map(([code,name])=>`<h4 class="group-title">${safe(tr(name))}</h4>`+SKILL_IDS.filter(id=>SKILLS[id].Branch===code&&result.levels[id]>0).map(id=>`<div class="tree-row"><span>${safe(SKILLS[id].Name)}</span><strong>${result.levels[id]}</strong></div>`).join("")).join("");
  $("delta-count").textContent="("+result.changes.length+")";
- $("diff-list").innerHTML=result.changes.length?result.changes.map(change=>`<div class="change-row"><span>${safe(change.name)}</span><span><small>${change.before} → ${change.after}</small> <strong class="${change.difference>=0?"plus":"minus"}">${change.difference>0?"+":""}${change.difference}</strong></span></div>`).join(""):"<p class='hint'>No skill-level changes.</p>";
+ $("diff-list").innerHTML=result.changes.length?result.changes.map(change=>`<div class="change-row"><span>${safe(change.name)}</span><span><small>${change.before} → ${change.after}</small> <strong class="${change.difference>=0?"plus":"minus"}">${change.difference>0?"+":""}${change.difference}</strong></span></div>`).join(""):"<p class='hint'>"+safe(tr("No skill-level changes."))+"</p>";
  $("export-json").value=exportBuild(result.levels);
 }
 function sharePayload(){
@@ -143,6 +175,13 @@ function decodeLink(){
 function initialize(){
  try{const saved=JSON.parse(localStorage.getItem("tt2_skill_optimizer_v1")||"null");if(saved&&typeof saved==="object")state={...fresh(),...saved};}catch{}
  decodeLink();fillInputs();
+ const queryLang=new URL(location.href).searchParams.get("lang");
+ let savedLang="en";try{savedLang=localStorage.getItem("tt2_site_language")||"en"}catch{}
+ setLocale(SUPPORTED_LANGUAGES.includes(queryLang)?queryLang:savedLang);
+ $("language-select").addEventListener("change",e=>setLocale(e.target.value));
+ const help=$("export-help-dialog");
+ $("export-help-button").addEventListener("click",()=>help.showModal());
+ for(const id of ["export-help-close","export-help-done"])$(id).addEventListener("click",()=>help.close());
  $("damage-choices").addEventListener("click",e=>{const b=e.target.closest("[data-damage]");if(b){state.damage=b.dataset.damage;fillInputs();remember();}});
  $("gold-choices").addEventListener("click",e=>{const b=e.target.closest("[data-gold]");if(b){state.gold=b.dataset.gold;fillInputs();remember();}});
  $("playstyle-choices").addEventListener("click",e=>{const b=e.target.closest("[data-playstyle]");if(b)applyPreset(b.dataset.playstyle);});
@@ -160,7 +199,7 @@ function initialize(){
  for(const id of ["skill-points","max-stage","gold-weight","crafting-power","time-to-kill","clone-level","qol-mode","preserve-current","efficiency-mode"])$(id).addEventListener("change",()=>{readInputs();remember();});
  $("paste-button").addEventListener("click",pasteClipboard);
  $("upload-button").addEventListener("click",()=>$("upload-file").click());
- $("upload-file").addEventListener("change",async e=>{const f=e.target.files?.[0];if(!f)return;try{if(f.size>2_000_000)throw new Error("File exceeds 2 MB.");importRaw(await f.text());}catch(err){status(err.message,"error");}e.target.value="";});
+ $("upload-file").addEventListener("change",async e=>{const f=e.target.files?.[0];if(!f)return;try{if(f.size>2_000_000)throw new Error(tr("File exceeds 2 MB."));importRaw(await f.text());}catch(err){status(err.message,"error");}e.target.value="";});
  $("import-button").addEventListener("click",()=>{try{importRaw($("import-json").value);}catch(e){status(e.message,"error");}});
  $("optimize-button").addEventListener("click",optimize);
  $("copy-build").addEventListener("click",async()=>{if(!lastResult)return;status(await copyText(exportBuild(lastResult.levels))?"Build JSON copied. Paste it into your TT2 skill-tree importer.":"Please select and copy the JSON from the Exported JSON panel.","success");});
