@@ -411,3 +411,72 @@ No stage gain is predicted; do not merge or deploy PR #18 yet.
 **Validation remains pending** for full \`npm test\`, \`npm run check:data\`,
 22,600+ SP and actual gameplay. These are not declared successful without
 execution. PR remains a draft and must not deploy or merge.
+
+## Batch G — permanent artifacts, enchantments, additive damage and amplifier eligibility (17 Nov 2026)
+
+**Real source data**: 103 permanent artifacts in the versioned `ARTIFACT_CATALOG`
+(`vendor/account-catalog.js`, imported from the 8.4 game CSV).
+`src/account-artifacts.js` computes each recorded main effect in
+base-10 logarithms using `1 + EffectPerLevel × Level^GrowthExpo ×
+EnchantmentMagnitude_if_enchanted`. For unbounded scientific levels this
+avoids converting `1e9999` to Infinity; capped artifacts still require a
+valid integer level. A missing enchant flag on an enchantable artifact is
+unknown, not automatically false. `src/account-profile.js` now also
+accepts the TT2 full-export boolean strings `"True"` and `"False"`.
+
+**Game Hive DevLog #88 (v5.10)** explicitly adds fifteen named uncapped
+artifacts to The Magnifier's target eligibility (including Heart of Storms,
+Sticky Fruit, Titania's Sceptre and the skill-branch amplifiers), and four
+to The Treasure of Fergus (Apollo Orb, Hades Orb, Laborer's Pendant,
+Titania's Sceptre). These are now mapped by canonical artifact ID in addition
+to generic uncapped damage/gold icon types. Titania's Sceptre is boosted by
+both, but its Sorcerer skill interaction is *not* misrepresented as a direct
+unconditional All Damage multiplier.
+[Official v5.10 notes](https://gamehive.com/blog/devlog-88-version-5100-patch-notes-2633/).
+
+The v5.19 post-release clarification from lemmingllama confirms that The
+Magnifier also boosts **The White Dwarf**, despite White Dwarf being capped:
+[DevLog #106 discussion](https://www.reddit.com/r/TapTitans2/comments/vu9fch/).
+Using the current 8.4 catalog at capped level 40, Magnifier's coefficient is
+`1 + .1125 × 40 = 5.5`; Fergus is `1 + .225 × 40 = 10`.
+The logarithm of an eligible main effect is *multiplied* by that coefficient;
+for Titania it is multiplied by both. Neither coefficient multiplies the
+separate additive Artifact Damage pool.
+
+**White Dwarf is counted exactly once per distinct, currently owned artifact.**
+Explicit `salvaged:true` or `owned:false` export rows no longer count or
+score. Duplicate mirrors are collapsed; level conflicts exclude the
+conflicting main effect, but retain the uniquely established ownership
+count. Unknown artifact IDs or truncated input make the total count
+unverifiable; the White Dwarf derived multiplier is then excluded instead
+of using a fabricated exact count. Its score is
+`ownedArtifactCount × boostedWhiteDwarfMainEffectLog10`, routed once
+to AllDamage, independently of direct artifact effects.
+
+**Additive Artifact Damage** remains a conservative partial baseline:
+sum verified `DamageBonus × level` contributions in log-sum-exp space, then
+apply a *known* Heavenly Sword main effect once. This sum is independent
+of Magnifier/Fergus and White Dwarf. Ambiguous main enchantments, missing
+rows and source-specific enchantment-to-pool relationships are not claimed
+to form a complete 8.4 damage formula. Fully truncated artifact sections
+contribute *no* artifact score, even if an initial 512-row fragment parses.
+
+**Integration**: derived White Dwarf and additive damage each enter the
+fixed account `AllDamage` ledger once, not talent marginal scoring.
+`accountIntegration.artifacts` and scenario coverage now expose source
+counts, unknown IDs, salvaged rows, amplifier targets/factors, verified
+White Dwarf count and truncated/partial baselines. Four-language UI
+shows these values without claiming stages.
+
+**Automated coverage**:
+`tests/permanent-artifact-interactions.test.js` exercises the 5.10
+target lists, double amplification, post-5.19 White Dwarf, boolean export,
+enchantments/scientific levels, duplicate/conflicting amplifiers, salvaged
+ownership, unknown/truncated sources, Heavenly Sword ordering and all
+18 damage/gold optimizer combinations. The full Node suite and high-SP
+benchmark must still be executed where the complete checkout is available.
+No in-game 8.4 parity or stage progression is certified.
+
+**Further work**: conditional skill/hero/artifact conversion, actual
+artifact enchantment-to-damage-pool parity, artifact-related pet/equipment
+dependency coefficients, full-stage calibration. Do not merge/deploy PR #18.

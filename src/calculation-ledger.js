@@ -28,6 +28,7 @@ export function modeledScenarioCoverage(result,settings,gearSelection={}){
  const unknownCatalogIds=Number(result?.accountIntegration?.unknownCatalogIds)||0;
  const unknownGemstoneBonuses=Number(result?.accountIntegration?.gemstoneEffects?.unresolved)||0;
  const permanentSetPower=result?.accountIntegration?.permanentSetPower||null;
+ const artifactPower=result?.accountIntegration?.artifacts||null;
  const conservativeSetEffects=Number(permanentSetPower?.conservativeCPBaseEffects)||0;
  const missingSetCollection=permanentSetPower?.missingOwnedSetRows===true;
  const uncertainOwnedSetCounts=permanentSetPower?.ownedRosterComplete===false&&
@@ -61,6 +62,12 @@ export function modeledScenarioCoverage(result,settings,gearSelection={}){
  if(unknownGearSecondaries)gaps.push("unmodeled-equipment-secondaries");
  if(unknownGearAmplifiers)gaps.push("unverified-equipment-amplifiers");
  if(unknownGemstoneBonuses)gaps.push("unmodeled-gemstone-bonuses");
+ if(artifactPower?.truncated)gaps.push("truncated-artifact-collection");
+ if((artifactPower?.unknownIds||0)>0)gaps.push("unknown-artifact-identifiers");
+ if(artifactPower?.ownedCountVerifiable===false)
+  gaps.push("unverified-white-dwarf-artifact-count");
+ if(artifactPower?.additiveDamageConservative===true)
+  gaps.push("artifact-damage-pool-conservative");
  const researchAudit=result?.accountIntegration?.researchResources?.audit;
  if(researchAudit?.incomplete)gaps.push("incomplete-resource-research-export");
  if(conservativeSetEffects)gaps.push("crafting-power-unverified");
@@ -82,6 +89,10 @@ export function modeledScenarioCoverage(result,settings,gearSelection={}){
   unknownGearAmplifiers,unknownGemstoneBonuses,
   researchUnresolvedNodes:researchAudit?.excludedOrConflictingNodes||0,
   researchTruncatedSections:researchAudit?.truncatedSections||[],
+  artifactCollectionTruncated:artifactPower?.truncated===true,
+  unknownArtifactIds:artifactPower?.unknownIds||0,
+  whiteDwarfCountVerifiable:artifactPower?.ownedCountVerifiable===true,
+  conservativeArtifactDamage:artifactPower?.additiveDamageConservative===true,
   conservativeSetEffects,missingSetCollection,uncertainOwnedSetCounts,
   conflictingCraftingPower,
   invalidDamagePet,invalidGoldPet,

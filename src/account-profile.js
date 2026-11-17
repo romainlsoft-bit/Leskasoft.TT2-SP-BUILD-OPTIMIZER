@@ -151,9 +151,28 @@ function extractRecord(rawId,item){
  }
  const secondaries=secondaryEffects(item,record);
  if(secondaries.length)record.secondaryEffects=secondaries;
+ const flag=value=>{
+  if(value===true||value===1)return true;
+  if(value===false||value===0)return false;
+  if(typeof value==="string"){
+   const normalized=value.trim().toLowerCase();
+   if(normalized==="true"||normalized==="1")return true;
+   if(normalized==="false"||normalized==="0")return false;
+  }
+  return null;
+ };
+ // TT2 Settings → Services exports may spell booleans "True"/"False".
  const enchanted=field(item,["enchanted","Enchanted","isEnchanted","IsEnchanted","e"]);
- if(enchanted.present&&[true,false,0,1,"0","1"].includes(enchanted.value))
-  record.enchanted=Boolean(Number(enchanted.value));
+ const enchantFlag=enchanted.present?flag(enchanted.value):null;
+ if(enchantFlag!==null)record.enchanted=enchantFlag;
+ // Explicitly salvaged or unowned artifacts are not an active permanent
+ // artifact. Their historic record cannot boost White Dwarf or add damage.
+ const salvaged=field(item,["salvaged","Salvaged","isSalvaged","IsSalvaged"]);
+ const salvageFlag=salvaged.present?flag(salvaged.value):null;
+ if(salvageFlag===true)record.salvaged=true;
+ const owned=field(item,["owned","Owned","isOwned","IsOwned"]);
+ const ownedFlag=owned.present?flag(owned.value):null;
+ if(ownedFlag===false)record.owned=false;
  return record;
 }
 function explicitlyUnlocked(value){

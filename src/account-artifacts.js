@@ -57,14 +57,25 @@ export function isDirectBonusType(bonusType){
  return DIRECT_DAMAGE.has(bonusType)||DIRECT_GOLD.has(bonusType);
 }
 /** Preserve unsupported effects as evidence, never apply them generically. */
-const MAGNIFIER_EXTRAS=new Set(["Artifact52","Artifact96","Artifact85"]);
-const TREASURE_EXTRAS=new Set(["Artifact53","Artifact97"]);
+// Game Hive v5.10 (DevLog #88): these uncapped artifacts with a Boost
+// icon also receive the appropriate amplifier; Titania receives BOTH.
+// v5.19 additionally included White Dwarf (capped) in The Magnifier.
+// Generic uncapped Dmg/Gold icon categories remain eligible separately.
+const MAGNIFIER_EXTRAS=new Set([
+ "Artifact10","Artifact76","Artifact101","Artifact6","Artifact102",
+ "Artifact78","Artifact52","Artifact75","Artifact7","Artifact103",
+ "Artifact41","Artifact96","Artifact11","Artifact77","Artifact100",
+ "Artifact85"
+]);
+const TREASURE_EXTRAS=new Set(["Artifact53","Artifact97","Artifact9","Artifact77"]);
 function artifactBoostFactor(group,id,catalog){
  const rows=group.get(id)||[];
  if(!rows.length)return {factor:1,status:"not-owned"};
  const levels=[...new Set(rows.map(x=>x.level).filter(x=>x!=null).map(String))];
  const enchants=[...new Set(rows.map(x=>x.enchanted).filter(x=>x!==undefined))];
- if(rows.length!==1||levels.length!==1||enchants.length>1)
+ // Identical mirrored export records represent one owned amplifier.
+ // Conflicting level / enchantment evidence remains unusable.
+ if(levels.length!==1||enchants.length>1)
   return {factor:null,status:"conflicting-artifact-amplifier"};
  const effect=computeArtifactEffect(catalog[id],levels[0],enchants[0]===true);
  return {factor:effect.log10===null?null:Math.pow(10,effect.log10),status:effect.status};
@@ -78,13 +89,16 @@ export function calculatePermanentArtifactEffects(profile,catalog){
  const index=new Map(Object.values(catalog).flatMap(x=>[
   [x.id.toLowerCase(),x.id],[x.name.toLowerCase(),x.id]]));
  const records=profile?.sections?.artifacts?.records||[],group=new Map(),unknown=[];
+ let explicitlyUnowned=0;
  for(const record of records){
+  if(record.salvaged===true||record.owned===false){explicitlyUnowned++;continue;}
   const id=index.get(String(record.id).toLowerCase());
   if(!id){unknown.push({id:record.id,reason:"unknown-artifact-id"});continue;}
   if(!group.has(id))group.set(id,[]);
   group.get(id).push(record);
  }
  const entries=[],byType={};
+ const truncated=profile?.sections?.artifacts?.truncated===true;
  const magnifier=artifactBoostFactor(group,"Artifact80",catalog);
  const treasure=artifactBoostFactor(group,"Artifact81",catalog);
  for(const [id,rows] of group){
@@ -110,7 +124,10 @@ export function calculatePermanentArtifactEffects(profile,catalog){
   const factor=(boostDamage?magnifier.factor:1)*(boostGold?treasure.factor:1);
   const amplifiedLog10=effect.log10===null||incompleteBoost?
    null:effect.log10*factor;
-  const scoreable=amplifiedLog10!==null&&isDirectBonusType(data.bonusType);
+  // A truncated export is not a reliable account snapshot. Keep the
+  // calculations for audit but do not score a potentially partial roster.
+  const scoreable=!truncated&&amplifiedLog10!==null&&
+   Number.isFinite(amplifiedLog10)&&isDirectBonusType(data.bonusType);
   if(scoreable)byType[data.bonusType]=(byType[data.bonusType]||0)+amplifiedLog10;
   entries.push({system:"artifacts",id,name:data.name,bonusType:data.bonusType,
    level:levels.length===1?levels[0]:null,
@@ -121,19 +138,24 @@ export function calculatePermanentArtifactEffects(profile,catalog){
    amplificationFactor:incompleteBoost?null:factor,
    enchantmentDeltaLog10:effect.enchantmentDeltaLog10===null||
     incompleteBoost?null:effect.enchantmentDeltaLog10*factor,
-   appliedToScore:scoreable,status:incompleteBoost?
+   appliedToScore:scoreable,status:truncated?
+    "truncated-artifact-collection":incompleteBoost?
     "unknown-artifact-amplifier":conflict?"conflicting-source-records":
     scoreable?"computed-direct-effect":effect.status==="computed-main-effect"?
     "computed-unscored-interaction":effect.status,
    // DamageBonus is a distinct additive artifact-damage pool.
    artifactDamageModeled:false,complete:false});
  }
- return {entries,byType,unknown,
+ return {entries,byType,unknown,truncated,
+  // Source record IDs are canonicalized and counted once. This alone
+  // cannot prove completeness when the input is truncated or has unknown IDs.
+  ownedCountVerifiable:!truncated&&unknown.length===0,
   magnifier:{owned:group.has("Artifact80"),factor:magnifier.factor,status:magnifier.status},
   treasure:{owned:group.has("Artifact81"),factor:treasure.factor,status:treasure.status},
   recognized:entries.length,
   computed:entries.filter(x=>x.log10!==null).length,
   scored:entries.filter(x=>x.appliedToScore).length,
-  duplicateRecords:records.length-unknown.length-entries.length,
+  duplicateRecords:records.length-unknown.length-explicitlyUnowned-entries.length,
+  explicitlyUnowned,scoreExcludedBecauseTruncated:truncated,
   complete:false};
 }

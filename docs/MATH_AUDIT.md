@@ -399,3 +399,30 @@ Data provenance:
   counts, invalid/mirrored/contradictory IDs, truncation and all 18
   damage/gold combinations. No in-game multiplier parity or full suite
   has been claimed for this batch.
+
+## 17 November 2026 — PR #18 Batch G, permanent artifact dependency audit
+
+The v8.4 source catalog and Game Hive v5.10/v5.19 patch notes define
+uncapped artifact magnification eligibility, capped White Dwarf exception,
+and Fergus' separate gold routes. The source-backed capped level-40 values
+are Magnifier ×5.5 and Fergus ×10. Main effect coefficients are exponentiated
+in log space; two eligible amplifiers multiply their exponents, not their
+additive Artifact Damage rows.
+
+`True`/`False` enchantment flags from actual game-style JSON are parsed
+without changing the level's scientific notation. Unknown enchantment flags,
+salvaged records, duplicate IDs, contradictory amplifier levels and truncated
+collections cannot silently become valid bonuses. White Dwarf is scored
+only with a verified distinct currently-owned artifact count. The separate
+sum of `DamageBonus × Level` is explicitly conservative; Heavenly Sword
+applies once, and no fictional enchantment multiplier is added to the sum.
+
+The account ledger routes derived damage only to fixed AllDamage (not the
+skill-tree marginal objective). 18 Damage×Gold combinations are covered by
+regression tests. No assertion of accurate in-game stage gains follows from
+a successful numeric score. Further gameplay validation and the full Node
+test/bench gates are mandatory.
+
+Sources: https://gamehive.com/blog/devlog-88-version-5100-patch-notes-2633/ ;
+https://www.reddit.com/r/TapTitans2/comments/vu9fch/ ;
+https://tap-titans-2.fandom.com/wiki/The_White_Dwarf .

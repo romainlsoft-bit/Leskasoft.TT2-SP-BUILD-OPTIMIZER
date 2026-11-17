@@ -1,10 +1,10 @@
 import { skillInfo } from "../vendor/skills.js";
 import { baseline } from "../vendor/qol-baseline.js";
 import { optimizeExact } from "./solver-core.js";
-import { scoreAtLevel } from "./effects.js?v=20261117-resource-integrity";
+import { scoreAtLevel } from "./effects.js?v=20261117-artifact-interactions";
 import { parseAccountProfile } from "./account-profile.js";
-import {extractFixedAccountPower,fixedAccountScore} from "./account-power.js?v=20261117-resource-integrity";
-import {accountDependencyGraph} from "./account-dependencies.js?v=20261117-resource-integrity";
+import {extractFixedAccountPower,fixedAccountScore} from "./account-power.js?v=20261117-artifact-interactions";
+import {accountDependencyGraph} from "./account-dependencies.js?v=20261117-artifact-interactions";
 import {resolveSpellCaps} from "./spell-caps.js";
 import {extractTimedSetPower} from "./account-set-bonuses.js";
 import {resolvePermanentSetPower} from "./account-permanent-sets.js";
@@ -270,7 +270,13 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
       },
       artifacts:{identified:dependencyReport.permanentArtifacts.recognized,
         computed:dependencyReport.permanentArtifacts.computed,
-        modeled:dependencyReport.permanentArtifacts.scored},
+        modeled:dependencyReport.permanentArtifacts.scored,
+        ...power.artifactEffects,
+        whiteDwarfApplied:power.artifactDerived?.whiteDwarfApplied===true,
+        ownedCountVerifiable:power.artifactDerived?.ownedCountVerifiable===true,
+        ownedArtifactCount:power.artifactDerived?.ownedArtifacts??null,
+        damagePoolComponents:power.artifactDerived?.poolComponents??0,
+        additiveDamageConservative:power.artifactDerived?.conservativeDamage===true},
       uniqueOwnedCount:dependencyReport.uniqueEquipment.ownedCount,
       uniquePermanentBonusesModeled:false,
       heroWeaponFullSets:dependencyReport.heroWeapons.completeSets,
