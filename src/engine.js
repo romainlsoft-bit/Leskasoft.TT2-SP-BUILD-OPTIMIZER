@@ -90,6 +90,25 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
     assumeContractsAtMax:settings.assumeContractsAtMax===true};
   const current=levelsFrom(settings.currentLevels||{});
   const min=Object.fromEntries(SKILL_IDS.map(id=>[id,settings.preserveCurrent?current[id]:0]));
+  // Protect current investments that the proxy deliberately scores as zero
+  // because their real activation/uptime is unknown. Otherwise the solver
+  // will remove useful push skills and put their SP elsewhere, misleadingly
+  // calling the result optimal. This is NOT a branch budget cap.
+  const protectedSkills=[];
+  const uncertainSkills=[
+    ...(combatContext.assumeContractsAtMax?[]:["ForbiddenContract","RoyalContract","TerrifyingPact"]),
+    ...(combatContext.assumeHaystActive?[]:["QuickFortune"]),
+    ...(combatContext.assumeSnapActive?[]:["PhilosophersFlux"]),
+    ...(astralActivations>0?[]:["HelperDmgQTE"])
+  ];
+  if(settings.protectUnmodeledSkills!==false&&!settings.preserveCurrent){
+    for(const id of uncertainSkills){
+      if(current[id]>0){
+        min[id]=Math.max(min[id],current[id]);
+        protectedSkills.push(id);
+      }
+    }
+  }
   if(settings.qol==="recommended"){
     const pref=qosFloors(settings.damage,settings.gold,SP);
     for(const [id,v] of Object.entries(pref))if(id in min)min[id]=Math.max(min[id],Number(v)||0);
@@ -147,7 +166,7 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
   const branchTotals=Object.fromEntries(Object.entries(BRANCH_NAMES).map(([branch,name])=>[name,
     SKILL_IDS.filter(id=>skillInfo[id].Branch===branch).reduce((sum,id)=>sum+COSTS[id][result.levels[id]],0)
   ]));
-  return {...result,prior:current,spent:points,remaining:SP-points,changes,branchTotals,
+  return {...result,prior:current,spent:points,remaining:SP-points,changes,branchTotals,protectedSkills,
     combatAssumptions:{hayst:combatContext.assumeHaystActive,
       snap:combatContext.assumeSnapActive,astralActivations,
       contractsAtMax:combatContext.assumeContractsAtMax},
