@@ -546,8 +546,8 @@ test("additive Monument Damage uses DamageExpo and never multiplies monument com
  const additive=additiveDamageEvidence({entries:[]},mon,ARTIFACT_CATALOG,SEASON_ARTIFACT_CATALOG);
  assert.equal(additive.monuments.components,1);
  assert.ok(Math.abs(additive.monuments.unenchantedPoolLog10-
-  (Math.log10(Number(info.damageBonus))+
-    Number(info.damageExpo)*Math.log10(100)))<1e-7);
+  (Math.log10(Number(info.damageBonus))*
+    Math.pow(100,Number(info.damageExpo))))<1e-7);
  assert.ok(additive.monuments.candidateEnchantedPoolLog10-
   additive.monuments.unenchantedPoolLog10>19);
  assert.equal(info.enchantmentMagnitude,"1.00E+01");
@@ -557,8 +557,10 @@ test("large additive pools add in log-space without multiplying independent monu
  assert.ok(Math.abs(log10Sum([100,100])-(100+Math.log10(2)))<1e-12);
  assert.equal(log10Sum([]),null);
  const row=SEASON_ARTIFACT_CATALOG.SeasonalArtifact34;
- assert.ok(Math.abs(rawDamageLog10(row,"1e9999","monument")-
-  (Math.log10(Number(row.damageBonus))+9999*Number(row.damageExpo)))<1e-8);
+ assert.equal(rawDamageLog10(row,"1e9999","monument"),null,
+  "huge scientific exponents cannot be represented as finite log10 scores");
+ assert.ok(Math.abs(rawDamageLog10(row,"100","monument")-
+  Math.log10(Number(row.damageBonus))*Math.pow(100,Number(row.damageExpo)))<1e-8);
 });
 
 test("169 additive Mystic Research nodes grant exact gemstone levels without multiplying power",()=>{

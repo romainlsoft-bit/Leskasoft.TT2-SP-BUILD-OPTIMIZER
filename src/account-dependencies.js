@@ -8,9 +8,9 @@ import {resolveSetCompletionDates,resolveTranscendenceAge,heroWeaponEvidence} fr
 import {clanScrollEvidence} from "./account-scrolls.js";
 import {extractTimedSetPower} from "./account-set-bonuses.js";
 import {resolveUniqueOwnership} from "./account-unique.js";
-import {resolveMonumentEvidence} from "./account-monuments.js";
+import {resolveMonumentEvidence} from "./account-monuments.js?v=20261117-monument-pools";
 import {calculatePermanentArtifactEffects} from "./account-artifacts.js";
-import {additiveDamageEvidence} from "./account-damage-pools.js";
+import {additiveDamageEvidence} from "./account-damage-pools.js?v=20261117-monument-pools";
 import {resourceResearchEvidence} from "./account-research-resources.js?v=20261117-resource-integrity";
 import {resolveGemstoneEvidence} from "./account-gemstones.js?v=20261117-pet-gemstone-chain";
 

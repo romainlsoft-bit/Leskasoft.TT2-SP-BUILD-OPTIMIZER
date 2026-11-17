@@ -480,3 +480,88 @@ No in-game 8.4 parity or stage progression is certified.
 **Further work**: conditional skill/hero/artifact conversion, actual
 artifact enchantment-to-damage-pool parity, artifact-related pet/equipment
 dependency coefficients, full-stage calibration. Do not merge/deploy PR #18.
+
+## Batch H — Transcendence season 13: additive Monument Damage and count-dependent main effects (17 Nov 2026)
+
+### Verified source boundaries
+
+- Season 13 began **12 August 2026**. Its official categories are
+  **Celestial Temples, Journey of the Vipers, Kingdom of the Arcanas**.
+  [Game Hive DevLog #231](https://www.reddit.com/r/TapTitans2/comments/1vlh4fk/).
+  The source 8.4 catalog contains 52 monument definitions, of which 33
+  have the current `IsActive` flag. That flag is *not* a substitute for
+  an explicitly known season; unknown/old seasons cannot score monuments.
+- Lemmingllama states in the
+  [Monument Tier List](https://www.reddit.com/r/TapTitans2/comments/14ylq4a/)
+  that **Monument Damage stacks additively**. Game Hive's
+  [v6.11 patch notes](https://gamehive.com/blog/devlog-161-version-6-11-0-patch-notes/)
+  confirm that the *uncapped Monument Damage exponent* was raised from
+  0.425 to 0.53. The 8.4 catalog provides the applicable `DamageBonus`
+  and `DamageExpo` for every current row (including capped 0.55 values).
+
+### Calculation and integration
+
+The previous implementation `log10(DamageBonus) +
+DamageExpo * log10(Level)` described a polynomial-scale damage factor,
+inconsistent with the game-scale multi-thousand-order Monument Damage
+values. Batch H computes the independently sourced damage exponent:
+
+```text
+Individual Monument Damage = DamageBonus ^ (Level ^ DamageExpo)
+log10(Individual) = log10(DamageBonus) * 10^(DamageExpo * log10(Level))
+Total Monument Damage log10 = log10(sum(10^individualLog10))
+```
+
+For example, at level 19,410 with `DamageBonus=1e20` and
+`DamageExpo=0.55`, the calculated source-derived log10 is ~4,565,
+rather than ~22; its order of magnitude agrees with player-reported
+large Monument Damage figures (historical patch values will differ).
+This is source-supported **provisional 8.4 scaling**, not independently
+checked against every in-game monument value.
+
+- `src/account-damage-pools.js` uses a stable base-10 log-sum-exp; it
+  rejects multipliers whose *logarithm* itself exceeds finite IEEE-754
+  capacity (for example `Level=1e9999` with positive DamageExpo).
+  No Infinity/NaN value enters the score.
+- `src/account-monument-derived.js` contributes a **single additive
+  Monument Damage AllDamage entry** to the existing fixed-account ledger,
+  based only on current-season monuments with known ID, usable level,
+  non-conflicting ownership and an official season rotation. No
+  cross-branch SP credit, repeat-per-monument multiplication or
+  season-12 legacy power.
+- `EnchantmentMagnitude` continues to boost verified monument main
+  effects, while `EnchantmentMult` is **kept separately as an
+  unscored candidate** for Monument Damage; the exact placement of
+  this enchantment multiplier in the damage stack remains unverified.
+  The baseline therefore excludes this speculative enhancement.
+  Missing enchant flags may block main effects but do not invent
+  enchantment enhancements to the raw damage pool.
+- The `GoldPerMythicSet` (King Cobra Statue) and
+  `DamagePerEquipmentSet` (Thieves' Guild) main effects now use the
+  **verified canonical count of completed equipment sets**, not owned
+  items or equipped pieces. The main-effect log10 multiplier is
+  multiplied by the appropriate count; if the unlocked-set roster
+  is missing/truncated, the count-dependent main effect is excluded.
+  Raw additive Monument Damage remains independent of those counts.
+- `PerSeasonDay` effects and other conditional main effects remain
+  explicitly unscored until per-day activation, limits and full game
+  semantics can be verified. The season age is retained as a diagnostic,
+  **not** a made-up time multiplier.
+- The 4-language UI/ledger disclose eligible and excluded monuments,
+  season, completed-set dependencies, unresolved enchantments,
+  unrepresentable values and the additive AllDamage contribution.
+  The result is still **not** a reliable stage predictor.
+
+### Tests, sources and release gate
+
+- `tests/monument-season-damage.test.js` covers category rotation,
+  merged exports, salvaged/unowned items, old seasons, scientific
+  scaling, unrepresentable values, additive algebra, enchantment
+  separation, count-dependent main effects and the 18 Damage×Gold
+  combinations through `optimizeBuild`.
+- Existing `tests/account-power.test.js` regression expectations
+  were corrected to use the exponential Monument Damage law.
+- Complete `npm test`, dataset check, 22,600-SP benchmark, browser tests,
+  and game-vs-source numeric parity must be run on a complete checkout.
+  The account score remains provisional and the PR stays DRAFT.
+

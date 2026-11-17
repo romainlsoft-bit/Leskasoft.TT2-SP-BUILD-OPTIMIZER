@@ -29,6 +29,7 @@ export function modeledScenarioCoverage(result,settings,gearSelection={}){
  const unknownGemstoneBonuses=Number(result?.accountIntegration?.gemstoneEffects?.unresolved)||0;
  const permanentSetPower=result?.accountIntegration?.permanentSetPower||null;
  const artifactPower=result?.accountIntegration?.artifacts||null;
+ const monumentPower=result?.accountIntegration?.monuments||null;
  const conservativeSetEffects=Number(permanentSetPower?.conservativeCPBaseEffects)||0;
  const missingSetCollection=permanentSetPower?.missingOwnedSetRows===true;
  const uncertainOwnedSetCounts=permanentSetPower?.ownedRosterComplete===false&&
@@ -68,6 +69,22 @@ export function modeledScenarioCoverage(result,settings,gearSelection={}){
   gaps.push("unverified-white-dwarf-artifact-count");
  if(artifactPower?.additiveDamageConservative===true)
   gaps.push("artifact-damage-pool-conservative");
+ const hasMonuments=settings?.accountProfile?.sections?.monuments?.present===true||
+  settings?.accountProfile?.sections?.seasonArtifacts?.present===true;
+ if(hasMonuments&&monumentPower?.seasonVerified!==true)
+  gaps.push("unverified-transcendence-season");
+ if(monumentPower?.truncatedSections?.length)
+  gaps.push("truncated-monument-export");
+ if((monumentPower?.unknownIds||0)>0)
+  gaps.push("unknown-monument-identifiers");
+ if(monumentPower?.conflicting>0)gaps.push("conflicting-monument-records");
+ if(monumentPower?.additiveUnrepresentable>0)
+  gaps.push("unrepresentable-monument-damage");
+ if(monumentPower?.additiveDamageConservative)
+  gaps.push("monument-damage-pool-conservative");
+ if(monumentPower?.unresolvedEnchantments>0||
+    monumentPower?.omittedEnchantmentBoosts>0)
+  gaps.push("unverified-monument-enchantments");
  const researchAudit=result?.accountIntegration?.researchResources?.audit;
  if(researchAudit?.incomplete)gaps.push("incomplete-resource-research-export");
  if(conservativeSetEffects)gaps.push("crafting-power-unverified");
@@ -93,6 +110,10 @@ export function modeledScenarioCoverage(result,settings,gearSelection={}){
   unknownArtifactIds:artifactPower?.unknownIds||0,
   whiteDwarfCountVerifiable:artifactPower?.ownedCountVerifiable===true,
   conservativeArtifactDamage:artifactPower?.additiveDamageConservative===true,
+  monumentSeasonVerified:monumentPower?.seasonVerified===true,
+  monumentCollectionTruncated:Boolean(monumentPower?.truncatedSections?.length),
+  monumentUnrepresentable:monumentPower?.additiveUnrepresentable||0,
+  monumentDamageConservative:monumentPower?.additiveDamageConservative===true,
   conservativeSetEffects,missingSetCollection,uncertainOwnedSetCounts,
   conflictingCraftingPower,
   invalidDamagePet,invalidGoldPet,

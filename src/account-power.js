@@ -17,7 +17,8 @@ import {ACCOUNT_SCALING} from "../vendor/account-scaling.js";
 import {clanScrollEvidence} from "./account-scrolls.js";
 import {ARTIFACT_CATALOG} from "../vendor/account-catalog.js";
 import {calculatePermanentArtifactEffects} from "./account-artifacts.js";
-import {resolveMonumentEvidence} from "./account-monuments.js";
+import {resolveMonumentEvidence} from "./account-monuments.js?v=20261117-monument-pools";
+import {monumentDerivedPower} from "./account-monument-derived.js?v=20261117-monument-pools";
 import {petPassiveEvidence} from "./pet-scenarios.js?v=20261117-contract-coupling";
 import {artifactDerivedPower} from "./account-artifact-derived.js";
 import {mergeTitanResearch,resourceResearchEvidence} from "./account-research-resources.js?v=20261117-resource-integrity";
@@ -116,11 +117,17 @@ export function extractFixedAccountPower(profile){
  for(const row of artifactEffects.unknown)unsupported.push({system:"artifacts",...row});
  const monuments=resolveMonumentEvidence(profile);
  for(const row of monuments.entries){
-  if(row.appliedToScore)entries.push({system:"monuments",id:row.id,bonusType:row.type,
+  if(row.appliedToScore)entries.push({system:"monuments",id:row.id,bonusType:row.bonusType??row.type,
    level:row.level,enchanted:row.enchanted,log10:row.log10});
   else unsupported.push({system:"monuments",id:row.id,reason:row.formulaStatus});
  }
  for(const row of monuments.unknown)unsupported.push({system:"monuments",...row});
+ const monumentDerived=monumentDerivedPower(profile,monuments);
+ for(const row of monumentDerived.entries)entries.push({
+  system:row.system,id:row.id,bonusType:row.bonusType,log10:row.log10,
+  conservative:true,season:row.season});
+ for(const reason of monumentDerived.unmodeled)
+  unsupported.push({system:"monumentDerived",reason});
  const artifactDerived=artifactDerivedPower(profile,artifactEffects);
  for(const row of artifactDerived.entries)entries.push({
   system:row.system,id:row.id,bonusType:row.bonusType,
@@ -177,7 +184,23 @@ export function extractFixedAccountPower(profile){
    unresolvedRecords:gemstoneEvidence.unknown.length,
    researchLevelsAddedToExportedValues:false,complete:false},
   monumentEffects:{recognized:monuments.recognized,
-   computed:monuments.computed||0,scored:monuments.modeled||0}};
+   computed:monuments.computed||0,scored:monuments.modeled||0,
+   countedSetEffects:monuments.countedSetEffects?.length||0,
+   countedSetApplied:monuments.entries.filter(x=>x.countedSetKind&&x.appliedToScore).length,
+   season:monuments.season,seasonVerified:monuments.seasonVerified,
+   seasonDays:monuments.seasonDays,unknownIds:monuments.unknown.length,
+   conflicting:monuments.conflicts,truncatedSections:monuments.truncatedSections,
+   explicitlyUnowned:monuments.explicitlyUnowned,
+   additiveDamageApplied:monumentDerived.entries.length===1,
+   additiveDamageLog10:monumentDerived.poolLog10,
+   additiveComponents:monumentDerived.eligibleComponents,
+   additiveExcludedComponents:monumentDerived.excludedComponents,
+   additiveUnrepresentable:monumentDerived.rejected.length,
+   enchantmentMultIncluded:false,
+   unresolvedEnchantments:monumentDerived.unresolvedEnchantments,
+   omittedEnchantmentBoosts:monumentDerived.omittedEnchantmentBoosts,
+   additiveDamageConservative:monumentDerived.conservative,
+   complete:false}};
  cache.set(profile,value);
  return value;
 }
