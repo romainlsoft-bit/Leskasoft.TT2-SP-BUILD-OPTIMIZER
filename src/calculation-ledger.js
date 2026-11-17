@@ -68,7 +68,11 @@ export function modeledScenarioCoverage(result,settings,gearSelection={}){
  if(hero?.unresolved?.length)gaps.push("unverified-hero-progression-interactions");
  if(scroll?.truncated)gaps.push("truncated-clan-scroll-export");
  if(scroll?.boostStackComplete===false)gaps.push("unverified-clan-scroll-amplifier-stack");
- if(hero?.worldshaper?.owned)gaps.push("unmodeled-worldshaper");
+ if(hero?.worldshaper?.owned&&!hero.worldshaper.applied)gaps.push("unverified-worldshaper-primary");
+ if(hero?.heroLevels?.present&&!hero.heroLevels.completeRoster)
+  gaps.push("incomplete-hero-level-ascension-roster");
+ if(hero?.heroLevels?.dominantConflict)
+  gaps.push("dominant-hero-conflicts-with-dps");
  if(scroll?.recognized>0&&!scroll?.completeRoster)
   gaps.push("unverified-clan-scroll-set-count");
  if(!inventoryPresent)gaps.push("missing-equipment-inventory");

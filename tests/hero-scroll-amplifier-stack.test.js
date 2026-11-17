@@ -38,11 +38,12 @@ test("Morgelai and MythicSmith only change individual weapons; Ringing changes s
  close(e.individual[0].boostedWeaponLog10,2*Math.log10(2.8125));
  assert.equal(e.individual.every(x=>x.inGlobalDamageScore===false),true);
 });
-test("Worldshaper absent from source catalog cannot generate an invented global bonus",()=>{
+test("Worldshaper aliases the internal MythicSmith bonus without fabricating a full roster",()=>{
  const profile=parseAccountProfile({heroWeapons:{H01:5},equipmentSets:["The Worldshaper"]});
  const e=heroProgressionEvidence(profile);
+ assert.deepEqual(profile.ownedSetIds,["MythicSmith"]);
  assert.equal(e.worldshaper.owned,true);
- assert.equal(e.worldshaper.applied,false);
+ assert.equal(e.worldshaper.applied,true);
  assert.equal(e.entries.length,0);
  const noSet=heroProgressionEvidence(parseAccountProfile({heroWeapons:heroes(2),equipmentSets:{MythicSmith:false}}));
  assert.equal(noSet.mythicSmith.applied,false);
@@ -79,15 +80,15 @@ test("conflicting Quill data is diagnosed and cannot be applied",()=>{
  assert.ok(e.unknown.some(x=>x.reason==="unverified-scroll-amplifier"));
  close(e.entries.find(x=>x.id==="ScrollId2").setBoostedLog10,3*Math.log10(1.43));
 });
-test("ScrollTutor 0.25 is reported, never mistaken for x0.25",()=>{
- const p=parseAccountProfile({clanScrolls:scrolls(2),equipmentSets:["ScrollTutor"]});
+test("Dragon Weaver additive 0.25 is +25%, never x0.25",()=>{
+ const p=parseAccountProfile({clanScrolls:scrolls(2),equipmentSets:["Dragon Weaver"]});
  const e=clanScrollEvidence(p);
  assert.equal(e.scrollTutor.owned,true);
  assert.deepEqual(e.scrollTutor.amounts,["0.25","0.25"]);
- assert.equal(e.scrollTutor.applied,false);
- assert.equal(e.boostStackComplete,false);
+ assert.equal(e.scrollTutor.applied,true);
+ assert.equal(e.boostStackComplete,true);
  close(e.entries.find(x=>x.id==="ScrollId2").setBoostedLog10,
-  2*Math.log10(1.43)*1.15);
+  2*Math.log10(1.43)*1.25*(1+0.15*1.25));
 });
 test("18 fixed-account score routes base hero once and amplified scrolls by source type",()=>{
  const p=parseAccountProfile({heroWeapons:heroes(2),equipmentSets:["MythicSmith"],

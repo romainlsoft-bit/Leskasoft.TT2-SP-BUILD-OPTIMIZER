@@ -1,12 +1,12 @@
-import {SKILLS,SKILL_IDS,BRANCH_NAMES,PRESETS,DAMAGE_TYPES,GOLD_TYPES,GAME_VERSION,parseExport,exportBuild,spentPoints,ownedSetFlags} from "./engine.js?v=20261117-hero-scroll-l";
-import { t, localizeDocument, SUPPORTED_LANGUAGES } from "./i18n.js?v=20261117-hero-scroll-l";
+import {SKILLS,SKILL_IDS,BRANCH_NAMES,PRESETS,DAMAGE_TYPES,GOLD_TYPES,GAME_VERSION,parseExport,exportBuild,spentPoints,ownedSetFlags} from "./engine.js?v=20261117-hero-scroll-m";
+import { t, localizeDocument, SUPPORTED_LANGUAGES } from "./i18n.js?v=20261117-hero-scroll-m";
 import { readClipboardText } from "./clipboard.js";
 import { profileCoverage } from "./account-profile.js";
 import {petLevelEvidence} from "./account-pet-levels.js";
-import {resolveGemstoneEvidence} from "./account-gemstones.js?v=20261117-hero-scroll-l";
-import {formatLogMultiplier} from "./account-power.js?v=20261117-hero-scroll-l";
-import {availablePets,recommendPets} from "./pet-scenarios.js?v=20261117-hero-scroll-l";
-import {bestEquipmentByCategory,EQUIPMENT_CATEGORIES} from "./equipment-scenarios.js?v=20261117-hero-scroll-l";
+import {resolveGemstoneEvidence} from "./account-gemstones.js?v=20261117-hero-scroll-m";
+import {formatLogMultiplier} from "./account-power.js?v=20261117-hero-scroll-m";
+import {availablePets,recommendPets} from "./pet-scenarios.js?v=20261117-hero-scroll-m";
+import {bestEquipmentByCategory,EQUIPMENT_CATEGORIES} from "./equipment-scenarios.js?v=20261117-hero-scroll-m";
 const $=id=>document.getElementById(id);
 let locale="en";
 let lastStatus={message:"Import your account or enter your skill points to begin.",type:"",params:{}};
@@ -360,7 +360,7 @@ function optimize(){
  if(!$("skill-points").value){status("Enter your total Skill Points or import a player export.","error");return;}
  button.disabled=false;button.textContent=tr("Cancel optimization");
  status("Checking prerequisites and calculating the best allocation for the chosen scoring model…");
- worker=new Worker(new URL("./worker.js?v=20261117-hero-scroll-l",import.meta.url),{type:"module"});
+ worker=new Worker(new URL("./worker.js?v=20261117-hero-scroll-m",import.meta.url),{type:"module"});
  worker.onmessage=event=>{
    const data=event.data;
    if(data.progress){
@@ -416,7 +416,7 @@ function renderAccountIntegration(result){
  const hero=coverage.heroProgression,clan=coverage.clanScrollPower;
   if(hero&&(hero.rosterVerified||hero.missingHeroes<37))
    panel.textContent+=" "+tr(
-    "Hero weapons: {sets} full sets, base damage {damage}, Ringing: {ringing}, MythicSmith: {mythic}; dominant hero: {hero}. Individual hero DPS and Worldshaper remain unverified.",
+    "Hero weapons: {sets} full sets, base damage {damage}, Ringing: {ringing}, Worldshaper: {mythic}; dominant hero: {hero}. Individual weapon and helmet conversions still require hero DPS.",
     {sets:knownOrUnknown(hero.fullSets),
       damage:hero.baseSetLog10===null?tr("not verifiable from this export"):
        formatLogMultiplier(hero.baseSetLog10),
@@ -426,10 +426,17 @@ function renderAccountIntegration(result){
        tr("not verifiable from this export")});
   if(clan?.recognized>0)
    panel.textContent+=" "+tr(
-    "Clan Scrolls: {count} recognized, full roster: {complete}; Quill: {quill}, Stamp: {stamp}. ScrollTutor's additive stack is unverified; this is not a stage forecast.",
+    "Clan Scrolls: {count} recognized, full roster: {complete}; Quill: {quill}, Stamp: {stamp}, Dragon Weaver: {dragon}. Cross-stacking may be unresolved; this is not a stage forecast.",
     {count:numberText(clan.recognized),complete:clan.completeRoster?tr("yes"):tr("no"),
      quill:clan.quill?.applied?tr("yes"):tr("no"),
-     stamp:clan.stamp?.applied?tr("yes"):tr("no")});
+     stamp:clan.stamp?.applied?tr("yes"):tr("no"),
+     dragon:clan.scrollTutor?.applied?tr("yes"):tr("no")});
+  if(hero?.heroLevels?.present)
+   panel.textContent+=" "+tr(
+    "Hero level/ascension snapshot: {count} heroes, complete: {complete}, current DPS: {dps}. Already-applied weapon/helmet bonuses are never counted twice.",
+    {count:numberText(hero.heroLevels.parsedCount),
+      complete:hero.heroLevels.completeRoster?tr("yes"):tr("no"),
+      dps:hero.heroLevels.dpsComplete?tr("available"):tr("not verifiable from this export")});
   const artifacts=coverage.artifacts;
  if(artifacts&&(artifacts.identified>0||artifacts.unknownIds>0||
     artifacts.explicitlyUnowned>0||artifacts.truncated)){
