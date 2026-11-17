@@ -691,3 +691,23 @@ test("no artifact collection must never generate made-up Artifact Damage",()=>{
  assert.equal(derived.entries.length,0);
  assert.equal(derived.ownedArtifactCount,null);
 });
+
+test("ChestAmount artifacts and research affect Chesterson gold, never Fairy or HoG",()=>{
+ const profile=parseAccountProfile({
+  artifacts:{Artifact19:{level:100,enchanted:false}},
+  gemstonesResearch:{"20":{level:2}}
+ });
+ const power=extractFixedAccountPower(profile);
+ assert.ok(power.entries.some(x=>x.system==="artifacts"&&x.id==="Artifact19"&&x.bonusType==="ChestAmount"));
+ assert.ok(power.entries.some(x=>x.system==="gemstoneResearch"&&x.id==="20"&&x.bonusType==="ChestAmount"));
+ assert.ok(power.byType.ChestAmount>0);
+ for(const damage of ["Clan Ship","Pet","Shadow Clone","Heavenly Strike","Dagger","Gold Gun"]){
+  for(const gold of ["Fairy","HoG","Chesterson"]){
+   const actual=fixedAccountScore(power,{damage,gold,goldWeight:1});
+   assert.equal(actual.goldLog10,gold==="Chesterson"?power.byType.ChestAmount:0,
+    damage+" / "+gold+" should not leak the Chesterson multiplier");
+  }
+ }
+ const disabled=fixedAccountScore(power,{damage:"Pet",gold:"Chesterson",goldWeight:0});
+ assert.equal(disabled.weightedLog10,disabled.damageLog10);
+});

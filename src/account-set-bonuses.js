@@ -12,7 +12,7 @@ import {EQUIPMENT_SET_CATALOG} from "../vendor/account-catalog.js";
 import {resolveSetCompletionDates} from "./account-temporal.js";
 
 const DIRECT_TYPES=new Set([
- "AllDamage","GoldAll","PetDamage","FairyGold","UltraDaggerDamage",
+ "AllDamage","GoldAll","PetDamage","FairyGold","ChestAmount","UltraDaggerDamage",
  "GoldGunDamage","BurstDamageSkillAmount"
 ]);
 const safeLog=value=>{
