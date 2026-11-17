@@ -455,3 +455,31 @@ https://www.reddit.com/r/TapTitans2/comments/1vlh4fk/
 https://www.reddit.com/r/TapTitans2/comments/14ylq4a/
 https://gamehive.com/blog/devlog-161-version-6-11-0-patch-notes/
 
+
+
+## 2026-11-17 — batch I, equipment primary dependency audit
+
+**Modeled:** item primary `log10(multiplier) × sourceReduction`;
+sourceReduction = 1 for matching direct damage, goldWeight for matching
+gold and `vendor/reductions.js` for explicitly supported Tap/All Hero
+conversion. Unsupported effect labels and unavailable conversion ratios
+are NOT converted to a universal damage factor. Nonmatching equipment
+secondaries are diagnosed as inapplicable rather than as absent formula
+or as a positive multiplier. Scientific `1e9999` stays in log space.
+
+**Coupled Aura:** `SwordBoost`, `HelmetBoost`, `SlashBoost` and
+their explicit `*PrimaryEffect` labels link exclusively to the matching
+selected gear's **primary** bonus; their score is zero/unknown if that
+primary is missing or unverified. Independently applied Ring/slot/artifact/
+set/pet amplifiers remain on each owning primary; secondary rolls are
+never multiplied. Auto Aura ranking runs *after* target gear selection,
+and is recomputed when an explicit target is selected. A bounded search over
+up to two screened choices per Sword/Helmet/Slash category protects against
+independently selecting a locally stronger piece with a worse coupled Aura
+multiplier. It is a heuristic shortlist, not a global optimality certificate.
+
+**Known limitations:** no exact Gunblade reduction; no hero class/ascension
+selection, unique per-resource counters, per-boss crit/uptime, or coherent
+pet×gear×SP global optimum. In-game item export equivalence is not yet
+proven. Full Node/bench browser tests only count as validated if actually
+executed; absence of CI evidence is not a passed gate.

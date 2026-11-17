@@ -43,6 +43,8 @@ export function modeledScenarioCoverage(result,settings,gearSelection={}){
   Object.values(selected).reduce((n,x)=>
    n+(x.primaryAmplifierUnresolved?.length||0),0);
  const missingExplicitSelections=gearSelection.missingExplicitSelections?.length||0;
+ const linkedAuraCount=gearSelection.linkedAuraCount||0;
+ const unresolvedAuraLinks=gearSelection.unresolvedAuraLinks||0;
  const inventoryPresent=settings?.accountProfile?.sections?.equipmentInventory?.present===true;
  const inventoryTruncated=gearSelection.inventoryTruncated===true||
   settings?.accountProfile?.sections?.equipmentInventory?.truncated===true;
@@ -60,6 +62,7 @@ export function modeledScenarioCoverage(result,settings,gearSelection={}){
  if(missingGearSlots)gaps.push("unmodeled-gear-slots");
  if(missingExplicitSelections)gaps.push("invalid-explicit-equipment-selections");
  if(unknownGearPrimaries)gaps.push("unmodeled-equipment-primaries");
+ if(unresolvedAuraLinks)gaps.push("unresolved-aura-primary-target");
  if(unknownGearSecondaries)gaps.push("unmodeled-equipment-secondaries");
  if(unknownGearAmplifiers)gaps.push("unverified-equipment-amplifiers");
  if(unknownGemstoneBonuses)gaps.push("unmodeled-gemstone-bonuses");
@@ -102,7 +105,8 @@ export function modeledScenarioCoverage(result,settings,gearSelection={}){
  gaps.push("unverified-stage-HP-and-cross-skill-interactions");
  return {gaps,
   complete:false,inventoryPresent,inventoryTruncated,missingGearSlots,
-  missingExplicitSelections,unknownGearPrimaries,unknownGearSecondaries,
+  missingExplicitSelections,linkedAuraCount,unresolvedAuraLinks,
+  unknownGearPrimaries,unknownGearSecondaries,
   unknownGearAmplifiers,unknownGemstoneBonuses,
   researchUnresolvedNodes:researchAudit?.excludedOrConflictingNodes||0,
   researchTruncatedSections:researchAudit?.truncatedSections||[],
@@ -119,7 +123,8 @@ export function modeledScenarioCoverage(result,settings,gearSelection={}){
   invalidDamagePet,invalidGoldPet,
   unresolvedAccountEffects,unknownCatalogIds,
   safeForAutomaticGearRecommendation:inventoryPresent&&!inventoryTruncated&&
-   !missingExplicitSelections,
+   !missingExplicitSelections&&!unknownGearPrimaries&&
+   !unknownGearSecondaries&&!unknownGearAmplifiers&&!unresolvedAuraLinks,
   realStagePredictionValidated:false};
 }
 
