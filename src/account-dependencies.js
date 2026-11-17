@@ -8,6 +8,7 @@ import {resolveSetCompletionDates,resolveTranscendenceAge,heroWeaponEvidence} fr
 import {clanScrollEvidence} from "./account-scrolls.js";
 import {extractTimedSetPower} from "./account-set-bonuses.js";
 import {resolveUniqueOwnership} from "./account-unique.js";
+import {resolveMonumentEvidence} from "./account-monuments.js";
 
 const object=x=>x&&typeof x==="object";
 const byName=(catalog,value)=>{
@@ -47,6 +48,7 @@ export function accountDependencyGraph(profile){
  const transcendence=resolveTranscendenceAge(profile);
  const heroWeapons=heroWeaponEvidence(profile);
  const clanScrolls=clanScrollEvidence(profile);
+ const monuments=resolveMonumentEvidence(profile);
  const uniqueEquipment=resolveUniqueOwnership(profile);
  const uniqueOwned=new Set(uniqueEquipment.ownedIds);
  for(const id of new Set(profile?.ownedSetIds||[])){
@@ -66,22 +68,24 @@ export function accountDependencyGraph(profile){
       :"requires-verified-scaling"};
    })});
  }
- for(const [section,catalog] of [
-  ["artifacts",ARTIFACT_CATALOG],["seasonArtifacts",SEASON_ARTIFACT_CATALOG]
- ]){
-  for(const entry of profile?.sections?.[section]?.records||[]){
-   const item=byName(catalog,entry.id);
-   if(!item){unknown.push({system:section,id:entry.id,reason:"not-in-dataset"});continue;}
-   const perSeasonDay=String(item.bonusType).includes("PerSeasonDay");
-   artifacts.push({id:item.id,name:item.name,level:entry.level??null,
-    enchanted:entry.enchanted??null,type:item.bonusType,
-    dependsOn:bonusDependence(item.bonusType),perSeasonDay,
-    seasonDays:perSeasonDay?transcendence.days:null,
-    numericalStatus:perSeasonDay&&transcendence.days===null
-     ?"ignored-missing-transcendence-start"
-     :"requires-verified-artifact-formula"});
-  }
+
+ // Permanent artifacts and transient Transcendence monuments are distinct.
+ for(const entry of profile?.sections?.artifacts?.records||[]){
+  const item=byName(ARTIFACT_CATALOG,entry.id);
+  if(!item){unknown.push({system:"artifacts",id:entry.id,reason:"not-in-dataset"});continue;}
+  artifacts.push({id:item.id,name:item.name,level:entry.level??null,
+   enchanted:entry.enchanted??null,type:item.bonusType,
+   dependsOn:bonusDependence(item.bonusType),perSeasonDay:false,
+   seasonDays:null,numericalStatus:"requires-verified-artifact-formula"});
  }
+ for(const item of monuments.entries){
+  artifacts.push({id:item.id,name:item.name,level:item.level,
+   enchanted:item.enchanted,type:item.type,category:item.category,
+   dependsOn:bonusDependence(item.type),perSeasonDay:item.perSeasonDay,
+   seasonDays:item.seasonDays,monument:true,numericalStatus:item.formulaStatus});
+ }
+ for(const item of monuments.unknown)
+  unknown.push({system:item.section,id:item.id,reason:item.reason});
  const seen=new Set();
  for(const node of NODES){
   for(const parent of node.after)if(!seen.has(parent))
@@ -96,7 +100,7 @@ export function accountDependencyGraph(profile){
  const groups=[...new Set([...sets.flatMap(s=>s.effects.map(e=>e.dependsOn)),
   ...artifacts.map(a=>a.dependsOn)])];
  return {nodes:NODES,order:NODES.map(n=>n.id),sets,artifacts,groups,unknown,
-  uniquePermanentOwnership:[...uniqueOwned].sort(),uniqueEquipment,heroWeapons,clanScrolls,transcendence,
+  uniquePermanentOwnership:[...uniqueOwned].sort(),uniqueEquipment,heroWeapons,clanScrolls,transcendence,monuments,
   ignoredTimedEffects:timedSetPower.omitted,
   timedSetPower:{calculated:timedSetPower.calculated,applied:timedSetPower.applied,omitted:timedSetPower.omitted},
   ready:false,unmodeledEffects:

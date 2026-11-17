@@ -36,7 +36,7 @@ const safeName=x=>{
  if(typeof x!=="string"&&typeof x!=="number")return null;
  const s=String(x).trim();
  return s&&s.length<=90&&!["__proto__","prototype","constructor"].includes(s)
-  &&/^[\p{L}\p{N}_.: +()\/-]+$/u.test(s)?s:null;
+  &&/^[\p{L}\p{N}_.: +()\/'’\-]+$/u.test(s)?s:null;
 };
 const numericText=x=>{
  if(typeof x==="number")return Number.isFinite(x)?String(x):null;
@@ -99,7 +99,8 @@ function extractRecord(rawId,item){
   rarity:["rarity","Rarity"],
   bonusType:["bonusType","BonusType","primaryType","PrimaryType","BonusTypeA"],
   bonusAmount:["bonusAmount","BonusAmount","primaryAmount","PrimaryAmount","A","a"],
-  setId:["setId","SetId","equipmentSet","EquipmentSet","setName","SetName"]
+  setId:["setId","SetId","equipmentSet","EquipmentSet","setName","SetName"],
+  season:["season","Season","seasonNumber","SeasonNumber","transcendenceSeason","TranscendenceSeason"]
  };
  for(const [key,aliases] of Object.entries(metadata)){
   const selected=field(item,aliases);
