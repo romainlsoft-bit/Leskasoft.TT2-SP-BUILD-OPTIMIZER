@@ -1,4 +1,4 @@
-import {optimizeBuild} from "./engine.js?v=20261117-transcendent";
+import {optimizeBuild} from "./engine.js?v=20261117-account-research";
 import {recommendPets,petScenarioScore} from "./pet-scenarios.js?v=20261117-transcendent";
 import {bestEquipmentByCategory,gearSelectionEffects} from "./equipment-scenarios.js";
 
@@ -31,7 +31,7 @@ self.onmessage=event=>{
      self.postMessage({progress:{phase:"pet-scenarios",completed,total}});
      return {slot,damagePet:d?.id||null,goldPet:g?.id||null,
       damageName:d?.name||"",goldName:g?.name||"",
-      adjustedScore:result.score+petScenarioScore(context,0)+selection.independentScore,
+      adjustedScore:result.accountAdjustedScore+petScenarioScore(context,0)+selection.independentScore,
       result};
     };
     const damageResults=damage.map(p=>evaluate(p,"damage"));

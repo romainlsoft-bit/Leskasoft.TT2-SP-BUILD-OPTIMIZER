@@ -1,7 +1,8 @@
-import {SKILLS,SKILL_IDS,BRANCH_NAMES,SETS,PRESETS,DAMAGE_TYPES,GOLD_TYPES,GAME_VERSION,parseExport,exportBuild,spentPoints} from "./engine.js?v=20261117-transcendent";
-import { t, localizeDocument, SUPPORTED_LANGUAGES } from "./i18n.js?v=20261117-account-profile";
+import {SKILLS,SKILL_IDS,BRANCH_NAMES,SETS,PRESETS,DAMAGE_TYPES,GOLD_TYPES,GAME_VERSION,parseExport,exportBuild,spentPoints} from "./engine.js?v=20261117-account-research";
+import { t, localizeDocument, SUPPORTED_LANGUAGES } from "./i18n.js?v=20261117-account-research";
 import { readClipboardText } from "./clipboard.js";
 import { profileCoverage } from "./account-profile.js";
+import {formatLogMultiplier} from "./account-power.js";
 import {availablePets,recommendPets} from "./pet-scenarios.js?v=20261117-transcendent";
 import {bestEquipmentByCategory,EQUIPMENT_CATEGORIES} from "./equipment-scenarios.js";
 const $=id=>document.getElementById(id);
@@ -344,7 +345,7 @@ function optimize(){
  if(!$("skill-points").value){status("Enter your total Skill Points or import a player export.","error");return;}
  button.disabled=false;button.textContent=tr("Cancel optimization");
  status("Checking prerequisites and calculating the best allocation for the chosen scoring model…");
- worker=new Worker(new URL("./worker.js?v=20261117-transcendent",import.meta.url),{type:"module"});
+ worker=new Worker(new URL("./worker.js?v=20261117-account-research",import.meta.url),{type:"module"});
  worker.onmessage=event=>{
    const data=event.data;
    if(data.progress){
@@ -360,6 +361,31 @@ function optimize(){
  worker.onerror=event=>{resetOptimizeButton();status("Optimizer worker failed: {detail}","error",{detail:event.message||"unknown error"});worker?.terminate();worker=null;};
  const compare=state.comparePetScenarios&&availablePets(state.accountProfile).length>0;
  worker.postMessage({type:compare?"optimize-pet-scenarios":"optimize",settings:structuredClone(state)});
+}
+function renderAccountIntegration(result){
+ let panel=$("account-integration-diagnostic");
+ if(!panel){
+  panel=document.createElement("div");
+  panel.id="account-integration-diagnostic";
+  panel.className="result-detail account-integration-note";
+  panel.setAttribute("role","status");
+  const disclaimer=document.querySelector(".math-disclaimer");
+  if(!disclaimer)return;
+  disclaimer.insertAdjacentElement("afterend",panel);
+ }
+ const power=result.fixedAccount,coverage=result.accountIntegration;
+ if(!power||!coverage){panel.hidden=true;return;}
+ const counts=Number(coverage.unmodeledEffects||0);
+ panel.hidden=false;
+ panel.textContent=tr(
+  "Account baseline (verified formulas only): Damage {damage}, Gold {gold}; {count} numerical effects imported. {unresolved} artifact/set effects remain uncalibrated. Not a validated total build-power estimate.",
+  {
+   damage:formatLogMultiplier(power.damageLog10),
+   gold:formatLogMultiplier(power.goldLog10),
+   count:numberText(power.matched||0),
+   unresolved:numberText(counts)
+  }
+ );
 }
 function renderResults(result,scroll=true){
  $("empty-results").hidden=true;$("actual-results").hidden=false;if(scroll)$("results").scrollIntoView({behavior:"smooth",block:"start"});
@@ -393,6 +419,7 @@ function renderResults(result,scroll=true){
  const max=Math.max(1,...Object.values(result.branchTotals));
  $("branch-chart").innerHTML=Object.entries(result.branchTotals).map(([name,points])=>`<div class="branch-row"><div class="branch-header"><span>${safe(tr(name))}</span><strong>${numberText(points)} SP</strong></div><div class="progress-track"><div class="progress-fill" style="width:${points/max*100}%;background:${branchColors[name]}"></div></div></div>`).join("");
  renderPetComparisons();renderEquipmentRecommendations();
+ renderAccountIntegration(result);
  $("full-tree").innerHTML=Object.entries(BRANCH_NAMES).map(([code,name])=>`<h4 class="group-title">${safe(tr(name))}</h4>`+SKILL_IDS.filter(id=>SKILLS[id].Branch===code&&result.levels[id]>0).map(id=>`<div class="tree-row"><span>${safe(SKILLS[id].Name)}</span><strong>${result.levels[id]}</strong></div>`).join("")).join("");
  $("delta-count").textContent="("+result.changes.length+")";
  $("diff-list").innerHTML=result.changes.length?result.changes.map(change=>`<div class="change-row"><span>${safe(change.name)}</span><span><small>${change.before} → ${change.after}</small> <strong class="${change.difference>=0?"plus":"minus"}">${change.difference>0?"+":""}${change.difference}</strong></span></div>`).join(""):"<p class='hint'>"+safe(tr("No skill-level changes."))+"</p>";
