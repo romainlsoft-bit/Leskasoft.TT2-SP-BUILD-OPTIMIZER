@@ -483,3 +483,8 @@ selection, unique per-resource counters, per-boss crit/uptime, or coherent
 pet×gear×SP global optimum. In-game item export equivalence is not yet
 proven. Full Node/bench browser tests only count as validated if actually
 executed; absence of CI evidence is not a passed gate.
+
+
+## 17 Nov 2026 — Batch J
+
+A full set of 37 weapon levels contributes `log10(5) × min(levels)` to AllHelperDamage **only** after verifying unique IDs, untruncated source and valid level range. The source reduction `AllHelperDmg[damage]` is applied once to the fixed total, including the prior unscored AllHeroDamage/scroll contributions. Individual weapon ×1.5 levels, dominant hero class/ascension, class helmets, Ringing/Morgelai, Quill/Stamp and MythicSmith/ScrollTutor boosts remain unresolved without 8.4 parity. Truncated Clan Scroll exports cannot score a convenient partial baseline. The engine remains an uncalibrated log10 scoring proxy, not a stage predictor.

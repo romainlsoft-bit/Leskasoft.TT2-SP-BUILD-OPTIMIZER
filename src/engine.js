@@ -3,7 +3,7 @@ import { baseline } from "../vendor/qol-baseline.js";
 import { optimizeExact } from "./solver-core.js";
 import { scoreAtLevel } from "./effects.js?v=20261117-artifact-interactions";
 import { parseAccountProfile } from "./account-profile.js";
-import {extractFixedAccountPower,fixedAccountScore} from "./account-power.js?v=20261117-monument-pools";
+import {extractFixedAccountPower,fixedAccountScore} from "./account-power.js?v=20261117-hero-scrolls";
 import {accountDependencyGraph} from "./account-dependencies.js?v=20261117-monument-pools";
 import {resolveSpellCaps} from "./spell-caps.js";
 import {extractTimedSetPower} from "./account-set-bonuses.js";
@@ -280,7 +280,20 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
         additiveDamageConservative:power.artifactDerived?.conservativeDamage===true},
       uniqueOwnedCount:dependencyReport.uniqueEquipment.ownedCount,
       uniquePermanentBonusesModeled:false,
-      heroWeaponFullSets:dependencyReport.heroWeapons.completeSets,
+      heroProgression:{
+        fullSets:power.heroProgression?.weapons?.completeSets??null,
+        rosterVerified:power.heroProgression?.weapons?.completeRosterVerified===true,
+        missingHeroes:power.heroProgression?.weapons?.missingHeroes??37,
+        invalidLevels:power.heroProgression?.weapons?.invalidLevels??0,
+        duplicateIds:power.heroProgression?.weapons?.duplicates?.length??0,
+        baseSetLog10:power.heroProgression?.baseSetLog10??null,
+        baseBonusScored:(power.heroProgression?.entries?.length||0)>0,
+        boosters:power.heroProgression?.artifactBoosters||[],
+        unresolved:power.heroProgression?.unresolved||[],
+        individualWeaponsScored:false,amplifiersScored:false,complete:false
+       },
+       clanScrollPower:power.clanScrollPower,
+       heroWeaponFullSets:dependencyReport.heroWeapons.completeSets,
       heroWeaponMissingIds:dependencyReport.heroWeapons.missingHeroes,
       clanScrollLevels:dependencyReport.clanScrolls.totalLevels,
       clanScrollSetBoostPercent:dependencyReport.clanScrolls.setBonusPercent,

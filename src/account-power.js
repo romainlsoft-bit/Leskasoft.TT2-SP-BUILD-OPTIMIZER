@@ -15,6 +15,8 @@
  */
 import {ACCOUNT_SCALING} from "../vendor/account-scaling.js";
 import {clanScrollEvidence} from "./account-scrolls.js";
+import {heroProgressionEvidence} from "./hero-progression.js";
+import {equipmentEffectReduction} from "./equipment-reductions.js";
 import {ARTIFACT_CATALOG} from "../vendor/account-catalog.js";
 import {calculatePermanentArtifactEffects} from "./account-artifacts.js";
 import {resolveMonumentEvidence} from "./account-monuments.js?v=20261117-monument-pools";
@@ -115,6 +117,10 @@ export function extractFixedAccountPower(profile){
   else unsupported.push({system:"artifacts",id:row.id,reason:row.status});
  }
  for(const row of artifactEffects.unknown)unsupported.push({system:"artifacts",...row});
+ const heroProgression=heroProgressionEvidence(profile,artifactEffects);
+ for(const row of heroProgression.entries)entries.push(row);
+ for(const reason of heroProgression.unresolved)
+  unsupported.push({system:"heroProgression",reason});
  const monuments=resolveMonumentEvidence(profile);
  for(const row of monuments.entries){
   if(row.appliedToScore)entries.push({system:"monuments",id:row.id,bonusType:row.bonusType??row.type,
@@ -173,6 +179,10 @@ export function extractFixedAccountPower(profile){
    supportedMagnifierTargets:artifactEffects.entries.filter(x=>x.magnifierApplied).length,
    supportedTreasureTargets:artifactEffects.entries.filter(x=>x.treasureApplied).length},
   researchResources:resourceResearchEvidence(profile),
+  heroProgression,
+  clanScrollPower:{recognized:scrolls.entries.length,completeRoster:scrolls.completeRoster,
+   completeSets:scrolls.fullSets,unknown:scrolls.unknown.length,
+   truncated:scrolls.truncated,additionalAmplifiersScored:false,complete:false},
   gemstones:{present:gemstoneEvidence.present,
    recorded:gemstoneEvidence.recorded,recognized:gemstoneEvidence.recognized,
    duplicateMirrors:gemstoneEvidence.duplicateMirrors,
@@ -208,12 +218,19 @@ export function fixedAccountScore(power,settings){
  if(!power?.available)return {damageLog10:0,goldLog10:0,weightedLog10:0,types:[]};
  const types=["AllDamage","BossDamage",...(DIRECT_DAMAGE_TYPES[settings.damage]||[])];
  const goldTypes=["GoldAll",...(DIRECT_GOLD_TYPES[settings.gold]||[])];
- const damageLog10=types.reduce((a,t)=>a+(power.byType[t]||0),0);
+ // Route verified All Hero Damage through pinned source build reductions,
+ // rather than incorrectly treating it as universal All Damage.
+ const heroTypes=["AllHelperDamage","AllHeroDamage","HeroDamage"];
+ const heroLog10=heroTypes.reduce((sum,type)=>{
+  const ratio=equipmentEffectReduction(type,settings).weight;
+  return sum+(Number.isFinite(ratio)?(power.byType[type]||0)*ratio:0);
+ },0);
+ const damageLog10=types.reduce((a,t)=>a+(power.byType[t]||0),heroLog10);
  const goldLog10=goldTypes.reduce((a,t)=>a+(power.byType[t]||0),0);
  const weight=Number(settings.goldWeight);
  return {damageLog10,goldLog10,
   weightedLog10:damageLog10+(Number.isFinite(weight)?weight:0)*goldLog10,
-  types:[...types,...goldTypes]};
+  types:[...types,...heroTypes,...goldTypes]};
 }
 export function formatLogMultiplier(log10){
  if(!Number.isFinite(log10))return "unknown";
