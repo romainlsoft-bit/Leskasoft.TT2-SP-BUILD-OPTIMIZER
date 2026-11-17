@@ -113,3 +113,16 @@ test("monument names with apostrophes and per-record season markers survive impo
  assert.equal(p.sections.monuments.records[0].season,"13");
  assert.equal(p.sections.monuments.records[1].id,"Rosabella's Village");
 });
+
+test("equipment secondary type amount pairs survive sanitized import without alias duplication",()=>{
+ const p=parseAccountProfile({equipmentInventory:[{
+  id:"Slash1",slot:"Slash",BonusTypeB:"BossDamage",BonusAmountB:"1e100",
+  secondary:["BossDamage:1e100","CriticalChance:0.01"],
+  BonusTypeC:"FairyGold",BonusAmountC:"2e50"
+ }]});
+ assert.deepEqual(p.sections.equipmentInventory.records[0].secondaryEffects,[
+  {bonusType:"BossDamage",bonusAmount:"1e100"},
+  {bonusType:"CriticalChance",bonusAmount:"0.01"},
+  {bonusType:"FairyGold",bonusAmount:"2e50"}
+ ]);
+});

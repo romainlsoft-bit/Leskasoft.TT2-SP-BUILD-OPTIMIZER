@@ -1,7 +1,7 @@
 import {test} from "node:test";
 import assert from "node:assert/strict";
 import {parseAccountProfile} from "../src/account-profile.js";
-import {bestEquipmentByCategory,gearSelectionEffects,ownedEquipment,EQUIPMENT_CATEGORIES} from "../src/equipment-scenarios.js";
+import {bestEquipmentByCategory,gearSelectionEffects,ownedEquipment,EQUIPMENT_CATEGORIES,equipmentSecondaryEvidence} from "../src/equipment-scenarios.js";
 
 const profile=()=>parseAccountProfile({
  equipmentInventory:[
@@ -59,4 +59,35 @@ test("changing an additive equipment choice only changes independent score",()=>
  assert.ok(auto.independentScore>other.independentScore);
  assert.equal(auto.selected.Sword.name,"Sword A");
  assert.equal(other.selected.Sword.name,"Sword B");
+});
+
+test("secondary equipment rolls are deduplicated and scored only if direct",()=>{
+ const p=parseAccountProfile({equipmentInventory:[
+  {id:"SwordA",slot:"Weapon",bonusType:"AllDamage",bonusAmount:"1e100",
+   BonusTypeB:"AllDamage",BonusAmountB:"1e90",
+   BonusTypeC:"PetDamage",BonusAmountC:"2e50",
+   secondaryBonuses:["AllDamage:1e90","DeadlyStrikeChance:0.03"]},
+  {id:"SwordB",slot:"Sword",bonusType:"AllDamage",bonusAmount:"1e105"}
+ ]});
+ const a=p.sections.equipmentInventory.records[0];
+ assert.equal(a.secondaryEffects.length,3);
+ const rows=ownedEquipment(p);assert.equal(rows[0].slot,"Sword");
+ const eff=equipmentSecondaryEvidence(rows[0],cfg("Pet"));
+ assert.equal(eff.recorded,3);assert.equal(eff.known.length,2);
+ assert.equal(eff.unknown.length,1);assert.ok(eff.score>139);
+ assert.equal(bestEquipmentByCategory(p,cfg("Pet")).Sword[0].id,"SwordA");
+ const chosen=gearSelectionEffects(p,cfg("Pet"));
+ assert.equal(chosen.selected.Sword.secondaryKnown,2);
+ assert.deepEqual(chosen.selected.Sword.unmodeledSecondaryTypes,["DeadlyStrikeChance"]);
+});
+test("secondary FairyGold only counts for Fairy, not HoG, and chance stays unknown",()=>{
+ const p=parseAccountProfile({equipmentInventory:[{id:"ArmorA",slot:"Suit",
+  bonusType:"GoldAll",bonusAmount:"1e100",
+  SecondaryEffects:[{type:"FairyGold",amount:"1e70"},
+   {type:"AllProbabilityBoost",amount:"10"}]}]});
+ const item=ownedEquipment(p)[0];assert.equal(item.slot,"Armor");
+ const fairy=equipmentSecondaryEvidence(item,{damage:"Pet",gold:"Fairy",goldWeight:.7});
+ const hog=equipmentSecondaryEvidence(item,{damage:"Pet",gold:"HoG",goldWeight:.7});
+ assert.ok(fairy.score>40);assert.equal(hog.score,0);
+ assert.equal(fairy.unknown.length,1);
 });
