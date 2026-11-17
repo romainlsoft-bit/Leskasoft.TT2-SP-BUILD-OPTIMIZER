@@ -46,13 +46,17 @@ export function resolveMonumentEvidence(profile,at=new Date()){
   const perSeasonDay=catalog.bonusType.includes("PerSeasonDay");
   const seasonCategories=OFFICIAL_MONUMENT_CATEGORIES[String(age.season)]||null;
   const categoryAllowed=seasonCategories?seasonCategories.includes(catalog.category):catalog.isActive;
+  const enchantmentKnown=enchants.length===1;
+  const enchantStatus=enchantmentKnown?enchants[0]==="true":null;
+  const requiresEnchantmentState=Number(catalog.enchantmentMagnitude)!==1;
   const formulaStatus=conflict?"ignored-conflicting-export-records":
    wrongSeason?"ignored-wrong-transcendence-season":
    level===null?"ignored-missing-or-invalid-level":
-   !categoryAllowed?"not-in-current-transcendence-rotation":
+   !categoryAllowed?(seasonCategories?"not-in-current-transcendence-rotation":"inactive-in-8.4-catalog"):
    perSeasonDay&&age.days===null?"ignored-missing-transcendence-age":
+   !enchantmentKnown&&requiresEnchantmentState?"unknown-enchantment-state":
+   !seasonCategories?"unknown-season-category":
    "requires-verified-monument-formula";
-  const enchantStatus=enchants.length===1?enchants[0]:false;
   const effect=formulaStatus==="requires-verified-monument-formula"?
    computeArtifactEffect(catalog,level,enchantStatus):{log10:null};
   // Per-season/day and other conditional monument effects are NOT standalone
@@ -60,7 +64,7 @@ export function resolveMonumentEvidence(profile,at=new Date()){
   const scoreable=effect.log10!=null&&isDirectBonusType(catalog.bonusType)&&
    !perSeasonDay&&categoryAllowed;
   entries.push({id,name:catalog.name,category:catalog.category,type:catalog.bonusType,
-   level,enchanted:enchants.length===1?enchants[0]:null,
+   level,enchanted:enchantStatus,
    maxLevel:catalog.maxLevel,catalogActive:catalog.isActive,
    categoryAllowed,seasonCategorySource:seasonCategories?"official-season-categories":"csv-fallback",
    log10:effect.log10??null,rawLog10:effect.rawLog10??null,
