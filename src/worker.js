@@ -1,5 +1,5 @@
-import {optimizeBuild} from "./engine.js?v=20261117-conditional-guard";
-import {recommendPets,petScenarioScore} from "./pet-scenarios.js";
+import {optimizeBuild} from "./engine.js?v=20261117-transcendent";
+import {recommendPets,petScenarioScore} from "./pet-scenarios.js?v=20261117-transcendent";
 import {bestEquipmentByCategory,gearSelectionEffects} from "./equipment-scenarios.js";
 
 // One worker, one cache. The solver checks per-branch score and constraint

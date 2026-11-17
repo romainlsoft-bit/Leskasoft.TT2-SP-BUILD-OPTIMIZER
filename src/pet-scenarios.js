@@ -5,6 +5,10 @@
  * Scores are log10 proxies, not predictions of stages gained.
  */
 import {PETS} from "../vendor/pets.js";
+import {TRANSCENDENT_PETS} from "../vendor/transcendent-pets.js";
+
+export const ALL_PETS=Object.freeze({...PETS,...TRANSCENDENT_PETS});
+const PET_LOOKUP=Object.freeze(Object.fromEntries(Object.values(ALL_PETS).map(p=>[p.name.toLowerCase(),p])));
 import {skillInfo} from "../vendor/skills.js";
 const finite=v=>{const n=Number(v);return Number.isFinite(n)?n:0;};
 const levelsCache=new WeakMap();
@@ -15,7 +19,7 @@ function petLevels(profile){
  const records=profile?.sections?.petLevels?.records;
  if(!Array.isArray(records)){if(profile&&typeof profile==="object")levelsCache.set(profile,result);return result;}
  for(const row of records){
-  const pet=PETS[row.id]||Object.values(PETS).find(p=>p.name.toLowerCase()===String(row.id).toLowerCase());
+  const pet=ALL_PETS[row.id]||PET_LOOKUP[String(row.id).toLowerCase()];
   const level=finite(row.level);
   if(pet&&level>0)result[pet.id]=Math.min(100000,level);
  }
@@ -24,16 +28,25 @@ function petLevels(profile){
 }
 export function availablePets(profile){
  const levels=petLevels(profile);
- return Object.values(PETS).filter(pet=>levels[pet.id]>0).map(pet=>({
-  id:pet.id,name:pet.name,type:pet.type,equipType:pet.equipType,level:levels[pet.id]
+ return Object.values(ALL_PETS).filter(pet=>levels[pet.id]>0).map(pet=>({
+  id:pet.id,name:pet.name,type:pet.type,equipType:pet.equipType,
+  tier:pet.tier??(Number(pet.id.slice(3))>=17?"Exotic":"Legacy"),
+  level:levels[pet.id]
  }));
 }
 export function logPetBonus(pet,level){
  if(!pet||!(level>=0))return 0;
  const capped=Math.min(level,100000);
- const every20=Math.max(0,Math.floor((Math.min(capped,pet.improvementLimit)-100)/20));
+ // "MaxImprovementLevels" counts improvement *increments*, NOT pet levels.
+ // Permanent pets: +1 improvement each 20 levels after level 100.
+ // Transcendent pets: +1 improvement each 5 levels starting at level 5.
+ const transcendent=pet.tier==="Transcendent"||String(pet.id).startsWith("SeasonalPet");
+ const first=transcendent?5:120;
+ const every=transcendent?5:20;
+ const steps=Math.min(Math.max(0,Math.floor((capped-first)/every)+1),
+  Math.max(0,Number(pet.improvementLimit)||0));
  return Math.log10(Math.max(1,pet.base+pet.inc*capped))
-  +every20*Math.log10(Math.max(1,pet.improve));
+  +steps*Math.log10(Math.max(1,pet.improve));
 }
 export function activePetGain(pet,level,extraPct=0){
  if(!pet||!(level>0))return 0;
@@ -78,7 +91,7 @@ export function resolvePetLevels(settings,combatTechniques=0){
  return {base:records,effective,bonusPct};
 }
 export function petSlotScore(settings,petId,slot,combatTechniques=0){
- const pet=PETS[petId],level=petLevels(settings.accountProfile)[petId];
+ const pet=ALL_PETS[petId],level=petLevels(settings.accountProfile)[petId];
  if(!pet||!level)return 0;
  const pct=finite(skillInfo.CombatTechniques?.["B"+combatTechniques]);
  const samurai=Boolean(settings.sets?.Samurai)||
@@ -94,7 +107,7 @@ export function petCombatTechniquesIncrement(settings,level){
 }
 export function recommendPets(profile,settings,slot,count=3){
  const source={...settings,accountProfile:profile};
- const candidates=availablePets(profile).filter(p=>petWeight(PETS[p.id],slot,source)>0);
+ const candidates=availablePets(profile).filter(p=>petWeight(ALL_PETS[p.id],slot,source)>0);
  return candidates.map(p=>({...p,estimatedGain:petSlotScore(source,p.id,slot,30)}))
   .sort((a,b)=>b.estimatedGain-a.estimatedGain||a.id.localeCompare(b.id))
   .slice(0,Math.max(0,Math.min(3,Math.floor(count))));

@@ -1,7 +1,7 @@
 import { skillInfo } from "../vendor/skills.js";
 import { baseline } from "../vendor/qol-baseline.js";
 import { optimizeExact } from "./solver-core.js";
-import { scoreAtLevel } from "./effects.js?v=20261117-account-profile";
+import { scoreAtLevel } from "./effects.js?v=20261117-transcendent";
 import { parseAccountProfile } from "./account-profile.js";
 
 export const GAME_VERSION = "8.4.0";

@@ -240,3 +240,31 @@ cross-build/gear rankings, and actual stages gained is mandatory before
 claiming the optimizer recommends the objectively strongest build.
 Issue #9 remains open. The actual -2,000 stage test's complete build settings
 and equipment export are not yet captured in an anonymized regression case.
+
+
+## 17 November 2026 — seasonal Transcendent pets
+
+The catalog originally contained only the 30 permanent Legacy and Exotic pets.
+Full TT2 exports can contain SeasonalPet1 through SeasonalPet15 in petLevels.
+The previous importer kept these levels but discarded these pets before ranking.
+
+The new seasonal catalog comes from rawrzcookie/TT2_CSV
+EndgamePetInfo.csv. Transcendent bonuses improve every 5 levels beginning
+at level 5; permanent pet bonuses improve every 20 levels beginning at 120.
+MaxImprovementLevels is a limit on improvement count, not pet level.
+The ranking uses only positive pet levels from the current account export.
+CSV IsActive values must not be taken as proof of ownership or applicability
+to the player's current Transcendence season.
+
+Two separately equipped slots, Damage and Support/Gold, are maintained,
+and the three best suitable candidates in each slot are compared separately.
+The now supported seasonal candidates are shown with a Transcendent label.
+
+**Scope:** These changes improve pet ranking, not the full-account simulator.
+Gemstone, Necrobear/Titan Soul, monument and artifact bonuses are imported
+but remain UNSCORED where no verified differential skill interaction exists.
+Exotic pets with equipment primary bonuses remain visible but are unranked
+without the precise equipped item and its supported mechanics.
+
+Source: https://github.com/rawrzcookie/TT2_CSV/blob/main/csv/EndgamePetInfo.csv
+Official: https://gamehive.com/blog/devlog-149-version-6-6-0-patch-notes/

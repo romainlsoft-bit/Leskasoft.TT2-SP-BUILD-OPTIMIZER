@@ -1,10 +1,11 @@
 import {test} from "node:test";
 import assert from "node:assert/strict";
 import {PETS} from "../vendor/pets.js";
+import {TRANSCENDENT_PETS} from "../vendor/transcendent-pets.js";
 import {parseAccountProfile} from "../src/account-profile.js";
 import {scoreAtLevel} from "../src/effects.js";
 import {optimizeBuild} from "../src/engine.js";
-import {availablePets,logPetBonus,activePetGain,petScenarioScore,petCombatTechniquesIncrement,recommendPets,resolvePetLevels} from "../src/pet-scenarios.js";
+import {ALL_PETS,availablePets,logPetBonus,activePetGain,petScenarioScore,petCombatTechniquesIncrement,recommendPets,resolvePetLevels} from "../src/pet-scenarios.js";
 
 const sample=()=>parseAccountProfile({
  Version:"8.4.0",
@@ -76,4 +77,46 @@ test("changing pet scenarios reuses DP frontiers of unaffected branches",()=>{
  assert.notEqual(cache.get("BranchOrange").solution,summoner);
  assert.ok(first.spent<=s.skillPoints);
  assert.ok(second.spent<=s.skillPoints);
+});
+
+
+test("Seasonal Transcendent pets, plus all permanent Legacy/Exotic, are recognized from exports",()=>{
+ const p=parseAccountProfile({petLevels:{
+  Pet1:1500,Pet12:1500,Pet20:1300,
+  SeasonalPet2:260,SeasonalPet7:260,SeasonalPet11:240,
+  SeasonalPet12:180,SeasonalPet1:0
+ }});
+ assert.equal(Object.keys(PETS).length,30);
+ assert.equal(Object.keys(TRANSCENDENT_PETS).length,15);
+ assert.equal(Object.keys(ALL_PETS).length,45);
+ const present=availablePets(p);
+ assert.ok(present.some(x=>x.id==="SeasonalPet7"&&x.tier==="Transcendent"&&x.level===260));
+ assert.ok(present.some(x=>x.id==="Pet20"&&x.tier==="Exotic"));
+ assert.ok(present.some(x=>x.id==="Pet1"&&x.tier==="Legacy"));
+ assert.ok(!present.some(x=>x.id==="SeasonalPet1"));
+ const settings={damage:"Pet",gold:"Fairy",goldWeight:0.7,accountProfile:p,sets:{}};
+ assert.equal(recommendPets(p,settings,"damage",3)[0].id,"SeasonalPet7");
+ assert.equal(recommendPets(p,settings,"gold",3)[0].id,"SeasonalPet2");
+ assert.ok(petCombatTechniquesIncrement({...settings,selectedDamagePet:"SeasonalPet7",
+  selectedGoldPet:"SeasonalPet2"},30)>0);
+});
+test("Transcendent improvements every five levels, permanent every twenty",()=>{
+ const seasonal=TRANSCENDENT_PETS.SeasonalPet7;
+ const delta=(p,a,b)=>logPetBonus(p,b)-logPetBonus(p,a);
+ assert.ok(delta(seasonal,4,5)>Math.log10(60));
+ assert.ok(delta(seasonal,9,10)>Math.log10(60));
+ assert.ok(delta(seasonal,10,14)<0.5);
+ assert.ok(delta(seasonal,14,15)>Math.log10(60));
+ assert.equal(activePetGain(seasonal,100,0),0);
+ assert.ok(activePetGain(seasonal,100,0.25)>0);
+ assert.ok(delta(PETS.Pet1,119,120)>Math.log10(1.5));
+ assert.ok(delta(PETS.Pet1,139,140)>Math.log10(1.5));
+ assert.ok(delta(PETS.Pet1,1599,1600)>Math.log10(1.5));
+});
+test("Seasonal pets reset to zero and must not be recommended from an old season",()=>{
+ const p=parseAccountProfile({petLevels:{Pet1:1200,Pet12:1200,SeasonalPet7:0,SeasonalPet2:0}});
+ const context={damage:"Pet",gold:"Fairy",goldWeight:0.7,accountProfile:p,sets:{}};
+ assert.ok(availablePets(p).every(x=>x.tier!=="Transcendent"));
+ assert.equal(recommendPets(p,context,"damage",3)[0].id,"Pet1");
+ assert.equal(recommendPets(p,context,"gold",3)[0].id,"Pet12");
 });
