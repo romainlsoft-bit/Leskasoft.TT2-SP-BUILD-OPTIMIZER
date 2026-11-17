@@ -360,7 +360,7 @@ function optimize(){
  if(!$("skill-points").value){status("Enter your total Skill Points or import a player export.","error");return;}
  button.disabled=false;button.textContent=tr("Cancel optimization");
  status("Checking prerequisites and calculating the best allocation for the chosen scoring model…");
- worker=new Worker(new URL("./worker.js?v=20261117-pet-gemstone-chain",import.meta.url),{type:"module"});
+ worker=new Worker(new URL("./worker.js?v=20261117-calculation-ledger",import.meta.url),{type:"module"});
  worker.onmessage=event=>{
    const data=event.data;
    if(data.progress){
@@ -408,6 +408,17 @@ function renderAccountIntegration(result){
   weapons:knownOrUnknown(coverage.heroWeaponFullSets),
   scrolls:knownOrUnknown(coverage.clanScrollCompleteSets)
  });
+ const modeled=result.modeledScenario;
+ if(modeled){
+  panel.textContent+=" "+tr(
+   "Modeled log10 score: skills {skills}, account {account}, equipped gear {gear}, active pets above passive {pets}; combined {total}. Not predicted stages.",
+   {skills:modeled.skillLog10.toFixed(2),
+    account:modeled.fixedAccountLog10.toFixed(2),
+    gear:modeled.equippedGearLog10.toFixed(2),
+    pets:modeled.activePetsAbovePassivesLog10.toFixed(2),
+    total:modeled.totalLog10.toFixed(2)}
+  );
+ }
  const resources=coverage.researchResources;
  if(resources?.gemstones?.present||resources?.titanSouls?.present){
   const notKnown=tr("not verifiable from this export");
