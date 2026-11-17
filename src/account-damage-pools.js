@@ -1,63 +1,85 @@
 /**
- * Separate additive "Artifact Damage" and "Monument Damage" pools.
- * TT2Master: Artifact.ADBoost = DamageBonus * Level.
- * Monument schema: DamageBonus * Level^DamageExpo, a distinct exponent.
- * Lemmingllama: monument damage stacks additively, not multiplicatively.
+ * Independent additive Artifact Damage and Monument Damage pools.
  *
- * EnchantmentMult is intentionally calculated as a separate candidate factor:
- * exact end-to-end interaction with the damage pool is still unverified.
- * These quantities are diagnostics and DO NOT enter the optimizer score.
+ * Artifact Damage raw component: DamageBonus * Level (TT2Master).
+ * Monument Damage raw component: DamageBonus ^ (Level ^ DamageExpo).
+ * A monument's Source DamageExpo (0.53/0.55 in the v8.4 CSV) controls
+ * growth of the EXPONENT of its damage multiplier, not exponentiation
+ * of its damage factor by a single numeric 0.53/0.55.
+ * This matches the magnitude of observed multi-thousand-order monument
+ * bonuses and Game Hive's official v6.11 exponent rebalance.
+ *
+ * EnchantmentMult is separately recorded. Its precise position in the
+ * damage pool's gameplay chain is not proven: the scored baseline excludes
+ * that boost and keeps any enchanted result diagnostic-only.
  */
 import {positiveLog10} from "./account-artifacts.js";
 export function log10Sum(logs=[]){
  const values=logs.filter(Number.isFinite);
  if(!values.length)return null;
  const max=Math.max(...values);
- return max+Math.log10(values.reduce((sum,x)=>sum+Math.pow(10,x-max),0));
+ const sum=values.reduce((n,x)=>n+Math.pow(10,x-max),0);
+ return max+Math.log10(sum);
 }
 export function rawDamageLog10(info,level,system){
- const bonus=positiveLog10(info?.damageBonus),lvl=positiveLog10(level);
- const exponent=system==="monument"?Number(info?.damageExpo):1;
- if(bonus===null||lvl===null||!Number.isFinite(exponent)||exponent<0)return null;
- return bonus+exponent*lvl;
+ const bonus=positiveLog10(info?.damageBonus),lv=positiveLog10(level);
+ if(bonus===null||lv===null||lv<0)return null;
+ if(system==="artifact")return bonus+lv;
+ if(system!=="monument")return null;
+ const expo=Number(info?.damageExpo);
+ if(!Number.isFinite(expo)||expo<0||bonus<0)return null;
+ // log10((DamageBonus)^(Level^DamageExpo))
+ // = log10(DamageBonus) * 10^(DamageExpo * log10(Level)).
+ // Do NOT exponentiate a log10 score itself. Reject unrepresentable
+ // astronomical exponent values instead of returning Infinity or NaN.
+ if(bonus===0)return 0;
+ const exponentLog10=expo*lv;
+ if(!Number.isFinite(exponentLog10)||
+    exponentLog10>Math.log10(Number.MAX_VALUE/Math.max(1,bonus)))return null;
+ const result=bonus*Math.pow(10,exponentLog10);
+ return Number.isFinite(result)?result:null;
 }
 export function additiveDamageEvidence(artifacts,monuments,artifactCatalog,monumentCatalog){
  const entries=[],rejected=[];
  const add=(system,row,info)=>{
-  const log10=rawDamageLog10(info,row.level,system);
-  const rawEnch=positiveLog10(info?.enchantedMult??info?.enchantmentMult);
-  const enchantChanged=rawEnch!==null&&rawEnch!==0;
-  if(log10===null){rejected.push({system,id:row.id,reason:"unreadable-damage-data"});return}
-  if(row.enchanted===null&&enchantChanged){
-   rejected.push({system,id:row.id,reason:"unknown-enchantment-state"});return;
-  }
-  const hypotheticalEnchantDamageLog10=row.enchanted===true&&rawEnch!==null?log10+rawEnch:log10;
+  const raw=rawDamageLog10(info,row.level,system);
+  if(raw===null){rejected.push({system,id:row.id,reason:"unrepresentable-damage-scaling"});return}
+  const enchantLog10=positiveLog10(info?.enchantedMult??info?.enchantmentMult);
+  const enchantMayMatter=enchantLog10!==null&&enchantLog10!==0;
+  const enchantKnown=row.enchanted===true||row.enchanted===false;
+  const enchantedCandidate=!enchantKnown&&enchantMayMatter?null:
+   row.enchanted===true&&enchantLog10!==null?raw+enchantLog10:raw;
   entries.push({system,id:row.id,level:row.level,
-   unenchantedLog10:log10,
-   candidateEnchantedLog10:hypotheticalEnchantDamageLog10,
-   enchantmentMult:info?.enchantedMult??info?.enchantmentMult??null,
+   unenchantedLog10:raw,candidateEnchantedLog10:enchantedCandidate,
+   enchanted:row.enchanted===true,
+   enchantmentKnown:enchantKnown,enchantmentMult:
+    info?.enchantedMult??info?.enchantmentMult??null,
    exponent:system==="monument"?Number(info.damageExpo):1,
-   verifiedSumRule:"additive",
-   appliedToScore:false});
+   sourceFormula:system==="monument"?"DamageBonus^(Level^DamageExpo)":
+    "DamageBonus*Level",
+   verifiedSumRule:"additive",appliedToScore:false});
  };
  for(const row of artifacts?.entries||[]){
   if(row.level===null||row.status==="conflicting-source-records")continue;
   const info=artifactCatalog[row.id];if(info)add("artifact",row,info);
  }
  for(const row of monuments?.entries||[]){
-  if(row.level===null||!row.categoryAllowed||
-     ["ignored-conflicting-export-records","ignored-wrong-transcendence-season"].includes(row.formulaStatus))continue;
+  if(row.level===null||row.damageEligible===false||!row.categoryAllowed||
+    ["ignored-conflicting-export-records","ignored-wrong-transcendence-season",
+     "ignored-truncated-monument-export"].includes(row.formulaStatus))continue;
   const info=monumentCatalog[row.id];if(info)add("monument",row,info);
  }
- const art=entries.filter(x=>x.system==="artifact");
- const mon=entries.filter(x=>x.system==="monument");
- return {
-  artifacts:{components:art.length,unenchantedPoolLog10:log10Sum(art.map(x=>x.unenchantedLog10)),
-   candidateEnchantedPoolLog10:log10Sum(art.map(x=>x.candidateEnchantedLog10))},
-  monuments:{components:mon.length,unenchantedPoolLog10:log10Sum(mon.map(x=>x.unenchantedLog10)),
-   candidateEnchantedPoolLog10:log10Sum(mon.map(x=>x.candidateEnchantedLog10))},
-  entries,rejected,appliedToScore:false,
-  complete:false,
-  warning:"Additive pool contributions are separate from main bonus. The enchantment multiplier-to-pool relationship is diagnostic, not confirmed for the score."
- };
+ const pools={};
+ for(const [name,system] of [["artifacts","artifact"],["monuments","monument"]]){
+  const subset=entries.filter(x=>x.system===system);
+  const allCandidateKnown=subset.every(x=>x.candidateEnchantedLog10!==null);
+  pools[name]={components:subset.length,
+   unenchantedPoolLog10:log10Sum(subset.map(x=>x.unenchantedLog10)),
+   candidateEnchantedPoolLog10:allCandidateKnown?
+    log10Sum(subset.map(x=>x.candidateEnchantedLog10)):null,
+   unresolvedEnchantments:subset.filter(x=>x.candidateEnchantedLog10===null).length,
+   excludedUnrepresentable:rejected.filter(x=>x.system===system).length};
+ }
+ return {...pools,entries,rejected,appliedToScore:false,complete:false,
+  warning:"Unenchanted Monument Damage components sum additively. Enchantment multiplier-to-pool relationship is diagnostic only."};
 }

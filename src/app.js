@@ -1,12 +1,12 @@
-import {SKILLS,SKILL_IDS,BRANCH_NAMES,PRESETS,DAMAGE_TYPES,GOLD_TYPES,GAME_VERSION,parseExport,exportBuild,spentPoints,ownedSetFlags} from "./engine.js?v=20261117-artifact-interactions";
-import { t, localizeDocument, SUPPORTED_LANGUAGES } from "./i18n.js?v=20261117-artifact-interactions";
+import {SKILLS,SKILL_IDS,BRANCH_NAMES,PRESETS,DAMAGE_TYPES,GOLD_TYPES,GAME_VERSION,parseExport,exportBuild,spentPoints,ownedSetFlags} from "./engine.js?v=20261117-monument-pools";
+import { t, localizeDocument, SUPPORTED_LANGUAGES } from "./i18n.js?v=20261117-monument-pools";
 import { readClipboardText } from "./clipboard.js";
 import { profileCoverage } from "./account-profile.js";
 import {petLevelEvidence} from "./account-pet-levels.js";
-import {resolveGemstoneEvidence} from "./account-gemstones.js?v=20261117-artifact-interactions";
-import {formatLogMultiplier} from "./account-power.js?v=20261117-artifact-interactions";
-import {availablePets,recommendPets} from "./pet-scenarios.js?v=20261117-artifact-interactions";
-import {bestEquipmentByCategory,EQUIPMENT_CATEGORIES} from "./equipment-scenarios.js?v=20261117-artifact-interactions";
+import {resolveGemstoneEvidence} from "./account-gemstones.js?v=20261117-monument-pools";
+import {formatLogMultiplier} from "./account-power.js?v=20261117-monument-pools";
+import {availablePets,recommendPets} from "./pet-scenarios.js?v=20261117-monument-pools";
+import {bestEquipmentByCategory,EQUIPMENT_CATEGORIES} from "./equipment-scenarios.js?v=20261117-monument-pools";
 const $=id=>document.getElementById(id);
 let locale="en";
 let lastStatus={message:"Import your account or enter your skill points to begin.",type:"",params:{}};
@@ -360,7 +360,7 @@ function optimize(){
  if(!$("skill-points").value){status("Enter your total Skill Points or import a player export.","error");return;}
  button.disabled=false;button.textContent=tr("Cancel optimization");
  status("Checking prerequisites and calculating the best allocation for the chosen scoring model…");
- worker=new Worker(new URL("./worker.js?v=20261117-artifact-interactions",import.meta.url),{type:"module"});
+ worker=new Worker(new URL("./worker.js?v=20261117-monument-pools",import.meta.url),{type:"module"});
  worker.onmessage=event=>{
    const data=event.data;
    if(data.progress){
@@ -462,6 +462,26 @@ function renderAccountIntegration(result){
   if(permanent.craftingPower?.conflictingSettings)
    panel.textContent+=" "+tr(
     "The Crafting Power from the account export overrides a conflicting form value.");
+ }
+ const monuments=coverage.monuments;
+ if(monuments&&(monuments.identified>0||monuments.unknownIds>0||
+    monuments.truncatedSections?.length)){
+  panel.textContent+=" "+tr("Monuments (season {season}): {known} recognized, {scored} primary/count effects scored. Additive Monument Damage: {damage} from {components} eligible monuments, included only once as a conservative All Damage baseline. Enchantment multipliers are not guessed; neither these values nor the proxy are stage predictions.",{
+   season:monuments.season??tr("not verifiable from this export"),
+   known:numberText(monuments.identified||0),
+   scored:numberText(monuments.scored||0),
+   damage:formatLogMultiplier(monuments.additiveDamageLog10),
+   components:numberText(monuments.additiveComponents||0)
+  });
+  if(monuments.unknownIds||monuments.conflicts||monuments.truncatedSections?.length||
+    monuments.additiveUnrepresentable){
+   panel.textContent+=" "+tr("Monument limitations: {unknown} unknown IDs, {conflicts} stale/conflicting entries, {truncated} truncated sections and {unrepresentable} non-representable damage terms. Missing season, per-day conditions and unverified completed-set counts remain excluded.",{
+    unknown:numberText(monuments.unknownIds||0),
+    conflicts:numberText(monuments.conflicts||0),
+    truncated:numberText(monuments.truncatedSections?.length||0),
+    unrepresentable:numberText(monuments.additiveUnrepresentable||0)
+   });
+  }
  }
  const treeSets=coverage.skillTreeSetPower;
  if(treeSets?.applied>0)

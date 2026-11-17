@@ -426,3 +426,32 @@ test/bench gates are mandatory.
 Sources: https://gamehive.com/blog/devlog-88-version-5100-patch-notes-2633/ ;
 https://www.reddit.com/r/TapTitans2/comments/vu9fch/ ;
 https://tap-titans-2.fandom.com/wiki/The_White_Dwarf .
+
+## 17 November 2026 — PR #18 Batch H, season-13 Monument Damage audit
+
+Source: the 52-record 8.4 monument catalog, Game Hive DevLog #231
+(current seasonal categories and date), DevLog #161 (monument growth
+exponent), and lemmingllama's Monument Tier List (additive stacking).
+The earlier damage implementation took `DamageBonus × Level^DamageExpo`
+and produced tiny exponent values compared to the actual multi-thousand-
+order Monument Damage figures. The 8.4 source-derived formula is
+`DamageBonus^(Level^DamageExpo)`. Its log10 values are *added in linear
+damage space*, not summed directly as log10 across different monuments.
+Astronomical scientific levels that would overflow even the log10 score
+are omitted with explicit diagnostics, not silently saturated or rounded.
+
+Main monument effects and the additive Monument Damage baseline have
+independent routes into the fixed account ledger. Counted mythic/all-set
+bonuses are exponentiated by verified complete sets only. `PerSeasonDay`
+and other conditional mechanics remain unscored; monument
+`EnchantmentMult` affects only diagnostics pending proof of its exact
+position in game stacking, and no guessed bonus enters the score.
+Unknown season, stale source rows and truncated exports never contribute
+to this pool. The fixed-account damage term is common to all SP
+allocations and does not claim accurate stage progression.
+
+Sources:
+https://www.reddit.com/r/TapTitans2/comments/1vlh4fk/
+https://www.reddit.com/r/TapTitans2/comments/14ylq4a/
+https://gamehive.com/blog/devlog-161-version-6-11-0-patch-notes/
+

@@ -3,8 +3,8 @@ import { baseline } from "../vendor/qol-baseline.js";
 import { optimizeExact } from "./solver-core.js";
 import { scoreAtLevel } from "./effects.js?v=20261117-artifact-interactions";
 import { parseAccountProfile } from "./account-profile.js";
-import {extractFixedAccountPower,fixedAccountScore} from "./account-power.js?v=20261117-artifact-interactions";
-import {accountDependencyGraph} from "./account-dependencies.js?v=20261117-artifact-interactions";
+import {extractFixedAccountPower,fixedAccountScore} from "./account-power.js?v=20261117-monument-pools";
+import {accountDependencyGraph} from "./account-dependencies.js?v=20261117-monument-pools";
 import {resolveSpellCaps} from "./spell-caps.js";
 import {extractTimedSetPower} from "./account-set-bonuses.js";
 import {resolvePermanentSetPower} from "./account-permanent-sets.js";
@@ -260,13 +260,14 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
         conflicts:dependencyReport.monuments.conflicts,
         seasonDays:dependencyReport.monuments.seasonDays,
         perSeasonDay:dependencyReport.monuments.perSeasonDay,
-        modeled:dependencyReport.monuments.modeled},
+        modeled:dependencyReport.monuments.modeled,
+        ...power.monumentEffects},
       petPassives:power.petPassives,
       artifactDerived:power.artifactDerived,
       additiveDamage:{
         artifactPool:dependencyReport.additiveDamage.artifacts,
         monumentPool:dependencyReport.additiveDamage.monuments,
-        appliedToScore:false
+        appliedToScore:power.monumentEffects?.additiveDamageApplied===true
       },
       artifacts:{identified:dependencyReport.permanentArtifacts.recognized,
         computed:dependencyReport.permanentArtifacts.computed,
