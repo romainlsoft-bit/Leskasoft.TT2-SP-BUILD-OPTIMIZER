@@ -18,7 +18,7 @@ import {clanScrollEvidence} from "./account-scrolls.js";
 import {ARTIFACT_CATALOG} from "../vendor/account-catalog.js";
 import {calculatePermanentArtifactEffects} from "./account-artifacts.js";
 import {resolveMonumentEvidence} from "./account-monuments.js";
-import {petPassiveEvidence} from "./pet-scenarios.js";
+import {petPassiveEvidence} from "./pet-scenarios.js?v=20261117-pet-integrity";
 import {artifactDerivedPower} from "./account-artifact-derived.js";
 import {mergeTitanResearch,resourceResearchEvidence} from "./account-research-resources.js";
 
@@ -154,6 +154,8 @@ export function extractFixedAccountPower(profile){
  }
  for(const row of passivePets.unmodeled)
   unsupported.push({system:"petPassive",...row});
+ for(const row of passivePets.rejectedLevels)
+  unsupported.push({system:"petLevels",...row});
  for(const row of passivePets.unknownAmplifiers)
   unsupported.push({system:"petAmplifier",...row});
  const byType={};
@@ -167,6 +169,8 @@ export function extractFixedAccountPower(profile){
    conservativeDamage:artifactDerived.entries.some(x=>x.system==="artifactDamage"),
    complete:false},
   petPassives:{imported:passivePets.imported,scored:passivePets.scored,
+   rejectedLevels:passivePets.rejectedLevels.length,
+   duplicateMirrors:passivePets.duplicateMirrors,
    unknownAmplifiers:passivePets.unknownAmplifiers.length,complete:false},
   artifactEffects:{recognized:artifactEffects.recognized,computed:artifactEffects.computed,
    scored:artifactEffects.scored,duplicateRecords:artifactEffects.duplicateRecords},

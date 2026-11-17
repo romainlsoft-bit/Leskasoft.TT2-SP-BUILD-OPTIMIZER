@@ -5,6 +5,7 @@ export const SUPPORTED_LANGUAGES = ["en","fr","uk","ru"];
 export const NATIVE_LANGUAGE_NAMES = {en:"English",fr:"Français",uk:"Українська",ru:"Русский"};
 export const translations = {
 fr:{
+ "Pet import warning: {count} invalid, conflicting or unknown pet records were excluded from calculations.":"Import des familiers : {count} entrées invalides, contradictoires ou inconnues ont été exclues des calculs.",
  "Guide to bonuses and imports":"Guide des bonus et de l’import",
  "Seasonal artifacts":"Artefacts saisonniers",
  "Titan Research":"Recherche des Titans",
@@ -217,6 +218,7 @@ fr:{
  "Free Tap Titans 2 skill tree optimizer for TT2 8.4. Optimize skill points for Clan Ship, Pet, Shadow Clone, Heavenly Strike, Dagger or Gold Gun. Import game data or configure manually.":"Optimiseur gratuit de compétences Tap Titans 2 version 8.4. Import des données ou configuration manuelle pour tous les types de builds."
 },
 uk:{
+ "Pet import warning: {count} invalid, conflicting or unknown pet records were excluded from calculations.":"Імпорт улюбленців: {count} недійсних, суперечливих або невідомих записів виключено з обчислень.",
  "Guide to bonuses and imports":"Посібник із бонусів та імпорту",
  "Seasonal artifacts":"Сезонні артефакти",
  "Titan Research":"Дослідження титанів",
@@ -379,6 +381,7 @@ uk:{
  "Free Tap Titans 2 skill tree optimizer for TT2 8.4. Optimize skill points for Clan Ship, Pet, Shadow Clone, Heavenly Strike, Dagger or Gold Gun. Import game data or configure manually.":"Безкоштовний оптимізатор дерева навичок Tap Titans 2 версії 8.4. Імпорт даних або ручне налаштування для всіх збірок."
 },
 ru:{
+ "Pet import warning: {count} invalid, conflicting or unknown pet records were excluded from calculations.":"Импорт питомцев: {count} недопустимых, противоречивых или неизвестных записей исключено из расчётов.",
  "Guide to bonuses and imports":"Руководство по бонусам и импорту",
  "Seasonal artifacts":"Сезонные артефакты",
  "Titan Research":"Исследования титанов",

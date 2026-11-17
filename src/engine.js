@@ -1,9 +1,9 @@
 import { skillInfo } from "../vendor/skills.js";
 import { baseline } from "../vendor/qol-baseline.js";
 import { optimizeExact } from "./solver-core.js";
-import { scoreAtLevel } from "./effects.js?v=20261117-transcendent";
+import { scoreAtLevel } from "./effects.js?v=20261117-pet-integrity";
 import { parseAccountProfile } from "./account-profile.js";
-import {extractFixedAccountPower,fixedAccountScore} from "./account-power.js";
+import {extractFixedAccountPower,fixedAccountScore} from "./account-power.js?v=20261117-pet-integrity";
 import {accountDependencyGraph} from "./account-dependencies.js";
 import {resolveSpellCaps} from "./spell-caps.js";
 import {extractTimedSetPower} from "./account-set-bonuses.js";

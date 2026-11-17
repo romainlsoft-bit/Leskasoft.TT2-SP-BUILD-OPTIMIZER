@@ -8,7 +8,7 @@ import { reductions } from "../vendor/reductions.js";
 import { spellInfo, spell_reductions } from "../vendor/spells.js";
 import {spellTableIndex} from "./spell-caps.js";
 import { clone } from "../vendor/clone.js";
-import {petCombatTechniquesIncrement,petEquipmentCombatTechniquesWeight} from "./pet-scenarios.js?v=20261117-transcendent";
+import {petCombatTechniquesIncrement,petEquipmentCombatTechniquesWeight} from "./pet-scenarios.js?v=20261117-pet-integrity";
 
 const num=(v,fallback=0)=>{ const x=Number(v); return Number.isFinite(x)?x:fallback; };
 const lg=v=>Math.log10(num(v)>0?num(v):1);

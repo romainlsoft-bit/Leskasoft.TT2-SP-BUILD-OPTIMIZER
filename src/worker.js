@@ -1,6 +1,6 @@
-import {optimizeBuild} from "./engine.js?v=20261117-account-research";
-import {recommendPets,petScenarioScore} from "./pet-scenarios.js?v=20261117-transcendent";
-import {bestEquipmentByCategory,gearSelectionEffects} from "./equipment-scenarios.js";
+import {optimizeBuild} from "./engine.js?v=20261117-pet-integrity";
+import {recommendPets,petScenarioScore} from "./pet-scenarios.js?v=20261117-pet-integrity";
+import {bestEquipmentByCategory,gearSelectionEffects} from "./equipment-scenarios.js?v=20261117-pet-integrity";
 
 // One worker, one cache. The solver checks per-branch score and constraint
 // signatures: changing a pet can change Summoner/Combat Techniques, while
