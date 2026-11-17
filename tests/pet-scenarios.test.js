@@ -3,9 +3,10 @@ import assert from "node:assert/strict";
 import {PETS} from "../vendor/pets.js";
 import {TRANSCENDENT_PETS} from "../vendor/transcendent-pets.js";
 import {parseAccountProfile} from "../src/account-profile.js";
+import {extractFixedAccountPower,fixedAccountScore} from "../src/account-power.js";
 import {scoreAtLevel} from "../src/effects.js";
 import {optimizeBuild} from "../src/engine.js";
-import {ALL_PETS,availablePets,logPetBonus,activePetGain,petScenarioScore,petCombatTechniquesIncrement,recommendPets,resolvePetLevels} from "../src/pet-scenarios.js";
+import {ALL_PETS,availablePets,logPetBonus,activePetGain,petScenarioScore,petCombatTechniquesIncrement,recommendPets,resolvePetLevels,petPassiveEvidence,petArtifactAmplifiers,petTier,logPassivePetMultiplier} from "../src/pet-scenarios.js";
 
 const sample=()=>parseAccountProfile({
  Version:"8.4.0",
@@ -119,4 +120,44 @@ test("Seasonal pets reset to zero and must not be recommended from an old season
  assert.ok(availablePets(p).every(x=>x.tier!=="Transcendent"));
  assert.equal(recommendPets(p,context,"damage",3)[0].id,"Pet1");
  assert.equal(recommendPets(p,context,"gold",3)[0].id,"Pet12");
+});
+
+test("passive pet bonus starts at 5 levels and is 100 percent at 100",()=>{
+ const p=PETS.Pet1,full=logPetBonus(p,100);
+ assert.equal(logPassivePetMultiplier(logPetBonus(p,4),4),0);
+ assert.ok(Math.abs(logPassivePetMultiplier(logPetBonus(p,5),5)-
+  Math.log10(1+.05*(Math.pow(10,logPetBonus(p,5))-1)))<1e-12);
+ assert.equal(logPassivePetMultiplier(full,100),full);
+ assert.ok(Number.isFinite(logPassivePetMultiplier(30000,60)));
+});
+test("passives from all Legacy/Exotic pets contribute without selection",()=>{
+ const profile=parseAccountProfile({petLevels:{Pet1:100,Pet7:125,Pet12:100,Pet20:100,Pet22:90}});
+ const p=petPassiveEvidence(profile);
+ assert.equal(p.imported,5);assert.equal(p.scored,5);
+ assert.equal(p.entries.find(x=>x.id==="Pet20").tier,"Exotic");
+ assert.ok(Math.abs(p.byType.AllDamage-logPetBonus(PETS.Pet1,100)-
+  logPetBonus(PETS.Pet7,125))<1e-12);
+ const score=fixedAccountScore(extractFixedAccountPower(profile),
+  {damage:"Pet",gold:"Fairy",goldWeight:.7});
+ assert.ok(score.goldLog10>=p.byType.GoldAll+p.byType.FairyGold);
+ assert.ok(score.damageLog10>=p.byType.AllDamage);
+});
+test("Legacy and Exotic artifacts amplify only matching pet families",()=>{
+ const profile=parseAccountProfile({petLevels:{Pet1:100,Pet12:100,Pet20:100,Pet22:100},
+  artifacts:{
+   Artifact52:{level:100,e:1},Artifact53:{level:100,e:1},
+   Artifact96:{level:100,e:1},Artifact97:{level:100,e:1}}
+ });
+ const amp=petArtifactAmplifiers(profile);
+ assert.ok(amp.byTier.Legacy.damage>1);
+ assert.ok(amp.byTier.Legacy.gold>1);
+ assert.ok(amp.byTier.Exotic.damage>1);
+ assert.ok(amp.byTier.Exotic.gold>1);
+ const p=petPassiveEvidence(profile);
+ assert.equal(p.entries.find(x=>x.id==="Pet1").amplifierLog10,amp.byTier.Legacy.damage);
+ assert.equal(p.entries.find(x=>x.id==="Pet12").amplifierLog10,amp.byTier.Legacy.gold);
+ assert.equal(p.entries.find(x=>x.id==="Pet20").amplifierLog10,amp.byTier.Exotic.gold);
+ assert.equal(p.entries.find(x=>x.id==="Pet22").amplifierLog10,amp.byTier.Exotic.damage);
+ assert.equal(petTier(PETS.Pet20),"Exotic");
+ assert.equal(petTier(TRANSCENDENT_PETS.SeasonalPet2),"Transcendent");
 });
