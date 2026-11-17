@@ -1,14 +1,15 @@
 import { skillInfo } from "../vendor/skills.js";
 import { baseline } from "../vendor/qol-baseline.js";
 import { optimizeExact } from "./solver-core.js";
-import { scoreAtLevel } from "./effects.js?v=20261117-skill-sp-sets";
+import { scoreAtLevel } from "./effects.js?v=20261117-contract-coupling";
 import { parseAccountProfile } from "./account-profile.js";
-import {extractFixedAccountPower,fixedAccountScore} from "./account-power.js?v=20261117-skill-sp-sets";
-import {accountDependencyGraph} from "./account-dependencies.js?v=20261117-skill-sp-sets";
+import {extractFixedAccountPower,fixedAccountScore} from "./account-power.js?v=20261117-contract-coupling";
+import {accountDependencyGraph} from "./account-dependencies.js?v=20261117-contract-coupling";
 import {resolveSpellCaps} from "./spell-caps.js";
 import {extractTimedSetPower} from "./account-set-bonuses.js";
 import {resolvePermanentSetPower} from "./account-permanent-sets.js";
 import {skillTreeSetAllocationEvidence} from "./skill-tree-set-effects.js";
+import {resolveContractScenario} from "./contract-scenarios.js";
 
 export const GAME_VERSION = "8.4.0";
 export const DATASET_REVISION = "2026-09-18"; // SkillTreeInfo2.0.csv comparison
@@ -208,9 +209,10 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
    skillTreeSetPower.applied;
   const remainingUnmodeledEffects=Math.max(0,
    dependencyReport.unmodeledEffects-newlyResolvedSetEffects);
+  const contractScenario=resolveContractScenario(result.levels,scoreContext);
   const spellCaps=resolveSpellCaps(settings,result.levels);
   return {...result,prior:current,spent:points,remaining:SP-points,changes,branchTotals,protectedSkills,
-    spellCaps,
+    spellCaps,contractScenario,
     accountIntegration:{
       skillTreeSetPower:{
        applied:skillTreeSetPower.applied,recognized:skillTreeSetPower.recognized,

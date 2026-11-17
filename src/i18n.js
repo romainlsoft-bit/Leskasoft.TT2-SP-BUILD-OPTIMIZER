@@ -5,6 +5,9 @@ export const SUPPORTED_LANGUAGES = ["en","fr","uk","ru"];
 export const NATIVE_LANGUAGE_NAMES = {en:"English",fr:"Français",uk:"Українська",ru:"Русский"};
 export const translations = {
 fr:{
+ "Conditional contracts (maximum ramp): damage {damage}, gold {gold}, initial mana drain {drain}/s. Mana sustainability and actual uptime are not verified.":"Contrats conditionnels (puissance maximale) : dégâts {damage}, or {gold}, consommation initiale de mana {drain}/s. La durée et la régénération effective du mana ne sont pas vérifiées.",
+ "Terrifying Pact reduces titans per stage during active contracts; this speed effect is not converted to damage.":"Terrifying Pact réduit le nombre de titans par stage quand un contrat est actif ; ce gain de vitesse n'est pas converti en dégâts.",
+ "Contracts are present, but their full bonuses are excluded because maximum active ramp is not assumed.":"Des contrats sont présents, mais leurs bonus maximaux sont exclus car leur activation à pleine puissance n'est pas présumée.",
  "Skill-tree mythic sets: {count} active bonuses contribute {damage} log10 All Damage from the actual SP allocation. This contribution is already inside the skill score.":"Sets mythiques d'arbres de compétences : {count} bonus actifs contribuent à {damage} log10 dégâts globaux selon les SP réellement répartis. Ce bonus est déjà inclus dans le score des compétences.",
  "No unlocked-set collection was found in the export; skill-tree set bonuses cannot be verified.":"L'export ne contient pas la collection des sets débloqués : les bonus des sets liés aux arbres de compétences ne sont pas vérifiables.",
  "{count} effects per owned equipment set were scored from the completed-set collection ({mythic} Mythic, {legendary} Legendary and {unique} Unique sets).":"{count} effets par set possédé calculés à partir des sets complets ({mythic} mythiques, {legendary} légendaires et {unique} Unique).",
@@ -232,6 +235,9 @@ fr:{
  "Free Tap Titans 2 skill tree optimizer for TT2 8.4. Optimize skill points for Clan Ship, Pet, Shadow Clone, Heavenly Strike, Dagger or Gold Gun. Import game data or configure manually.":"Optimiseur gratuit de compétences Tap Titans 2 version 8.4. Import des données ou configuration manuelle pour tous les types de builds."
 },
 uk:{
+ "Conditional contracts (maximum ramp): damage {damage}, gold {gold}, initial mana drain {drain}/s. Mana sustainability and actual uptime are not verified.":"Умовні контракти (максимальна сила): шкода {damage}, золото {gold}, початкова витрата мани {drain}/с. Тривалість і достатність мани не перевірені.",
+ "Terrifying Pact reduces titans per stage during active contracts; this speed effect is not converted to damage.":"Terrifying Pact зменшує кількість титанів на етапі під час дії контрактів; цей ефект швидкості не перетворюється на шкоду.",
+ "Contracts are present, but their full bonuses are excluded because maximum active ramp is not assumed.":"Контракти присутні, але їхні максимальні бонуси не враховано, оскільки повна активація не припускається.",
  "Skill-tree mythic sets: {count} active bonuses contribute {damage} log10 All Damage from the actual SP allocation. This contribution is already inside the skill score.":"Міфічні набори дерев навичок: {count} активних бонусів додають {damage} log10 загальної шкоди відповідно до розподілу SP. Це вже враховано в оцінці навичок.",
  "No unlocked-set collection was found in the export; skill-tree set bonuses cannot be verified.":"В експорті немає колекції відкритих наборів: бонуси наборів для дерев навичок неможливо перевірити.",
  "{count} effects per owned equipment set were scored from the completed-set collection ({mythic} Mythic, {legendary} Legendary and {unique} Unique sets).":"Обчислено {count} ефектів за кожен зібраний набір ({mythic} міфічних, {legendary} легендарних і {unique} унікальних наборів).",
@@ -409,6 +415,9 @@ uk:{
  "Free Tap Titans 2 skill tree optimizer for TT2 8.4. Optimize skill points for Clan Ship, Pet, Shadow Clone, Heavenly Strike, Dagger or Gold Gun. Import game data or configure manually.":"Безкоштовний оптимізатор дерева навичок Tap Titans 2 версії 8.4. Імпорт даних або ручне налаштування для всіх збірок."
 },
 ru:{
+ "Conditional contracts (maximum ramp): damage {damage}, gold {gold}, initial mana drain {drain}/s. Mana sustainability and actual uptime are not verified.":"Условные контракты (максимальная сила): урон {damage}, золото {gold}, начальный расход маны {drain}/с. Длительность и достаточность маны не проверены.",
+ "Terrifying Pact reduces titans per stage during active contracts; this speed effect is not converted to damage.":"Terrifying Pact уменьшает число титанов на этапе при активных контрактах; этот эффект скорости не переводится в урон.",
+ "Contracts are present, but their full bonuses are excluded because maximum active ramp is not assumed.":"Контракты присутствуют, но их максимальные бонусы не учтены, поскольку полная активация не предполагается.",
  "Skill-tree mythic sets: {count} active bonuses contribute {damage} log10 All Damage from the actual SP allocation. This contribution is already inside the skill score.":"Мифические наборы деревьев навыков: {count} активных бонусов дают {damage} log10 общего урона в зависимости от распределения SP. Этот бонус уже включён в оценку навыков.",
  "No unlocked-set collection was found in the export; skill-tree set bonuses cannot be verified.":"В экспорте нет коллекции открытых комплектов: бонусы комплектов деревьев навыков невозможно проверить.",
  "{count} effects per owned equipment set were scored from the completed-set collection ({mythic} Mythic, {legendary} Legendary and {unique} Unique sets).":"Рассчитано {count} эффектов за каждый собранный комплект ({mythic} мифических, {legendary} легендарных и {unique} уникальных комплектов).",

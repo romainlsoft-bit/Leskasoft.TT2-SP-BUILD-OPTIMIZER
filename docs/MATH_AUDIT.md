@@ -326,3 +326,55 @@ Terrifying Pact's conditional activation/mana, per-slot pet boosts,
 supported nonmultiplicative skill-class boosters, spell uptime,
 Hero damage source reductions, and HP/stage calibration. The release
 gate remains closed.
+
+
+## 17 November 2026 — source-backed conditional contracts and Pact
+
+The previous numerical model scored three independent contract talents using
+an implicit "both contracts at maximum" user toggle. This could be mistaken
+for always-active account power. The game source tables and TT2 Compendium
+confirm that the effects are **not passive**:
+
+- `ForbiddenContract` A = maximum damage while the contract is active.
+  Its B is the initial mana cost per second.
+- `RoyalContract` A = maximum gold while the contract is active.
+  Its B is the initial mana cost per second.
+- `TerrifyingPact` A = extra gold *while Forbidden Contract is active*;
+  B = extra damage *while Royal Contract is active*;
+  C = titan-count reduction during either contract. That C is not damage.
+- No single export proves that the user has mana to sustain the contracts
+  or that the maximum ramp is reached during each push-limit boss.
+
+`src/contract-scenarios.js` provides the formula for each skill, conditional
+on **explicitly assumed full contract activation** and guaranteed nonzero
+contract minima. The optimizer continues to force minimum level 1 of both
+contracts in that opt-in mode, preventing a Pact score without those skills.
+If the user did not opt in, **all three maximum bonuses contribute zero to
+the proxy**, while the established protection for previously invested,
+unmodeled skills remains in effect. Levels and mana-rate source observations
+are kept in the diagnostic record.
+
+After optimization, `result.contractScenario` reports separate conditional
+maximum damage/gold log10 contributions, the two source initial drain
+coefficients, Titan reduction as a non-damage QoL effect, whether maxima
+were assumed, and explicit `manaSustainable:false`,
+`uptimeVerified:false` and `predictsStageGain:false`. It does **not**
+add these terms a second time to the fixed-account ledger. The current
+export does not justify computing sustained uptime, future drain growth
+or a stage estimate.
+
+Data provenance:
+- Versioned `vendor/skills.js` bonus type A/B/C values for the three
+  skills and `vendor/reductions.js` build compatibility.
+- https://www.tt2-compendium.com/en/wiki/skills/forbiddencontract
+- https://www.tt2-compendium.com/en/wiki/skills/royalcontract
+- https://www.tt2-compendium.com/en/wiki/skills/terrifyingpact
+- https://www.reddit.com/r/TapTitans2/comments/10yuoht/
+  (Game Hive v5.26, introduced Terrifying Pact).
+- `tests/contract-scenarios.test.js`: maximum-only gating, Pact A/B
+  dependency separation, no free mana claims, source B initial drains,
+  terminal snapshot, score consistency across 18 builds, invalid inputs
+  and opt-in versus protected-current allocation.
+- Focused V8 verification: **25/25** checks on actual versioned source
+  data and all 18 Damage/Gold combinations. Full Node/browser tests and
+  in-game mana/stage validation are still open release gates.

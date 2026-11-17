@@ -349,3 +349,34 @@ Verification:
   benchmark on CI. No direct game parity proof yet.
 
 **PR #18 remains DRAFT; all release gates remain open.**
+
+
+## Batch E — contract dependency and mana disclosure
+
+The numerical model now shares one source-backed contract implementation:
+`src/contract-scenarios.js` for Forbidden Contract, Royal Contract and
+Terrifying Pact. Their source values are *maximum conditional* buffs, not
+passive account power. The solver scores these only when full activation
+is opted into, and insists that both prerequisite contracts exist. Pact's
+gold bonus is conditional on Forbidden Contract and its damage bonus on
+Royal Contract; the two must never be mixed or unconditionally added.
+
+After optimization, `result.contractScenario` explicitly exposes the
+observed skill levels, maximum damage/gold in logarithmic form, initial
+mana drain coefficients, Titan reduction (not folded into damage),
+and the impossibility of verifying sustained mana/ramp uptime from the
+current export. The UI warning is localized in all four languages.
+`calculateModeledScenario` now marks the unverified mana uptime in its
+coverage gaps.
+
+Test suite:
+- `tests/contract-scenarios.test.js`: actual 8.4 bonus-table coefficients,
+  full and partial pact dependencies, max-gated source score for all 18
+  Damage × Gold combinations, initial mana consumption but no guessed
+  uptime, and actual optimizer opt-in/opt-out integration.
+- Independent 25/25 V8 numerical checks on the real 8.4 skill/bonus tables.
+- Outstanding: complete Node tests and 22k+ SP/regression benchmarks,
+  automatic extraction of unambiguous mana stats, sustained-uptime
+  modeling when source-backed, and in-game 2,000-stage loss guard.
+
+No stage gain is predicted; do not merge or deploy PR #18 yet.
