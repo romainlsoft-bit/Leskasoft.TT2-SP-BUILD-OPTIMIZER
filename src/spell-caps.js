@@ -14,6 +14,7 @@ export function spellCapBonus(skillId,level){
  const bonus=Number(item["B"+n]);
  return Number.isInteger(bonus)&&bonus>=0?bonus:0;
 }
+export const spellTableIndex=level=>Number.isSafeInteger(level)&&level>=1?level-1:null;
 export function resolveSpellCaps(settings,levels={}){
  const stage=Number(settings?.maxStage);
  const assumeAllActive=settings?.assumeMaxSpells===true||(Number.isFinite(stage)&&stage>=15000);
@@ -23,9 +24,10 @@ export function resolveSpellCaps(settings,levels={}){
   const skill=SKILL_BY_SPELL[id],extra=skill?spellCapBonus(skill,levels[skill]||0):0;
   const cap=data.baseCap+(fallenAngel?5:0)+extra;
   const available=data.required==="None"||Number(levels[data.required]||0)>0;
-  const missing=available&&assumeAllActive?Math.max(0,cap-data.maxTabulated):0;
+  // A0 is spell LEVEL ONE, A39 is LEVEL FORTY. maxTabulated is an index.
+  const missing=available&&assumeAllActive?Math.max(0,cap-(data.maxTabulated+1)):0;
   if(missing>0)unmodeled++;
-  spells[id]={cap,tabulatedLevel:Math.min(cap,data.maxTabulated),unmodeledLevels:missing,
+  spells[id]={cap,tabulatedLevel:Math.min(cap,data.maxTabulated+1),unmodeledLevels:missing,
    assumedActive:available&&assumeAllActive,available,bonusFromSP:extra,
    bonusFromSet:fallenAngel?5:0};
  }

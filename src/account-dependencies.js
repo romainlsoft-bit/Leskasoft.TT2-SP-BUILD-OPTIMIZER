@@ -6,6 +6,7 @@
 import {ARTIFACT_CATALOG,EQUIPMENT_SET_CATALOG,SEASON_ARTIFACT_CATALOG} from "../vendor/account-catalog.js";
 import {resolveSetCompletionDates,resolveTranscendenceAge,heroWeaponEvidence} from "./account-temporal.js";
 import {clanScrollEvidence} from "./account-scrolls.js";
+import {extractTimedSetPower} from "./account-set-bonuses.js";
 
 const object=x=>x&&typeof x==="object";
 const byName=(catalog,value)=>{
@@ -40,6 +41,8 @@ const NODES=Object.freeze([
 export function accountDependencyGraph(profile){
  const sets=[],artifacts=[],unknown=[];
  const setDates=resolveSetCompletionDates(profile);
+ const timedSetPower=extractTimedSetPower(profile);
+ const timedByKey=new Map(timedSetPower.entries.map(x=>[x.setId+"|"+x.bonusType,x]));
  const transcendence=resolveTranscendenceAge(profile);
  const heroWeapons=heroWeaponEvidence(profile);
  const clanScrolls=clanScrollEvidence(profile);
@@ -58,9 +61,7 @@ export function accountDependencyGraph(profile){
      rawAmount:effect.amount,rawInc:effect.inc,rawExpo:effect.expo,
      perDay,maxValue:effect.maxValue??null,
      numericalStatus:perDay
-      ?setDates[id]?.days===null||setDates[id]?.days===undefined
-       ?"ignored-missing-set-completion-date"
-       :"ignored-per-day-formula-unverified"
+      ?timedByKey.get(data.id+"|"+effect.type)?.status??"ignored-unmapped-time-effect"
       :"requires-verified-scaling"};
    })});
  }
@@ -90,7 +91,8 @@ export function accountDependencyGraph(profile){
   ...artifacts.map(a=>a.dependsOn)])];
  return {nodes:NODES,order:NODES.map(n=>n.id),sets,artifacts,groups,unknown,
   uniquePermanentOwnership:[...uniqueOwned],heroWeapons,clanScrolls,transcendence,
-  ignoredTimedEffects,
+  ignoredTimedEffects:timedSetPower.omitted,
+  timedSetPower:{calculated:timedSetPower.calculated,applied:timedSetPower.applied,omitted:timedSetPower.omitted},
   ready:false,unmodeledEffects:
    sets.reduce((sum,x)=>sum+x.effects.length,0)+artifacts.length,
   warning:"Source catalog and dependency order are known; numerical effect formulas and stacking are not fully validated."};

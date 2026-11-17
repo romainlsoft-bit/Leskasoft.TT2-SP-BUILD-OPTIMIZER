@@ -13,7 +13,7 @@
 
 ## Time-dependent effects, owned Unique items and Hero Weapons
 
-- **30 set effects** in EquipmentSetInfo.csv are marked PerDay=TRUE. Their original PerDay and MaxValue metadata are now retained. These effects remain out of numerical scoring until verified date AND formula are available.
+- **30 set effects** in EquipmentSetInfo.csv are marked PerDay=TRUE. Their Amount/Inc/Expo/MaxValue metadata are retained. Source-derived PerDay formulas (min(Amount^completedDays, MaxValue)) are now evaluated only with a verified export-based date; directly applicable damage/gold types enter the proxy, while equipment/skill-dependent types remain separately flagged. In-game formula parity still requires validation.
 - **Date of set completion** = acquisition of the fifth *distinct* slot (weapon, helmet, armor, aura, slash), never the beginning of the current Transcendence. Use the explicit completion date or five equipment acquisition dates from the export if and only if supplied. If absent, ignore the time-dependent effect. No player-entered date, no guessed date, and no replacement with season date.
 - **Transcendence season age** is a separate parameter. Read the export start date, or match exported season number to a versioned official calendar. Season 13 start 2026-08-12 from Game Hive DevLog #231.
 - **Hero weapons**: preserve actual individual levels; full set and hero damage calculations remain unscored until the current complete roster, stacking and all relevant bonuses are independently checked.
@@ -24,7 +24,7 @@
 
 - ClanScrollInfo.csv (18 types) is imported without inferring individual levels from aggregate stats. Raw non-additive scroll multipliers are in log10. Additive scrolls, ScrollTutor, ScrollMaster and completed-set amplification remain unmodeled.
 - Active spells have base cap 30 (not 29). Fallen Angel gives +5 and four tier-five skills each give up to +5 to their own spell families. The input assumption is spells active and at max when Max Stage >= 15,000.
-- The available source is A0..A39; capped at 40, the value for A40 must not be extrapolated. Full spell modeling needs a verified level 40 value.
+- **Corrected off-by-one:** A0 is level 1, A29 is level 30, A34 is level 35, and A39 is level 40. A40 would correspond to level 41. The cap-40 table is complete for 8.4.
 - Perks are intentionally out of scope.
 
 ## Must be completed **before** public release
@@ -39,7 +39,8 @@
 - [ ] Validate all Hero Weapon collection/level multipliers, Unique equipment permanent effects, and time-based set/monument formulas against complete TT2 exports; uncomputable effects remain omitted.
 - [ ] Run full Node test suite and browser tests for import, calculators, language changes and small-screen layout.
 - [ ] Run benchmark on 22,600+ SP with account context, and confirm cache invalidation avoids full recomputation for unchanged branches.
-- [ ] Verify level-40 spell values, cap-dependent skill interactions and scroll-set/amplification formulas against complete exports.
+- [ ] Verify cap-dependent spell damage interactions, full-spell activation assumptions, and scroll-set/amplification formulas against complete exports.
+- [ ] Validate PerDay floor-day semantics and formula against real game screenshots; max values match the source table, not a player result.
 - [ ] Final code review (source formulas / no hidden assumptions / PII / numerical precision) and manual approval.
 
 ## Mathematical rule

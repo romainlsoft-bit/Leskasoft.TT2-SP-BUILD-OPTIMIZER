@@ -6,6 +6,7 @@
 import { skillInfo } from "../vendor/skills.js";
 import { reductions } from "../vendor/reductions.js";
 import { spellInfo, spell_reductions } from "../vendor/spells.js";
+import {spellTableIndex} from "./spell-caps.js";
 import { clone } from "../vendor/clone.js";
 import { petCombatTechniquesIncrement } from "./pet-scenarios.js?v=20261117-transcendent";
 
@@ -111,11 +112,11 @@ export function scoreAtLevel(id,level,settings){
       const additional=spells.reduce((sum,spellId)=>{
         const spell=spellInfo[spellId];
         const weight=num(spell_reductions[spellId]?.[settings.damage])+num(spell_reductions[spellId]?.[settings.gold])*goldWeight;
-        // A30 = spell level 30. Fallen Angel raises this to 35.
-        // Values above A39 remain unknown and must not be extrapolated.
+        // A0 = spell level 1, A29 = level 30, A39 = level 40.
+        // Never infer an extra A40 value from the source table.
         const base=settings.sets?.tFA?35:30;
         const max=Object.keys(spell).filter(k=>/^A\d+$/.test(k)).map(k=>num(k.slice(1))).reduce((a,b)=>Math.max(a,b),base);
-        const get=n=>lg(spell["A"+Math.min(max,base+B(n))]);
+        const get=n=>lg(spell["A"+Math.min(max,spellTableIndex(base+B(n)))]);
         return sum+weight*lr(get);
       },0);
       return r*lr(logA)+additional;
