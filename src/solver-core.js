@@ -239,7 +239,7 @@ export function gridConvolutionExact(a,b,targetBudget) {
   return {values,split};
 }
 
-export function optimizeExact(skills, budget, scoreFor, _retiredMode="power", onProgress=()=>{}, {gridThreshold=12000,gridTarget=2500}={}) {
+export function optimizeExact(skills, budget, scoreFor, _retiredMode="power", onProgress=()=>{}, {gridThreshold=12000,gridTarget=2500,branchCache=null}={}) {
   if (!Number.isInteger(budget)||budget<0||budget>50000) throw new Error("SP budget must be from 0 to 50,000.");
   const groups=[];
   for(const skill of skills){
@@ -251,7 +251,24 @@ export function optimizeExact(skills, budget, scoreFor, _retiredMode="power", on
   for(let i=0;i<groups.length;i++){
     const group=groups[i];
     const maxBranchSpend=group.skills.reduce((sum,skill)=>sum+skill.costs[skill.excluded?skill.min:skill.max],0);
-    branchSolutions.push(branchDynamicProgram(group.skills,Math.min(budget,maxBranchSpend),scoreFor));
+    const budgetForBranch=Math.min(budget,maxBranchSpend);
+    let solution=null;
+    if(branchCache instanceof Map){
+      // A cache entry is reusable iff the complete branch objective and
+      // constraints are identical. A different pet affecting Combat
+      // Techniques invalidates Summoner only; unrelated branches are reused.
+      const signature=JSON.stringify([budgetForBranch,group.skills.map(skill=>[
+        skill.id,skill.min,skill.max,skill.excluded,skill.spReq,skill.parent,
+        skill.costs,Array.from({length:skill.max+1},(_,lvl)=>scoreFor(skill,lvl))
+      ])]);
+      const saved=branchCache.get(group.branch);
+      if(saved?.signature===signature)solution=saved.solution;
+      else{
+        solution=branchDynamicProgram(group.skills,budgetForBranch,scoreFor);
+        branchCache.set(group.branch,{signature,solution});
+      }
+    }else solution=branchDynamicProgram(group.skills,budgetForBranch,scoreFor);
+    branchSolutions.push(solution);
     onProgress({phase:"skills",completed:i+1,total:groups.length});
   }
   // Exact cross-branch convolution has quadratic worst-case cost. Above

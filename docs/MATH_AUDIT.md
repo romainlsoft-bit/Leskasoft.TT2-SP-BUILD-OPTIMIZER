@@ -93,3 +93,114 @@ Mechanics: https://www.tt2-compendium.com/en/wiki/skills/terrifyingpact ; https:
 The legacy “Maximize score per newly spent SP” option selected the maximum average score per SP, **not** the strongest build under the player's total SP budget. It reproduced a 22,642-SP Pet/Fairy recommendation using only **10 SP** with QoL disabled. This is a fundamental mismatch of objectives, not an issue parsing the entered budget.
 
 The ratio option has been removed from all UI locales and ignored in both the engine and the backward-compatible solver signature. Previously persisted mode settings and shared links are normalized to full-budget power; versioned UI/worker entry points prevent cached old JS from silently reactivating the retired option. Tests cover legacy settings and a high-SP Pet/Fairy benchmark. At-most-budget optimization can still leave a small remainder due to cost granularity; it is not an instruction to buy low-value skills. This does not yet validate actual stage outcomes (#9).
+
+
+## 17 November 2026 — full-account export extraction (first implementation)
+
+Settings → Services → Export may contain artifacts and enchantments,
+Mystic Gemstones and Mystic Research, Titan Cards and Forbidden Research,
+pets, hero weapons, passive skills, monuments, owned equipment sets and
+potentially equipped gear. Some fields vary by TT2 version and can be absent.
+A Skill Tree-only \`Version/Skills\` export contains none of this context.
+
+\`src/account-profile.js\` imports a **bounded, allowlisted** snapshot:
+only recognized game mechanic collections and numeric account statistics are
+retained, not the player's raw JSON, account ID, name, email or clan data.
+Levels of artifacts, Titan Souls and other large values are preserved as
+scientific-notation strings to avoid overflow. The UI reports which sections
+are **actually found** in the export, in EN/FR/UK/RU. We explicitly separate
+owned sets from equipment currently worn. Missing data is not interpreted
+as a zero-level upgrade. Only the normalized profile is stored locally.
+It is never included in shareable build links.
+
+### Mathematical scope and what remains open in issue #9
+
+- The optimizer already applies supported equipment-set effects for FB,
+  FF, tFA etc., including sets imported through account export.
+- Imported relics, artifacts, Titan Souls, Necrobear research, Gemstones
+  and Mystic Research **are not yet used as additional score coefficients**.
+- Many permanent global multipliers have the same effect on every candidate
+  Pet/Fairy allocation, so they cancel in comparisons and do not change the
+  SP optimum. Other effects alter marginal value through unlocked hero
+  skills, damage/gold source interactions, spell uptime and mana conditions.
+- No unsourced multiplier or arbitrary tree cap has been introduced.
+  Test actual bonus semantics and reproduce the observed in-game stage
+  differences before using these sources to alter SP recommendations.
+- Collection field aliases and record shapes must be confirmed against
+  a genuine, sanitized TT2 8.4 full-account export; the tests cover
+  representative schemas, not all future game versions.
+
+
+## 17 November 2026 — account-aware pet comparison, equipment shortlist, cached solver
+
+### Fixed account baseline versus selectable variables
+
+Imported **gemstones, Mystic Research, Titan Souls spent, Titan Cards,
+Forbidden Research, artifacts, relics and monuments** are fixed inputs
+for each session. No optimizer candidate reallocates them or treats the
+Titan Soul balance itself as damage. The parser reads their available
+values for future independently validated mechanics. These sources are
+currently *not* all translated into damage/gold coefficients. Seasonal
+monument validity and exact 8.4 export field names require checking
+against a real sanitized full-account export.
+
+Variables in the first implementation: SP allocations, equipped
+**Damage pet** and **Gold/Support pet** (separate slots), and
+interchangeable equipment choices. Equipment inventory and currently
+equipped pieces may be absent from TT2's account export. In that case
+the UI does not invent equipment or infer a currently worn piece from
+the list of owned sets.
+
+### Pet ranking and resolution order
+
+- \`vendor/pets.js\` is derived from \`PetInfo.csv\` (rawrzcookie/TT2_CSV),
+  including the 30 pets' individual primary bonus categories and
+  Damage versus Support slots.
+- Resolve imported pet levels first; then already-owned sets (such as
+  Samurai), and \`CombatTechniques\` Active Pet Level bonus; then
+  effective levels, active/passive bonuses and weighted score. The
+  pet-level snapshot is memoized by import profile identity.
+- Rank **three damage pets and three gold pets independently**, never
+  all nine pairs. For each candidate, re-optimize using a shared
+  per-branch DP cache. Unchanged branch score arrays and prerequisites
+  use their original solved frontier instead of a new exhaustive DP.
+- This is a **Pet bonus proxy**. It currently recognizes a limited
+  set of damage/gold bonus types; unavailable damage conversion
+  factors, equipment-pet interactions and complex upgrades remain
+  unscored. Do not declare these rankings true stage maxima.
+
+### Equipment and helmets
+
+\`src/equipment-scenarios.js\` reads item inventory *only when present*,
+shortlists two options for Sword, Helmet, Armor, Aura, Slash, and scores
+only recognized, numeric first-effect unconditional multipliers.
+Unknown item bonuses are displayed with an unscored indicator.
+For Dagger/Heavenly Strike/Gold Gun/Shadow Clone, the helmet shortlist
+accepts Gunblade; for the other builds it recognizes Elder Snow Cap
+or Ranged / Spell / Melee hero helmet rotation. There is **no assumption**
+that multiple hero helmets can be worn at the same time. This choice
+comes from the player's strategy specification and must be independently
+checked against 8.4 game mechanics and real inventories.
+
+The current solver **does not yet evaluate higher-order gear→gear or
+gear→gem→pet dependencies** and does not pretend to. Those effects
+require source-backed rules and a dependency graph:
+fixed account -> level effects -> effective equipped item/pet levels ->
+equipment/pet bonuses -> skill score. An unverified dependency is not
+assigned an arbitrary multiplier.
+
+### Cross-build auto selection
+
+Automatic damage source and gold source selection is **not enabled**.
+Current additive damage/gold scoring proxies lack validated scaling
+between different damage sources, so comparing their raw totals would
+produce unreliable "best" choices. This remains part of issue #9
+and must be calibrated with actual account data and in-game outcomes.
+
+Full-account exports up to 8 MB are accepted, and the original raw
+JSON is removed from the manual paste field after successful import.
+The normalized profile is stored locally but never appended to a
+shareable link.
+
+Source reference:
+https://github.com/rawrzcookie/TT2_CSV/blob/main/csv/PetInfo.csv

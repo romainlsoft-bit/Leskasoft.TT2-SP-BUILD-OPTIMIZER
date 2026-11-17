@@ -7,6 +7,7 @@ import { skillInfo } from "../vendor/skills.js";
 import { reductions } from "../vendor/reductions.js";
 import { spellInfo, spell_reductions } from "../vendor/spells.js";
 import { clone } from "../vendor/clone.js";
+import { petCombatTechniquesIncrement } from "./pet-scenarios.js";
 
 const num=(v,fallback=0)=>{ const x=Number(v); return Number.isFinite(x)?x:fallback; };
 const lg=v=>Math.log10(num(v)>0?num(v):1);
@@ -54,6 +55,10 @@ export function scoreAtLevel(id,level,settings){
     case "ClanShipVoltage":
     case "CriticalHit":
       return r*lr(n=>logA(n)+logB(n));
+    case "CombatTechniques":
+      // Combat Techniques also raises active pet level; this conditional
+      // benefit depends on which pet is used at boss / gold-collection time.
+      return r*lr(logA)+petCombatTechniquesIncrement(settings,level);
     case "HelperBoost":
       return r*lr(n=>Math.log10(1+A(n)));
     case "HelperDmgQTE": {

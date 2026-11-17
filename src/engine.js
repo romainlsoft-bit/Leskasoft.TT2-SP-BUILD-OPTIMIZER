@@ -1,7 +1,8 @@
 import { skillInfo } from "../vendor/skills.js";
 import { baseline } from "../vendor/qol-baseline.js";
 import { optimizeExact } from "./solver-core.js";
-import { scoreAtLevel } from "./effects.js";
+import { scoreAtLevel } from "./effects.js?v=20261117-account-profile";
+import { parseAccountProfile } from "./account-profile.js";
 
 export const GAME_VERSION = "8.4.0";
 export const DATASET_REVISION = "2026-09-18"; // SkillTreeInfo2.0.csv comparison
@@ -43,14 +44,15 @@ function levelsFrom(input={}){
 export function parseExport(source){
   let data;
   if(typeof source==="string"){
-    if(source.length>2_000_000)throw new Error("Export is too large (max 2 MB).");
+    if(source.length>8_000_000)throw new Error("Export is too large (max 8 MB).");
     try{data=JSON.parse(source)}catch{throw new Error("The pasted text isn't valid JSON.");}
   }else data=source;
   if(!data||typeof data!=="object"||Array.isArray(data))throw new Error("Expected a TT2 JSON export.");
   const tree=data.skillTree||data.Skills||data.skills;
   if(!tree||typeof tree!=="object"||Array.isArray(tree))throw new Error("No skill tree was found in this export.");
+  const profile=parseAccountProfile(data);
   const stats=data.playerStats||data.stats||{};
-  const sets=Array.isArray(data.equipmentSets)?new Set(data.equipmentSets):new Set();
+  const sets=new Set(profile.ownedSetIds);
   const skillPoints=stats["Skill Points Owned"]??stats.SkillPoints??data.SkillPoints;
   return {
     levels:levelsFrom(tree),
@@ -60,7 +62,8 @@ export function parseExport(source){
     sets:Object.fromEntries(Object.entries(EXPORTED_SETS).map(([gameId,key])=>[key,sets.has(gameId)||Boolean(stats[key])])),
     damage:DAMAGE_TYPES.includes(stats.typeDamage)?stats.typeDamage:null,
     gold:GOLD_TYPES.includes(stats.typeGold)?stats.typeGold:null,
-    importedVersion:data.Version||stats.buildVersion||null
+    importedVersion:data.Version||stats.buildVersion||null,
+    profile
   };
 }
 export function exportBuild(levels,version=GAME_VERSION){
@@ -72,7 +75,7 @@ export function qosFloors(damage,gold,SP){
   const keys=Object.keys(presets).map(Number).filter(Number.isFinite).filter(value=>value<=SP).sort((a,b)=>b-a);
   return keys.length?{...presets[String(keys[0])]}:{};
 }
-export function optimizeBuild(settings,onProgress){
+export function optimizeBuild(settings,onProgress,branchCache=null){
   const SP=Number(settings.skillPoints), goldWeight=Number(settings.goldWeight);
   if(!Number.isSafeInteger(SP)||SP<0||SP>50000)throw new Error("Enter 0–50,000 Skill Points.");
   if(!DAMAGE_TYPES.includes(settings.damage))throw new Error("Select a damage source.");
@@ -124,7 +127,7 @@ export function optimizeBuild(settings,onProgress){
     }
     scoreCache.set(id,scores);
   }
-  const result=optimizeExact(skills,SP,(skill,level)=>scoreCache.get(skill.id)[level],"power",onProgress);
+  const result=optimizeExact(skills,SP,(skill,level)=>scoreCache.get(skill.id)[level],"power",onProgress,{branchCache});
   const points=spentPoints(result.levels);
   if(points>SP)throw new Error("Internal validation failed: allocation exceeds SP budget.");
   for(const item of skills){
