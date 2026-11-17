@@ -19,6 +19,7 @@ import {ARTIFACT_CATALOG} from "../vendor/account-catalog.js";
 import {calculatePermanentArtifactEffects} from "./account-artifacts.js";
 import {resolveMonumentEvidence} from "./account-monuments.js";
 import {petPassiveEvidence} from "./pet-scenarios.js";
+import {artifactDerivedPower} from "./account-artifact-derived.js";
 import {mergeTitanResearch,resourceResearchEvidence} from "./account-research-resources.js";
 
 const MAX_LEVEL=100000;
@@ -138,6 +139,12 @@ export function extractFixedAccountPower(profile){
   else unsupported.push({system:"monuments",id:row.id,reason:row.formulaStatus});
  }
  for(const row of monuments.unknown)unsupported.push({system:"monuments",...row});
+ const artifactDerived=artifactDerivedPower(profile,artifactEffects);
+ for(const row of artifactDerived.entries)entries.push({
+  system:row.system,id:row.id,bonusType:row.bonusType,
+  log10:row.log10,conservative:row.conservative===true});
+ for(const reason of artifactDerived.unmodeled)
+  unsupported.push({system:"artifactDerived",reason});
  const passivePets=petPassiveEvidence(profile);
  for(const row of passivePets.entries){
   if(row.appliedToScore&&row.log10!==null)entries.push({
@@ -155,6 +162,10 @@ export function extractFixedAccountPower(profile){
   matched:entries.length,unknown:unsupported.length,
   // These only describe *some* systems. They must not be treated as complete.
   complete:false,
+  artifactDerived:{ownedArtifacts:artifactDerived.ownedArtifactCount,
+   included:artifactDerived.entries.length,
+   conservativeDamage:artifactDerived.entries.some(x=>x.system==="artifactDamage"),
+   complete:false},
   petPassives:{imported:passivePets.imported,scored:passivePets.scored,
    unknownAmplifiers:passivePets.unknownAmplifiers.length,complete:false},
   artifactEffects:{recognized:artifactEffects.recognized,computed:artifactEffects.computed,

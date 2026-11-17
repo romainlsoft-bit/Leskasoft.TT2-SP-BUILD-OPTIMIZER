@@ -18,6 +18,7 @@ import {UNIQUE_EQUIPMENT_TO_SET} from "../vendor/unique-equipment.js";
 import {resolveMonumentEvidence} from "../src/account-monuments.js";
 import {computeArtifactEffect,calculatePermanentArtifactEffects,positiveLog10,log10OnePlusPower} from "../src/account-artifacts.js";
 import {rawDamageLog10,additiveDamageEvidence,log10Sum} from "../src/account-damage-pools.js";
+import {artifactDerivedPower} from "../src/account-artifact-derived.js";
 import {RESOURCE_RESEARCH_CATALOG} from "../vendor/account-research-resources.js";
 import {mergeTitanResearch,resourceResearchEvidence} from "../src/account-research-resources.js";
 
@@ -656,4 +657,37 @@ test("White Dwarf receives Magnifier in post-5.19 rules",()=>{
  const r=calculatePermanentArtifactEffects(p,ARTIFACT_CATALOG);
  const x=r.entries.find(x=>x.id==="Artifact85");
  assert.ok(Math.abs(x.log10-x.unamplifiedLog10*5.5)<1e-10);
+});
+
+test("Artifact Damage adds unenchanted components before Heavenly Sword multiplier",()=>{
+ const p=parseAccountProfile({artifacts:{
+  Artifact26:{level:100,e:0},Artifact31:{level:100,e:0},
+  Artifact85:{level:50}}});
+ const r=calculatePermanentArtifactEffects(p,ARTIFACT_CATALOG);
+ const d=artifactDerivedPower(p,r);
+ assert.equal(d.ownedArtifactCount,3);
+ const pool=[["Artifact26",100],["Artifact31",100],["Artifact85",50]]
+  .reduce((sum,[id,level])=>sum+Number(ARTIFACT_CATALOG[id].damageBonus)*level,0);
+ const hs=r.entries.find(x=>x.id==="Artifact26").log10;
+ const ad=d.entries.find(x=>x.system==="artifactDamage");
+ assert.ok(Math.abs(ad.log10-(Math.log10(pool)+hs))<1e-9);
+ assert.equal(ad.conservative,true);
+ assert.equal(d.complete,false);
+});
+test("White Dwarf applies its main effect once per actually owned artifact",()=>{
+ const p=parseAccountProfile({artifacts:{
+  Artifact80:{level:40},Artifact85:{level:50},Artifact31:{level:100,e:0}}});
+ const effects=calculatePermanentArtifactEffects(p,ARTIFACT_CATALOG);
+ const derived=artifactDerivedPower(p,effects);
+ const dwarf=derived.entries.find(x=>x.system==="whiteDwarf");
+ assert.equal(dwarf.ownedArtifacts,3);
+ const main=effects.entries.find(x=>x.id==="Artifact85");
+ assert.ok(Math.abs(dwarf.log10-main.log10*3)<1e-10);
+ assert.ok(dwarf.magnifierApplied);
+});
+test("no artifact collection must never generate made-up Artifact Damage",()=>{
+ const p=parseAccountProfile({petLevels:{Pet1:100}});
+ const derived=artifactDerivedPower(p,calculatePermanentArtifactEffects(p,ARTIFACT_CATALOG));
+ assert.equal(derived.entries.length,0);
+ assert.equal(derived.ownedArtifactCount,null);
 });
