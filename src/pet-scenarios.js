@@ -9,9 +9,9 @@ import {TRANSCENDENT_PETS} from "../vendor/transcendent-pets.js";
 
 export const ALL_PETS=Object.freeze({...PETS,...TRANSCENDENT_PETS});
 import {skillInfo} from "../vendor/skills.js";
-import {petTier,petArtifactAmplifiers,logPassivePetMultiplier} from "./pet-amplifiers.js";
+import {petTier,petArtifactAmplifiers,logPassivePetMultiplier} from "./pet-amplifiers.js?v=20261117-pet-gemstone-chain";
 import {petLevelEvidence} from "./account-pet-levels.js";
-export {petTier,petArtifactAmplifiers,logPassivePetMultiplier} from "./pet-amplifiers.js";
+export {petTier,petArtifactAmplifiers,logPassivePetMultiplier} from "./pet-amplifiers.js?v=20261117-pet-gemstone-chain";
 const finite=v=>{const n=Number(v);return Number.isFinite(n)?n:0;};
 const petLevels=profile=>petLevelEvidence(profile).levels;
 export function availablePets(profile){
@@ -64,6 +64,50 @@ export function petEquipmentCombatTechniquesWeight(settings={}){
   if(slot&&!(passive[slot]>0))weight+=Math.max(0,Number(weights[slot])||0);
  }
  return weight;
+}
+/**
+ * Combat Techniques equipment-pet A effect.
+ *
+ * An unselected Exotic pet gives only its passive share: at level 5,
+ * for example, only 5% of the full bonus is active. Multiplying the full
+ * effect by CT A and then taking the passive share is not the same as
+ * awarding log10(A) unconditionally. The already-active equipped pet gets
+ * the full CT A increment. Active-pet levels (CT B) are scored separately
+ * by petCombatTechniquesIncrement; never apply CT B to all inactive pets.
+ */
+export function petEquipmentCombatTechniquesIncrement(settings={},ctLevel=0){
+ const a=Number(skillInfo.CombatTechniques?.["A"+ctLevel]);
+ if(!(ctLevel>0)||!Number.isFinite(a)||a<=1)return 0;
+ const delta=Math.log10(a),levels=petLevels(settings.accountProfile);
+ const boosts=petArtifactAmplifiers(settings.accountProfile);
+ const rune=Number.isFinite(boosts.equipmentPetEffectLog10)?
+  boosts.equipmentPetEffectLog10:0;
+ const selected=new Set([
+  ALL_PETS[settings.selectedDamagePet]?.equipType==="Damage"?
+   settings.selectedDamagePet:null,
+  ALL_PETS[settings.selectedGoldPet]?.equipType==="Support"?
+   settings.selectedGoldPet:null
+ ]);
+ let score=0;
+ for(const id of ["Pet26","Pet27","Pet28","Pet29","Pet30"]){
+  const pet=ALL_PETS[id],petLevel=levels[id];
+  if(!(petLevel>0))continue;
+  const slot=EQUIPMENT_PET_SLOTS[pet.type];
+  const slotWeight=Math.max(0,Number(settings.equipmentPetSlotWeights?.[slot])||0);
+  if(!(slotWeight>0))continue;
+  if(selected.has(id)){
+   score+=slotWeight*delta;
+  }else{
+   const passiveWeight=Math.max(0,Number(settings.equipmentPetPassiveWeights?.[slot])||0);
+   if(!(passiveWeight>0))continue;
+   const kind=pet.equipType==="Support"?"gold":"damage";
+   const tierBonus=boosts.byTier[petTier(pet)]?.[kind]??0;
+   const full=logPetBonus(pet,petLevel)+tierBonus+rune;
+   score+=passiveWeight*(logPassivePetMultiplier(full+delta,petLevel)-
+    logPassivePetMultiplier(full,petLevel));
+  }
+ }
+ return score;
 }
 export function petWeight(pet,slot,settings){
  if(!pet)return 0;

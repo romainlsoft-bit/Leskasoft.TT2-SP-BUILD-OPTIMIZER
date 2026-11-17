@@ -1,10 +1,10 @@
 import { skillInfo } from "../vendor/skills.js";
 import { baseline } from "../vendor/qol-baseline.js";
 import { optimizeExact } from "./solver-core.js";
-import { scoreAtLevel } from "./effects.js?v=20261117-pet-integrity";
+import { scoreAtLevel } from "./effects.js?v=20261117-pet-gemstone-chain";
 import { parseAccountProfile } from "./account-profile.js";
-import {extractFixedAccountPower,fixedAccountScore} from "./account-power.js?v=20261117-gemstone-integrity";
-import {accountDependencyGraph} from "./account-dependencies.js?v=20261117-gemstone-integrity";
+import {extractFixedAccountPower,fixedAccountScore} from "./account-power.js?v=20261117-pet-gemstone-chain";
+import {accountDependencyGraph} from "./account-dependencies.js?v=20261117-pet-gemstone-chain";
 import {resolveSpellCaps} from "./spell-caps.js";
 import {extractTimedSetPower} from "./account-set-bonuses.js";
 
@@ -198,6 +198,7 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
       gemstoneEffects:{
         direct:dependencyReport.gemstones.directEffects,
         equipment:dependencyReport.gemstones.equipmentEffects,
+        pet:dependencyReport.gemstones.petEffects,
         unresolved:dependencyReport.gemstones.unknown.length,
         duplicateMirrors:dependencyReport.gemstones.duplicateMirrors,
         researchLevelsAppliedAgain:false,

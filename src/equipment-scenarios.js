@@ -7,10 +7,10 @@
  */
 import {ARTIFACT_CATALOG} from "../vendor/account-catalog.js";
 import {calculatePermanentArtifactEffects} from "./account-artifacts.js";
-import {petPassiveEvidence,logPassivePetMultiplier} from "./pet-scenarios.js?v=20261117-pet-integrity";
+import {petPassiveEvidence,logPassivePetMultiplier} from "./pet-scenarios.js?v=20261117-pet-gemstone-chain";
 import {petLevelEvidence} from "./account-pet-levels.js";
-import {extractFixedAccountPower} from "./account-power.js?v=20261117-gemstone-integrity";
-import {resolveGemstoneEvidence} from "./account-gemstones.js?v=20261117-gemstone-integrity";
+import {extractFixedAccountPower} from "./account-power.js?v=20261117-pet-gemstone-chain";
+import {resolveGemstoneEvidence} from "./account-gemstones.js?v=20261117-pet-gemstone-chain";
 const CATEGORIES=["Sword","Helmet","Armor","Aura","Slash"];
 const GUNBLADE_BUILDS=new Set(["Dagger","Heavenly Strike","Gold Gun","Shadow Clone"]);
 const officialSlots={...Object.fromEntries(CATEGORIES.map(x=>[x.toLowerCase(),x])),
@@ -109,8 +109,10 @@ export function equipmentPrimaryAmplifiers(profile){
     if(Number.isFinite(rune.log10))runeLog10=rune.log10;
     else unknown.push({id:rune.id,reason:rune.status});
    }
+   const gemRune=gems.entries.filter(x=>x.bonusType==="EquipmentPetEffect")
+    .reduce((total,row)=>total+row.log10,0);
    petLog10+=logPassivePetMultiplier(
-    pet.rawLog10+pet.amplifierLog10+runeLog10,pet.level);
+    pet.rawLog10+pet.amplifierLog10+runeLog10+gemRune,pet.level);
   }
   // Account multipliers from research, scrolls and gemstones of this
   // bonus family are not universally direct damage; route them to this slot.

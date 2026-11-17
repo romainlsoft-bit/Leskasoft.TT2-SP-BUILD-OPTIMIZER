@@ -12,7 +12,7 @@ import {resolveMonumentEvidence} from "./account-monuments.js";
 import {calculatePermanentArtifactEffects} from "./account-artifacts.js";
 import {additiveDamageEvidence} from "./account-damage-pools.js";
 import {resourceResearchEvidence} from "./account-research-resources.js?v=20261117-gemstone-integrity";
-import {resolveGemstoneEvidence} from "./account-gemstones.js?v=20261117-gemstone-integrity";
+import {resolveGemstoneEvidence} from "./account-gemstones.js?v=20261117-pet-gemstone-chain";
 
 const object=x=>x&&typeof x==="object";
 const byName=(catalog,value)=>{

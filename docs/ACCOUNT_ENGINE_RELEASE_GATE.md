@@ -174,3 +174,14 @@ However, fixed multipliers can change the ranking **across damage and gold sourc
 - Targeted V8 unit checks of the actual gemstone ledger: 13/13 pass; full npm suite and in-game validation not executed here.
 
 **PR #17 stays draft; no merge or Pages deployment.**
+
+## Gemstone → Exotic pet → equipment → Combat Techniques chain — 17 Nov 2026
+
+- Exported `LegacyPetDamageEffect`, `LegacyPetGoldEffect`, `ExoticPetDamageEffect`, `ExoticPetGoldEffect` and `EquipmentPetEffect` gemstone bonuses now have an explicit **pet-amplifier** route. Direct damage, equipment-primary and pet-amplifier routes remain separate, so no independent damage is invented from equipment or pet modifiers.
+- Game-exported gemstone multipliers are used directly in log10 space. They are **never re-derived** using GemstoneLevel, Mystic Research, rarity or unverified source scaling. Conflicting stone records remain excluded by the previously implemented gemstone integrity ledger.
+- The pet family bonuses combine with verified artifact pet modifiers. The exported EquipmentPetEffect combines with Restored Rune Heart before calculating the passive share, rather than being multiplied into equipment secondary rolls.
+- `Combat Techniques` equipment-pet A scaling now distinguishes an **equipped active** Exotic (full multiplier) from an **inactive passive** Exotic (5% per 5 levels, 100% from level 100). For passive pets, the nonlinear operation is `log10(1 + f × (P × A − 1)) − log10(1 + f × (P − 1))`, where `P` already contains the actual imported pet-family and Rune Heart/gemstone amplifiers. The chosen active pet's CT B level increase remains a separate increment; it is not added to every passive pet.
+- New `tests/pet-gemstone-chain.test.js` covers the combined chain, a level-four inactive pet vs an active one, level-five partial passive, level-100 full passive, all 18 Damage/Gold combinations, gemstone research double-count protection and conflicts.
+- Browser/worker module version pins updated together. All validations remain provisional until the full npm suite, browser and 22k+ SP gameplay comparisons are actually executed.
+
+**Release gate remains CLOSED, PR #17 remains DRAFT.**
