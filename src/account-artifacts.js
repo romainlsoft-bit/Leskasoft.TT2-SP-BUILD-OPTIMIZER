@@ -57,6 +57,23 @@ export function isDirectBonusType(bonusType){
  return DIRECT_DAMAGE.has(bonusType)||DIRECT_GOLD.has(bonusType);
 }
 /** Preserve unsupported effects as evidence, never apply them generically. */
+const MAGNIFIER_EXTRAS=new Set(["Artifact52","Artifact96","Artifact85"]);
+const TREASURE_EXTRAS=new Set(["Artifact53","Artifact97"]);
+function artifactBoostFactor(group,id,catalog){
+ const rows=group.get(id)||[];
+ if(!rows.length)return {factor:1,status:"not-owned"};
+ const levels=[...new Set(rows.map(x=>x.level).filter(x=>x!=null).map(String))];
+ const enchants=[...new Set(rows.map(x=>x.enchanted).filter(x=>x!==undefined))];
+ if(rows.length!==1||levels.length!==1||enchants.length>1)
+  return {factor:null,status:"conflicting-artifact-amplifier"};
+ const effect=computeArtifactEffect(catalog[id],levels[0],enchants[0]===true);
+ return {factor:effect.log10===null?null:Math.pow(10,effect.log10),status:effect.status};
+}
+/** The Magnifier and The Treasure boost the MAIN effect of supported
+ * artifacts (not the separate additive Artifact Damage sum). TT2 patches
+ * 5.10 and 5.19 explicitly include Heart of Storms, Sticky Fruit, Apollo
+ * Orb, Hades Orb and The White Dwarf.
+ */
 export function calculatePermanentArtifactEffects(profile,catalog){
  const index=new Map(Object.values(catalog).flatMap(x=>[
   [x.id.toLowerCase(),x.id],[x.name.toLowerCase(),x.id]]));
@@ -68,6 +85,8 @@ export function calculatePermanentArtifactEffects(profile,catalog){
   group.get(id).push(record);
  }
  const entries=[],byType={};
+ const magnifier=artifactBoostFactor(group,"Artifact80",catalog);
+ const treasure=artifactBoostFactor(group,"Artifact81",catalog);
  for(const [id,rows] of group){
   const data=catalog[id];
   const levels=[...new Set(rows.map(x=>x.level).filter(x=>x!=null).map(String))];
@@ -82,19 +101,37 @@ export function calculatePermanentArtifactEffects(profile,catalog){
    !knownEnchantment&&enhancementCanChangePower?
     {status:"unknown-enchantment-state",log10:null}:
     computeArtifactEffect(data,levels[0],enchanted===true);
-  const scoreable=effect.log10!==null&&isDirectBonusType(data.bonusType);
-  if(scoreable)byType[data.bonusType]=(byType[data.bonusType]||0)+effect.log10;
+  const boostDamage=(data.maxLevel===0&&data.bonusIcon==="Dmg")||
+   MAGNIFIER_EXTRAS.has(id);
+  const boostGold=(data.maxLevel===0&&data.bonusIcon==="Gold")||
+   TREASURE_EXTRAS.has(id);
+  const incompleteBoost=(boostDamage&&magnifier.factor===null)||
+   (boostGold&&treasure.factor===null);
+  const factor=(boostDamage?magnifier.factor:1)*(boostGold?treasure.factor:1);
+  const amplifiedLog10=effect.log10===null||incompleteBoost?
+   null:effect.log10*factor;
+  const scoreable=amplifiedLog10!==null&&isDirectBonusType(data.bonusType);
+  if(scoreable)byType[data.bonusType]=(byType[data.bonusType]||0)+amplifiedLog10;
   entries.push({system:"artifacts",id,name:data.name,bonusType:data.bonusType,
    level:levels.length===1?levels[0]:null,
-   enchanted,log10:effect.log10??null,rawLog10:effect.rawLog10??null,
-   enchantmentDeltaLog10:effect.enchantmentDeltaLog10??null,
-   appliedToScore:scoreable,status:conflict?"conflicting-source-records":
+   enchanted,log10:amplifiedLog10,rawLog10:effect.rawLog10??null,
+   unamplifiedLog10:effect.log10??null,
+   magnifierApplied:boostDamage&&magnifier.factor!==1,
+   treasureApplied:boostGold&&treasure.factor!==1,
+   amplificationFactor:incompleteBoost?null:factor,
+   enchantmentDeltaLog10:effect.enchantmentDeltaLog10===null||
+    incompleteBoost?null:effect.enchantmentDeltaLog10*factor,
+   appliedToScore:scoreable,status:incompleteBoost?
+    "unknown-artifact-amplifier":conflict?"conflicting-source-records":
     scoreable?"computed-direct-effect":effect.status==="computed-main-effect"?
     "computed-unscored-interaction":effect.status,
    // DamageBonus is a distinct additive artifact-damage pool.
    artifactDamageModeled:false,complete:false});
  }
- return {entries,byType,unknown,recognized:entries.length,
+ return {entries,byType,unknown,
+  magnifier:{owned:group.has("Artifact80"),factor:magnifier.factor,status:magnifier.status},
+  treasure:{owned:group.has("Artifact81"),factor:treasure.factor,status:treasure.status},
+  recognized:entries.length,
   computed:entries.filter(x=>x.log10!==null).length,
   scored:entries.filter(x=>x.appliedToScore).length,
   duplicateRecords:records.length-unknown.length-entries.length,

@@ -625,3 +625,35 @@ test("invalid research purchases never grant power or resource income",()=>{
  assert.ok(e.unknown.length>=4);
  assert.equal(e.complete,false);
 });
+
+test("Magnifier boosts damage and exotic pet artifacts without buffing gold",()=>{
+ const p=parseAccountProfile({artifacts:{
+  Artifact80:{level:40},Artifact31:{level:100,e:0},
+  Artifact96:{level:100,e:0},Artifact20:{level:100,e:0}}});
+ const r=calculatePermanentArtifactEffects(p,ARTIFACT_CATALOG);
+ assert.ok(Math.abs(r.magnifier.factor-5.5)<1e-10);
+ for(const id of ["Artifact31","Artifact96"]){
+  const x=r.entries.find(x=>x.id===id);
+  assert.ok(Math.abs(x.log10-x.unamplifiedLog10*5.5)<1e-10);
+ }
+ const gold=r.entries.find(x=>x.id==="Artifact20");
+ assert.ok(Math.abs(gold.log10-gold.unamplifiedLog10)<1e-10);
+});
+test("Treasure boosts gold and Exotic pet gold, but not damage effects",()=>{
+ const p=parseAccountProfile({artifacts:{
+  Artifact81:{level:40},Artifact20:{level:100,e:0},
+  Artifact97:{level:100,e:0},Artifact31:{level:100,e:0}}});
+ const r=calculatePermanentArtifactEffects(p,ARTIFACT_CATALOG);
+ assert.ok(Math.abs(r.treasure.factor-10)<1e-10);
+ for(const id of ["Artifact20","Artifact97"]){
+  const x=r.entries.find(x=>x.id===id);
+  assert.ok(Math.abs(x.log10-x.unamplifiedLog10*10)<1e-10);
+ }
+ assert.equal(r.entries.find(x=>x.id==="Artifact31").treasureApplied,false);
+});
+test("White Dwarf receives Magnifier in post-5.19 rules",()=>{
+ const p=parseAccountProfile({artifacts:{Artifact80:{level:40},Artifact85:{level:50}}});
+ const r=calculatePermanentArtifactEffects(p,ARTIFACT_CATALOG);
+ const x=r.entries.find(x=>x.id==="Artifact85");
+ assert.ok(Math.abs(x.log10-x.unamplifiedLog10*5.5)<1e-10);
+});

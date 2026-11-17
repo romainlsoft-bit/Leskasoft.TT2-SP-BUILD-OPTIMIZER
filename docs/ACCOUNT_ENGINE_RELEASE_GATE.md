@@ -47,6 +47,12 @@
 - Raw `EnchantmentMult` is retained separately from `EnchantmentMagnitude`. The only row whose two fields materially differ is SeasonalArtifact34 (Temperance Training Ground: 10 versus 1e20). We calculate a possible enchanted additive pool but do **not** inject it into the score until its exact stacking/interactions are confirmed in game.
 - All calculations remain stable for huge scientific levels. Missing enchant status is not guessed.
 
+## Artifact multiplier boosters: Magnifier and Treasure of Fergus
+
+- The Magnifier (`Artifact80`) and The Treasure of Fergus (`Artifact81`) are capped boosters. A verified booster raises eligible artifacts' multiplicative primary effect to its power; it does not multiply the separate additive Artifact Damage pool. Retain BonusIcon for all 103 catalog artifacts to identify uncapped damage/gold effects.
+- Version 5.10 explicitly added Heart of Storms and Sticky Fruit to Magnifier eligibility, Apollo Orb and Hades Orb to Treasure of Fergus eligibility. The White Dwarf was added to Magnifier in version 5.19. This materially amplifies the Legacy/Exotic pet boosts already incorporated via these artifact effects.
+- If a listed booster exists with unreadable or conflicting source level, its dependent artifact effects are skipped rather than silently assuming an unequipped booster. Exceptional hybrids remain outside this known subset.
+
 ## Secondary effects of equipped gear — direct subset
 
 - Import up to six explicit secondary type+amount pairs from SecondaryEffects/SecondaryBonuses, string Type:Amount and paired BonusTypeB..F/BonusAmountB..F and numeric suffixes. The same roll represented twice is counted once.
