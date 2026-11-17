@@ -10,7 +10,7 @@ import {equipmentEffectReduction,EQUIPMENT_AURA_TARGETS} from "./equipment-reduc
 import {calculatePermanentArtifactEffects} from "./account-artifacts.js";
 import {petPassiveEvidence,logPassivePetMultiplier} from "./pet-scenarios.js?v=20261117-contract-coupling";
 import {petLevelEvidence} from "./account-pet-levels.js";
-import {extractFixedAccountPower} from "./account-power.js?v=20261117-contract-coupling";
+import {extractFixedAccountPower} from "./account-power.js?v=20261117-hero-scrolls";
 import {resolveGemstoneEvidence} from "./account-gemstones.js?v=20261117-contract-coupling";
 import {resolvePermanentSetPower,resolveCraftingPower} from "./account-permanent-sets.js";
 const CATEGORIES=["Sword","Helmet","Armor","Aura","Slash"];

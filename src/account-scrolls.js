@@ -18,7 +18,8 @@ export function clanScrollEvidence(profile){
   const level=levels.get(x.id);
   return {...x,level,log10:x.isAdditive?null:level*Math.log10(x.bonusAmount)};
  });
- const completeRoster=entries.length===CLAN_SCROLLS.length;
+ const truncated=profile?.sections?.clanScrolls?.truncated===true;
+ const completeRoster=!truncated&&unknown.length===0&&entries.length===CLAN_SCROLLS.length;
  const fullSets=completeRoster?Math.min(...entries.map(x=>x.level)):null;
  // Full set #1 gives +5%; each further complete set adds +10%.
  // Ref: Tap Titans 2 Wiki / Heroes / Clan Scrolls, updated after 6.5 rework.
@@ -26,11 +27,12 @@ export function clanScrollEvidence(profile){
  // rawBonus^(1 + setBonusPercent). Additive effects need a separate model.
  const setBonusPercent=fullSets===null?null:
   fullSets===0?0:0.05+Math.max(0,fullSets-1)*0.10;
- const boostedEntries=entries.map(entry=>({
+ const boostedEntries=(truncated?[]:entries).map(entry=>({
   ...entry,setBoostedLog10:entry.log10===null||setBonusPercent===null
    ?null:entry.log10*(1+setBonusPercent)
  }));
- return {entries:boostedEntries,unknown,completeRoster,fullSets,setBonusPercent,
+ if(truncated)unknown.push({id:"*",reason:"truncated-scroll-export"});
+ return {entries:boostedEntries,unknown,completeRoster,fullSets,setBonusPercent,truncated,
   setBonusSource:"TT2 Wiki - Heroes/Clan Scrolls (post 6.5)",
   // The set boost is modeled when all 18 levels are known, but artifact
   // and equipment amplification (Quill, Old King's Stamp, ScrollTutor)

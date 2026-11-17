@@ -610,3 +610,12 @@ probability effects and cross-pet/gear/SP optimization. The scenario score
 is a **non-calibrated log10 proxy**, never a stage prediction. Imported
 equipment categories and aura aliases must be checked against a genuine
 TT2 8.4 export before claiming full coverage.
+
+
+## Batch J — hero weapon sets / Clan Scrolls (17 November 2026)
+
+Pinned 8.4 HelperInfo roster has **37 heroes**. Only a complete unique nontruncated 37-ID weapon level collection with valid nonnegative safe integer levels proves `completeSets = min(levels)`. Each verified full set contributes historical **×5 All Hero Damage**, or `completeSets × log10(5)`, **once** in the fixed account score. Source `vendor/reductions.js:AllHelperDmg` routes the same `AllHelperDamage` family from permanent artifacts and Clan Scroll #3 by damage build. It is not unconditional AllDamage and is never a per-SP talent bonus.
+
+Individual hero weapon ×1.5 upgrades require the *dominant hero*, ascension and type; these remain unscored. Morgelai Sword, Ringing Stone, Quill of Scrolls, Old King's Stamp, MythicSmith and ScrollTutor are explicit **unmodeled amplifiers**: no double counting or unverified composition. The 18 Clan Scroll source categories are audited individually; unrecorded scrolls do not imply a full set, and a truncated scroll collection now scores **no fragment**. Additive scroll types remain outside the multiplier ledger. Diagnostics expose source gaps and an unverified specialized hero helmet as unsafe for automatic recommendation. UI diagnostic messages are translated to FR/UK/RU. No score is an in-game stage prediction.
+
+Source: [Tap Titans 2 Wiki heroes](https://tap-titans-2.fandom.com/wiki/Heroes), [TT2 community guide](https://www.reddit.com/r/TapTitans2/comments/9nmj6m/), versioned 8.4 `vendor/hero-roster.js`, `vendor/clan-scrolls.js`, `vendor/reductions.js` and `vendor/account-catalog.js`. Regression tests in `tests/hero-weapons-scroll-routing.test.js` cover 18 build pairs and the real optimizer; full Node/22k/real-player validation still required. PR #18 stays DRAFT.

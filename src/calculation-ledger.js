@@ -56,7 +56,15 @@ export function modeledScenarioCoverage(result,settings,gearSelection={}){
  const invalidGoldPet=goldPet!==null&&
   !available.some(x=>x.id===goldPet&&x.equipType==="Support");
  const missingGearSlots=Math.max(0,5-Object.keys(selected).length);
+ const hero=result?.accountIntegration?.heroProgression;
+ const scroll=result?.accountIntegration?.clanScrollPower;
+ const heroHelmetUnverified=["Ranged hero","Spell hero","Melee hero"].includes(selected.Helmet?.kind);
  const gaps=[];
+ if(heroHelmetUnverified)gaps.push("unverified-dominant-hero-helmet");
+ if(hero?.unresolved?.length)gaps.push("unverified-hero-progression-interactions");
+ if(scroll?.truncated)gaps.push("truncated-clan-scroll-export");
+ if(scroll?.recognized>0&&!scroll?.completeRoster)
+  gaps.push("unverified-clan-scroll-set-count");
  if(!inventoryPresent)gaps.push("missing-equipment-inventory");
  if(inventoryTruncated)gaps.push("truncated-equipment-inventory");
  if(missingGearSlots)gaps.push("unmodeled-gear-slots");
@@ -106,6 +114,7 @@ export function modeledScenarioCoverage(result,settings,gearSelection={}){
  return {gaps,
   complete:false,inventoryPresent,inventoryTruncated,missingGearSlots,
   missingExplicitSelections,linkedAuraCount,unresolvedAuraLinks,
+  heroHelmetUnverified,heroRosterVerified:hero?.rosterVerified===true,
   unknownGearPrimaries,unknownGearSecondaries,
   unknownGearAmplifiers,unknownGemstoneBonuses,
   researchUnresolvedNodes:researchAudit?.excludedOrConflictingNodes||0,
@@ -124,7 +133,8 @@ export function modeledScenarioCoverage(result,settings,gearSelection={}){
   unresolvedAccountEffects,unknownCatalogIds,
   safeForAutomaticGearRecommendation:inventoryPresent&&!inventoryTruncated&&
    !missingExplicitSelections&&!unknownGearPrimaries&&
-   !unknownGearSecondaries&&!unknownGearAmplifiers&&!unresolvedAuraLinks,
+   !unknownGearSecondaries&&!unknownGearAmplifiers&&!unresolvedAuraLinks&&
+   !heroHelmetUnverified,
   realStagePredictionValidated:false};
 }
 
