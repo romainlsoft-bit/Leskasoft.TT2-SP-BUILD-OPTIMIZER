@@ -295,3 +295,27 @@ test("graph diagnostic excludes direct PerDay effects once scored",()=>{
  assert.equal(unknownGraph.unmodeledEffects-scoredGraph.unmodeledEffects,1);
  assert.ok(scoredGraph.unmodeledEffects>=0);
 });
+
+test("duplicated Titan Cards and research nodes never inflate log10 account power",()=>{
+ const p=parseAccountProfile({
+  titanCards:[{id:"Titan1",level:93},{id:"Titan1",level:999}],
+  gemstonesResearch:[{id:"284",level:20},{id:"284",level:19}],
+  titanResearch:[{id:"2",level:3},{id:"2",level:999}]
+ });
+ const power=extractFixedAccountPower(p);
+ for(const system of ["titanCards","gemstoneResearch","titanResearch"]){
+  assert.equal(power.entries.filter(x=>x.system===system).length,0);
+  assert.ok(power.unsupported.some(x=>x.system===system&&x.reason==="duplicate-source-id"));
+ }
+});
+test("a duplicate Clan Scroll cannot be scored or complete a full scroll set",()=>{
+ const levels=CLAN_SCROLLS.map(x=>({id:x.id,level:2}));
+ levels.push({id:CLAN_SCROLLS[0].id,level:999});
+ const p=parseAccountProfile({clanScrolls:levels});
+ const evidence=clanScrollEvidence(p);
+ assert.equal(evidence.completeRoster,false);
+ assert.equal(evidence.fullSets,null);
+ assert.equal(evidence.setBonusPercent,null);
+ assert.equal(evidence.entries.some(x=>x.id===CLAN_SCROLLS[0].id),false);
+ assert.equal(extractFixedAccountPower(p).entries.some(x=>x.system==="clanScrolls"&&x.id===CLAN_SCROLLS[0].id),false);
+});

@@ -11,6 +11,7 @@
 - Typed dependency DAG covers fixed inventory, owned sets, artifact effects, equipment-granted levels, effective gemstones, heroes, pets, effective equipment and skill effects. Recursive invalidation and cycle detection are tested.
 - Incomplete effects are explicitly reported, not assigned estimated coefficients. This is a first layer of the account power engine, not a validated stage simulator.
 - Account import coverage labels all 16 allowlisted sections in EN/FR/UK/RU; the diagnostic subtracts already-scored PerDay effects from the unresolved-effect count and distinguishes complete Hero Weapon/Clan Scroll sets.
+- Conflicting duplicate card, research or scroll IDs are excluded from numerical scoring altogether rather than being counted twice or arbitrarily choosing the first level.
 
 ## Time-dependent effects, owned Unique items and Hero Weapons
 
