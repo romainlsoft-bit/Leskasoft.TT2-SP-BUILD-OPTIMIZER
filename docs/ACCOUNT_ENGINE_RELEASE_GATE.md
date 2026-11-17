@@ -59,6 +59,12 @@
 - Version 5.10 explicitly added Heart of Storms and Sticky Fruit to Magnifier eligibility, Apollo Orb and Hades Orb to Treasure of Fergus eligibility. The White Dwarf was added to Magnifier in version 5.19. This materially amplifies the Legacy/Exotic pet boosts already incorporated via these artifact effects.
 - If a listed booster exists with unreadable or conflicting source level, its dependent artifact effects are skipped rather than silently assuming an unequipped booster. Exceptional hybrids remain outside this known subset.
 
+## Restored Rune Heart and partial passive pets — ordering fix
+
+- At pet levels 1–4 the passive share is zero, and Restored Rune Heart must contribute **zero passive equipment boost**, even when the artifact itself has a very large multiplier.
+- From level 5 onward, combine Exotic pet artifact amplification and Restored Rune Heart on the full pet effect *before* taking the level-dependent passive fraction (5% per five levels). Do not multiply a nonexistent fraction by a huge artifact boost after the fact.
+- An actually selected Exotic equipment pet below passive threshold can receive the active Rune Heart bonus, separately from the account-wide passive equipment baseline. Tests cover level 4, 5, 100 and equipped pet comparison.
+
 ## Combat Techniques: imported equipment-pet eligibility
 
 - The former `CombatTechniques` skill score multiplied a flat damage/gold reduction even when the account exported **no actual Equipment Pet**. Skill A now scores only gear primaries explicitly matched to a recognized equipment pet. Selected active equipment pets can contribute where passive activation is not already present; the pet level skill B still contributes separately.

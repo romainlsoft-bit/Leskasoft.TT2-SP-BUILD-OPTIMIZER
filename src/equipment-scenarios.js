@@ -7,7 +7,7 @@
  */
 import {ARTIFACT_CATALOG} from "../vendor/account-catalog.js";
 import {calculatePermanentArtifactEffects} from "./account-artifacts.js";
-import {petPassiveEvidence} from "./pet-scenarios.js";
+import {petPassiveEvidence,logPassivePetMultiplier} from "./pet-scenarios.js";
 import {extractFixedAccountPower} from "./account-power.js";
 const CATEGORIES=["Sword","Helmet","Armor","Aura","Slash"];
 const GUNBLADE_BUILDS=new Set(["Dagger","Heavenly Strike","Gold Gun","Shadow Clone"]);
@@ -97,12 +97,17 @@ export function equipmentPrimaryAmplifiers(profile){
    else unknown.push({id:row.id,reason:row.status});
   }
   const pet=pets.entries.find(x=>x.bonusType===bonusType);
-  if(pet&&Number.isFinite(pet.log10)){
-   petLog10+=pet.log10;
+  if(pet&&pet.passiveFraction>0&&Number.isFinite(pet.log10)){
+   // Restored Rune Heart multiplies the full pet effect BEFORE applying
+   // the 5%-per-five-level passive share. Applying rune to a zero passive
+   // would create a phantom equipment bonus at levels 1-4.
+   let runeLog10=0;
    if(rune){
-    if(Number.isFinite(rune.log10))petLog10+=rune.log10;
+    if(Number.isFinite(rune.log10))runeLog10=rune.log10;
     else unknown.push({id:rune.id,reason:rune.status});
    }
+   petLog10+=logPassivePetMultiplier(
+    pet.rawLog10+pet.amplifierLog10+runeLog10,pet.level);
   }
   // Account multipliers from research, scrolls and gemstones of this
   // bonus family are not universally direct damage; route them to this slot.

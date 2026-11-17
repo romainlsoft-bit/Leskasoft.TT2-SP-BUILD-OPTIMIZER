@@ -122,8 +122,13 @@ export function petSlotScore(settings,petId,slot,combatTechniques=0){
  const samurai=Boolean(settings.sets?.Samurai)||
   Boolean(settings.accountProfile?.ownedSetIds?.includes("Samurai"));
  const tier=petTier(pet),kind=slot==="gold"?"gold":"damage";
- const amplifier=petArtifactAmplifiers(settings.accountProfile).byTier[tier]?.[kind]??0;
- return petWeight(pet,slot,settings)*activePetGain(pet,level,pct+(samurai?0.25:0),amplifier);
+ const artifactBoosts=petArtifactAmplifiers(settings.accountProfile);
+ const amplifier=artifactBoosts.byTier[tier]?.[kind]??0;
+ const runeBoost=EQUIPMENT_PET_SLOTS[pet.type]&&
+  Number.isFinite(artifactBoosts.equipmentPetEffectLog10)?
+  artifactBoosts.equipmentPetEffectLog10:0;
+ return petWeight(pet,slot,settings)*activePetGain(
+  pet,level,pct+(samurai?0.25:0),amplifier+runeBoost);
 }
 export function petScenarioScore(settings,combatTechniques=0){
  return petSlotScore(settings,settings.selectedDamagePet,"damage",combatTechniques)

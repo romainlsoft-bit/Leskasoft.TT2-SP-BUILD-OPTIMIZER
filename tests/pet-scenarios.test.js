@@ -204,3 +204,14 @@ test("no phantom Combat Techniques contribution in any of 18 Damage/Gold build c
    damage+" / "+gold+" must not get free Equipment Pet Effect");
  }
 });
+
+test("Restored Rune Heart amplifies an active low-level Exotic equipment pet",()=>{
+ const p=parseAccountProfile({petLevels:{Pet26:4},
+  artifacts:{Artifact46:{level:100,e:0}}});
+ const context={...settings(),accountProfile:p,
+  selectedDamagePet:"Pet26",equipmentPetSlotWeights:{Sword:1}};
+ const scoreWithRune=petScenarioScore(context,0);
+ const withoutRune={...context,accountProfile:parseAccountProfile({petLevels:{Pet26:4}})};
+ const scoreWithoutRune=petScenarioScore(withoutRune,0);
+ assert.ok(scoreWithRune>scoreWithoutRune);
+});
