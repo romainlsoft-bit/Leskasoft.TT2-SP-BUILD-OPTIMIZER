@@ -801,3 +801,14 @@ Compendium mana guide
 https://www.tt2-compendium.com/fr/builds/build/pet-fairy ;
 six-slot player discussion
 https://www.reddit.com/r/TapTitans2/comments/oohl85/ .
+
+ 
+## Lot O (2026-11-18) — source-reduced pet passives and multi-pet equipment primaries
+
+**Permanent pet damage lane, now wired:** `fixedPetHeroLog = Σ(logPassivePetMultiplier(heroPet)) × reductions.AllHelperDmg[damage]`; `fixedTapLog = Σ(logPassivePetMultiplier(tapPet)) × reductions.TapDmg[damage]`. The independently modeled artifact `TapDamage` log contributions share the latter reduction exactly once in `fixedAccountScore`. `BaseHeroDamage` remains a distinct and unreduced source. Neither pet contribution becomes unconditionally universal. The source-reduced active-candidate weighting uses `equipmentEffectReduction` consistently. `activePetGain` continues to subtract each currently equipped pet's already-counted passive, so scoring a pet cannot duplicate the fixed contribution.
+
+**Multiple pet sources of one equipment-primary type:** the earlier `find(bonusType)` in `equipmentPrimaryAmplifiers` discarded all but the first of an Exotic equipment pet and Transcendent equipment pet sharing a type. `filter(bonusType)` now preserves all positively leveled source pet IDs and adds their individually computed passive log10 once to the chosen equipment primary. This remains independent of secondary rolls and the fixed account damage ledger. The `petSources` diagnostic identifies which pet contributed; the bounded 2-per-slot gear search remains a heuristic, not globally certified.
+
+**Amplitude uncertainty:** `EquipmentPetEffect` from Rune Heart and explicit gemstones is proven for five Exotic pets of `Pet26`–`Pet30`; its application to the seasonal counterpart with the same primary type is **not proven**. Exclude the seasonal cross-stack while counting its independently verified base passive; emit `seasonal-equipment-pet-rune-stack-unverified` in gear amplification unknowns and coverage. No gemstone research level is reapplied to an already exported gem multiplier.
+
+**Numerical and release gates:** logarithmic `1e9999` bonus values must stay finite; missing/conflicting pet levels cannot enter candidate screening; all 18 fixed Damage×Gold reductions and 18 zero-SP native optimizer routes are declared as tests, but are not certified until actual Node execution. Pet critical/chance, jackpot/multimonster gold and active pet attack DPS are unscored until a formula and game-export parity establish a valid reduction. All-score, hero-class and true stage-HP conversions remain incomplete. No predicted stage improvement, no claim that the real Pet/Fairy loss is fixed. See `docs/PR18_ALL_CALCULATIONS.md`, lot O, for sources and status. Do not merge or deploy the DRAFT PR.

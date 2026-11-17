@@ -8,10 +8,10 @@
 import {ARTIFACT_CATALOG} from "../vendor/account-catalog.js";
 import {equipmentEffectReduction,EQUIPMENT_AURA_TARGETS} from "./equipment-reductions.js";
 import {calculatePermanentArtifactEffects} from "./account-artifacts.js";
-import {petPassiveEvidence,logPassivePetMultiplier} from "./pet-scenarios.js?v=20261117-contract-coupling";
+import {petPassiveEvidence,logPassivePetMultiplier} from "./pet-scenarios.js?v=20261118-pet-equipment-o";
 import {petLevelEvidence} from "./account-pet-levels.js";
 import {extractFixedAccountPower} from "./account-power.js?v=20261117-hero-classes";
-import {resolveGemstoneEvidence} from "./account-gemstones.js?v=20261117-contract-coupling";
+import {resolveGemstoneEvidence} from "./account-gemstones.js?v=20261118-pet-equipment-o";
 import {resolvePermanentSetPower,resolveCraftingPower} from "./account-permanent-sets.js";
 const CATEGORIES=["Sword","Helmet","Armor","Aura","Slash"];
 const GUNBLADE_BUILDS=new Set(["Dagger","Heavenly Strike","Gold Gun","Shadow Clone"]);
@@ -104,20 +104,37 @@ export function equipmentPrimaryAmplifiers(profile,settings={}){
    if(Number.isFinite(row.log10))artifactLog10+=row.log10;
    else unknown.push({id:row.id,reason:row.status});
   }
-  const pet=pets.entries.find(x=>x.bonusType===bonusType);
-  if(pet&&pet.passiveFraction>0&&Number.isFinite(pet.log10)){
-   // Restored Rune Heart multiplies the full pet effect BEFORE applying
-   // the 5%-per-five-level passive share. Applying rune to a zero passive
-   // would create a phantom equipment bonus at levels 1-4.
-   let runeLog10=0;
-   if(rune){
-    if(Number.isFinite(rune.log10))runeLog10=rune.log10;
-    else unknown.push({id:rune.id,reason:rune.status});
+  // Multiple individually owned pets may share a primary family, such
+  // as Effie and Quippy. Summing passive logarithms once per source ID
+  // prevents a first-match loss without copying anything to secondaries.
+  const petSources=[];
+  const petRows=pets.entries.filter(x=>x.bonusType===bonusType);
+  const gemRune=gems.entries.filter(x=>x.bonusType==="EquipmentPetEffect")
+   .reduce((total,row)=>total+row.log10,0);
+  for(const pet of petRows){
+   if(!(pet.passiveFraction>0))continue;
+   if(!Number.isFinite(pet.log10)){
+    unknown.push({id:pet.id,reason:"unverified-pet-passive"});continue;
    }
-   const gemRune=gems.entries.filter(x=>x.bonusType==="EquipmentPetEffect")
-    .reduce((total,row)=>total+row.log10,0);
-   petLog10+=logPassivePetMultiplier(
-    pet.rawLog10+pet.amplifierLog10+runeLog10+gemRune,pet.level);
+   // Rune Heart / gemstone EquipmentPetEffect are proven for the five
+   // Exotic equipment pets; the seasonal cross-stack is unverified.
+   const exoticEquipment=/^Pet(26|27|28|29|30)$/.test(pet.id);
+   let runeLog10=0;
+   if(exoticEquipment&&rune){
+    if(Number.isFinite(rune.log10))runeLog10=rune.log10;
+    else {unknown.push({id:rune.id,reason:rune.status});continue;}
+   }
+   if(!exoticEquipment&&(rune||gemRune>0))
+    unknown.push({id:pet.id,reason:"seasonal-equipment-pet-rune-stack-unverified"});
+   const log10=logPassivePetMultiplier(
+    pet.rawLog10+pet.amplifierLog10+runeLog10+
+     (exoticEquipment?gemRune:0),pet.level);
+   if(!Number.isFinite(log10)){
+    unknown.push({id:pet.id,reason:"unrepresentable-pet-effect"});continue;
+   }
+   petLog10+=log10;
+   petSources.push({id:pet.id,tier:pet.tier,level:pet.level,
+    passiveLog10:log10,equipmentPetEffectApplied:exoticEquipment});
   }
   // Completed permanent sets may grant slot-specific primary multipliers.
   // The same set entry is NEVER added to the fixed AllDamage account score.
@@ -140,7 +157,7 @@ export function equipmentPrimaryAmplifiers(profile,settings={}){
     e.bonusType===bonusType||e.bonusType==="AllEquipmentEffect"))
    unknown.push({id:row.id,reason:row.reason});
   bySlot[slot]={log10:artifactLog10+gemstoneLog10+petLog10+setLog10,
-   petLog10,artifactLog10,gemstoneLog10,setLog10,unknown};
+   petLog10,artifactLog10,gemstoneLog10,setLog10,petSources,unknown};
  }
  const result={bySlot,craftingPower:sets.craftingPower};
  cached??=new Map();
@@ -295,6 +312,7 @@ export function gearSelectionEffects(profile,settings,selection={}){
    linkedPrimaryResolved:effect.linkedSlot? !effect.unresolvedAura:null,
    primaryAmplifierLog10:effect.primaryAmplifier.log10,
    primaryBoostScore:effect.primaryBoostScore,
+   equipmentPetSources:effect.primaryAmplifier.petSources||[],
    permanentSetPrimaryAmplifierLog10:effect.primaryAmplifier.setLog10,
    primaryAmplifierUnresolved:effect.primaryAmplifier.unknown.map(x=>x.id),
    secondaryKnown:effect.secondaries.known.length,
@@ -323,6 +341,8 @@ export function gearSelectionEffects(profile,settings,selection={}){
   unresolvedAmplifiersCount:Object.values(selected).reduce(
    (n,x)=>n+x.primaryAmplifierUnresolved.length,0),
   selectedSlotCount:Object.keys(selected).length,
+  petPrimarySourcesCount:Object.values(selected).reduce(
+   (sum,row)=>sum+(row.equipmentPetSources?.length||0),0),
   petEquipmentSlotWeights:petWeights,
   petEquipmentPassiveWeights:passiveWeights,
   petEquipmentCoverageComplete:petLevelReport.trustworthy&&
