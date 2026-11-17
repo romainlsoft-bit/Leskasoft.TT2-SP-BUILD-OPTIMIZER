@@ -130,3 +130,28 @@ test("equipment-primary boosters never multiply secondary rolls",()=>{
  assert.ok(Math.abs(chosen.independentScore-
   (100+20+e.primaryBoostScore))<1e-9);
 });
+
+test("Restored Rune Heart never grants a passive equipment boost below pet level 5",()=>{
+ const p=parseAccountProfile({
+  petLevels:{Pet26:4},
+  equipmentInventory:[{id:"SwordA",slot:"Sword",bonusType:"AllDamage",
+   bonusAmount:"1e100"}],
+  artifacts:{Artifact46:{level:100,e:0}}
+ });
+ const bonus=equipmentPrimaryAmplifiers(p).bySlot.Sword;
+ assert.equal(bonus.petLog10,0);
+ const selection=gearSelectionEffects(p,cfg("Pet"));
+ assert.equal(selection.petEquipmentSlotWeights.Sword,1);
+ assert.equal(selection.petEquipmentPassiveWeights.Sword,undefined);
+});
+test("Restored Rune Heart affects pet passive fraction before scoring the equipment",()=>{
+ const options=level=>parseAccountProfile({
+  petLevels:{Pet26:level},
+  equipmentInventory:[{id:"SwordA",slot:"Sword",bonusType:"AllDamage",bonusAmount:"1e100"}],
+  artifacts:{Artifact46:{level:100,e:0}}
+ });
+ const four=equipmentPrimaryAmplifiers(options(4)).bySlot.Sword.petLog10;
+ const five=equipmentPrimaryAmplifiers(options(5)).bySlot.Sword.petLog10;
+ const hundred=equipmentPrimaryAmplifiers(options(100)).bySlot.Sword.petLog10;
+ assert.equal(four,0);assert.ok(five>0);assert.ok(hundred>five);
+});

@@ -35,7 +35,12 @@ export function petArtifactAmplifiers(profile){
    byTier[tier][kind]=row.log10;
   }
  }
- const result={byTier,unknown,recognized};
+ const rune=artifact.entries.find(x=>x.bonusType==="EquipmentPetEffect");
+ const equipmentPetEffectLog10=rune?
+  (Number.isFinite(rune.log10)?rune.log10:null):0;
+ if(rune&&equipmentPetEffectLog10===null)
+  unknown.push({tier:"equipment",kind:"pet",id:rune.id,reason:rune.status});
+ const result={byTier,unknown,recognized,equipmentPetEffectLog10};
  cache.set(profile,result);return result;
 }
 export function logPassivePetMultiplier(fullLog,level){
