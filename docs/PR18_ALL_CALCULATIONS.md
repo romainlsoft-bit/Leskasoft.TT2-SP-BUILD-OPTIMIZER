@@ -180,3 +180,81 @@ pair choices. No score is advertised as a stage-gain prediction.
 **The release gates remain open.** Even convergence among shortlisted pets
 does not verify full cross-build optimality, in-game stage gains or effects
 that still lack source-backed scaling rules.
+
+## Substantial batch B2 — owned set multipliers × Crafting Power (17 Nov 2026)
+
+This batch closes a substantial **missing numeric account baseline**: until
+now, many unlocked equipment sets were merely listed in the dependency
+catalog (other than the PerDay subset and selected spell/skill flags). The
+static TT2 8.4 EquipmentSetInfo CSV contains **214 sets**, **354 bonus rows**
+and **30 separate PerDay rows**. There are **78 non-PerDay, directly
+source-typed damage/gold multipliers** with all three `Amount/Inc/Expo`
+parameters, including 20 Unique equipment sets.
+
+### Formula and numerical constraints
+
+For a supported *multiplicative* bonus and integer Crafting Power `CP >= 1`:
+
+```text
+Bonus = Amount × Inc ^ ((CP - 1) ^ Expo)
+log10(Bonus) = log10(Amount) + ((CP - 1) ^ Expo) × log10(Inc)
+```
+
+Source: `vendor/account-catalog.js` from TT2 8.4
+`EquipmentSetInfo.csv`. Historical community explanation:
+https://gamerch.com/taptitans2/379812 (Crafting & Equipment Set
+Information), which specifically identifies the diminishing CP exponent and
+exceptions such as mythic primary bonuses that do not improve with CP.
+**Game version 8.4 parity remains to be checked against an export and in-game
+set-power values**. The installed 8.4 CSV's `Inc` and `Expo` override old
+hardcoded descriptions.
+
+`src/account-permanent-sets.js` resolves independently:
+- **permanent completed-set ownership** from the unlocked set collection;
+  currently equipped or unsold pieces do NOT establish complete ownership;
+- **Unique equipment** from explicit Unique ownership, an equipped item or
+  present inventory and its game-source EquipmentID -> set mapping. The
+  identity is canonicalized, so one Unique listed in several sources counts
+  **once**;
+- **Crafting Power** from the account export. A conflicting old UI value does
+  not override it; an explicitly supplied value when not exported is marked
+  unverified. If CP is *unknown*, only the guaranteed **CP=1 lower-bound**
+  multiplier from `Amount` is scored and the missing CP boost stays
+  unresolved;
+- **direct damage/gold types** enter the fixed-account score once per
+  source; these are account constants within a given damage/gold combination,
+  not independently multiplied into the marginal score of every talent;
+- **equipment-type boosts** (`SwordBoost`, `HelmetBoost`, `ArmorBoost`,
+  `AuraBoost`, `SlashBoost`, `AllEquipmentEffect`) amplify only the
+  supported primary bonus of the appropriate selected gear. The equipped
+  item's secondary effects do not inherit primary-only multipliers.
+- **all other bonuses** remain evidence with an explicit
+  `conditional-or-additive-set-effect` status, not a guessed damage factor.
+  PerDay rows continue through `src/account-set-bonuses.js` alone.
+
+Additionally, the two source-catalogued `ActivePetLevel` set effects
+(`Samurai` +25% and `Ninetails` / Lucky Fox Saint +10%) now contribute to
+**active**, not passive, pet levels. They are resolved from completed-set
+ownership and do not require retaining equipped pieces. They are *not*
+reinterpreted as an account-wide Pet Damage multiplier.
+
+### Verification
+
+- New `tests/account-permanent-sets.test.js` covers catalog integrity,
+  CP scaling at 1/2/5/9/100/500, no reported CP and lower-bound behavior,
+  conflicting UI versus exported CP, permanent effects after equipment is
+  sold, one-time Unique set ownership, explicit false/unowned sets, direct
+  damage/gold source routing across **18** build combinations, equipment
+  primary versus secondary separation, and Ninetails+Samurai.
+- The account coverage ledger flags unknown CP, truncated owned sets,
+  conflicting CP and conditional set effects. New UI explanations are in
+  EN/FR/UK/RU.
+- All changes remain a **provisional scoring layer** pending a real-player
+  export with detailed CP/set multiplier values and the full Node/browser
+  test suite. There is still no validated stage-gain simulator.
+
+**Still missing:** all conditional/additive set effect chains (including
+`EquipmentSecondaryDamageEffect`, `DamagePerEquipmentSet`, skill class
+effects, spell count, cooldown, crit and GemstoneLevel), fully accurate
+nonlinear hero damage conversions, complete PerDay crafting interactions,
+actual game parity, and cross-build stage calibration. Keep PR #18 DRAFT.

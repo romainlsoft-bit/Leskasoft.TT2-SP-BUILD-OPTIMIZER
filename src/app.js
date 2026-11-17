@@ -1,12 +1,12 @@
-import {SKILLS,SKILL_IDS,BRANCH_NAMES,PRESETS,DAMAGE_TYPES,GOLD_TYPES,GAME_VERSION,parseExport,exportBuild,spentPoints,ownedSetFlags} from "./engine.js?v=20261117-pet-pair-coverage";
-import { t, localizeDocument, SUPPORTED_LANGUAGES } from "./i18n.js?v=20261117-pet-pair-coverage";
+import {SKILLS,SKILL_IDS,BRANCH_NAMES,PRESETS,DAMAGE_TYPES,GOLD_TYPES,GAME_VERSION,parseExport,exportBuild,spentPoints,ownedSetFlags} from "./engine.js?v=20261117-crafting-set-power";
+import { t, localizeDocument, SUPPORTED_LANGUAGES } from "./i18n.js?v=20261117-crafting-set-power";
 import { readClipboardText } from "./clipboard.js";
 import { profileCoverage } from "./account-profile.js";
 import {petLevelEvidence} from "./account-pet-levels.js";
-import {resolveGemstoneEvidence} from "./account-gemstones.js?v=20261117-pet-pair-coverage";
-import {formatLogMultiplier} from "./account-power.js?v=20261117-pet-pair-coverage";
-import {availablePets,recommendPets} from "./pet-scenarios.js?v=20261117-pet-pair-coverage";
-import {bestEquipmentByCategory,EQUIPMENT_CATEGORIES} from "./equipment-scenarios.js?v=20261117-pet-pair-coverage";
+import {resolveGemstoneEvidence} from "./account-gemstones.js?v=20261117-crafting-set-power";
+import {formatLogMultiplier} from "./account-power.js?v=20261117-crafting-set-power";
+import {availablePets,recommendPets} from "./pet-scenarios.js?v=20261117-crafting-set-power";
+import {bestEquipmentByCategory,EQUIPMENT_CATEGORIES} from "./equipment-scenarios.js?v=20261117-crafting-set-power";
 const $=id=>document.getElementById(id);
 let locale="en";
 let lastStatus={message:"Import your account or enter your skill points to begin.",type:"",params:{}};
@@ -360,7 +360,7 @@ function optimize(){
  if(!$("skill-points").value){status("Enter your total Skill Points or import a player export.","error");return;}
  button.disabled=false;button.textContent=tr("Cancel optimization");
  status("Checking prerequisites and calculating the best allocation for the chosen scoring model…");
- worker=new Worker(new URL("./worker.js?v=20261117-pet-pair-coverage",import.meta.url),{type:"module"});
+ worker=new Worker(new URL("./worker.js?v=20261117-crafting-set-power",import.meta.url),{type:"module"});
  worker.onmessage=event=>{
    const data=event.data;
    if(data.progress){
@@ -413,6 +413,26 @@ function renderAccountIntegration(result){
   weapons:knownOrUnknown(coverage.heroWeaponFullSets),
   scrolls:knownOrUnknown(coverage.clanScrollCompleteSets)
  });
+ const permanent=coverage.permanentSetPower;
+ if(permanent?.recognizedSets>0){
+  panel.textContent+=" "+tr(
+   "Permanent sets: {sets} unlocked (including {unique} Unique); {direct} direct bonuses and {gear} equipment-primary boosts calculated using Crafting Power {cp}. These are not a complete damage model.",
+   {sets:numberText(permanent.recognizedSets),
+    unique:numberText(permanent.uniqueOwned||0),
+    direct:numberText(permanent.directEffects||0),
+    gear:numberText(permanent.equipmentEffects||0),
+    cp:permanent.craftingPower?.level===null
+     ?tr("not verifiable from this export")
+     :numberText(permanent.craftingPower.level)}
+  );
+  if(permanent.conservativeCPBaseEffects>0)
+   panel.textContent+=" "+tr(
+    "{count} set multipliers use only their minimum unboosted value because Crafting Power is not confirmed.",
+    {count:numberText(permanent.conservativeCPBaseEffects)});
+  if(permanent.craftingPower?.conflictingSettings)
+   panel.textContent+=" "+tr(
+    "The Crafting Power from the account export overrides a conflicting form value.");
+ }
  const modeled=result.modeledScenario;
  if(modeled){
   panel.textContent+=" "+tr(

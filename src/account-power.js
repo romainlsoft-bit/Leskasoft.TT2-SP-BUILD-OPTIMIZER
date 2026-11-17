@@ -18,10 +18,10 @@ import {clanScrollEvidence} from "./account-scrolls.js";
 import {ARTIFACT_CATALOG} from "../vendor/account-catalog.js";
 import {calculatePermanentArtifactEffects} from "./account-artifacts.js";
 import {resolveMonumentEvidence} from "./account-monuments.js";
-import {petPassiveEvidence} from "./pet-scenarios.js?v=20261117-pet-pair-coverage";
+import {petPassiveEvidence} from "./pet-scenarios.js?v=20261117-crafting-set-power";
 import {artifactDerivedPower} from "./account-artifact-derived.js";
 import {mergeTitanResearch,resourceResearchEvidence} from "./account-research-resources.js?v=20261117-gemstone-integrity";
-import {resolveGemstoneEvidence} from "./account-gemstones.js?v=20261117-pet-pair-coverage";
+import {resolveGemstoneEvidence} from "./account-gemstones.js?v=20261117-crafting-set-power";
 
 const MAX_LEVEL=100000;
 const DIRECT_DAMAGE_TYPES=Object.freeze({

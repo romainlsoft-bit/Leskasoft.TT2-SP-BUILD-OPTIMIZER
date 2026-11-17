@@ -5,6 +5,9 @@ export const SUPPORTED_LANGUAGES = ["en","fr","uk","ru"];
 export const NATIVE_LANGUAGE_NAMES = {en:"English",fr:"Français",uk:"Українська",ru:"Русский"};
 export const translations = {
 fr:{
+ "Permanent sets: {sets} unlocked (including {unique} Unique); {direct} direct bonuses and {gear} equipment-primary boosts calculated using Crafting Power {cp}. These are not a complete damage model.":"Sets permanents : {sets} débloqués (dont {unique} Unique) ; {direct} bonus directs et {gear} amplifications d'équipements calculés avec le Crafting Power {cp}. Ce n'est pas un modèle complet des dégâts.",
+ "{count} set multipliers use only their minimum unboosted value because Crafting Power is not confirmed.":"{count} multiplicateurs de sets utilisent uniquement leur valeur minimale non amplifiée, car le Crafting Power n'est pas confirmé.",
+ "The Crafting Power from the account export overrides a conflicting form value.":"Le Crafting Power de l'export du compte prévaut sur la valeur contradictoire du formulaire.",
  "Pet comparison has not converged: the selected pair is provisional. Current SP investments remain protected.":"La comparaison des familiers n’a pas convergé : la paire retenue est provisoire. Les SP actuels restent protégés.",
  "Equipment inventory is truncated: automatic gear ranking was disabled. Scores are incomplete.":"Inventaire d’équipement tronqué : le classement automatique est désactivé. Les scores sont incomplets.",
  "Incomplete equipment inventory: automatic gear selection is disabled.":"Inventaire d’équipement incomplet : la sélection automatique est désactivée.",
@@ -225,6 +228,9 @@ fr:{
  "Free Tap Titans 2 skill tree optimizer for TT2 8.4. Optimize skill points for Clan Ship, Pet, Shadow Clone, Heavenly Strike, Dagger or Gold Gun. Import game data or configure manually.":"Optimiseur gratuit de compétences Tap Titans 2 version 8.4. Import des données ou configuration manuelle pour tous les types de builds."
 },
 uk:{
+ "Permanent sets: {sets} unlocked (including {unique} Unique); {direct} direct bonuses and {gear} equipment-primary boosts calculated using Crafting Power {cp}. These are not a complete damage model.":"Постійні комплекти: відкрито {sets} (з них {unique} унікальних); розраховано {direct} прямих бонусів і {gear} підсилень основних ефектів спорядження за Crafting Power {cp}. Це не повна модель шкоди.",
+ "{count} set multipliers use only their minimum unboosted value because Crafting Power is not confirmed.":"{count} множників комплектів враховують лише мінімальне значення без підсилення, оскільки Crafting Power не підтверджено.",
+ "The Crafting Power from the account export overrides a conflicting form value.":"Значення Crafting Power з експорту акаунта має пріоритет над суперечливим значенням у формі.",
  "Pet comparison has not converged: the selected pair is provisional. Current SP investments remain protected.":"Порівняння улюбленців не збіглося: вибрана пара попередня. Поточні вкладення SP залишаються захищеними.",
  "Equipment inventory is truncated: automatic gear ranking was disabled. Scores are incomplete.":"Інвентар спорядження обрізано: автоматичне ранжування вимкнено. Оцінки неповні.",
  "Incomplete equipment inventory: automatic gear selection is disabled.":"Неповний інвентар спорядження: автоматичний вибір вимкнено.",
@@ -395,6 +401,9 @@ uk:{
  "Free Tap Titans 2 skill tree optimizer for TT2 8.4. Optimize skill points for Clan Ship, Pet, Shadow Clone, Heavenly Strike, Dagger or Gold Gun. Import game data or configure manually.":"Безкоштовний оптимізатор дерева навичок Tap Titans 2 версії 8.4. Імпорт даних або ручне налаштування для всіх збірок."
 },
 ru:{
+ "Permanent sets: {sets} unlocked (including {unique} Unique); {direct} direct bonuses and {gear} equipment-primary boosts calculated using Crafting Power {cp}. These are not a complete damage model.":"Постоянные комплекты: открыто {sets} (в том числе {unique} уникальных); рассчитано {direct} прямых бонусов и {gear} усилений основных эффектов экипировки с Crafting Power {cp}. Это не полная модель урона.",
+ "{count} set multipliers use only their minimum unboosted value because Crafting Power is not confirmed.":"{count} множителей комплектов учитываются лишь по минимальному значению без усиления, поскольку Crafting Power не подтверждён.",
+ "The Crafting Power from the account export overrides a conflicting form value.":"Значение Crafting Power из экспорта аккаунта имеет приоритет над противоречащим значением формы.",
  "Pet comparison has not converged: the selected pair is provisional. Current SP investments remain protected.":"Сравнение питомцев не сошлось: выбранная пара предварительная. Текущие вложения SP остаются защищёнными.",
  "Equipment inventory is truncated: automatic gear ranking was disabled. Scores are incomplete.":"Инвентарь экипировки обрезан: автоматический подбор отключён. Оценки неполные.",
  "Incomplete equipment inventory: automatic gear selection is disabled.":"Неполный инвентарь экипировки: автоматический выбор отключён.",
