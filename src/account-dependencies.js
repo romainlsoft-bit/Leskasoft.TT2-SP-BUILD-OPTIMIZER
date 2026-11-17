@@ -47,7 +47,7 @@ export function accountDependencyGraph(profile){
  const heroWeapons=heroWeaponEvidence(profile);
  const clanScrolls=clanScrollEvidence(profile);
  const uniqueOwned=new Set((profile?.sections?.uniqueEquipment?.records||[]).map(x=>String(x.id)));
- for(const id of profile?.ownedSetIds||[]){
+ for(const id of new Set(profile?.ownedSetIds||[])){
   const data=byName(EQUIPMENT_SET_CATALOG,id);
   if(!data){unknown.push({system:"set",id,reason:"not-in-dataset"});continue;}
   if(data.type==="Unique")uniqueOwned.add(data.id);

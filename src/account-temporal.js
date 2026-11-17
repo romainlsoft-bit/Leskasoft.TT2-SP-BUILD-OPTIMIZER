@@ -36,8 +36,15 @@ export function resolveSetCompletionDates(profile,at=new Date()){
  const result=Object.create(null);
  const sets=profile?.sections?.equipmentSets?.records||[];
  const equipment=profile?.sections?.equipmentInventory?.records||[];
+ const examined=new Set();
  for(const row of sets){
   const id=String(row.id);
+  if(examined.has(id))continue;
+  examined.add(id);
+  const matches=sets.filter(item=>String(item.id)===id);
+  const directDates=[...new Map(matches.filter(item=>item.completedAt)
+   .map(item=>[epoch(item.completedAt),item.completedAt])).values()];
+  const multipleDates=directDates.length>1;
   const pieces=equipment.filter(piece=>String(piece.setId??"")===id);
   const slots=new Map();
   let allDated=true;
@@ -49,8 +56,8 @@ export function resolveSetCompletionDates(profile,at=new Date()){
   }
   const five=allDated&&pieces.length>=5&&SLOTS.every(s=>slots.has(s));
   const derived=five?new Date(Math.max(...SLOTS.map(s=>slots.get(s)))).toISOString():null;
-  const direct=row.completedAt||null;
-  const conflict=direct&&derived&&epoch(direct)!==epoch(derived);
+  const direct=multipleDates?null:directDates[0]||null;
+  const conflict=multipleDates||Boolean(direct&&derived&&epoch(direct)!==epoch(derived));
   const completedAt=conflict?null:derived||direct;
   const days=ageOf(completedAt,now);
   result[id]={completedAt:days===null?null:completedAt,days,
