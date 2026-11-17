@@ -40,6 +40,13 @@
 - For monuments, official DevLog #231 declares season 13 categories Celestial/Viper/Arcanas. These override stale `IsActive` values in older TT2_CSV snapshots, preventing Pirate seasonal bonuses from leaking into season 13. If the season cannot be matched to a verified category calendar, the bonus may be inspected but **never scored**.
 - Missing enchantment status is **not treated as unenchanted** for items whose EnchantmentMagnitude differs from 1; the main numerical score is withheld pending an explicit export field. Boolean enchantment flags are normalized before computing their effects.
 
+## Additive damage pools — separate diagnostic computations
+
+- DamageBonus in ArtifactInfo.csv is preserved for all 103 artifacts. The historical TT2Master code uses `DamageBonus * Level` for artifact damage.
+- EndgameSeasonArtifactInfo.csv exposes DamageBonus and DamageExpo for monuments. A separate diagnostic computes `DamageBonus * Level^DamageExpo` with logarithmic summation, respecting official season eligibility; Game Hive confirms Monument Damage stacks **additively**, not by multiplying each monument.
+- Raw `EnchantmentMult` is retained separately from `EnchantmentMagnitude`. The only row whose two fields materially differ is SeasonalArtifact34 (Temperance Training Ground: 10 versus 1e20). We calculate a possible enchanted additive pool but do **not** inject it into the score until its exact stacking/interactions are confirmed in game.
+- All calculations remain stable for huge scientific levels. Missing enchant status is not guessed.
+
 ## Clan Scrolls and spell level caps (not yet complete)
 
 - ClanScrollInfo.csv (18 types) is imported without inferring individual levels from aggregate stats. Raw non-additive multipliers are in log10. When all 18 scroll levels are explicitly available, complete-set amplification is applied: first set +5%, each additional set +10%; multiplicative scroll bonus raised to (1+setBoostPercent). See https://tap-titans-2.fandom.com/wiki/Heroes (Clan Scrolls, post 6.5). Additive scrolls, Quill of Scrolls, Old King’s Stamp, ScrollTutor and ScrollMaster remain unmodeled.
