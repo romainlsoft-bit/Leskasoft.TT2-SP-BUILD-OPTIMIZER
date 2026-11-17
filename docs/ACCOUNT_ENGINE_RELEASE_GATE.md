@@ -20,6 +20,13 @@
 - **Unique equipment**: possession is distinct from equipment currently worn. Detect ownership of Unique items in the export; don't make permanent effects disappear on unequip. Numerical bonus is unverified for now.
 - An ignored effect means **unknown in-game contribution**, not zero in-game power. Never present the proxy as an absolute damage model.
 
+## Clan Scrolls and spell level caps (not yet complete)
+
+- ClanScrollInfo.csv (18 types) is imported without inferring individual levels from aggregate stats. Raw non-additive scroll multipliers are in log10. Additive scrolls, ScrollTutor, ScrollMaster and completed-set amplification remain unmodeled.
+- Active spells have base cap 30 (not 29). Fallen Angel gives +5 and four tier-five skills each give up to +5 to their own spell families. The input assumption is spells active and at max when Max Stage >= 15,000.
+- The available source is A0..A39; capped at 40, the value for A40 must not be extrapolated. Full spell modeling needs a verified level 40 value.
+- Perks are intentionally out of scope.
+
 ## Must be completed **before** public release
 
 - [ ] Validate actual export field names and nested structures with anonymized full TT2 8.4 account exports, including seasonal monuments, research, equipped gear, exotic and transcendent pets.
@@ -32,6 +39,7 @@
 - [ ] Validate all Hero Weapon collection/level multipliers, Unique equipment permanent effects, and time-based set/monument formulas against complete TT2 exports; uncomputable effects remain omitted.
 - [ ] Run full Node test suite and browser tests for import, calculators, language changes and small-screen layout.
 - [ ] Run benchmark on 22,600+ SP with account context, and confirm cache invalidation avoids full recomputation for unchanged branches.
+- [ ] Verify level-40 spell values, cap-dependent skill interactions and scroll-set/amplification formulas against complete exports.
 - [ ] Final code review (source formulas / no hidden assumptions / PII / numerical precision) and manual approval.
 
 ## Mathematical rule

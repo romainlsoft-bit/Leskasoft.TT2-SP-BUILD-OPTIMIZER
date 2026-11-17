@@ -14,6 +14,7 @@
  * required for absolute context and later *validated* cross-build ranking.
  */
 import {ACCOUNT_SCALING} from "../vendor/account-scaling.js";
+import {clanScrollEvidence} from "./account-scrolls.js";
 
 const MAX_LEVEL=100000;
 const KNOWN_MULTIPLIER=/^[A-Za-z][A-Za-z0-9_]*:([+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[Ee][+-]?\d+)?)$/;
@@ -99,6 +100,12 @@ export function extractFixedAccountPower(profile){
  const titanResearch=sections.titanResearch?.present?from("titanResearch"):from("forbiddenResearch");
  findResearchRows(titanResearch,"titanResearch",entries,unsupported);
  addGemstoneValues(from("gemstones"),entries,unsupported);
+ const scrolls=clanScrollEvidence(profile);
+ for(const row of scrolls.entries){
+  if(row.log10===null){unsupported.push({system:"clanScrolls",id:row.id,reason:"additive-unverified"});continue;}
+  entries.push({system:"clanScrolls",id:row.id,bonusType:row.bonusType,level:row.level,log10:row.log10});
+ }
+ for(const row of scrolls.unknown)unsupported.push({system:"clanScrolls",...row});
  const byType={};
  for(const entry of entries)byType[entry.bonusType]=(byType[entry.bonusType]||0)+entry.log10;
  const value={available:entries.length>0,byType,entries,unsupported,
