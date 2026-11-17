@@ -186,6 +186,8 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
     spellCaps,
     accountIntegration:{
       timedSetPower:{calculated:timed.calculated,applied:timed.applied,omitted:timed.omitted},
+      uniqueOwnedCount:dependencyReport.uniqueEquipment.ownedCount,
+      uniquePermanentBonusesModeled:false,
       heroWeaponFullSets:dependencyReport.heroWeapons.completeSets,
       heroWeaponMissingIds:dependencyReport.heroWeapons.missingHeroes,
       clanScrollLevels:dependencyReport.clanScrolls.totalLevels,

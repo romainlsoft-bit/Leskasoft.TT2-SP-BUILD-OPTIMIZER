@@ -13,6 +13,8 @@ import {resolveSpellCaps,spellCapBonus,spellTableIndex} from "../src/spell-caps.
 import {extractTimedSetPower} from "../src/account-set-bonuses.js";
 import {spellInfo} from "../vendor/spells.js";
 import {optimizeBuild} from "../src/engine.js";
+import {resolveUniqueOwnership} from "../src/account-unique.js";
+import {UNIQUE_EQUIPMENT_TO_SET} from "../vendor/unique-equipment.js";
 
 const fixture=()=>parseAccountProfile({
  Version:"8.4.0",playerName:"HIDDEN",accountId:"PRIVATE",
@@ -318,4 +320,33 @@ test("a duplicate Clan Scroll cannot be scored or complete a full scroll set",()
  assert.equal(evidence.setBonusPercent,null);
  assert.equal(evidence.entries.some(x=>x.id===CLAN_SCROLLS[0].id),false);
  assert.equal(extractFixedAccountPower(p).entries.some(x=>x.system==="clanScrolls"&&x.id===CLAN_SCROLLS[0].id),false);
+});
+
+test("all 20 Unique IDs remain owned regardless of equipped selection",()=>{
+ assert.equal(Object.keys(UNIQUE_EQUIPMENT_TO_SET).length,20);
+ const p=parseAccountProfile({
+  equipmentInventory:[{id:"Weapon_AlphaHeart"},{id:"Hat_ElderSnow",setId:"ElderSnow"}],
+  equippedEquipment:{Slash:{Id:"Slash_Kronus",Level:10}},
+  uniqueEquipment:["Weapon_Maple","non-unique"],
+  equipmentSets:["ElderSnow"]
+ });
+ const u=resolveUniqueOwnership(p);
+ assert.deepEqual(u.ownedIds,["AlphaHeart","ElderSnow","Kronus","Maple"]);
+ assert.deepEqual(u.sourceBySet.Kronus,["equippedGear"]);
+ assert.deepEqual(u.sourceBySet.ElderSnow,["completed-sets","equipmentInventory"]);
+ assert.equal(u.permanentBonusesModeled,false);
+ assert.equal(p.sections.equippedGear.records[0].id,"Slash_Kronus");
+ assert.equal(p.sections.equippedGear.records[0].slot,"Slash");
+ const graph=accountDependencyGraph(p);
+ assert.deepEqual(graph.uniquePermanentOwnership,u.ownedIds);
+ assert.equal(graph.uniqueEquipment.ownedCount,4);
+ assert.equal(graph.unmodeledEffects,4);
+});
+test("unrecognized equipment cannot create a fictitious Unique bonus",()=>{
+ const fake=parseAccountProfile({equipmentInventory:[{id:"Weapon_Imaginary",setId:"NotReal"}]});
+ assert.equal(resolveUniqueOwnership(fake).ownedCount,0);
+ assert.equal(accountDependencyGraph(fake).unmodeledEffects,0);
+ const real=parseAccountProfile({equipmentInventory:[{id:"Weapon_AlphaHeart"}]});
+ assert.deepEqual(resolveUniqueOwnership(real).ownedIds,["AlphaHeart"]);
+ assert.equal(accountDependencyGraph(real).unmodeledEffects,1);
 });
