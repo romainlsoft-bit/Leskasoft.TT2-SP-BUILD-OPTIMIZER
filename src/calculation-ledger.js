@@ -67,6 +67,8 @@ export function modeledScenarioCoverage(result,settings,gearSelection={}){
  if(heroHelmetClassKnown)gaps.push("hero-helmet-effect-unmodeled");
  if(hero?.unresolved?.length)gaps.push("unverified-hero-progression-interactions");
  if(scroll?.truncated)gaps.push("truncated-clan-scroll-export");
+ if(scroll?.boostStackComplete===false)gaps.push("unverified-clan-scroll-amplifier-stack");
+ if(hero?.worldshaper?.owned)gaps.push("unmodeled-worldshaper");
  if(scroll?.recognized>0&&!scroll?.completeRoster)
   gaps.push("unverified-clan-scroll-set-count");
  if(!inventoryPresent)gaps.push("missing-equipment-inventory");

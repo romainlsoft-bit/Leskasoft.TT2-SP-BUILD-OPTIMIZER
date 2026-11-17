@@ -100,17 +100,19 @@ export function extractFixedAccountPower(profile){
  for(const row of gemstoneEvidence.entries)
   if(row.route!=="unresolved")entries.push(row);
  for(const row of gemstoneEvidence.unknown)unsupported.push(row);
- const scrolls=clanScrollEvidence(profile);
+ const artifactEffects=calculatePermanentArtifactEffects(profile,ARTIFACT_CATALOG);
+ const scrolls=clanScrollEvidence(profile,artifactEffects);
  for(const row of scrolls.entries){
   if(row.log10===null){unsupported.push({system:"clanScrolls",id:row.id,reason:"additive-unverified"});continue;}
   entries.push({system:"clanScrolls",id:row.id,bonusType:row.bonusType,level:row.level,
    log10:row.setBoostedLog10??row.log10,setBoostModeled:scrolls.setBoostModeled,
-   rawLog10:row.log10,setBonusPercent:scrolls.setBonusPercent});
+   rawLog10:row.log10,setBonusPercent:scrolls.setBonusPercent,
+   boostedSetBonusPercent:scrolls.enhancedSetBonusPercent,
+   scrollAmplifiersModeled:row.scrollArtifactBoostModeled});
  }
  for(const row of scrolls.unknown)unsupported.push({system:"clanScrolls",...row});
  // Main effects of permanent artifacts and season-eligible monuments are
  // independent from separate additive artifact/monument damage pools.
- const artifactEffects=calculatePermanentArtifactEffects(profile,ARTIFACT_CATALOG);
  for(const row of artifactEffects.entries){
   if(row.appliedToScore)entries.push({system:"artifacts",id:row.id,
    bonusType:row.bonusType,level:row.level,enchanted:row.enchanted,log10:row.log10});
@@ -182,7 +184,10 @@ export function extractFixedAccountPower(profile){
   heroProgression,
   clanScrollPower:{recognized:scrolls.entries.length,completeRoster:scrolls.completeRoster,
    completeSets:scrolls.fullSets,unknown:scrolls.unknown.length,
-   truncated:scrolls.truncated,additionalAmplifiersScored:false,complete:false},
+   truncated:scrolls.truncated,additionalAmplifiersScored:scrolls.boostsModeled,
+   quill:scrolls.quill,stamp:scrolls.stamp,scrollTutor:scrolls.scrollTutor,
+   boostStackComplete:scrolls.boostStackComplete,
+   enhancedSetBonusPercent:scrolls.enhancedSetBonusPercent,complete:false},
   gemstones:{present:gemstoneEvidence.present,
    recorded:gemstoneEvidence.recorded,recognized:gemstoneEvidence.recognized,
    duplicateMirrors:gemstoneEvidence.duplicateMirrors,

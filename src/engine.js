@@ -3,7 +3,7 @@ import { baseline } from "../vendor/qol-baseline.js";
 import { optimizeExact } from "./solver-core.js";
 import { scoreAtLevel } from "./effects.js?v=20261117-artifact-interactions";
 import { parseAccountProfile } from "./account-profile.js";
-import {extractFixedAccountPower,fixedAccountScore} from "./account-power.js?v=20261117-hero-classes";
+import {extractFixedAccountPower,fixedAccountScore} from "./account-power.js?v=20261117-hero-scroll-l";
 import {accountDependencyGraph} from "./account-dependencies.js?v=20261117-monument-pools";
 import {resolveSpellCaps} from "./spell-caps.js";
 import {extractTimedSetPower} from "./account-set-bonuses.js";
@@ -287,8 +287,12 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
         invalidLevels:power.heroProgression?.weapons?.invalidLevels??0,
         duplicateIds:power.heroProgression?.weapons?.duplicates?.length??0,
         baseSetLog10:power.heroProgression?.baseSetLog10??null,
+        weaponSetFactor:power.heroProgression?.setFactor??null,
+        individualWeaponFactor:power.heroProgression?.individualFactor??null,
         baseHeroDamageUnreduced:true,
         ringing:power.heroProgression?.ringing??null,
+        mythicSmith:power.heroProgression?.mythicSmith??null,
+        worldshaper:power.heroProgression?.worldshaper??null,
         morgelai:power.heroProgression?.morgelai??null,
         strongest:power.heroProgression?.strongest??null,
         individualWeaponRows:power.heroProgression?.individual??[],
@@ -296,7 +300,8 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
         baseBonusScored:(power.heroProgression?.entries?.length||0)>0,
         boosters:power.heroProgression?.artifactBoosters||[],
         unresolved:power.heroProgression?.unresolved||[],
-        individualWeaponsScored:false,amplifiersScored:false,complete:false
+        individualWeaponsScored:false,
+        amplifiersScored:power.heroProgression?.amplifiersScored===true,complete:false
        },
        clanScrollPower:power.clanScrollPower,
        heroWeaponFullSets:dependencyReport.heroWeapons.completeSets,
