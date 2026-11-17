@@ -92,7 +92,7 @@ export function accountDependencyGraph(profile){
   ignoredTimedEffects:timedSetPower.omitted,
   timedSetPower:{calculated:timedSetPower.calculated,applied:timedSetPower.applied,omitted:timedSetPower.omitted},
   ready:false,unmodeledEffects:
-   sets.reduce((sum,x)=>sum+x.effects.length,0)+artifacts.length,
+   sets.reduce((sum,x)=>sum+x.effects.length,0)+artifacts.length-timedSetPower.applied,
   warning:"Source catalog and dependency order are known; numerical effect formulas and stacking are not fully validated."};
 }
 

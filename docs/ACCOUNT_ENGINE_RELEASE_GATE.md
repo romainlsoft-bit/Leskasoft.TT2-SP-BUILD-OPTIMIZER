@@ -10,6 +10,7 @@
 - Fixed account bonuses are combined in log10 space for known *explicit* damage/gold types. They are not optimization variables; changing SP does not recompute fixed data.
 - Typed dependency DAG covers fixed inventory, owned sets, artifact effects, equipment-granted levels, effective gemstones, heroes, pets, effective equipment and skill effects. Recursive invalidation and cycle detection are tested.
 - Incomplete effects are explicitly reported, not assigned estimated coefficients. This is a first layer of the account power engine, not a validated stage simulator.
+- Account import coverage labels all 16 allowlisted sections in EN/FR/UK/RU; the diagnostic subtracts already-scored PerDay effects from the unresolved-effect count and distinguishes complete Hero Weapon/Clan Scroll sets.
 
 ## Time-dependent effects, owned Unique items and Hero Weapons
 
