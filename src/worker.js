@@ -1,5 +1,6 @@
 import {optimizeBuild} from "./engine.js?v=20261117-pet-gemstone-chain";
-import {recommendPets,petScenarioScore} from "./pet-scenarios.js?v=20261117-pet-gemstone-chain";
+import {recommendPets} from "./pet-scenarios.js?v=20261117-pet-gemstone-chain";
+import {calculateModeledScenario} from "./calculation-ledger.js";
 import {bestEquipmentByCategory,gearSelectionEffects} from "./equipment-scenarios.js?v=20261117-pet-gemstone-chain";
 
 // One worker, one cache. The solver checks per-branch score and constraint
@@ -32,10 +33,11 @@ self.onmessage=event=>{
      const result=optimizeBuild(context,undefined,cache);
      completed++;
      self.postMessage({progress:{phase:"pet-scenarios",completed,total}});
+     const modeledScenario=calculateModeledScenario(result,context,selection);
      return {slot,damagePet:d?.id||null,goldPet:g?.id||null,
       damageName:d?.name||"",goldName:g?.name||"",
-      adjustedScore:result.accountAdjustedScore+petScenarioScore(context,0)+selection.independentScore,
-      result};
+      adjustedScore:modeledScenario.totalLog10,
+      result:{...result,modeledScenario}};
     };
     const damageResults=damage.map(p=>evaluate(p,"damage"));
     if(damageResults.length){
@@ -55,7 +57,8 @@ self.onmessage=event=>{
    }
   }
   const result=optimizeBuild(gearContext,progress=>self.postMessage({progress}),cache);
-  self.postMessage({ok:true,result,selectedPets:{
+  const modeledScenario=calculateModeledScenario(result,gearContext,selection);
+  self.postMessage({ok:true,result:{...result,modeledScenario},selectedPets:{
     damage:settings.selectedDamagePet||null,gold:settings.selectedGoldPet||null
    },petComparisons:{damage:[],gold:[]},equipment,gearSelection:selection});
  }catch(error){

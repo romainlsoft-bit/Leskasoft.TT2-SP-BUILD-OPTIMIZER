@@ -5,6 +5,7 @@ export const SUPPORTED_LANGUAGES = ["en","fr","uk","ru"];
 export const NATIVE_LANGUAGE_NAMES = {en:"English",fr:"Français",uk:"Українська",ru:"Русский"};
 export const translations = {
 fr:{
+ "Modeled log10 score: skills {skills}, account {account}, equipped gear {gear}, active pets above passive {pets}; combined {total}. Not predicted stages.":"Score log10 modélisé : compétences {skills}, compte {account}, équipements portés {gear}, familiers actifs au-delà des passifs {pets} ; total {total}. Ce n’est pas une prévision de stages.",
  "Gemstone effects: {direct} direct, {equipment} equipment and {pets} pet-amplifier bonuses recognized; {unresolved} unresolved. Research-granted levels are not multiplied again into exported effects.":"Effets des gemstones : {direct} bonus directs, {equipment} bonus d’équipement et {pets} amplificateurs de familiers reconnus ; {unresolved} non résolus. Les niveaux obtenus par recherche ne sont pas remultipliés dans les effets exportés.",
  "Pet import warning: {count} invalid, conflicting or unknown pet records were excluded from calculations.":"Import des familiers : {count} entrées invalides, contradictoires ou inconnues ont été exclues des calculs.",
  "Guide to bonuses and imports":"Guide des bonus et de l’import",
@@ -219,6 +220,7 @@ fr:{
  "Free Tap Titans 2 skill tree optimizer for TT2 8.4. Optimize skill points for Clan Ship, Pet, Shadow Clone, Heavenly Strike, Dagger or Gold Gun. Import game data or configure manually.":"Optimiseur gratuit de compétences Tap Titans 2 version 8.4. Import des données ou configuration manuelle pour tous les types de builds."
 },
 uk:{
+ "Modeled log10 score: skills {skills}, account {account}, equipped gear {gear}, active pets above passive {pets}; combined {total}. Not predicted stages.":"Змодельований показник log10: навички {skills}, акаунт {account}, спорядження {gear}, активні улюбленці понад пасивні бонуси {pets}; разом {total}. Це не прогноз етапів.",
  "Gemstone effects: {direct} direct, {equipment} equipment and {pets} pet-amplifier bonuses recognized; {unresolved} unresolved. Research-granted levels are not multiplied again into exported effects.":"Ефекти gemstones: розпізнано {direct} прямих бонусів, {equipment} бонусів спорядження та {pets} підсилень улюбленців; {unresolved} невизначених. Рівні з досліджень не додаються повторно до експортованих множників.",
  "Pet import warning: {count} invalid, conflicting or unknown pet records were excluded from calculations.":"Імпорт улюбленців: {count} недійсних, суперечливих або невідомих записів виключено з обчислень.",
  "Guide to bonuses and imports":"Посібник із бонусів та імпорту",
@@ -383,6 +385,7 @@ uk:{
  "Free Tap Titans 2 skill tree optimizer for TT2 8.4. Optimize skill points for Clan Ship, Pet, Shadow Clone, Heavenly Strike, Dagger or Gold Gun. Import game data or configure manually.":"Безкоштовний оптимізатор дерева навичок Tap Titans 2 версії 8.4. Імпорт даних або ручне налаштування для всіх збірок."
 },
 ru:{
+ "Modeled log10 score: skills {skills}, account {account}, equipped gear {gear}, active pets above passive {pets}; combined {total}. Not predicted stages.":"Расчётный показатель log10: навыки {skills}, аккаунт {account}, экипировка {gear}, активные питомцы сверх пассивных бонусов {pets}; всего {total}. Это не прогноз этапов.",
  "Gemstone effects: {direct} direct, {equipment} equipment and {pets} pet-amplifier bonuses recognized; {unresolved} unresolved. Research-granted levels are not multiplied again into exported effects.":"Эффекты gemstones: распознано {direct} прямых бонусов, {equipment} бонусов экипировки и {pets} усилений питомцев; {unresolved} не определены. Уровни исследований не добавляются повторно к экспортированным множителям.",
  "Pet import warning: {count} invalid, conflicting or unknown pet records were excluded from calculations.":"Импорт питомцев: {count} недопустимых, противоречивых или неизвестных записей исключено из расчётов.",
  "Guide to bonuses and imports":"Руководство по бонусам и импорту",
