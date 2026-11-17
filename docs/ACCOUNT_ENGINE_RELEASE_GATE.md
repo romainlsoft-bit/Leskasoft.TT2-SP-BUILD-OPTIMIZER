@@ -47,6 +47,14 @@
 - Raw `EnchantmentMult` is retained separately from `EnchantmentMagnitude`. The only row whose two fields materially differ is SeasonalArtifact34 (Temperance Training Ground: 10 versus 1e20). We calculate a possible enchanted additive pool but do **not** inject it into the score until its exact stacking/interactions are confirmed in game.
 - All calculations remain stable for huge scientific levels. Missing enchant status is not guessed.
 
+## Gemstones and Titan Souls — utility research integrated
+
+- TT2 8.4 has **169 GemstoneLevel research nodes**. All 169 have `BaseEffect=0`, `EffectPerLevel=1`, `GrowthExpo=0`, `MaxLevel=30`: the bonus contributed by an explicitly purchased node is +1 gemstone level per research level. Imported purchases are now summed without assuming missing nodes are zero. Any unknown/duplicate/out-of-range purchase is excluded.
+- TT2 8.4 Titan Research contains **62 Titan Soul utility nodes**: 27 `TitanSoulsChance` (+0.002 raw fractional chance per purchased level), 21 `TitanSoulsPerDay` and 14 `TitanSoulsPerPrestige` (source-specific additive increments). Balances and lifetime spent souls are preserved as strings. Raw bonus increments are **not** a prediction of total souls generated or a damage multiplier; the game's base earnings, chance caps and daily accrual are not yet modeled.
+- The `titanResearch`/`forbiddenResearch` export sections are merged by node ID and purchased level, without losing disjoint nodes or double-counting mirrored nodes. Duplicate IDs in the same section and inconsistent levels across sections are rejected for **both** numerical research scoring and utility ledgers.
+- The 8.0 Gemstone rework has fixed gemstone effects. The bonus levels from Mystic Research are intentionally **not added on top of explicit exported gemstone multipliers** because those values may already include the upgrade; the source GemstoneBonusTypeScalingInfo.csv contains 46 gemstone bonus families, but effective-level scaling and item-level boosts still require gameplay verification. We retain the extra research levels separately rather than invent damage from them.
+- Data provenance: https://github.com/rawrzcookie/TT2_CSV/tree/main/csv, `GemstoneResearchInfo.csv`, `TitanResearchInfo.csv`, `GemstoneBonusTypeScalingInfo.csv`.
+
 ## Clan Scrolls and spell level caps (not yet complete)
 
 - ClanScrollInfo.csv (18 types) is imported without inferring individual levels from aggregate stats. Raw non-additive multipliers are in log10. When all 18 scroll levels are explicitly available, complete-set amplification is applied: first set +5%, each additional set +10%; multiplicative scroll bonus raised to (1+setBoostPercent). See https://tap-titans-2.fandom.com/wiki/Heroes (Clan Scrolls, post 6.5). Additive scrolls, Quill of Scrolls, Old King’s Stamp, ScrollTutor and ScrollMaster remain unmodeled.

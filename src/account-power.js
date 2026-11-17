@@ -18,6 +18,7 @@ import {clanScrollEvidence} from "./account-scrolls.js";
 import {ARTIFACT_CATALOG} from "../vendor/account-catalog.js";
 import {calculatePermanentArtifactEffects} from "./account-artifacts.js";
 import {resolveMonumentEvidence} from "./account-monuments.js";
+import {mergeTitanResearch,resourceResearchEvidence} from "./account-research-resources.js";
 
 const MAX_LEVEL=100000;
 const KNOWN_MULTIPLIER=/^[A-Za-z][A-Za-z0-9_]*:([+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[Ee][+-]?\d+)?)$/;
@@ -106,10 +107,11 @@ export function extractFixedAccountPower(profile){
  const from=key=>sections[key]?.records||[];
  findResearchRows(from("mysticResearch"),"gemstoneResearch",entries,unsupported);
  findResearchRows(from("titanCards"),"titanCards",entries,unsupported);
- // This research can be exported as either TitanResearch or ForbiddenResearch.
- // Prefer the explicit collection; never apply the same nodes twice.
- const titanResearch=sections.titanResearch?.present?from("titanResearch"):from("forbiddenResearch");
- findResearchRows(titanResearch,"titanResearch",entries,unsupported);
+ // Both export aliases may contain different nodes, or mirror the same
+ // purchases. Reconcile without choosing one partial tree over the other.
+ const titanResearch=mergeTitanResearch(profile);
+ findResearchRows(titanResearch.records,"titanResearch",entries,unsupported);
+ for(const row of titanResearch.unknown)unsupported.push(row);
  addGemstoneValues(from("gemstones"),entries,unsupported);
  const scrolls=clanScrollEvidence(profile);
  for(const row of scrolls.entries){
@@ -143,6 +145,7 @@ export function extractFixedAccountPower(profile){
   complete:false,
   artifactEffects:{recognized:artifactEffects.recognized,computed:artifactEffects.computed,
    scored:artifactEffects.scored,duplicateRecords:artifactEffects.duplicateRecords},
+  researchResources:resourceResearchEvidence(profile),
   monumentEffects:{recognized:monuments.recognized,
    computed:monuments.computed||0,scored:monuments.modeled||0}};
  cache.set(profile,value);
