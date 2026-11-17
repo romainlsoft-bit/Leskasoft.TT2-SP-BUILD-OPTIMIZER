@@ -1,12 +1,12 @@
-import {SKILLS,SKILL_IDS,BRANCH_NAMES,PRESETS,DAMAGE_TYPES,GOLD_TYPES,GAME_VERSION,parseExport,exportBuild,spentPoints,ownedSetFlags} from "./engine.js?v=20261117-hero-scroll-m";
-import { t, localizeDocument, SUPPORTED_LANGUAGES } from "./i18n.js?v=20261117-hero-scroll-m";
+import {SKILLS,SKILL_IDS,BRANCH_NAMES,PRESETS,DAMAGE_TYPES,GOLD_TYPES,GAME_VERSION,parseExport,exportBuild,spentPoints,ownedSetFlags} from "./engine.js?v=20261118-spell-mana-n";
+import { t, localizeDocument, SUPPORTED_LANGUAGES } from "./i18n.js?v=20261118-spell-mana-n";
 import { readClipboardText } from "./clipboard.js";
-import { profileCoverage } from "./account-profile.js";
+import { profileCoverage } from "./account-profile.js?v=20261118-spell-mana-n";
 import {petLevelEvidence} from "./account-pet-levels.js";
-import {resolveGemstoneEvidence} from "./account-gemstones.js?v=20261117-hero-scroll-m";
-import {formatLogMultiplier} from "./account-power.js?v=20261117-hero-scroll-m";
-import {availablePets,recommendPets} from "./pet-scenarios.js?v=20261117-hero-scroll-m";
-import {bestEquipmentByCategory,EQUIPMENT_CATEGORIES} from "./equipment-scenarios.js?v=20261117-hero-scroll-m";
+import {resolveGemstoneEvidence} from "./account-gemstones.js?v=20261118-spell-mana-n";
+import {formatLogMultiplier} from "./account-power.js?v=20261118-spell-mana-n";
+import {availablePets,recommendPets} from "./pet-scenarios.js?v=20261118-spell-mana-n";
+import {bestEquipmentByCategory,EQUIPMENT_CATEGORIES} from "./equipment-scenarios.js?v=20261118-spell-mana-n";
 const $=id=>document.getElementById(id);
 let locale="en";
 let lastStatus={message:"Import your account or enter your skill points to begin.",type:"",params:{}};
@@ -360,7 +360,7 @@ function optimize(){
  if(!$("skill-points").value){status("Enter your total Skill Points or import a player export.","error");return;}
  button.disabled=false;button.textContent=tr("Cancel optimization");
  status("Checking prerequisites and calculating the best allocation for the chosen scoring model…");
- worker=new Worker(new URL("./worker.js?v=20261117-hero-scroll-m",import.meta.url),{type:"module"});
+ worker=new Worker(new URL("./worker.js?v=20261118-spell-mana-n",import.meta.url),{type:"module"});
  worker.onmessage=event=>{
    const data=event.data;
    if(data.progress){
@@ -516,6 +516,29 @@ function renderAccountIntegration(result){
  if(treeSets?.completedSetRosterPresent===false)
   panel.textContent+=" "+tr(
    "No unlocked-set collection was found in the export; skill-tree set bonuses cannot be verified.");
+ const spells=result.spellScenario;
+ const mana=result.manaEvidence;
+ if(spells){
+  panel.textContent+=" "+tr(
+   "Spells: {count}/6 equipped slots verified: {verified}; max-level scenario: {active}; selected spell baseline: {damage} damage, {gold} gold. Unverified loadouts contribute no spell multiplier.",
+   {count:numberText(spells.slots),verified:spells.selection?.valid?tr("yes"):tr("no"),
+     active:spells.assumedMaxLevelScenario?tr("yes"):tr("no"),
+     damage:formatLogMultiplier(spells.damageLog10),
+     gold:formatLogMultiplier(spells.goldLog10)});
+ }
+ if(spells?.recommendation?.ids?.length)
+  panel.textContent+=" "+tr(
+   "Source-based six-spell candidates: {spells}. Suggestions only: not automatically equipped, not scored, and not mana/uptime optimized.",
+   {spells:spells.recommendation.ids.join(", ")});
+ if(mana)
+  panel.textContent+=" "+tr(
+   "Mana audit: {cost} mana for one cast of each selected spell; exported pool: {pool}, regen: {regen}. Multicast, contract ramp and actual uptime remain unverified.",
+   {cost:mana.spellManaCostOneCast===null?tr("not verifiable from this export"):
+     numberText(mana.spellManaCostOneCast),
+    pool:mana.exportedFinalManaPool===null?tr("not verifiable from this export"):
+     numberText(mana.exportedFinalManaPool),
+    regen:mana.exportedFinalManaRegenPerSecond===null?
+     tr("not verifiable from this export"):numberText(mana.exportedFinalManaRegenPerSecond)});
  const contract=result.contractScenario;
  if(contract){
   if(contract.assumptions.maximumRampReached){

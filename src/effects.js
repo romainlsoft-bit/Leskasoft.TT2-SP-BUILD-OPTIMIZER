@@ -6,7 +6,8 @@
 import { skillInfo } from "../vendor/skills.js";
 import { reductions } from "../vendor/reductions.js";
 import { spellInfo, spell_reductions } from "../vendor/spells.js";
-import {spellTableIndex} from "./spell-caps.js";
+import {spellTableIndex} from "./spell-caps.js?v=20261118-spell-mana-n";
+import {spellCapGainEligible} from "./spell-scenarios.js?v=20261118-spell-mana-n";
 import { clone } from "../vendor/clone.js";
 import {petCombatTechniquesIncrement,petEquipmentCombatTechniquesIncrement} from "./pet-scenarios.js?v=20261117-contract-coupling";
 import {skillTreeSetScore} from "./skill-tree-set-effects.js";
@@ -108,11 +109,17 @@ function sourceSkillScoreAtLevel(id,level,settings){
       const spells=spellMap[id];
       if(!spells)return r*lr(logA);
       const additional=spells.reduce((sum,spellId)=>{
+        // The cap only has a marginal spell benefit when this spell is
+        // actually in the verified six-slot loadout and is active in the
+        // hypothetical max-level scenario. A late tree unlock in another
+        // branch must be guaranteed by minimums before awarding its gain.
+        if(!spellCapGainEligible(id,spellId,settings))return sum;
         const spell=spellInfo[spellId];
         const weight=num(spell_reductions[spellId]?.[settings.damage])+num(spell_reductions[spellId]?.[settings.gold])*goldWeight;
         // A0 = spell level 1, A29 = level 30, A39 = level 40.
         // Never infer an extra A40 value from the source table.
-        const base=settings.sets?.tFA?35:30;
+        const base=(settings.sets?.tFA||
+         settings.accountProfile?.ownedSetIds?.includes("DarkAngel"))?35:30;
         const max=Object.keys(spell).filter(k=>/^A\d+$/.test(k)).map(k=>num(k.slice(1))).reduce((a,b)=>Math.max(a,b),base);
         const get=n=>lg(spell["A"+Math.min(max,spellTableIndex(base+B(n)))]);
         return sum+weight*lr(get);

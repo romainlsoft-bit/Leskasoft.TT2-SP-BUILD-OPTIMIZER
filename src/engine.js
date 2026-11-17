@@ -1,11 +1,13 @@
 import { skillInfo } from "../vendor/skills.js";
 import { baseline } from "../vendor/qol-baseline.js";
 import { optimizeExact } from "./solver-core.js";
-import { scoreAtLevel } from "./effects.js?v=20261117-artifact-interactions";
-import { parseAccountProfile } from "./account-profile.js?v=20261117-hero-scroll-m";
-import {extractFixedAccountPower,fixedAccountScore} from "./account-power.js?v=20261117-hero-scroll-m";
+import { scoreAtLevel } from "./effects.js?v=20261118-spell-mana-n";
+import { parseAccountProfile } from "./account-profile.js?v=20261118-spell-mana-n";
+import {extractFixedAccountPower,fixedAccountScore} from "./account-power.js?v=20261118-spell-mana-n";
 import {accountDependencyGraph} from "./account-dependencies.js?v=20261117-monument-pools";
-import {resolveSpellCaps} from "./spell-caps.js";
+import {resolveSpellCaps} from "./spell-caps.js?v=20261118-spell-mana-n";
+import {resolveSpellScenario,spellSelectionEvidence,SPELL_CAP_SKILLS} from "./spell-scenarios.js?v=20261118-spell-mana-n";
+import {resolveManaEvidence} from "./mana-evidence.js?v=20261118-spell-mana-n";
 import {extractTimedSetPower} from "./account-set-bonuses.js";
 import {resolvePermanentSetPower} from "./account-permanent-sets.js";
 import {skillTreeSetAllocationEvidence} from "./skill-tree-set-effects.js";
@@ -110,7 +112,12 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
   // will remove useful push skills and put their SP elsewhere, misleadingly
   // calling the result optimal. This is NOT a branch budget cap.
   const protectedSkills=[];
+  const spellSelection=spellSelectionEvidence(combatContext);
+  const spellCapEvidenceIsIncomplete=!spellSelection.valid||
+   !(combatContext.assumeMaxSpells===true||
+     (combatContext.assumeMaxSpells!==false&&Number(combatContext.maxStage)>=15000));
   const uncertainSkills=[
+    ...(spellCapEvidenceIsIncomplete?Object.keys(SPELL_CAP_SKILLS):[]),
     ...(combatContext.assumeContractsAtMax?[]:["ForbiddenContract","RoyalContract","TerrifyingPact"]),
     ...(combatContext.assumeHaystActive?[]:["QuickFortune"]),
     ...(combatContext.assumeSnapActive?[]:["PhilosophersFlux"]),
@@ -210,9 +217,11 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
   const remainingUnmodeledEffects=Math.max(0,
    dependencyReport.unmodeledEffects-newlyResolvedSetEffects);
   const contractScenario=resolveContractScenario(result.levels,scoreContext);
-  const spellCaps=resolveSpellCaps(settings,result.levels);
+  const spellCaps=resolveSpellCaps(scoreContext,result.levels);
+  const spellScenario=resolveSpellScenario(scoreContext,result.levels,spellCaps);
+  const manaEvidence=resolveManaEvidence(scoreContext,result.levels,spellScenario,contractScenario);
   return {...result,prior:current,spent:points,remaining:SP-points,changes,branchTotals,protectedSkills,
-    spellCaps,contractScenario,
+    spellCaps,spellScenario,manaEvidence,contractScenario,
     accountIntegration:{
       skillTreeSetPower:{
        applied:skillTreeSetPower.applied,recognized:skillTreeSetPower.recognized,

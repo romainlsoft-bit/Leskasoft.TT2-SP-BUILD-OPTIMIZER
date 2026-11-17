@@ -17,7 +17,8 @@ export function spellCapBonus(skillId,level){
 export const spellTableIndex=level=>Number.isSafeInteger(level)&&level>=1?level-1:null;
 export function resolveSpellCaps(settings,levels={}){
  const stage=Number(settings?.maxStage);
- const assumeAllActive=settings?.assumeMaxSpells===true||(Number.isFinite(stage)&&stage>=15000);
+ const assumeAllActive=settings?.assumeMaxSpells===true||
+  (settings?.assumeMaxSpells!==false&&Number.isFinite(stage)&&stage>=15000);
  const fallenAngel=Boolean(settings?.sets?.tFA||settings?.accountProfile?.ownedSetIds?.includes("DarkAngel"));
  const spells={};let unmodeled=0;
  for(const [id,data] of Object.entries(ACTIVE_SPELL_CAPS)){
@@ -32,5 +33,8 @@ export function resolveSpellCaps(settings,levels={}){
    bonusFromSet:fallenAngel?5:0};
  }
  return {spells,assumeAllActive,fallenAngel,unmodeledSpells:unmodeled,
-  complete:assumeAllActive&&unmodeled===0};
+  assumedFromStage:settings?.assumeMaxSpells===undefined&&
+   Number.isFinite(stage)&&stage>=15000,
+  activeStateVerified:false,equippedSlotsVerified:false,
+  complete:false};
 }
