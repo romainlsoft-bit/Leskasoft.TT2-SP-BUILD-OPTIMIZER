@@ -47,6 +47,12 @@
 - Raw `EnchantmentMult` is retained separately from `EnchantmentMagnitude`. The only row whose two fields materially differ is SeasonalArtifact34 (Temperance Training Ground: 10 versus 1e20). We calculate a possible enchanted additive pool but do **not** inject it into the score until its exact stacking/interactions are confirmed in game.
 - All calculations remain stable for huge scientific levels. Missing enchant status is not guessed.
 
+## Secondary effects of equipped gear — direct subset
+
+- Import up to six explicit secondary type+amount pairs from SecondaryEffects/SecondaryBonuses, string Type:Amount and paired BonusTypeB..F/BonusAmountB..F and numeric suffixes. The same roll represented twice is counted once.
+- Normalize aliases Weapon/Sword, Hat/Helmet, Suit/Chest/Armor, Aura and Slash. Ranking and selected equipment now include verified direct damage/gold effects from secondaries, each conditioned on the selected damage/gold source. Unknown chances, mana, probability, crit/deadly and hero/equipment-dependent secondaries are reported without made-up reduction factors.
+- This remains a partial equipment ranking. Ring of Calisto, crafting-power scaling, secondary chance caps and pet equipment-boost amplifiers require additional verified mechanics.
+
 ## Passive pet bonuses and tier-dependent amplifiers
 
 - All 30 permanent pets are loaded. Account-wide passive share: no bonus below 5, +5 percentage points per five levels, 100% at level 100, with logarithmically stable computations. Previously active pet rankings calculated only an additional selected-pet increment and omitted the entire passive baseline.

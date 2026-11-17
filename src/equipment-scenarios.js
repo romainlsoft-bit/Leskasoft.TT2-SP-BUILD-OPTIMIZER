@@ -7,7 +7,8 @@
  */
 const CATEGORIES=["Sword","Helmet","Armor","Aura","Slash"];
 const GUNBLADE_BUILDS=new Set(["Dagger","Heavenly Strike","Gold Gun","Shadow Clone"]);
-const officialSlots=Object.fromEntries(CATEGORIES.map(x=>[x.toLowerCase(),x]));
+const officialSlots={...Object.fromEntries(CATEGORIES.map(x=>[x.toLowerCase(),x])),
+ weapon:"Sword",hat:"Helmet",suit:"Armor",chest:"Armor"};
 const finiteLog=value=>{
  const s=String(value??"").trim();
  if(!/^(?:\d+(?:\.\d*)?|\.\d+)(?:[Ee][+-]?\d+)?$/.test(s))return null;
@@ -34,18 +35,43 @@ function equipmentFit(item,settings){
  if(GUNBLADE_BUILDS.has(settings.damage))return kind==="Gunblade";
  return ["Elder Snow Cap","Ranged hero","Spell hero","Melee hero"].includes(kind);
 }
-function firstEffectScore(item,settings){
- const log=finiteLog(item.bonusAmount);
+function directEffectScore(type,amount,settings){
+ const log=finiteLog(amount);
  if(log===null||log<0)return null;
- const type=item.bonusType;
- const damage=new Set(["AllDamage","BossDamage"]);
- const gold=new Set(["GoldAll"]);
- if(damage.has(type))return log;
- if(gold.has(type))return log*Math.max(0,Number(settings.goldWeight)||0);
- if(type==="FairyGold"&&settings.gold==="Fairy")
-  return log*Math.max(0,Number(settings.goldWeight)||0);
+ const byDamage={
+  "Pet":["PetDamage"],"Clan Ship":["ClanShipDamage"],
+  "Shadow Clone":["ShadowCloneSkillAmount","CloneDmg"],
+  "Heavenly Strike":["BurstDamageSkillAmount"],
+  "Dagger":["UltraDaggerDamage"],"Gold Gun":["GoldGunDamage"]
+ };
+ if(["AllDamage","BossDamage"].includes(type)||
+    (byDamage[settings.damage]||[]).includes(type))return log;
+ const weight=Math.max(0,Number(settings.goldWeight)||0);
+ if(type==="GoldAll")return log*weight;
+ const byGold={Fairy:["FairyGold"],HoG:["GoldBoss"],Chesterson:["ChestAmount"]};
+ if((byGold[settings.gold]||[]).includes(type))return log*weight;
  return null;
 }
+function firstEffectScore(item,settings){
+ return directEffectScore(item.bonusType,item.bonusAmount,settings);
+}
+export function equipmentSecondaryEvidence(item,settings){
+ const known=[],unknown=[],effects=item.secondaryEffects||[];
+ for(const effect of effects){
+  const score=directEffectScore(effect.bonusType,effect.bonusAmount,settings);
+  if(score===null)unknown.push({...effect,status:"requires-verified-reduction-or-probability"});
+  else known.push({...effect,score});
+ }
+ return {recorded:effects.length,known,unknown,
+  score:known.reduce((n,x)=>n+x.score,0),complete:unknown.length===0};
+}
+function equipmentEffectScore(item,settings){
+ const first=firstEffectScore(item,settings),
+  secondaries=equipmentSecondaryEvidence(item,settings);
+ return {first,secondaries,score:first===null&&secondaries.known.length===0?
+  null:(first??0)+secondaries.score};
+}
+
 export function ownedEquipment(profile){
  const records=profile?.sections?.equipmentInventory?.records;
  if(!Array.isArray(records))return [];
@@ -61,7 +87,7 @@ export function bestEquipmentByCategory(profile,settings,limit=2){
  const output={};
  for(const slot of CATEGORIES){
   const suitable=list.filter(item=>item.slot===slot&&equipmentFit(item,settings));
-  const ranked=suitable.map(item=>({...item,estimatedScore:firstEffectScore(item,settings)}))
+  const ranked=suitable.map(item=>({...item,estimatedScore:equipmentEffectScore(item,settings).score}))
    .sort((a,b)=>(b.estimatedScore??-Infinity)-(a.estimatedScore??-Infinity)
     ||a.displayName.localeCompare(b.displayName));
   const verified=ranked.filter(x=>x.estimatedScore!==null);
@@ -91,11 +117,17 @@ export function gearSelectionEffects(profile,settings,selection={}){
   const automatic=shortlist[slot]?.[0]||null;
   const item=key?items.find(it=>it.uid===key&&it.slot===slot&&equipmentFit(it,settings)):automatic;
   if(!item)continue;
-  const effect=firstEffectScore(item,settings);
-  selected[slot]={id:item.uid,name:item.displayName,kind:item.helmetKind,modeled:effect!==null};
-  // Only additive, unconditional effects are considered here. They do not
-  // change skill marginal gains, therefore DP tables remain cacheable.
-  if(effect!==null)independentScore+=effect;
+  const effect=equipmentEffectScore(item,settings);
+  selected[slot]={id:item.uid,name:item.displayName,kind:item.helmetKind,
+   modeled:effect.score!==null,
+   primaryModeled:effect.first!==null,
+   secondaryKnown:effect.secondaries.known.length,
+   secondaryUnknown:effect.secondaries.unknown.length,
+   secondaryEffects:effect.secondaries.known.map(x=>({type:x.bonusType,score:x.score})),
+   unmodeledSecondaryTypes:effect.secondaries.unknown.map(x=>x.bonusType)};
+  // Explicit direct secondaries are included once; conditional reductions
+  // and probability effects have no invented score.
+  if(effect.score!==null)independentScore+=effect.score;
  }
  return {selected,independentScore};
 }

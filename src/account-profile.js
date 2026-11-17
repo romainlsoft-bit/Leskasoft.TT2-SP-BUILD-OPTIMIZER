@@ -63,6 +63,40 @@ const dateText=value=>{
  const d=new Date(v);
  return Number.isFinite(d.getTime())?d.toISOString():null;
 };
+const SECONDARY_FORMAT=/^([A-Za-z][A-Za-z0-9_]*):([+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[Ee][+-]?\d+)?)$/;
+function secondaryEffects(item,record){
+ const entries=[],seen=new Set();
+ const add=(type,amount)=>{
+  if(typeof type!=="string"||!/^[A-Za-z][A-Za-z0-9_]*$/.test(type))return;
+  const numeric=numericText(amount);
+  if(numeric===null)return;
+  const id=type+":"+numeric;
+  if(seen.has(id)||entries.length>=6)return;
+  seen.add(id);entries.push({bonusType:type,bonusAmount:numeric});
+ };
+ const consume=value=>{
+  if(Array.isArray(value)){for(const v of value.slice(0,6))consume(v);return}
+  if(typeof value==="string"){
+   const match=value.trim().match(SECONDARY_FORMAT);
+   if(match)add(match[1],match[2]);
+   return;
+  }
+  if(isObject(value))add(value.bonusType??value.BonusType??value.type??value.Type,
+   value.bonusAmount??value.BonusAmount??value.amount??value.Amount);
+ };
+ consume(record.secondary);
+ if(isObject(item)){
+  for(const name of ["secondaryEffects","SecondaryEffects","secondaryBonuses",
+   "SecondaryBonuses","enhancements","Enhancements"])
+   if(Object.prototype.hasOwnProperty.call(item,name))consume(item[name]);
+  for(const suffix of ["B","C","D","E","F","1","2","3","4","5"])
+   add(item["BonusType"+suffix]??item["SecondaryBonusType"+suffix],
+       item["BonusAmount"+suffix]??item["SecondaryBonusAmount"+suffix]);
+  add(item.secondaryBonusType??item.SecondaryBonusType??item.secondaryType??item.SecondaryType,
+    item.secondaryBonusAmount??item.SecondaryBonusAmount??item.secondaryAmount??item.SecondaryAmount);
+ }
+ return entries;
+}
 const RECORD_FIELDS={
  level:["level","Level","lvl","Lvl","lv","Lv","upgradeLevel","UpgradeLevel"],
  amount:["amount","Amount","num","Num","count","Count","quantity","Quantity","total","Total"],
@@ -115,6 +149,8 @@ function extractRecord(rawId,item){
   const found=field(item,aliases);
   if(found.present){const date=dateText(found.value);if(date)record[key]=date;}
  }
+ const secondaries=secondaryEffects(item,record);
+ if(secondaries.length)record.secondaryEffects=secondaries;
  const enchanted=field(item,["enchanted","Enchanted","isEnchanted","IsEnchanted","e"]);
  if(enchanted.present&&[true,false,0,1,"0","1"].includes(enchanted.value))
   record.enchanted=Boolean(Number(enchanted.value));
