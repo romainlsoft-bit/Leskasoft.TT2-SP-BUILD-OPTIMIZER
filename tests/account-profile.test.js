@@ -66,3 +66,15 @@ test("Import is bounded and rejects unsafe keys",()=>{
  assert.equal(p.sections.gemstones.truncated,true);
  assert.deepEqual(p.sections.artifacts.records.map(x=>x.id),["safe"]);
 });
+
+test("slot-keyed exports preserve nested equipment IDs and slot metadata",()=>{
+ const p=parseAccountProfile({equippedEquipment:{
+  Weapon:{Id:"Weapon_AlphaHeart",Level:21},
+  Aura:{EquipmentID:"Aura_Sophia",Level:1},
+  Slash:{Level:2}
+ }});
+ assert.deepEqual(p.sections.equippedGear.records.map(x=>[x.id,x.slot]),[
+  ["Weapon_AlphaHeart","Weapon"],["Aura_Sophia","Aura"],["Slash","Slash"]
+ ]);
+ assert.deepEqual(p.ownedSetIds,[]);
+});

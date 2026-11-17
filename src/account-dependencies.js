@@ -7,6 +7,7 @@ import {ARTIFACT_CATALOG,EQUIPMENT_SET_CATALOG,SEASON_ARTIFACT_CATALOG} from "..
 import {resolveSetCompletionDates,resolveTranscendenceAge,heroWeaponEvidence} from "./account-temporal.js";
 import {clanScrollEvidence} from "./account-scrolls.js";
 import {extractTimedSetPower} from "./account-set-bonuses.js";
+import {resolveUniqueOwnership} from "./account-unique.js";
 
 const object=x=>x&&typeof x==="object";
 const byName=(catalog,value)=>{
@@ -46,7 +47,8 @@ export function accountDependencyGraph(profile){
  const transcendence=resolveTranscendenceAge(profile);
  const heroWeapons=heroWeaponEvidence(profile);
  const clanScrolls=clanScrollEvidence(profile);
- const uniqueOwned=new Set((profile?.sections?.uniqueEquipment?.records||[]).map(x=>String(x.id)));
+ const uniqueEquipment=resolveUniqueOwnership(profile);
+ const uniqueOwned=new Set(uniqueEquipment.ownedIds);
  for(const id of new Set(profile?.ownedSetIds||[])){
   const data=byName(EQUIPMENT_SET_CATALOG,id);
   if(!data){unknown.push({system:"set",id,reason:"not-in-dataset"});continue;}
@@ -85,14 +87,20 @@ export function accountDependencyGraph(profile){
    throw new Error("Invalid dependency order: "+parent+" → "+node.id);
   seen.add(node.id);
  }
+ // Unique items only in owned inventory do not occur in the completed-set
+ // section; account for their unresolved permanent effects exactly once.
+ const setIds=new Set(sets.map(x=>x.id));
+ const additionalUniqueEffects=[...uniqueOwned].filter(id=>!setIds.has(id))
+  .reduce((sum,id)=>sum+(EQUIPMENT_SET_CATALOG[id]?.bonuses?.length||0),0);
  const groups=[...new Set([...sets.flatMap(s=>s.effects.map(e=>e.dependsOn)),
   ...artifacts.map(a=>a.dependsOn)])];
  return {nodes:NODES,order:NODES.map(n=>n.id),sets,artifacts,groups,unknown,
-  uniquePermanentOwnership:[...uniqueOwned],heroWeapons,clanScrolls,transcendence,
+  uniquePermanentOwnership:[...uniqueOwned].sort(),uniqueEquipment,heroWeapons,clanScrolls,transcendence,
   ignoredTimedEffects:timedSetPower.omitted,
   timedSetPower:{calculated:timedSetPower.calculated,applied:timedSetPower.applied,omitted:timedSetPower.omitted},
   ready:false,unmodeledEffects:
-   sets.reduce((sum,x)=>sum+x.effects.length,0)+artifacts.length-timedSetPower.applied,
+   sets.reduce((sum,x)=>sum+x.effects.length,0)+additionalUniqueEffects+
+   artifacts.length-timedSetPower.applied,
   warning:"Source catalog and dependency order are known; numerical effect formulas and stacking are not fully validated."};
 }
 

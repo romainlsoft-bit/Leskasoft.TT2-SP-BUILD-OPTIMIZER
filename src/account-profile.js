@@ -117,7 +117,7 @@ function extractRecord(rawId,item){
   record.enchanted=Boolean(Number(enchanted.value));
  return record;
 }
-function extractEntries(value,maxEntries=MAX_ENTRIES){
+function extractEntries(value,maxEntries=MAX_ENTRIES,isEquipment=false){
  let rows;
  if(Array.isArray(value))rows=value.map((item,index)=>
   [itemId(item)??(typeof item==="string"?item:String(index)),item]);
@@ -125,8 +125,15 @@ function extractEntries(value,maxEntries=MAX_ENTRIES){
  else return {count:0,records:[],truncated:false};
  const records=[];
  for(const [id,item] of rows.slice(0,maxEntries)){
-  const normalized=extractRecord(id,item);
-  if(normalized!==null)records.push(normalized);
+  // A slot-keyed equipped export must retain the actual item ID and the slot.
+  const slotKey=isEquipment&&/^(?:Weapon|Sword|Hat|Helmet|Suit|Armor|Aura|Slash)$/i.test(String(id));
+  const nested=slotKey&&isObject(item)?field(item,["id","Id","ID","equipmentId","EquipmentId","EquipmentID","itemId","ItemId"]):{present:false};
+  const actualId=nested.present?safeName(nested.value):null;
+  const normalized=extractRecord(actualId??id,item);
+  if(normalized!==null){
+   if(slotKey&&!normalized.slot)normalized.slot=String(id);
+   records.push(normalized);
+  }
  }
  return {count:rows.length,records,truncated:rows.length>maxEntries};
 }
@@ -147,7 +154,9 @@ export function parseAccountProfile(data){
  const sections={};
  for(const [name,aliases] of Object.entries(SOURCE_SECTIONS)){
   const source=field(data,aliases);
-  sections[name]=source.present?{present:true,...extractEntries(source.value,["mysticResearch","titanResearch","forbiddenResearch"].includes(name)?2048:MAX_ENTRIES)}
+  sections[name]=source.present?{present:true,...extractEntries(source.value,
+    ["mysticResearch","titanResearch","forbiddenResearch"].includes(name)?2048:MAX_ENTRIES,
+    ["equippedGear","equipmentInventory"].includes(name))}
    :{present:false,count:0,records:[],truncated:false};
  }
  const stats=isObject(data.playerStats)?data.playerStats:isObject(data.stats)?data.stats:{};
