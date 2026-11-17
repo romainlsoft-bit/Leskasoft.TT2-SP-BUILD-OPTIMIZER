@@ -238,3 +238,12 @@ hr{border:0;border-top:1px solid #384158;margin:27px 0}.playstyles{display:grid;
  .metric-grid{grid-template-columns:minmax(0,1fr)}
  .header-right{width:100%;justify-content:flex-start}
 }
+
+/* Keep the bonus/import guide discoverable on narrow phones (the GitHub
+   link may be hidden, but this internal guide remains accessible). */
+@media(max-width:700px){
+ .header-right .guide-nav-link{max-width:142px;line-height:1.2;text-align:center}
+}
+@media(max-width:380px){
+ .header-right>a.guide-nav-link{display:inline-block;max-width:116px;font-size:10px}
+}
