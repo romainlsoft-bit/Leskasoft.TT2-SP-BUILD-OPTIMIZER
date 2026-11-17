@@ -7,10 +7,11 @@
  */
 import {ARTIFACT_CATALOG} from "../vendor/account-catalog.js";
 import {calculatePermanentArtifactEffects} from "./account-artifacts.js";
-import {petPassiveEvidence,logPassivePetMultiplier} from "./pet-scenarios.js?v=20261117-pet-pair-coverage";
+import {petPassiveEvidence,logPassivePetMultiplier} from "./pet-scenarios.js?v=20261117-crafting-set-power";
 import {petLevelEvidence} from "./account-pet-levels.js";
-import {extractFixedAccountPower} from "./account-power.js?v=20261117-pet-pair-coverage";
-import {resolveGemstoneEvidence} from "./account-gemstones.js?v=20261117-pet-pair-coverage";
+import {extractFixedAccountPower} from "./account-power.js?v=20261117-crafting-set-power";
+import {resolveGemstoneEvidence} from "./account-gemstones.js?v=20261117-crafting-set-power";
+import {resolvePermanentSetPower,resolveCraftingPower} from "./account-permanent-sets.js";
 const CATEGORIES=["Sword","Helmet","Armor","Aura","Slash"];
 const GUNBLADE_BUILDS=new Set(["Dagger","Heavenly Strike","Gold Gun","Shadow Clone"]);
 const officialSlots={...Object.fromEntries(CATEGORIES.map(x=>[x.toLowerCase(),x])),
@@ -78,21 +79,25 @@ const equipmentBoostCache=new WeakMap();
  * Heart -> equipment primary; alongside Ring of Calisto and slot-specific
  * artifacts/research. No secondary roll is amplified by this chain.
  */
-export function equipmentPrimaryAmplifiers(profile){
+export function equipmentPrimaryAmplifiers(profile,settings={}){
  const empty={bySlot:Object.fromEntries(CATEGORIES.map(slot=>[slot,{log10:0,
   petLog10:0,artifactLog10:0,unknown:[]}]))};
  if(!profile)return empty;
- if(equipmentBoostCache.has(profile))return equipmentBoostCache.get(profile);
+ const cp=resolveCraftingPower(profile,settings);
+ const cacheKey=String(cp.level??"missing");
+ let cached=equipmentBoostCache.get(profile);
+ if(cached?.has(cacheKey))return cached.get(cacheKey);
  const artifact=calculatePermanentArtifactEffects(profile,ARTIFACT_CATALOG);
  const pets=petPassiveEvidence(profile);
  const fixed=extractFixedAccountPower(profile);
  const gems=resolveGemstoneEvidence(profile);
+ const sets=resolvePermanentSetPower(profile,settings);
  const all=artifact.entries.find(x=>x.bonusType==="AllEquipmentEffect");
  const rune=artifact.entries.find(x=>x.bonusType==="EquipmentPetEffect");
  const bySlot={};
  for(const slot of CATEGORIES){
   const bonusType=BOOST_BY_SLOT[slot],unknown=[];
-  let artifactLog10=0,petLog10=0,gemstoneLog10=0;
+  let artifactLog10=0,petLog10=0,gemstoneLog10=0,setLog10=0;
   const target=artifact.entries.find(x=>x.bonusType===bonusType);
   for(const row of [all,target]){
    if(!row)continue;
@@ -114,6 +119,11 @@ export function equipmentPrimaryAmplifiers(profile){
    petLog10+=logPassivePetMultiplier(
     pet.rawLog10+pet.amplifierLog10+runeLog10+gemRune,pet.level);
   }
+  // Completed permanent sets may grant slot-specific primary multipliers.
+  // The same set entry is NEVER added to the fixed AllDamage account score.
+  setLog10=sets.entries.filter(e=>e.appliedToEquipment&&
+   (e.bonusType===bonusType||e.bonusType==="AllEquipmentEffect"))
+   .reduce((n,e)=>n+e.log10,0);
   // Account multipliers from research, scrolls and gemstones of this
   // bonus family are not universally direct damage; route them to this slot.
   for(const row of fixed.entries)
@@ -126,16 +136,22 @@ export function equipmentPrimaryAmplifiers(profile){
    }
   for(const row of gems.unknown)
    unknown.push({id:row.id??"gemstones",reason:row.reason});
-  bySlot[slot]={log10:artifactLog10+gemstoneLog10+petLog10,
-   petLog10,artifactLog10,gemstoneLog10,unknown};
+  for(const row of sets.unknown.filter(e=>
+    e.bonusType===bonusType||e.bonusType==="AllEquipmentEffect"))
+   unknown.push({id:row.id,reason:row.reason});
+  bySlot[slot]={log10:artifactLog10+gemstoneLog10+petLog10+setLog10,
+   petLog10,artifactLog10,gemstoneLog10,setLog10,unknown};
  }
- const result={bySlot};
- equipmentBoostCache.set(profile,result);return result;
+ const result={bySlot,craftingPower:sets.craftingPower};
+ cached??=new Map();
+ cached.set(cacheKey,result);
+ equipmentBoostCache.set(profile,cached);
+ return result;
 }
 function equipmentEffectScore(item,settings,profile){
  const first=firstEffectScore(item,settings),
   secondaries=equipmentSecondaryEvidence(item,settings);
- const primaryAmplifier=equipmentPrimaryAmplifiers(profile).bySlot[item.slot];
+ const primaryAmplifier=equipmentPrimaryAmplifiers(profile,settings).bySlot[item.slot];
  // sourceWeight=1 for damage and goldWeight for gold, to avoid giving a
  // gold-only amplifier the wrong weight on the SP comparison.
  const sourceWeight=directEffectScore(item.bonusType,"10",settings);
@@ -207,6 +223,7 @@ export function gearSelectionEffects(profile,settings,selection={}){
    primaryModeled:effect.first!==null,
    primaryAmplifierLog10:effect.primaryAmplifier.log10,
    primaryBoostScore:effect.primaryBoostScore,
+   permanentSetPrimaryAmplifierLog10:effect.primaryAmplifier.setLog10,
    primaryAmplifierUnresolved:effect.primaryAmplifier.unknown.map(x=>x.id),
    secondaryKnown:effect.secondaries.known.length,
    secondaryUnknown:effect.secondaries.unknown.length,

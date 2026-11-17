@@ -14,7 +14,7 @@
  * Do not add another fixedAccountScore here, nor multiply these values by
  * account Gemstone levels. Both would double-count existing contributions.
  */
-import {petScenarioScore,availablePets} from "./pet-scenarios.js?v=20261117-pet-pair-coverage";
+import {petScenarioScore,availablePets} from "./pet-scenarios.js?v=20261117-crafting-set-power";
 
 function finite(value,label){
  if(typeof value!=="number"||!Number.isFinite(value))
@@ -27,6 +27,10 @@ export function modeledScenarioCoverage(result,settings,gearSelection={}){
  const unresolvedAccountEffects=Number(result?.accountIntegration?.unmodeledEffects)||0;
  const unknownCatalogIds=Number(result?.accountIntegration?.unknownCatalogIds)||0;
  const unknownGemstoneBonuses=Number(result?.accountIntegration?.gemstoneEffects?.unresolved)||0;
+ const permanentSetPower=result?.accountIntegration?.permanentSetPower||null;
+ const conservativeSetEffects=Number(permanentSetPower?.conservativeCPBaseEffects)||0;
+ const missingSetCollection=permanentSetPower?.missingOwnedSetRows===true;
+ const conflictingCraftingPower=permanentSetPower?.craftingPower?.conflictingSettings===true;
  const unknownGearPrimaries=gearSelection.primaryUnknownCount??
   Object.values(selected).filter(x=>x.primaryModeled===false).length;
  const unknownGearSecondaries=gearSelection.secondaryUnknownCount??
@@ -55,6 +59,9 @@ export function modeledScenarioCoverage(result,settings,gearSelection={}){
  if(unknownGearSecondaries)gaps.push("unmodeled-equipment-secondaries");
  if(unknownGearAmplifiers)gaps.push("unverified-equipment-amplifiers");
  if(unknownGemstoneBonuses)gaps.push("unmodeled-gemstone-bonuses");
+ if(conservativeSetEffects)gaps.push("crafting-power-unverified");
+ if(missingSetCollection)gaps.push("truncated-owned-set-collection");
+ if(conflictingCraftingPower)gaps.push("conflicting-crafting-power-input");
  if(invalidDamagePet||invalidGoldPet)gaps.push("invalid-selected-pet");
  if(unresolvedAccountEffects||unknownCatalogIds)gaps.push("incomplete-account-formulas");
  // A structurally complete export is not a calibrated game simulation.
@@ -63,6 +70,7 @@ export function modeledScenarioCoverage(result,settings,gearSelection={}){
   complete:false,inventoryPresent,inventoryTruncated,missingGearSlots,
   missingExplicitSelections,unknownGearPrimaries,unknownGearSecondaries,
   unknownGearAmplifiers,unknownGemstoneBonuses,
+  conservativeSetEffects,missingSetCollection,conflictingCraftingPower,
   invalidDamagePet,invalidGoldPet,
   unresolvedAccountEffects,unknownCatalogIds,
   safeForAutomaticGearRecommendation:inventoryPresent&&!inventoryTruncated&&

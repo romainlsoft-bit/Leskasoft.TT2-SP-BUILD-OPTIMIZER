@@ -9,6 +9,7 @@ import {TRANSCENDENT_PETS} from "../vendor/transcendent-pets.js";
 
 export const ALL_PETS=Object.freeze({...PETS,...TRANSCENDENT_PETS});
 import {skillInfo} from "../vendor/skills.js";
+import {EQUIPMENT_SET_CATALOG} from "../vendor/account-catalog.js";
 import {petTier,petArtifactAmplifiers,logPassivePetMultiplier} from "./pet-amplifiers.js?v=20261117-pet-gemstone-chain";
 import {petLevelEvidence} from "./account-pet-levels.js";
 export {petTier,petArtifactAmplifiers,logPassivePetMultiplier} from "./pet-amplifiers.js?v=20261117-pet-gemstone-chain";
@@ -130,6 +131,31 @@ export function petWeight(pet,slot,settings){
  }
  return 0;
 }
+/**
+ * Set-granted Active Pet Level is additive: Fatal Samurai +25%,
+ * Lucky Fox Saint/Ninetails +10%. These are sourced from the two
+ * ActivePetLevel entries in EquipmentSetInfo.csv, not inferred from
+ * equipped items. Inactive pet level/passive percent remains unchanged.
+ */
+export function activePetSetLevelBonus(settings={}){
+ const owned=new Set(settings.accountProfile?.ownedSetIds||[]);
+ if(settings.sets?.Samurai)owned.add("Samurai");
+ const entries=[];let bonusPct=0;
+ for(const id of owned){
+  const set=EQUIPMENT_SET_CATALOG[id];
+  if(!set)continue;
+  for(const effect of set.bonuses||[]){
+   if(effect.type!=="ActivePetLevel"||effect.perDay===true)continue;
+   const amount=Number(effect.amount),inc=Number(effect.inc),
+    expo=Number(effect.expo);
+   if(!Number.isFinite(amount)||amount<0||amount>2||inc!==1||expo!==1)
+    continue;
+   bonusPct+=amount;
+   entries.push({setId:id,bonusPct:amount});
+  }
+ }
+ return {bonusPct,entries};
+}
 export function resolvePetLevels(settings,combatTechniques=0){
  // Explicit dependency phases: imported levels -> set/skill level modifiers
  // -> effective pet levels -> active/passive pet bonuses.
@@ -137,20 +163,19 @@ export function resolvePetLevels(settings,combatTechniques=0){
  const records=petLevels(settings.accountProfile);
  const combat=skillInfo.CombatTechniques;
  const ctBonus=finite(combat?.["B"+combatTechniques]);
- const samurai=Boolean(settings.sets?.Samurai)||
-  Boolean(settings.accountProfile?.ownedSetIds?.includes("Samurai"));
- const bonusPct=ctBonus+(samurai?0.25:0);
+ const setBonus=activePetSetLevelBonus(settings);
+ const bonusPct=ctBonus+setBonus.bonusPct;
  const effective=Object.fromEntries(Object.entries(records).map(([id,level])=>[
   id,level*(1+bonusPct)
  ]));
- return {base:records,effective,bonusPct};
+ return {base:records,effective,bonusPct,
+  setBonusPct:setBonus.bonusPct,activePetSetEffects:setBonus.entries};
 }
 export function petSlotScore(settings,petId,slot,combatTechniques=0){
  const pet=ALL_PETS[petId],level=petLevels(settings.accountProfile)[petId];
  if(!pet||!level)return 0;
  const pct=finite(skillInfo.CombatTechniques?.["B"+combatTechniques]);
- const samurai=Boolean(settings.sets?.Samurai)||
-  Boolean(settings.accountProfile?.ownedSetIds?.includes("Samurai"));
+ const setBonus=activePetSetLevelBonus(settings).bonusPct;
  const tier=petTier(pet),kind=slot==="gold"?"gold":"damage";
  const artifactBoosts=petArtifactAmplifiers(settings.accountProfile);
  const amplifier=artifactBoosts.byTier[tier]?.[kind]??0;
@@ -158,7 +183,7 @@ export function petSlotScore(settings,petId,slot,combatTechniques=0){
   Number.isFinite(artifactBoosts.equipmentPetEffectLog10)?
   artifactBoosts.equipmentPetEffectLog10:0;
  return petWeight(pet,slot,settings)*activePetGain(
-  pet,level,pct+(samurai?0.25:0),amplifier+runeBoost);
+  pet,level,pct+setBonus,amplifier+runeBoost);
 }
 export function petScenarioScore(settings,combatTechniques=0){
  return petSlotScore(settings,settings.selectedDamagePet,"damage",combatTechniques)

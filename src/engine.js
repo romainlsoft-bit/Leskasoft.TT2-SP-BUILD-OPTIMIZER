@@ -1,12 +1,13 @@
 import { skillInfo } from "../vendor/skills.js";
 import { baseline } from "../vendor/qol-baseline.js";
 import { optimizeExact } from "./solver-core.js";
-import { scoreAtLevel } from "./effects.js?v=20261117-pet-pair-coverage";
+import { scoreAtLevel } from "./effects.js?v=20261117-crafting-set-power";
 import { parseAccountProfile } from "./account-profile.js";
-import {extractFixedAccountPower,fixedAccountScore} from "./account-power.js?v=20261117-pet-pair-coverage";
-import {accountDependencyGraph} from "./account-dependencies.js?v=20261117-pet-pair-coverage";
+import {extractFixedAccountPower,fixedAccountScore} from "./account-power.js?v=20261117-crafting-set-power";
+import {accountDependencyGraph} from "./account-dependencies.js?v=20261117-crafting-set-power";
 import {resolveSpellCaps} from "./spell-caps.js";
 import {extractTimedSetPower} from "./account-set-bonuses.js";
+import {resolvePermanentSetPower} from "./account-permanent-sets.js";
 
 export const GAME_VERSION = "8.4.0";
 export const DATASET_REVISION = "2026-09-18"; // SkillTreeInfo2.0.csv comparison
@@ -185,16 +186,41 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
   // them by profile identity across days.
   const timed=extractTimedSetPower(settings.accountProfile);
   const timedScore=fixedAccountScore({available:timed.applied>0,byType:timed.byType},settings);
+  // Completed sets (even sold) and observed Unique items are immutable
+  // account bonuses. CP affects their numerical values, never their ownership.
+  // CP-dependent multiplier formulas are evaluated once outside the SP DP.
+  const permanentSetPower=resolvePermanentSetPower(settings.accountProfile,settings);
+  const permanentScore=fixedAccountScore({
+   available:permanentSetPower.appliedDirect>0,byType:permanentSetPower.byType
+  },settings);
   const fixedAccount={...fixedRaw,
-    damageLog10:fixedRaw.damageLog10+timedScore.damageLog10,
-    goldLog10:fixedRaw.goldLog10+timedScore.goldLog10,
-    weightedLog10:fixedRaw.weightedLog10+timedScore.weightedLog10};
+    damageLog10:fixedRaw.damageLog10+timedScore.damageLog10+permanentScore.damageLog10,
+    goldLog10:fixedRaw.goldLog10+timedScore.goldLog10+permanentScore.goldLog10,
+    weightedLog10:fixedRaw.weightedLog10+timedScore.weightedLog10+permanentScore.weightedLog10};
   const dependencyReport=accountDependencyGraph(settings.accountProfile);
+  // The catalog DAG still counts every static set row as unknown. Discount
+  // only the owned set effects for which the CP formula was actually
+  // resolved; CP=1 lower bounds remain unresolved for full-power claims.
+  const newlyResolvedSetEffects=permanentSetPower.entries.filter(e=>
+   (e.appliedToAccount||e.appliedToEquipment)&&!e.conservative).length;
+  const remainingUnmodeledEffects=Math.max(0,
+   dependencyReport.unmodeledEffects-newlyResolvedSetEffects);
   const spellCaps=resolveSpellCaps(settings,result.levels);
   return {...result,prior:current,spent:points,remaining:SP-points,changes,branchTotals,protectedSkills,
     spellCaps,
     accountIntegration:{
       timedSetPower:{calculated:timed.calculated,applied:timed.applied,omitted:timed.omitted},
+      permanentSetPower:{
+       recognizedSets:permanentSetPower.recognizedSets,
+       uniqueOwned:permanentSetPower.uniqueOwnedCount,
+       directEffects:permanentSetPower.appliedDirect,
+       equipmentEffects:permanentSetPower.appliedEquipment,
+       conservativeCPBaseEffects:permanentSetPower.conservative,
+       craftingPower:permanentSetPower.craftingPower,
+       unresolvedEffects:permanentSetPower.unresolved,
+       missingOwnedSetRows:permanentSetPower.ownedSetSectionTruncated,
+       complete:false
+      },
       gemstoneEffects:{
         direct:dependencyReport.gemstones.directEffects,
         equipment:dependencyReport.gemstones.equipmentEffects,
@@ -236,17 +262,24 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
       clanScrollSetBoostPercent:dependencyReport.clanScrolls.setBonusPercent,
       clanScrollCompleteSets:dependencyReport.clanScrolls.fullSets,
       sourceCatalogs:{sets:dependencyReport.sets.length,artifacts:dependencyReport.artifacts.length},
-      unmodeledEffects:dependencyReport.unmodeledEffects,
+      unmodeledEffects:remainingUnmodeledEffects,
+      newlyResolvedSetEffects,
+      unmodeledEffectsBeforePermanentSetFormulas:dependencyReport.unmodeledEffects,
       unknownCatalogIds:dependencyReport.unknown.length,
       releaseReady:false
     },
-    fixedAccount:{...fixedAccount,matched:power.matched,unknown:power.unknown,
-      available:power.available||timed.applied>0,complete:power.complete,
+    fixedAccount:{...fixedAccount,
+      matched:power.matched+permanentSetPower.appliedDirect+timed.applied,
+      unknown:power.unknown,
+      available:power.available||timed.applied>0||permanentSetPower.appliedDirect>0,
+      complete:power.complete,
       // Exact per-source values are used for diagnostics, not for an
       // unsupported claim of a complete end-to-end damage simulation.
       examples:power.entries.filter(e=>e.bonusType==="PetDamage").slice(0,6),
       artifactEffects:power.artifactEffects,monumentEffects:power.monumentEffects,
-      timedSetBonuses:timed.entries.filter(x=>x.log10!==null).slice(0,30)},
+      timedSetBonuses:timed.entries.filter(x=>x.log10!==null).slice(0,30),
+      permanentSetBonuses:permanentSetPower.entries.filter(x=>x.appliedToAccount).slice(0,85)
+     },
     // Add fixed account context to each build's total proxy. Marginal SP
     // optimization remains mathematically unchanged by a constant.
     accountAdjustedScore:result.score+fixedAccount.weightedLog10,
