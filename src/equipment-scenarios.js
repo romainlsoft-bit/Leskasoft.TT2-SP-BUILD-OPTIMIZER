@@ -7,10 +7,10 @@
  */
 import {ARTIFACT_CATALOG} from "../vendor/account-catalog.js";
 import {calculatePermanentArtifactEffects} from "./account-artifacts.js";
-import {petPassiveEvidence,logPassivePetMultiplier} from "./pet-scenarios.js?v=20261117-pet-gemstone-chain";
+import {petPassiveEvidence,logPassivePetMultiplier} from "./pet-scenarios.js?v=20261117-pet-pair-coverage";
 import {petLevelEvidence} from "./account-pet-levels.js";
-import {extractFixedAccountPower} from "./account-power.js?v=20261117-pet-gemstone-chain";
-import {resolveGemstoneEvidence} from "./account-gemstones.js?v=20261117-pet-gemstone-chain";
+import {extractFixedAccountPower} from "./account-power.js?v=20261117-pet-pair-coverage";
+import {resolveGemstoneEvidence} from "./account-gemstones.js?v=20261117-pet-pair-coverage";
 const CATEGORIES=["Sword","Helmet","Armor","Aura","Slash"];
 const GUNBLADE_BUILDS=new Set(["Dagger","Heavenly Strike","Gold Gun","Shadow Clone"]);
 const officialSlots={...Object.fromEntries(CATEGORIES.map(x=>[x.toLowerCase(),x])),
@@ -157,7 +157,11 @@ export function ownedEquipment(profile){
  }).filter(Boolean);
 }
 export function bestEquipmentByCategory(profile,settings,limit=2){
- const list=ownedEquipment(profile);
+ // A truncated inventory is not a safe candidate set for automatic gear
+ // recommendations. Omitted rows might contain the actual best item.
+ // Explicitly selected rows remain usable through gearSelectionEffects.
+ const incomplete=profile?.sections?.equipmentInventory?.truncated===true;
+ const list=incomplete?[]:ownedEquipment(profile);
  const output={};
  for(const slot of CATEGORIES){
   const suitable=list.filter(item=>item.slot===slot&&equipmentFit(item,settings));
@@ -185,6 +189,8 @@ export function gearSelectionEffects(profile,settings,selection={}){
  const items=ownedEquipment(profile);
  const shortlist=bestEquipmentByCategory(profile,settings,2);
  const selected={},petWeights={},passiveWeights={};
+ const inventoryTruncated=profile?.sections?.equipmentInventory?.truncated===true;
+ const missingExplicitSelections=[];
  const equippedPets=new Map(petPassiveEvidence(profile).entries
   .filter(x=>x.level>0).map(x=>[x.bonusType,x]));
  let independentScore=0;
@@ -192,6 +198,8 @@ export function gearSelectionEffects(profile,settings,selection={}){
   const key=selection[slot];
   const automatic=shortlist[slot]?.[0]||null;
   const item=key?items.find(it=>it.uid===key&&it.slot===slot&&equipmentFit(it,settings)):automatic;
+  if(key&&!item)
+   missingExplicitSelections.push({slot,id:key,reason:"selected-gear-not-in-import-or-not-compatible"});
   if(!item)continue;
   const effect=equipmentEffectScore(item,settings,profile);
   selected[slot]={id:item.uid,name:item.displayName,kind:item.helmetKind,
@@ -216,6 +224,13 @@ export function gearSelectionEffects(profile,settings,selection={}){
   }
  }
  return {selected,independentScore,
+  inventoryTruncated,autoSelectionBlocked:inventoryTruncated,
+  missingExplicitSelections,
+  primaryUnknownCount:Object.values(selected).filter(x=>!x.primaryModeled).length,
+  secondaryUnknownCount:Object.values(selected).reduce((n,x)=>n+x.secondaryUnknown,0),
+  unresolvedAmplifiersCount:Object.values(selected).reduce(
+   (n,x)=>n+x.primaryAmplifierUnresolved.length,0),
+  selectedSlotCount:Object.keys(selected).length,
   petEquipmentSlotWeights:petWeights,
   petEquipmentPassiveWeights:passiveWeights,
   // A present pet section is not necessarily a complete Exotic roster.

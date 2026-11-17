@@ -6,6 +6,7 @@
  * --profile PATH    optional LOCAL, sanitized full TT2 JSON export; the
  *                   contents are never printed or transmitted
  * --sp N            explicit SP budget, default 22,500
+ * --pair-search     run the iterative two-pet search used by the worker; costly
  *
  * Test results are modeled scores, NOT projected stages.
  * This does not automatically choose a globally strongest damage build:
@@ -18,10 +19,12 @@ import {optimizeBuild,spentPoints,parseExport,DAMAGE_TYPES,GOLD_TYPES} from "../
 import {gearSelectionEffects} from "../src/equipment-scenarios.js";
 import {recommendPets} from "../src/pet-scenarios.js";
 import {calculateModeledScenario} from "../src/calculation-ledger.js";
+import {selectPetPair} from "../src/pet-pair-search.js";
 
 const args=process.argv.slice(2);
 const option=(flag)=>{const i=args.indexOf(flag);return i>=0?args[i+1]:undefined};
 const all=args.includes("--all");
+const pairSearch=args.includes("--pair-search");
 const profilePath=option("--profile");
 const positional=args.find(value=>/^\d+$/.test(value));
 const sp=Number(option("--sp")??positional??22500);
@@ -36,7 +39,7 @@ if(profilePath){
  }
 }
 if(!Number.isSafeInteger(sp)||sp<0||sp>50000){
- console.error("Usage: node scripts/benchmark-22k.mjs [SP=22500] [--all] [--profile path-to-local-tt2-export.json] [--sp N]");
+ console.error("Usage: node scripts/benchmark-22k.mjs [SP=22500] [--all] [--profile local-export.json] [--sp N] [--pair-search]");
  process.exit(2);
 }
 let failed=0;
@@ -50,14 +53,24 @@ for(const {damage,gold} of compare){
  const gearContext={...initial,equipmentPetSlotWeights:gear.petEquipmentSlotWeights,
   equipmentPetPassiveWeights:gear.petEquipmentPassiveWeights,
   equipmentPetCoverageComplete:gear.petEquipmentCoverageComplete};
- const selectedDamagePet=recommendPets(gearContext.accountProfile,gearContext,"damage",1)[0]?.id||null;
- const selectedGoldPet=recommendPets(gearContext.accountProfile,gearContext,"gold",1)[0]?.id||null;
- const input={...gearContext,selectedDamagePet,selectedGoldPet};
+ const damageCandidates=recommendPets(gearContext.accountProfile,gearContext,
+  "damage",pairSearch?3:1);
+ const goldCandidates=recommendPets(gearContext.accountProfile,gearContext,
+  "gold",pairSearch?3:1);
  const start=performance.now();
  const progress=[];
  try{
-  const result=optimizeBuild(input,event=>progress.push(event.phase));
-  const modeled=calculateModeledScenario(result,input,gear);
+  const evaluate=(damagePet,goldPet)=>{
+   const input={...gearContext,selectedDamagePet:damagePet,selectedGoldPet:goldPet};
+   const result=optimizeBuild(input,event=>progress.push(event.phase));
+   const modeled=calculateModeledScenario(result,input,gear);
+   return {result,modeled,adjustedScore:modeled.totalLog10};
+  };
+  const selection=pairSearch&&(damageCandidates.length||goldCandidates.length)?
+   selectPetPair(damageCandidates,goldCandidates,evaluate,{maxPasses:3}):null;
+  const evaluated=selection?.best||evaluate(
+   damageCandidates[0]?.id||null,goldCandidates[0]?.id||null);
+  const {result,modeled}=evaluated;
   const elapsedMs=performance.now()-start;
   assert.equal(result.spent,spentPoints(result.levels));
   assert.ok(result.spent<=sp);
@@ -71,6 +84,9 @@ for(const {damage,gold} of compare){
    scoreGap:result.optimality.gap,scoreLedger:modeled,
    unresolvedEffects:result.accountIntegration.unmodeledEffects,
    importedAccount:Boolean(localExport),progressEvents:progress.length,
+   petSelection:selection?{converged:selection.converged,
+    passes:selection.passes,uniqueEvaluations:selection.uniqueEvaluations}:
+    {mode:"static-top1"},
    memoryHeapUsedMiB:Math.round(process.memoryUsage().heapUsed/1048576)}));
  }catch(error){
   failed++;

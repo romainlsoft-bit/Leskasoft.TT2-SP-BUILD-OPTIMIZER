@@ -1,7 +1,8 @@
-import {optimizeBuild} from "./engine.js?v=20261117-pet-gemstone-chain";
-import {recommendPets} from "./pet-scenarios.js?v=20261117-pet-gemstone-chain";
+import {optimizeBuild} from "./engine.js?v=20261117-pet-pair-coverage";
+import {recommendPets} from "./pet-scenarios.js?v=20261117-pet-pair-coverage";
 import {calculateModeledScenario} from "./calculation-ledger.js";
-import {bestEquipmentByCategory,gearSelectionEffects} from "./equipment-scenarios.js?v=20261117-pet-gemstone-chain";
+import {selectPetPair} from "./pet-pair-search.js";
+import {bestEquipmentByCategory,gearSelectionEffects} from "./equipment-scenarios.js?v=20261117-pet-pair-coverage";
 
 // One worker, one cache. The solver checks per-branch score and constraint
 // signatures: changing a pet can change Summoner/Combat Techniques, while
@@ -20,39 +21,29 @@ self.onmessage=event=>{
    const damage= recommendPets(settings.accountProfile,gearContext,"damage",3);
    const gold= recommendPets(settings.accountProfile,gearContext,"gold",3);
    if(damage.length||gold.length){
-    // Independent rankings. There are at most 3+3 evaluations; never 3x3.
-    let chosenDamage=damage[0]||null;
-    let chosenGold=gold[0]||null;
-    const total=damage.length+gold.length;
-    let completed=0;
-    const evaluate=(candidate,slot)=>{
-     const d=slot==="damage"?candidate:chosenDamage;
-     const g=slot==="gold"?candidate:chosenGold;
-     const context={...gearContext,selectedDamagePet:d?.id||null,
-      selectedGoldPet:g?.id||null};
+    // Search one pet slot at a time, but re-evaluate against the winning
+    // opposite slot. A scenario scored with an old partner cannot be the
+    // result of a combined optimization.
+    const choose=selectPetPair(damage,gold,(damagePet,goldPet)=>{
+     const context={...gearContext,selectedDamagePet:damagePet,
+      selectedGoldPet:goldPet};
      const result=optimizeBuild(context,undefined,cache);
-     completed++;
-     self.postMessage({progress:{phase:"pet-scenarios",completed,total}});
      const modeledScenario=calculateModeledScenario(result,context,selection);
-     return {slot,damagePet:d?.id||null,goldPet:g?.id||null,
-      damageName:d?.name||"",goldName:g?.name||"",
-      adjustedScore:modeledScenario.totalLog10,
+     return {damagePet,goldPet,adjustedScore:modeledScenario.totalLog10,
+      damageName:damage.find(p=>p.id===damagePet)?.name||"",
+      goldName:gold.find(p=>p.id===goldPet)?.name||"",
       result:{...result,modeledScenario}};
-    };
-    const damageResults=damage.map(p=>evaluate(p,"damage"));
-    if(damageResults.length){
-     const highest=damageResults.reduce((a,b)=>b.adjustedScore>a.adjustedScore?b:a);
-     chosenDamage=damage.find(p=>p.id===highest.damagePet);
-    }
-    const goldResults=gold.map(p=>evaluate(p,"gold"));
-    let best;
-    if(goldResults.length)best=goldResults.reduce((a,b)=>b.adjustedScore>a.adjustedScore?b:a);
-    else if(damageResults.length)best=damageResults.reduce((a,b)=>b.adjustedScore>a.adjustedScore?b:a);
-    if(!best)throw new Error("No pet scenario available");
-    self.postMessage({ok:true,result:best.result,
-      selectedPets:{damage:best.damagePet,gold:best.goldPet},
-      petComparisons:{damage:damageResults,gold:goldResults},
-      equipment,gearSelection:selection});
+    },{maxPasses:3,onProgress:progress=>self.postMessage({progress})});
+    if(!choose.best)throw new Error("No pet scenario available");
+    const result={...choose.best.result,
+     petSearch:{converged:choose.converged,passes:choose.passes,
+      uniqueEvaluations:choose.uniqueEvaluations,
+      shortlistOnly:true,candidateCount:choose.candidateCount}};
+    self.postMessage({ok:true,result,
+     selectedPets:{damage:choose.best.damagePet,gold:choose.best.goldPet},
+     petComparisons:{damage:choose.damageResults,gold:choose.goldResults},
+     petSearch:result.petSearch,
+     equipment,gearSelection:selection});
     return;
    }
   }
