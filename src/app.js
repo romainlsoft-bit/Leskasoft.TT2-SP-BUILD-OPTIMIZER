@@ -1,4 +1,4 @@
-import {SKILLS,SKILL_IDS,BRANCH_NAMES,SETS,PRESETS,DAMAGE_TYPES,GOLD_TYPES,GAME_VERSION,parseExport,exportBuild,spentPoints} from "./engine.js?v=20261117-account-research";
+import {SKILLS,SKILL_IDS,BRANCH_NAMES,PRESETS,DAMAGE_TYPES,GOLD_TYPES,GAME_VERSION,parseExport,exportBuild,spentPoints,ownedSetFlags} from "./engine.js?v=20261117-account-research";
 import { t, localizeDocument, SUPPORTED_LANGUAGES } from "./i18n.js?v=20261117-account-research";
 import { readClipboardText } from "./clipboard.js";
 import { profileCoverage } from "./account-profile.js";
@@ -98,7 +98,6 @@ function renderChoices(){
   $("damage-choices").innerHTML=DAMAGE_TYPES.map(x=>`<button class="choice ${state.damage===x?"selected":""}" type="button" data-damage="${safe(x)}" aria-pressed="${state.damage===x}"><span>${iconMap[x]}</span>${safe(tr(x))}</button>`).join("");
   $("gold-choices").innerHTML=GOLD_TYPES.map(x=>`<button class="${state.gold===x?"selected":""}" type="button" data-gold="${safe(x)}" aria-pressed="${state.gold===x}">${safe(tr(x==="HoG"?"Heart of Gold":x))}</button>`).join("");
   document.querySelectorAll("[data-playstyle]").forEach(btn=>{const active=btn.dataset.playstyle===state.playstyle;btn.classList.toggle("selected",active);btn.setAttribute("aria-pressed",String(active));});
-  $("equipment-choices").innerHTML=Object.entries(SETS).map(([id,label])=>`<label><input type="checkbox" data-set="${id}" ${state.sets?.[id]?"checked":""}><span>${safe(label)}</span></label>`).join("");
 }
 function renderEditor(filter=""){
  const q=filter.trim().toLowerCase();const matches=SKILL_IDS.filter(id=>SKILLS[id].Name.toLowerCase().includes(q)||BRANCH_NAMES[SKILLS[id].Branch].toLowerCase().includes(q)||tr(BRANCH_NAMES[SKILLS[id].Branch]).toLowerCase().includes(q));
@@ -438,7 +437,7 @@ function renderResults(result,scroll=true){
 function sharePayload(){
  // Compact URL encoding; the exported skill tree itself is intentionally
  // not encrypted. Sharing the link discloses the included game settings.
- return {protect:state.protectUnmodeledSkills!==false,sp:state.skillPoints,st:state.maxStage,da:state.damage,go:state.gold,p:state.playstyle,q:state.qol,w:state.goldWeight,cp:state.craftingPower,tk:state.timeToKill,cl:state.sClone,s:state.sets,cur:state.currentLevels,min:state.minimums,exc:state.excluded,keep:state.preserveCurrent,hay:state.assumeHaystActive,snap:state.assumeSnapActive,contracts:state.assumeContractsAtMax,astral:state.astralActivations};
+ return {protect:state.protectUnmodeledSkills!==false,sp:state.skillPoints,st:state.maxStage,da:state.damage,go:state.gold,p:state.playstyle,q:state.qol,w:state.goldWeight,cp:state.craftingPower,tk:state.timeToKill,cl:state.sClone,cur:state.currentLevels,min:state.minimums,exc:state.excluded,keep:state.preserveCurrent,hay:state.assumeHaystActive,snap:state.assumeSnapActive,contracts:state.assumeContractsAtMax,astral:state.astralActivations};
 }
 function decodeLink(){
  const hash=window.location.hash;
@@ -446,7 +445,7 @@ function decodeLink(){
  try{
   const payload=JSON.parse(decodeURIComponent(escape(atob(hash.slice(7)))));
   if(!payload||typeof payload!=="object")return;
-  state={...fresh(),skillPoints:payload.sp??0,maxStage:payload.st??0,damage:payload.da??"Clan Ship",gold:payload.go??"Fairy",playstyle:payload.p??"balanced",qol:payload.q??"recommended",goldWeight:payload.w??.7,craftingPower:payload.cp??1,timeToKill:payload.tk??8,sClone:payload.cl??30,sets:payload.s||{},currentLevels:payload.cur||{},minimums:payload.min||{},excluded:Array.isArray(payload.exc)?payload.exc:[],preserveCurrent:Boolean(payload.keep),assumeHaystActive:payload.hay===true,
+  state={...fresh(),skillPoints:payload.sp??0,maxStage:payload.st??0,damage:payload.da??"Clan Ship",gold:payload.go??"Fairy",playstyle:payload.p??"balanced",qol:payload.q??"recommended",goldWeight:payload.w??.7,craftingPower:payload.cp??1,timeToKill:payload.tk??8,sClone:payload.cl??30,currentLevels:payload.cur||{},minimums:payload.min||{},excluded:Array.isArray(payload.exc)?payload.exc:[],preserveCurrent:Boolean(payload.keep),assumeHaystActive:payload.hay===true,
     assumeSnapActive:payload.snap===true,assumeContractsAtMax:payload.contracts===true,astralActivations:payload.astral??0,protectUnmodeledSkills:payload.protect!==false,mode:"power"};
   window.history.replaceState(null,"",window.location.pathname+window.location.search);
   status("Shared build settings loaded. Optimize to calculate a new recommendation.","success");
@@ -454,7 +453,11 @@ function decodeLink(){
 }
 function initialize(){
  try{const saved=JSON.parse(localStorage.getItem("tt2_skill_optimizer_v1")||"null");if(saved&&typeof saved==="object")state={...fresh(),...saved};}catch{}
- decodeLink();state.mode="power";fillInputs();
+ decodeLink();
+ // Old manual toggles or old shared links must never override the export.
+ // No completed-set collection means unknown ownership, not zero owned in-game.
+ state.sets=ownedSetFlags(state.accountProfile);
+ state.mode="power";fillInputs();
  const queryLang=new URL(location.href).searchParams.get("lang");
  const pathLang=document.documentElement.lang;
  let savedLang="en";try{savedLang=localStorage.getItem("tt2_site_language")||"en"}catch{}
@@ -474,7 +477,6 @@ function initialize(){
  $("damage-choices").addEventListener("click",e=>{const b=e.target.closest("[data-damage]");if(b){state.damage=b.dataset.damage;fillInputs();remember();}});
  $("gold-choices").addEventListener("click",e=>{const b=e.target.closest("[data-gold]");if(b){state.gold=b.dataset.gold;fillInputs();remember();}});
  $("playstyle-choices").addEventListener("click",e=>{const b=e.target.closest("[data-playstyle]");if(b)applyPreset(b.dataset.playstyle);});
- $("equipment-choices").addEventListener("change",e=>{const id=e.target.dataset.set;if(id){state.sets[id]=e.target.checked;remember();}});
  $("skill-search").addEventListener("input",e=>renderEditor(e.target.value));
  $("skill-editor").addEventListener("change",e=>{
   const t=e.target,id=t.dataset.level||t.dataset.minimum||t.dataset.exclude;

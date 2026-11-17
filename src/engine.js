@@ -23,6 +23,14 @@ export const SKILLS = skillInfo;
 export const SKILL_IDS = Object.keys(skillInfo);
 export const SKILL_BY_NAME = Object.fromEntries(SKILL_IDS.map(id=>[skillInfo[id].Name,id]));
 const EXPORTED_SETS={MultiCast:"FB",Valkyrie:"FF",DarkAngel:"tFA",FairyKnight:"Shae",FireKnight:"Ignus",ElectricWarlord:"Ironheart",WaterSorcerer:"Kor",EarthRogue:"Styxsis",SteampunkKnight:"Rygal"};
+/** Set ownership is taken exclusively from explicitly unlocked export
+ * collections; missing collections are UNKNOWN, never manual checkbox input.
+ * Restore/exported shares may not reuse stale cached UI toggles.
+ */
+export function ownedSetFlags(profile){
+ const ids=new Set(profile?.ownedSetIds||[]);
+ return Object.fromEntries(Object.entries(EXPORTED_SETS).map(([id,key])=>[key,ids.has(id)]));
+}
 const COSTS=Object.fromEntries(SKILL_IDS.map(id=>{
   const info=skillInfo[id], costs=[0];
   for(let lvl=1;lvl<=Number(info.MaxLevel);lvl++){
@@ -56,17 +64,14 @@ export function parseExport(source){
   if(!tree||typeof tree!=="object"||Array.isArray(tree))throw new Error("No skill tree was found in this export.");
   const profile=parseAccountProfile(data);
   const stats=data.playerStats||data.stats||{};
-  const sets=new Set(profile.ownedSetIds);
   const skillPoints=stats["Skill Points Owned"]??stats.SkillPoints??data.SkillPoints;
   return {
     levels:levelsFrom(tree),
     skillPoints:Number.isFinite(Number(skillPoints))?Number(skillPoints):null,
     maxStage:Number(stats["Max Prestige Stage"]??stats.MaxStage??0)||0,
     craftingPower:Number(stats["Crafting Power"]??stats.CP??1)||1,
-    // Explicitly false string values must not activate otherwise absent sets.
-    sets:Object.fromEntries(Object.entries(EXPORTED_SETS).map(([gameId,key])=>[
-      key,sets.has(gameId)||[true,1,"true","TRUE","1"].includes(stats[key])
-    ])),
+    sets:ownedSetFlags(profile),
+    setOwnershipKnown:profile.sections.equipmentSets.present,
     damage:DAMAGE_TYPES.includes(stats.typeDamage)?stats.typeDamage:null,
     gold:GOLD_TYPES.includes(stats.typeGold)?stats.typeGold:null,
     importedVersion:data.Version||stats.buildVersion||null,

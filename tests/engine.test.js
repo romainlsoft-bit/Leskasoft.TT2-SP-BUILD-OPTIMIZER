@@ -1,7 +1,7 @@
 import {test} from "node:test";
 import assert from "node:assert/strict";
 import {exactConvolution,optimizeExact,branchDynamicProgram,upperConcaveEnvelope} from "../src/solver-core.js";
-import {SKILLS,SKILL_IDS,GAME_VERSION,DAMAGE_TYPES,GOLD_TYPES,parseExport,exportBuild,spentPoints,optimizeBuild} from "../src/engine.js";
+import {SKILLS,SKILL_IDS,GAME_VERSION,DAMAGE_TYPES,GOLD_TYPES,parseExport,exportBuild,spentPoints,optimizeBuild,ownedSetFlags} from "../src/engine.js";
 import {scoreAtLevel,assertFiniteScores} from "../src/effects.js";
 import {observedPetFairy} from "./fixtures/pet-fairy-comparison-20261116.js";
 const defaults={damage:"Clan Ship",gold:"Fairy",goldWeight:0.7,skillPoints:0,qol:"none",sets:{},minimums:{},currentLevels:{},maxStage:0,craftingPower:1,timeToKill:8,sClone:30};
@@ -270,4 +270,24 @@ test("Unknown conditional skills are only protected when already imported and un
  const noHistory=optimizeBuild({...defaults,damage:"Pet",gold:"Fairy",
   skillPoints:400,qol:"none"});
  assert.deepEqual(noHistory.protectedSkills,[]);
+});
+
+test("only exported completed sets enable equipment perks, not old stats or UI state",()=>{
+ const parsed=parseExport(JSON.stringify({
+  skillTree:{TapDmg:1},playerStats:{FB:true,tFA:true},
+  equipmentSets:{DarkAngel:true,MultiCast:false,Valkyrie:{completed:false},Samurai:true}
+ }));
+ assert.equal(parsed.setOwnershipKnown,true);
+ assert.equal(parsed.sets.tFA,true);
+ assert.equal(parsed.sets.FB,false);
+ assert.equal(parsed.sets.FF,false);
+ assert.equal(parsed.profile.ownedSetIds.includes("Samurai"),true);
+ assert.deepEqual(ownedSetFlags(parsed.profile),parsed.sets);
+ const noCollection=parseExport(JSON.stringify({
+  skillTree:{TapDmg:1},playerStats:{FB:true,tFA:true}
+ }));
+ assert.equal(noCollection.setOwnershipKnown,false);
+ assert.equal(noCollection.sets.FB,false);
+ assert.equal(noCollection.sets.tFA,false);
+ assert.deepEqual(ownedSetFlags(null),ownedSetFlags(noCollection.profile));
 });
