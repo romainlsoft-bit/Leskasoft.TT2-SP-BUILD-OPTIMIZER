@@ -162,3 +162,15 @@ However, fixed multipliers can change the ranking **across damage and gold sourc
 - Added dedicated regression cases for canonical alias mirrors, contradictions, invalid values, seasonal reset, section truncation, two-slot recommendations and Combat Techniques coverage, in `tests/pet-level-evidence.test.js`. Ten focused tests of the staged canonical importer against the real vendor pet catalogs passed in a V8 sandbox. The full Node suite and browser/real-stage comparisons remain pending.
 
 **Release gate remains closed; PR #17 stays in draft.**
+
+## Gemstone dependency routing and import integrity — 17 Nov 2026
+
+- Confirmed from Game Hive v8.0/8.1: gemstones changed to 24 fixed bonus identities and affected bonus scaling was rebalanced; old random-bonus assumptions are invalid.
+- Added a canonical `resolveGemstoneEvidence` ledger. Conflicting duplicate IDs and truncated exports now contribute no unverified fixed multipliers. Identical mirrors count once. Scientific values remain in log10 even for `1e9999`.
+- Direct gemstone effects now route to damage/gold source reductions; `SwordBoost`, `HelmetBoost`, `ArmorBoost`, `AuraBoost`, `SlashBoost`, `AllEquipmentEffect` route exclusively to gear *primary* multipliers. Nonlinear or unsupported types remain diagnostic and cannot create invented damage.
+- The equipment scorer reports explicit gemstone contributions separately from artifacts and Exotic pet passives, preserving the observed pet/gear/Combat Techniques chain. Unknown or conflicting gemstone records prevent the equipment-coverage flag from becoming fully verified.
+- Mystic Research GemstoneLevel increments remain diagnostic and are NOT multiplied into exported gemstone effects again; `basePlusResearchHypothesis` is expressly a conditional interpretation, never a game-predicted level.
+- UI coverage and report keys localized FR/EN/UK/RU; JS module versions bumped. Regression tests in `tests/account-gemstones.test.js`, source details in `docs/GEMSTONE_DEPENDENCY_MODEL.md`.
+- Targeted V8 unit checks of the actual gemstone ledger: 13/13 pass; full npm suite and in-game validation not executed here.
+
+**PR #17 stays draft; no merge or Pages deployment.**

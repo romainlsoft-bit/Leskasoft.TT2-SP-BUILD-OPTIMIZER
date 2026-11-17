@@ -11,7 +11,8 @@ import {resolveUniqueOwnership} from "./account-unique.js";
 import {resolveMonumentEvidence} from "./account-monuments.js";
 import {calculatePermanentArtifactEffects} from "./account-artifacts.js";
 import {additiveDamageEvidence} from "./account-damage-pools.js";
-import {resourceResearchEvidence} from "./account-research-resources.js";
+import {resourceResearchEvidence} from "./account-research-resources.js?v=20261117-gemstone-integrity";
+import {resolveGemstoneEvidence} from "./account-gemstones.js?v=20261117-gemstone-integrity";
 
 const object=x=>x&&typeof x==="object";
 const byName=(catalog,value)=>{
@@ -52,6 +53,7 @@ export function accountDependencyGraph(profile){
  const heroWeapons=heroWeaponEvidence(profile);
  const clanScrolls=clanScrollEvidence(profile);
  const researchResources=resourceResearchEvidence(profile);
+ const gemstones=resolveGemstoneEvidence(profile);
  const monuments=resolveMonumentEvidence(profile);
  const permanentArtifacts=calculatePermanentArtifactEffects(profile,ARTIFACT_CATALOG);
  const additiveDamage=additiveDamageEvidence(permanentArtifacts,monuments,
@@ -110,7 +112,7 @@ export function accountDependencyGraph(profile){
  const groups=[...new Set([...sets.flatMap(s=>s.effects.map(e=>e.dependsOn)),
   ...artifacts.map(a=>a.dependsOn)])];
  return {nodes:NODES,order:NODES.map(n=>n.id),sets,artifacts,groups,unknown,
-  uniquePermanentOwnership:[...uniqueOwned].sort(),uniqueEquipment,heroWeapons,clanScrolls,transcendence,monuments,permanentArtifacts,additiveDamage,researchResources,
+  uniquePermanentOwnership:[...uniqueOwned].sort(),uniqueEquipment,heroWeapons,clanScrolls,transcendence,monuments,permanentArtifacts,additiveDamage,researchResources,gemstones,
   ignoredTimedEffects:timedSetPower.omitted,
   timedSetPower:{calculated:timedSetPower.calculated,applied:timedSetPower.applied,omitted:timedSetPower.omitted},
   ready:false,unmodeledEffects:

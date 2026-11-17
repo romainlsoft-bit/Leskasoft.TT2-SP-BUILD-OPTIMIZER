@@ -1,11 +1,12 @@
-import {SKILLS,SKILL_IDS,BRANCH_NAMES,PRESETS,DAMAGE_TYPES,GOLD_TYPES,GAME_VERSION,parseExport,exportBuild,spentPoints,ownedSetFlags} from "./engine.js?v=20261117-pet-integrity";
-import { t, localizeDocument, SUPPORTED_LANGUAGES } from "./i18n.js?v=20261117-pet-integrity";
+import {SKILLS,SKILL_IDS,BRANCH_NAMES,PRESETS,DAMAGE_TYPES,GOLD_TYPES,GAME_VERSION,parseExport,exportBuild,spentPoints,ownedSetFlags} from "./engine.js?v=20261117-gemstone-integrity";
+import { t, localizeDocument, SUPPORTED_LANGUAGES } from "./i18n.js?v=20261117-gemstone-integrity";
 import { readClipboardText } from "./clipboard.js";
 import { profileCoverage } from "./account-profile.js";
 import {petLevelEvidence} from "./account-pet-levels.js";
-import {formatLogMultiplier} from "./account-power.js?v=20261117-pet-integrity";
-import {availablePets,recommendPets} from "./pet-scenarios.js?v=20261117-pet-integrity";
-import {bestEquipmentByCategory,EQUIPMENT_CATEGORIES} from "./equipment-scenarios.js?v=20261117-pet-integrity";
+import {resolveGemstoneEvidence} from "./account-gemstones.js?v=20261117-gemstone-integrity";
+import {formatLogMultiplier} from "./account-power.js?v=20261117-gemstone-integrity";
+import {availablePets,recommendPets} from "./pet-scenarios.js?v=20261117-gemstone-integrity";
+import {bestEquipmentByCategory,EQUIPMENT_CATEGORIES} from "./equipment-scenarios.js?v=20261117-gemstone-integrity";
 const $=id=>document.getElementById(id);
 let locale="en";
 let lastStatus={message:"Import your account or enter your skill points to begin.",type:"",params:{}};
@@ -138,7 +139,13 @@ function renderAccountProfile(){
  if(petData.rejected.length){
   el.textContent+=" "+tr("Pet import warning: {count} invalid, conflicting or unknown pet records were excluded from calculations.",{count:numberText(petData.rejected.length)});
  }
- el.dataset.incomplete=String(petData.rejected.length>0);
+ const gems=resolveGemstoneEvidence(profile);
+ if(gems.present){
+  el.textContent+=" "+tr("Gemstone effects: {direct} direct and {equipment} equipment bonuses recognized; {unresolved} unresolved. Research-granted levels are not multiplied again into exported effects.",{
+   direct:numberText(gems.directEffects),equipment:numberText(gems.equipmentEffects),
+   unresolved:numberText(gems.unknown.length)});
+ }
+ el.dataset.incomplete=String(petData.rejected.length>0||gems.unknown.length>0);
  el.hidden=false;
 }
 function renderPetControls(){
@@ -353,7 +360,7 @@ function optimize(){
  if(!$("skill-points").value){status("Enter your total Skill Points or import a player export.","error");return;}
  button.disabled=false;button.textContent=tr("Cancel optimization");
  status("Checking prerequisites and calculating the best allocation for the chosen scoring model…");
- worker=new Worker(new URL("./worker.js?v=20261117-pet-integrity",import.meta.url),{type:"module"});
+ worker=new Worker(new URL("./worker.js?v=20261117-gemstone-integrity",import.meta.url),{type:"module"});
  worker.onmessage=event=>{
    const data=event.data;
    if(data.progress){

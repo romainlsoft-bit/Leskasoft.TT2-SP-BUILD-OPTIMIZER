@@ -20,10 +20,10 @@ import {calculatePermanentArtifactEffects} from "./account-artifacts.js";
 import {resolveMonumentEvidence} from "./account-monuments.js";
 import {petPassiveEvidence} from "./pet-scenarios.js?v=20261117-pet-integrity";
 import {artifactDerivedPower} from "./account-artifact-derived.js";
-import {mergeTitanResearch,resourceResearchEvidence} from "./account-research-resources.js";
+import {mergeTitanResearch,resourceResearchEvidence} from "./account-research-resources.js?v=20261117-gemstone-integrity";
+import {resolveGemstoneEvidence} from "./account-gemstones.js?v=20261117-gemstone-integrity";
 
 const MAX_LEVEL=100000;
-const KNOWN_MULTIPLIER=/^[A-Za-z][A-Za-z0-9_]*:([+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[Ee][+-]?\d+)?)$/;
 const DIRECT_DAMAGE_TYPES=Object.freeze({
  "Clan Ship":["ClanShipDamage"],
  "Pet":["PetDamage"],
@@ -38,14 +38,6 @@ const DIRECT_GOLD_TYPES=Object.freeze({
  Chesterson:["ChestAmount","GoldChesterson"]
 });
 const cache=new WeakMap();
-function logScientific(value){
- const s=String(value??"").trim();
- if(!/^[+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[Ee][+-]?\d+)?$/.test(s))return null;
- const m=s.match(/^\+?(\d+(?:\.\d*)?|\.\d+)(?:[Ee]([+-]?\d+))?$/);
- const mantissa=Number(m[1]),expo=Number(m[2]||0);
- if(!Number.isFinite(mantissa)||mantissa<=0||!Number.isFinite(expo))return null;
- return Math.log10(mantissa)+expo;
-}
 function numericLevel(value,max){
  const n=Number(value);
  return Number.isSafeInteger(n)&&n>0&&n<=max&&n<=MAX_LEVEL?n:null;
@@ -81,26 +73,6 @@ function findResearchRows(records,group,out,unknown){
    bonusType:row.bonusType,level,log10});
  }
 }
-function addGemstoneValues(records,out,unknown){
- for(const item of records){
-  let found=false;
-  const values=[
-   ...(typeof item.primary==="string"?[item.primary]:[]),
-   ...(Array.isArray(item.secondary)?item.secondary:typeof item.secondary==="string"?[item.secondary]:[])
-  ];
-  for(const value of values){
-   const matched=String(value).match(KNOWN_MULTIPLIER);
-   if(!matched){unknown.push({system:"gemstones",id:item.id,reason:"unknown-bonus-format"});continue;}
-   const colon=value.indexOf(":"),type=value.slice(0,colon);
-   const log10=logScientific(value.slice(colon+1));
-   if(log10===null){unknown.push({system:"gemstones",id:item.id,reason:"invalid-bonus-value"});continue;}
-   found=true;
-   out.push({system:"gemstones",id:item.id,bonusType:type,
-    log10,level:item.level?Number(item.level):null});
-  }
-  if(!found)unknown.push({system:"gemstones",id:item.id,reason:"missing-explicit-bonus"});
- }
-}
 export function extractFixedAccountPower(profile){
  if(!profile||typeof profile!=="object")return {available:false,byType:{},entries:[],unsupported:[],matched:0};
  if(cache.has(profile))return cache.get(profile);
@@ -114,7 +86,12 @@ export function extractFixedAccountPower(profile){
  const titanResearch=mergeTitanResearch(profile);
  findResearchRows(titanResearch.records,"titanResearch",entries,unsupported);
  for(const row of titanResearch.unknown)unsupported.push(row);
- addGemstoneValues(from("gemstones"),entries,unsupported);
+ // Post-8.0 fixed gemstones: use the game-exported multiplier once, and
+ // route equipment bonuses through the gear chain, not directly into damage.
+ const gemstoneEvidence=resolveGemstoneEvidence(profile);
+ for(const row of gemstoneEvidence.entries)
+  if(row.route!=="unresolved")entries.push(row);
+ for(const row of gemstoneEvidence.unknown)unsupported.push(row);
  const scrolls=clanScrollEvidence(profile);
  for(const row of scrolls.entries){
   if(row.log10===null){unsupported.push({system:"clanScrolls",id:row.id,reason:"additive-unverified"});continue;}
@@ -175,6 +152,15 @@ export function extractFixedAccountPower(profile){
   artifactEffects:{recognized:artifactEffects.recognized,computed:artifactEffects.computed,
    scored:artifactEffects.scored,duplicateRecords:artifactEffects.duplicateRecords},
   researchResources:resourceResearchEvidence(profile),
+  gemstones:{present:gemstoneEvidence.present,
+   recorded:gemstoneEvidence.recorded,recognized:gemstoneEvidence.recognized,
+   duplicateMirrors:gemstoneEvidence.duplicateMirrors,
+   excluded:gemstoneEvidence.excluded,
+   directEffects:gemstoneEvidence.directEffects,
+   equipmentEffects:gemstoneEvidence.equipmentEffects,
+   unresolvedEffects:gemstoneEvidence.unresolvedEffects,
+   unresolvedRecords:gemstoneEvidence.unknown.length,
+   researchLevelsAddedToExportedValues:false,complete:false},
   monumentEffects:{recognized:monuments.recognized,
    computed:monuments.computed||0,scored:monuments.modeled||0}};
  cache.set(profile,value);
