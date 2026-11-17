@@ -5,7 +5,7 @@ import {TRANSCENDENT_PETS} from "../vendor/transcendent-pets.js";
 import {parseAccountProfile} from "../src/account-profile.js";
 import {extractFixedAccountPower,fixedAccountScore} from "../src/account-power.js";
 import {scoreAtLevel} from "../src/effects.js";
-import {optimizeBuild} from "../src/engine.js";
+import {optimizeBuild,DAMAGE_TYPES,GOLD_TYPES} from "../src/engine.js";
 import {ALL_PETS,availablePets,logPetBonus,activePetGain,petScenarioScore,petCombatTechniquesIncrement,recommendPets,resolvePetLevels,petPassiveEvidence,petArtifactAmplifiers,petTier,logPassivePetMultiplier,petEquipmentCombatTechniquesWeight,petWeight} from "../src/pet-scenarios.js";
 
 const sample=()=>parseAccountProfile({
@@ -190,4 +190,17 @@ test("unknown equipment inventory protects existing Combat Techniques SP from de
  const result=optimizeBuild(context);
  assert.ok(result.protectedSkills.includes("CombatTechniques"));
  assert.ok(result.levels.CombatTechniques>=8);
+});
+
+test("no phantom Combat Techniques contribution in any of 18 Damage/Gold build combinations",()=>{
+ const noEquipment={...settings(),
+  accountProfile:parseAccountProfile({petLevels:{Pet1:110,Pet12:110}})};
+ assert.equal(DAMAGE_TYPES.length*GOLD_TYPES.length,18);
+ for(const damage of DAMAGE_TYPES)for(const gold of GOLD_TYPES){
+  const current={...noEquipment,damage,gold,
+   equipmentPetSlotWeights:{},equipmentPetPassiveWeights:{}};
+  assert.equal(petEquipmentCombatTechniquesWeight(current),0);
+  assert.equal(scoreAtLevel("CombatTechniques",20,current),0,
+   damage+" / "+gold+" must not get free Equipment Pet Effect");
+ }
 });
