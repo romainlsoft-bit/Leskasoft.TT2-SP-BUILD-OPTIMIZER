@@ -111,7 +111,8 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
     ...(combatContext.assumeContractsAtMax?[]:["ForbiddenContract","RoyalContract","TerrifyingPact"]),
     ...(combatContext.assumeHaystActive?[]:["QuickFortune"]),
     ...(combatContext.assumeSnapActive?[]:["PhilosophersFlux"]),
-    ...(astralActivations>0?[]:["HelperDmgQTE"])
+    ...(astralActivations>0?[]:["HelperDmgQTE"]),
+    ...(combatContext.equipmentPetCoverageComplete===true?[]:["CombatTechniques"])
   ];
   if(settings.protectUnmodeledSkills!==false&&!settings.preserveCurrent){
     for(const id of uncertainSkills){

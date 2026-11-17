@@ -58,16 +58,41 @@ export function activePetGain(pet,level,extraPct=0,amplifierLog10=0){
  const passiveLog=logPassivePetMultiplier(logPetBonus(pet,level)+amp,level);
  return activeLog-passiveLog;
 }
+const EQUIPMENT_PET_SLOTS=Object.freeze({
+ SwordBoost:"Sword",HelmetBoost:"Helmet",ArmorBoost:"Armor",
+ AuraBoost:"Aura",SlashBoost:"Slash"
+});
+/** Combat Techniques A only enhances equipment-pet effects whose gear
+ * primary is actually modeled. Do not give SP imaginary account bonuses.
+ */
+export function petEquipmentCombatTechniquesWeight(settings={}){
+ const passive=settings.equipmentPetPassiveWeights||{};
+ const weights=settings.equipmentPetSlotWeights||{};
+ let weight=Object.values(passive).reduce((sum,x)=>sum+Math.max(0,Number(x)||0),0);
+ const levels=petLevels(settings.accountProfile);
+ for(const id of new Set([settings.selectedDamagePet,settings.selectedGoldPet])){
+  if(!id||!(levels[id]>0))continue;
+  const slot=EQUIPMENT_PET_SLOTS[ALL_PETS[id]?.type];
+  // Selected equipment pets with zero passive grant active CT. Do not add
+  // the slot twice once the pet has any passive fraction.
+  if(slot&&!(passive[slot]>0))weight+=Math.max(0,Number(weights[slot])||0);
+ }
+ return weight;
+}
 export function petWeight(pet,slot,settings){
  if(!pet)return 0;
  if(slot==="damage"){
   if(pet.equipType!=="Damage")return 0;
+  if(EQUIPMENT_PET_SLOTS[pet.type])
+   return Math.max(0,Number(settings.equipmentPetSlotWeights?.[EQUIPMENT_PET_SLOTS[pet.type]])||0);
   if(["AllDamage","BossDamage"].includes(pet.type))return 1;
   if(pet.type==="TapDamage"&&["Pet","Heavenly Strike","Shadow Clone","Dagger"].includes(settings.damage))return 1;
   return 0;
  }
  if(slot==="gold"){
   if(pet.equipType!=="Support")return 0;
+  if(EQUIPMENT_PET_SLOTS[pet.type])
+   return Math.max(0,Number(settings.equipmentPetSlotWeights?.[EQUIPMENT_PET_SLOTS[pet.type]])||0);
   if(pet.type==="GoldAll")return Math.max(0,finite(settings.goldWeight));
   if(pet.type==="FairyGold"&&settings.gold==="Fairy")return Math.max(0,finite(settings.goldWeight));
   if(pet.type==="GoldBoss"&&settings.gold==="HoG")return Math.max(0,finite(settings.goldWeight));

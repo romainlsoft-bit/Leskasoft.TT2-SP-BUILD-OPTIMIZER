@@ -12,9 +12,12 @@ self.onmessage=event=>{
  try{
   const equipment=bestEquipmentByCategory(settings.accountProfile,settings,2);
   const selection=gearSelectionEffects(settings.accountProfile,settings,settings.selectedEquipment||{});
+  const gearContext={...settings,equipmentPetSlotWeights:selection.petEquipmentSlotWeights,
+   equipmentPetPassiveWeights:selection.petEquipmentPassiveWeights,
+   equipmentPetCoverageComplete:selection.petEquipmentCoverageComplete};
   if(type==="optimize-pet-scenarios"){
-   const damage= recommendPets(settings.accountProfile,settings,"damage",3);
-   const gold= recommendPets(settings.accountProfile,settings,"gold",3);
+   const damage= recommendPets(settings.accountProfile,gearContext,"damage",3);
+   const gold= recommendPets(settings.accountProfile,gearContext,"gold",3);
    if(damage.length||gold.length){
     // Independent rankings. There are at most 3+3 evaluations; never 3x3.
     let chosenDamage=damage[0]||null;
@@ -24,7 +27,7 @@ self.onmessage=event=>{
     const evaluate=(candidate,slot)=>{
      const d=slot==="damage"?candidate:chosenDamage;
      const g=slot==="gold"?candidate:chosenGold;
-     const context={...settings,selectedDamagePet:d?.id||null,
+     const context={...gearContext,selectedDamagePet:d?.id||null,
       selectedGoldPet:g?.id||null};
      const result=optimizeBuild(context,undefined,cache);
      completed++;
@@ -51,7 +54,7 @@ self.onmessage=event=>{
     return;
    }
   }
-  const result=optimizeBuild(settings,progress=>self.postMessage({progress}),cache);
+  const result=optimizeBuild(gearContext,progress=>self.postMessage({progress}),cache);
   self.postMessage({ok:true,result,selectedPets:{
     damage:settings.selectedDamagePet||null,gold:settings.selectedGoldPet||null
    },petComparisons:{damage:[],gold:[]},equipment,gearSelection:selection});
