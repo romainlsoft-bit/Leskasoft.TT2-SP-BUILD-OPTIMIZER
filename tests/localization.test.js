@@ -95,3 +95,14 @@ test("account coverage diagnostics are localized and all 16 imported categories 
   for(const number of ["2","3","5","7"])assert.ok(value.includes(number));
  }
 });
+
+test("Gemstone and Titan Soul research diagnostics are translated in all locales",()=>{
+ const key="Research from export: Gemstone Research {levels} levels; Titan Souls {daily}/day, {prestige}/prestige, +{chance}% raw drop chance. Resource bonuses are not damage multipliers.";
+ for(const lang of ["fr","uk","ru"]){
+  assert.ok(translations[lang][key],lang+" research diagnostic missing");
+  assert.notEqual(t(key,lang,{levels:"+42",daily:"+70",
+   prestige:"+50",chance:"0.6"}),key);
+ }
+ assert.ok(app.includes("resources.gemstones.extraLevelsFromResearch"));
+ assert.ok(app.includes("souls.rawChanceBonusFraction"));
+});

@@ -395,6 +395,20 @@ function renderAccountIntegration(result){
   weapons:knownOrUnknown(coverage.heroWeaponFullSets),
   scrolls:knownOrUnknown(coverage.clanScrollCompleteSets)
  });
+ const resources=coverage.researchResources;
+ if(resources?.gemstones?.present||resources?.titanSouls?.present){
+  const notKnown=tr("not verifiable from this export");
+  const gems=resources.gemstones?.present
+   ?"+"+numberText(resources.gemstones.extraLevelsFromResearch):notKnown;
+  const souls=resources.titanSouls;
+  const soulKnown=souls?.present===true;
+  panel.textContent+=" "+tr(
+   "Research from export: Gemstone Research {levels} levels; Titan Souls {daily}/day, {prestige}/prestige, +{chance}% raw drop chance. Resource bonuses are not damage multipliers.",
+   {levels:gems,daily:soulKnown?"+"+numberText(souls.bonusPerDay):notKnown,
+    prestige:soulKnown?"+"+numberText(souls.bonusPerPrestige):notKnown,
+    chance:soulKnown?numberText(Math.round(souls.rawChanceBonusFraction*100000)/1000):notKnown}
+  );
+ }
 }
 function renderResults(result,scroll=true){
  $("empty-results").hidden=true;$("actual-results").hidden=false;if(scroll)$("results").scrollIntoView({behavior:"smooth",block:"start"});
