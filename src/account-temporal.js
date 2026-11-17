@@ -1,3 +1,4 @@
+import {HERO_ROSTER} from "../vendor/hero-roster.js";
 /**
  * TT2 date evidence. No player-entered dates and no inferred set ages.
  * A set is completed upon acquisition of its fifth distinct equipment slot.
@@ -59,10 +60,30 @@ export function resolveSetCompletionDates(profile,at=new Date()){
  return result;
 }
 export function heroWeaponEvidence(profile){
- const rows=profile?.sections?.heroWeapons?.records||[];
- const known=rows.filter(r=>Number.isSafeInteger(Number(r.level))&&Number(r.level)>=0);
+ const source=profile?.sections?.heroWeapons?.records||[];
+ const heroIds=new Set(HERO_ROSTER),seen=new Map(),unknownHeroIds=[],duplicates=[];
+ const known=source.filter(r=>Number.isSafeInteger(Number(r.level))&&Number(r.level)>=0);
+ for(const row of known){
+  const key=String(row.id).toUpperCase();
+  if(!heroIds.has(key)){unknownHeroIds.push(row.id);continue;}
+  if(seen.has(key)){duplicates.push(key);continue;}
+  seen.set(key,Number(row.level));
+ }
+ const completeRosterVerified=duplicates.length===0&&HERO_ROSTER.every(id=>seen.has(id));
+ // Each complete set requires all 37 hero weapons at that level.
+ const completeSets=completeRosterVerified?Math.min(...HERO_ROSTER.map(id=>seen.get(id))):null;
+ const individual=HERO_ROSTER.filter(id=>seen.has(id)).map(id=>({
+  id,level:seen.get(id),unboostedHeroLog10:seen.get(id)*Math.log10(1.5)
+ }));
  return {ownedHeroes:known.filter(r=>Number(r.level)>0).length,
-  totalRecorded:rows.length,unknownLevels:rows.length-known.length,
+  totalRecorded:source.length,unknownLevels:source.length-known.length,
   totalWeaponLevels:known.reduce((a,r)=>a+Number(r.level),0),
-  completeSets:null,completeRosterVerified:false};
+  uniqueKnownHeroes:seen.size,requiredHeroCount:HERO_ROSTER.length,
+  missingHeroes:HERO_ROSTER.length-seen.size,unknownHeroIds,duplicates,
+  completeSets,completeRosterVerified,
+  // A full set gives ×5 base hero damage. Weapon level ×1.5 per hero.
+  // These are NOT added as independent AllDamage: effective hero power,
+  // Morgelai Sword/Ringing Stone enhancements and source reductions matter.
+  unboostedFullSetLog10:completeSets===null?null:completeSets*Math.log10(5),
+  individual,boostsModeled:false,complete:false};
 }

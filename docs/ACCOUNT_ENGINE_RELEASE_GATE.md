@@ -16,7 +16,7 @@
 - **30 set effects** in EquipmentSetInfo.csv are marked PerDay=TRUE. Their Amount/Inc/Expo/MaxValue metadata are retained. Source-derived PerDay formulas (min(Amount^completedDays, MaxValue)) are now evaluated only with a verified export-based date; directly applicable damage/gold types enter the proxy, while equipment/skill-dependent types remain separately flagged. In-game formula parity still requires validation.
 - **Date of set completion** = acquisition of the fifth *distinct* slot (weapon, helmet, armor, aura, slash), never the beginning of the current Transcendence. Use the explicit completion date or five equipment acquisition dates from the export if and only if supplied. If absent, ignore the time-dependent effect. No player-entered date, no guessed date, and no replacement with season date.
 - **Transcendence season age** is a separate parameter. Read the export start date, or match exported season number to a versioned official calendar. Season 13 start 2026-08-12 from Game Hive DevLog #231.
-- **Hero weapons**: preserve actual individual levels; full set and hero damage calculations remain unscored until the current complete roster, stacking and all relevant bonuses are independently checked.
+- **Hero weapons**: 37 active hero IDs from TT2 8.4 HelperInfo.csv. Count complete sets only when all 37 weapon levels are explicitly present; level-by-level unboosted multipliers are ×1.5 per weapon and ×5 per complete set (TT2 Wiki Heroes). Never collapse independent hero bonuses into a universal AllDamage coefficient; Morgelai Sword and Ringing Stone/related boosts remain unresolved.
 - **Unique equipment**: possession is distinct from equipment currently worn. Detect ownership of Unique items in the export; don't make permanent effects disappear on unequip. Numerical bonus is unverified for now.
 - An ignored effect means **unknown in-game contribution**, not zero in-game power. Never present the proxy as an absolute damage model.
 
@@ -36,7 +36,7 @@
 - [ ] Calibrate *cross-build* absolute damage/gold conversion and model spell uptime, mana, conditional skills, farming time and push limits. Only then enable automatic damage-source / gold-source selection.
 - [ ] Fix missing exotic equipment boost interactions in active-pet rankings. Verify two independent pet slots and 3 best candidates per type.
 - [ ] Regression-test all 18 Damage/Gold combinations across different SP levels and complete accounts, including real observed stages. Ensure the former Pet/Fairy -2,000 stages regression remains prevented.
-- [ ] Validate all Hero Weapon collection/level multipliers, Unique equipment permanent effects, and time-based set/monument formulas against complete TT2 exports; uncomputable effects remain omitted.
+- [ ] Validate Hero Weapon boosted effects (Morgelai Sword, Ringing Stone) and hero-specific impact by build source, Unique equipment permanent effects, and time-based monument formulas against complete TT2 exports; uncomputable effects remain omitted.
 - [ ] Run full Node test suite and browser tests for import, calculators, language changes and small-screen layout.
 - [ ] Run benchmark on 22,600+ SP with account context, and confirm cache invalidation avoids full recomputation for unchanged branches.
 - [ ] Verify cap-dependent spell damage interactions, full-spell activation assumptions, and scroll-set/amplification formulas against complete exports.

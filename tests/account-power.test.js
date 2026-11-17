@@ -7,6 +7,7 @@ import {ARTIFACT_CATALOG,EQUIPMENT_SET_CATALOG,SEASON_ARTIFACT_CATALOG} from "..
 import {ACCOUNT_SCALING} from "../vendor/account-scaling.js";
 import {resolveSetCompletionDates,resolveTranscendenceAge,heroWeaponEvidence} from "../src/account-temporal.js";
 import {clanScrollEvidence} from "../src/account-scrolls.js";
+import {HERO_ROSTER} from "../vendor/hero-roster.js";
 import {CLAN_SCROLLS} from "../vendor/clan-scrolls.js";
 import {resolveSpellCaps,spellCapBonus,spellTableIndex} from "../src/spell-caps.js";
 import {extractTimedSetPower} from "../src/account-set-bonuses.js";
@@ -209,11 +210,33 @@ test("date-backed spell and equipment-dependent daily effects are computed but n
  const r=extractTimedSetPower(p,new Date("2026-10-11T00:00:00Z"));
  assert.equal(r.entries.length,2);
  assert.equal(r.calculated,2);
- assert.equal(r.applied,1);
+ assert.equal(r.applied,2);
  assert.ok(r.entries.some(x=>x.bonusType==="BurstDamageSkillAmount"&&x.appliedToScore));
+ assert.ok(r.entries.some(x=>x.bonusType==="AllDamage"&&x.appliedToScore));
  const unresolved=parseAccountProfile({equipmentSets:[{id:"Tortoise",completedAt:"2026-10-01"}]});
  const t=extractTimedSetPower(unresolved,new Date("2026-10-11T00:00:00Z"));
  assert.equal(t.calculated,1);
  assert.equal(t.applied,0);
  assert.equal(t.entries[0].status,"calculated-unscored-interaction");
+});
+
+test("all 37 hero weapon slots resolve full collections without making up damage",()=>{
+ assert.equal(HERO_ROSTER.length,37);
+ const p=parseAccountProfile({heroWeapons:Object.fromEntries(HERO_ROSTER.map((id,i)=>[id,i===0?4:5]))});
+ const e=heroWeaponEvidence(p);
+ assert.equal(e.completeRosterVerified,true);
+ assert.equal(e.completeSets,4);
+ assert.equal(e.uniqueKnownHeroes,37);
+ assert.ok(Math.abs(e.unboostedFullSetLog10-4*Math.log10(5))<1e-12);
+ assert.ok(Math.abs(e.individual.find(x=>x.id===HERO_ROSTER[0]).unboostedHeroLog10-4*Math.log10(1.5))<1e-12);
+ assert.equal(e.boostsModeled,false);
+ const partial=parseAccountProfile({heroWeapons:Object.fromEntries(HERO_ROSTER.slice(0,36).map(id=>[id,5]))});
+ assert.equal(heroWeaponEvidence(partial).completeSets,null);
+});
+test("unknown hero names and duplicate IDs never trigger fabricated completed sets",()=>{
+ const p=parseAccountProfile({heroWeapons:{H01:4,H02:4,Unknown:200}});
+ const e=heroWeaponEvidence(p);
+ assert.equal(e.completeSets,null);
+ assert.deepEqual(e.unknownHeroIds,["Unknown"]);
+ assert.equal(e.missingHeroes,35);
 });
