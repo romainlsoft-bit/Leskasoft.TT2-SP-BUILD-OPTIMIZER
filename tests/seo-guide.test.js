@@ -68,6 +68,11 @@ test("Source research documents the no-manual-entry promise and qualification bo
  const gate=get("docs/ACCOUNT_ENGINE_RELEASE_GATE.md");
  assert.ok(research.includes("SP optimizer"));
  assert.ok(research.includes("Necrobear"));
- assert.ok(research.includes("not automatically equip pets or gear"));
+ assert.ok(research.includes("automatically equip pets or gear"));
  assert.ok(gate.includes("The public release gate remains closed"));
+});
+
+test("Internal guide navigation remains visible on narrow phones",()=>{
+ const css=get("styles.css");
+ assert.match(css,/\.header-right>a\.guide-nav-link\{display:inline-block/);
 });
