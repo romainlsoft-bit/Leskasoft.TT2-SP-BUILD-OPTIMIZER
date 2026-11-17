@@ -21,10 +21,10 @@ import {ARTIFACT_CATALOG} from "../vendor/account-catalog.js";
 import {calculatePermanentArtifactEffects} from "./account-artifacts.js";
 import {resolveMonumentEvidence} from "./account-monuments.js?v=20261117-monument-pools";
 import {monumentDerivedPower} from "./account-monument-derived.js?v=20261117-monument-pools";
-import {petPassiveEvidence} from "./pet-scenarios.js?v=20261117-contract-coupling";
+import {petPassiveEvidence} from "./pet-scenarios.js?v=20261118-pet-equipment-o";
 import {artifactDerivedPower} from "./account-artifact-derived.js";
 import {mergeTitanResearch,resourceResearchEvidence} from "./account-research-resources.js?v=20261117-resource-integrity";
-import {resolveGemstoneEvidence} from "./account-gemstones.js?v=20261117-contract-coupling";
+import {resolveGemstoneEvidence} from "./account-gemstones.js?v=20261118-pet-equipment-o";
 
 const MAX_LEVEL=100000;
 const DIRECT_DAMAGE_TYPES=Object.freeze({
@@ -172,7 +172,11 @@ export function extractFixedAccountPower(profile){
   petPassives:{imported:passivePets.imported,scored:passivePets.scored,
    rejectedLevels:passivePets.rejectedLevels.length,
    duplicateMirrors:passivePets.duplicateMirrors,
-   unknownAmplifiers:passivePets.unknownAmplifiers.length,complete:false},
+   unknownAmplifiers:passivePets.unknownAmplifiers.length,
+   seasonalImported:passivePets.seasonalImported,
+   seasonalDirect:passivePets.seasonalDirect,
+   seasonalEquipment:passivePets.seasonalEquipment,
+   unscoredDependent:passivePets.unscoredDependent,complete:false},
   artifactEffects:{recognized:artifactEffects.recognized,computed:artifactEffects.computed,
    scored:artifactEffects.scored,duplicateRecords:artifactEffects.duplicateRecords,
    truncated:artifactEffects.truncated,unknownIds:artifactEffects.unknown.length,
@@ -234,12 +238,18 @@ export function fixedAccountScore(power,settings){
  // Unlike AllHelperDamage, weapon mastery boosts BASE hero damage and
  // do not receive an additional build-source reduction.
  const baseHeroLog10=power.byType.BaseHeroDamage||0;
- const damageLog10=types.reduce((a,t)=>a+(power.byType[t]||0),heroLog10+baseHeroLog10);
+ // Permanent Tap sources (including pets and artifacts) are reduced once;
+ // they are not universal All Damage or duplicate SP bonuses.
+ const tapReduction=equipmentEffectReduction("TapDamage",settings).weight;
+ const tapLog10=Number.isFinite(tapReduction)?
+  (power.byType.TapDamage||0)*tapReduction:0;
+ const damageLog10=types.reduce((a,t)=>a+(power.byType[t]||0),
+  heroLog10+baseHeroLog10+tapLog10);
  const goldLog10=goldTypes.reduce((a,t)=>a+(power.byType[t]||0),0);
  const weight=Number(settings.goldWeight);
  return {damageLog10,goldLog10,
   weightedLog10:damageLog10+(Number.isFinite(weight)?weight:0)*goldLog10,
-  types:[...types,"BaseHeroDamage",...heroTypes,...goldTypes]};
+  types:[...types,"BaseHeroDamage","TapDamage",...heroTypes,...goldTypes]};
 }
 export function formatLogMultiplier(log10){
  if(!Number.isFinite(log10))return "unknown";

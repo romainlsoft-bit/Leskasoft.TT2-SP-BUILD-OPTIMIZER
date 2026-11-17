@@ -14,7 +14,7 @@
  * Do not add another fixedAccountScore here, nor multiply these values by
  * account Gemstone levels. Both would double-count existing contributions.
  */
-import {petScenarioScore,availablePets} from "./pet-scenarios.js?v=20261117-contract-coupling";
+import {petScenarioScore,availablePets} from "./pet-scenarios.js?v=20261118-pet-equipment-o";
 
 function finite(value,label){
  if(typeof value!=="number"||!Number.isFinite(value))
@@ -56,6 +56,7 @@ export function modeledScenarioCoverage(result,settings,gearSelection={}){
  const invalidGoldPet=goldPet!==null&&
   !available.some(x=>x.id===goldPet&&x.equipType==="Support");
  const missingGearSlots=Math.max(0,5-Object.keys(selected).length);
+ const petEvidence=result?.accountIntegration?.petPassives||{};
  const hero=result?.accountIntegration?.heroProgression;
  const scroll=result?.accountIntegration?.clanScrollPower;
  const spellScenario=result?.spellScenario;
@@ -94,6 +95,10 @@ export function modeledScenarioCoverage(result,settings,gearSelection={}){
  if(unknownGearSecondaries)gaps.push("unmodeled-equipment-secondaries");
  if(unknownGearAmplifiers)gaps.push("unverified-equipment-amplifiers");
  if(unknownGemstoneBonuses)gaps.push("unmodeled-gemstone-bonuses");
+ if(petEvidence.unscoredDependent>0)gaps.push("unmodeled-conditional-pet-passives");
+ if(petEvidence.unknownAmplifiers>0)gaps.push("unverified-pet-amplifiers");
+ if(gearSelection.petPrimarySourcesCount>0&&unknownGearAmplifiers>0)
+  gaps.push("unverified-pet-equipment-cross-stack");
  if(artifactPower?.truncated)gaps.push("truncated-artifact-collection");
  if((artifactPower?.unknownIds||0)>0)gaps.push("unknown-artifact-identifiers");
  if(artifactPower?.ownedCountVerifiable===false)
@@ -151,6 +156,9 @@ export function modeledScenarioCoverage(result,settings,gearSelection={}){
   conservativeSetEffects,missingSetCollection,uncertainOwnedSetCounts,
   conflictingCraftingPower,
   invalidDamagePet,invalidGoldPet,
+  petPrimarySourcesCount:gearSelection.petPrimarySourcesCount||0,
+  unscoredPetPassives:petEvidence.unscoredDependent||0,
+  seasonalPetEffects:petEvidence.seasonalImported||0,
   unresolvedAccountEffects,unknownCatalogIds,
   safeForAutomaticGearRecommendation:inventoryPresent&&!inventoryTruncated&&
    !missingExplicitSelections&&!unknownGearPrimaries&&

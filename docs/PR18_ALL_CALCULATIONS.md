@@ -940,3 +940,21 @@ Compendium mana guide
 https://www.tt2-compendium.com/fr/builds/build/pet-fairy ;
 six-slot player discussion
 https://www.reddit.com/r/TapTitans2/comments/oohl85/ .
+
+ 
+## Lot O — 18 novembre 2026 : interactions pets, passifs, équipements, gemmes et bonus croisés
+
+### Modifications implémentées
+- Les passifs `AllHelperDamage` et `TapDamage` de familiers Legacy et Transcendent, jusque-là inventoriés mais exclus du ledger fixe, sont intégrés comme multiplicateurs **réduits par build** selon les coefficients épinglés `vendor/reductions.js` : `AllHelperDmg[damage]` et `TapDmg[damage]`. Cela prend en compte aussi le bonus permanent `TapDamage` d'artefacts vérifiés (exemple : Drunken Hammer). Aucun passage fictif en `AllDamage` ni double comptage avec l'actif ou les SP.
+- Les pets actifs `AllHelperDamage` et `TapDamage` entrent dans la sélection et l'échantillonnage Combat Techniques avec leurs réductions sources, notamment Tap partiel en Gold Gun, inapplicable en Clan Ship. Les candidats sans niveau positif fiable dans l'export ne sont pas proposés.
+- Une même famille d'équipement peut être amplifiée par **plusieurs familiers distincts** : les passifs exotiques `Pet26` à `Pet30`, combinés avec les familiers transcendants `SeasonalPet1` (Armor), `SeasonalPet6` (Helmet), `SeasonalPet14` (Aura), `SeasonalPet15` (Slash), sont sommés une fois **par ID de pet** en log10. Ancien problème : le `.find()` ignorait une partie des sources. Les effets demeurent attachés au primaire de l'équipement sélectionné; aucune secondaire n'est artificiellement amplifiée.
+- **Cumul non prouvé exclu :** `Restored Rune Heart` (`Artifact46`) et les gemmes `EquipmentPetEffect` restent appliqués aux cinq pets exotiques d'équipement explicitement concernés. Leur application à un pet transcendant portant le même `*Boost` est non certifiée en TT2 8.4 : le passif saisonnier indépendant peut compter, mais son amplification par cette rune/gemme n'est pas inventée et est signalée par `seasonal-equipment-pet-rune-stack-unverified`.
+- Les rapports par build exposent sources de passifs, effets saisonniers d'équipement, routes conditionnelles exclues et incertitudes de stacking. Cache-bust `20261118-pet-equipment-o` dans les imports et les **quatre** pages HTML, sans publication GitHub Pages.
+
+### Tests/validation, règles et limites
+- Nouveau `tests/pet-equipment-lot-o.test.js` : 9 tests Node **déclarés**, comportant 18 combinaisons Damage×Gold du routage fixe et 18 appels `optimizeBuild`/ledger à 0 SP; cas d'export manquant/contradictoire, pets Legacy/Transcendent, double-source équipement, rune/gemstone, grand exposant `1e9999`, effet `TapDamage` d'artefact.
+- Les tests Node, `npm test`, `npm run check:data`, benchmark `--all --sp 22600`, pair-search, navigateur, CI et in-game restent à **exécuter effectivement** avant publication. Ne pas confondre les tests ciblés V8 et la suite native.
+- Les familiers `CritDamage`, `JackpotGold`, `MultiMonstersGold`, les effets secondaires non sourcés et les mécaniques d'attaque des familiers restent non réductibles sans contrôle d'une vraie partie; les bonus saisonniers autres que les valeurs exportées demeurent incertains. Le modèle ne prédit aucun nombre réel de stages. Régression Pet/Fairy précédemment observée : gate **bloquante**, non démontrée corrigée.
+- Sources : catalogues 8.4 versionnés `vendor/pets.js`, `vendor/transcendent-pets.js`, `vendor/reductions.js`, `vendor/account-catalog.js`; [Game Hive, Pets FAQ](https://gamehive.helpshift.com/hc/en/3-tap-titans-2/faq/88-what-are-pets-and-how-do-i-level-them-up/), [TT2 Compendium, Combat Techniques](https://www.tt2-compendium.com/pl/wiki/skills/combattechniques), [Game Hive, v8.4](https://gamehive.com/blog/devlog-239-version-840-patch-notes/). Les comparaisons sur export réel restent requises.
+
+**Suite recommandée, lot P :** terminer les dépendances de buffs/attaques actifs, probabilités et secondes statistiques d'équipement avec valeurs TT2 vérifiées, commencer calibration des effets DPS → HP de stage; en parallèle exécuter la suite native complète et les benchmarks 22 600 SP, puis reproduire les exemples réels du clan. PR #18 **DRAFT**, ni fusion, ni Ready for Review, ni Pages.

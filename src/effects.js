@@ -6,10 +6,10 @@
 import { skillInfo } from "../vendor/skills.js";
 import { reductions } from "../vendor/reductions.js";
 import { spellInfo, spell_reductions } from "../vendor/spells.js";
-import {spellTableIndex} from "./spell-caps.js?v=20261118-spell-mana-n";
-import {spellCapGainEligible} from "./spell-scenarios.js?v=20261118-spell-mana-n";
+import {spellTableIndex} from "./spell-caps.js?v=20261118-pet-equipment-o";
+import {spellCapGainEligible} from "./spell-scenarios.js?v=20261118-pet-equipment-o";
 import { clone } from "../vendor/clone.js";
-import {petCombatTechniquesIncrement,petEquipmentCombatTechniquesIncrement} from "./pet-scenarios.js?v=20261117-contract-coupling";
+import {petCombatTechniquesIncrement,petEquipmentCombatTechniquesIncrement} from "./pet-scenarios.js?v=20261118-pet-equipment-o";
 import {skillTreeSetScore} from "./skill-tree-set-effects.js";
 import {contractSkillScore} from "./contract-scenarios.js";
 

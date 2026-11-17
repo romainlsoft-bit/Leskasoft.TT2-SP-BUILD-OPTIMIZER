@@ -9,6 +9,7 @@ import {TRANSCENDENT_PETS} from "../vendor/transcendent-pets.js";
 
 export const ALL_PETS=Object.freeze({...PETS,...TRANSCENDENT_PETS});
 import {skillInfo} from "../vendor/skills.js";
+import {equipmentEffectReduction} from "./equipment-reductions.js";
 import {EQUIPMENT_SET_CATALOG} from "../vendor/account-catalog.js";
 import {petTier,petArtifactAmplifiers,logPassivePetMultiplier} from "./pet-amplifiers.js?v=20261117-pet-gemstone-chain";
 import {petLevelEvidence} from "./account-pet-levels.js";
@@ -117,7 +118,9 @@ export function petWeight(pet,slot,settings){
   if(EQUIPMENT_PET_SLOTS[pet.type])
    return Math.max(0,Number(settings.equipmentPetSlotWeights?.[EQUIPMENT_PET_SLOTS[pet.type]])||0);
   if(["AllDamage","BossDamage"].includes(pet.type))return 1;
-  if(pet.type==="TapDamage"&&["Pet","Heavenly Strike","Shadow Clone","Dagger"].includes(settings.damage))return 1;
+  // Use the pinned build conversion for Tap and All Hero pet bonuses.
+ if(pet.type==="TapDamage"||pet.type==="AllHelperDamage")
+  return Math.max(0,equipmentEffectReduction(pet.type,settings).weight??0);
   return 0;
  }
  if(slot==="gold"){
@@ -206,7 +209,7 @@ export function petCombatTechniquesIncrement(settings,level){
  */
 export function petCandidateEnvelope(settings,petId,slot){
  const pet=ALL_PETS[petId];
- if(!pet||petWeight(pet,slot,settings)<=0)return null;
+ if(!pet||!(petLevels(settings.accountProfile)[petId]>0)||petWeight(pet,slot,settings)<=0)return null;
  const max=Math.max(0,Number(skillInfo.CombatTechniques?.MaxLevel)||0);
  const levels=[0,Math.floor(max/4),Math.floor(max/2),Math.floor(3*max/4),max];
  const selection=slot==="damage"?"selectedDamagePet":"selectedGoldPet";
@@ -234,7 +237,9 @@ export function recommendPets(profile,settings,slot,count=3){
  * Only direct source types are applied to the fixed account score; equipment
  * boosts, mana, stage skip and hero reductions require additional mechanics.
  */
-const DIRECT_PASSIVE=new Set(["AllDamage","BossDamage","GoldAll","FairyGold","GoldBoss"]);
+// All Hero and Tap enter the corresponding source-reduced fixed lanes.
+const DIRECT_PASSIVE=new Set(["AllDamage","BossDamage","AllHelperDamage",
+ "TapDamage","GoldAll","FairyGold","GoldBoss"]);
 const MULTIPLICATIVE_PASSIVE=new Set([
  "AllDamage","BossDamage","TitanDamage","TapDamage","AllHelperDamage",
  "MeleeHelperDamage","RangedHelperDamage","SpellHelperDamage",
@@ -261,8 +266,16 @@ export function petPassiveEvidence(profile){
    petAttackDamageModeled:false});
  }
  const evidence=petLevelEvidence(profile);
+ const seasonal=entries.filter(x=>x.tier==="Transcendent");
+ const seasonalEquipment=seasonal.filter(x=>EQUIPMENT_PET_SLOTS[x.bonusType]);
+ const unresolvedRouted=entries.filter(x=>!x.appliedToScore&&
+  !EQUIPMENT_PET_SLOTS[x.bonusType]);
  return {entries,byType,imported:entries.length,
   scored:entries.filter(x=>x.appliedToScore).length,
+  seasonalImported:seasonal.length,
+  seasonalDirect:seasonal.filter(x=>x.appliedToScore).length,
+  seasonalEquipment:seasonalEquipment.length,
+  unscoredDependent:unresolvedRouted.length,
   rejectedLevels:evidence.rejected,
   duplicateMirrors:evidence.duplicateMirrors,
   unknownAmplifiers:boosts.unknown,unmodeled,
