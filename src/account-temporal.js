@@ -2,6 +2,9 @@ import {HERO_ROSTER} from "../vendor/hero-roster.js";
 /**
  * TT2 date evidence. No player-entered dates and no inferred set ages.
  * A set is completed upon acquisition of its fifth distinct equipment slot.
+ * Rebuild that date ONLY from explicit completion metadata or a preserved
+ * historical acquisition log. Current inventory may consist of re-acquired
+ * pieces and cannot establish when the set first became complete.
  */
 export const OFFICIAL_TRANSCENDENCE_STARTS=Object.freeze({
  "13":"2026-08-12" // Game Hive DevLog #231, August 11, 2026
@@ -35,7 +38,7 @@ export function resolveSetCompletionDates(profile,at=new Date()){
  const now=at instanceof Date?at.getTime():epoch(at);
  const result=Object.create(null);
  const sets=profile?.sections?.equipmentSets?.records||[];
- const equipment=profile?.sections?.equipmentInventory?.records||[];
+ const equipment=profile?.sections?.equipmentHistory?.records||[];
  const examined=new Set();
  for(const row of sets){
   const id=String(row.id);
@@ -45,6 +48,8 @@ export function resolveSetCompletionDates(profile,at=new Date()){
   const directDates=[...new Map(matches.filter(item=>item.completedAt)
    .map(item=>[epoch(item.completedAt),item.completedAt])).values()];
   const multipleDates=directDates.length>1;
+  // Only immutable first-acquisition history is evidence after item sales.
+  // Present-day equipped/owned gear deliberately does not participate.
   const pieces=equipment.filter(piece=>String(piece.setId??"")===id);
   const slots=new Map();
   let allDated=true;
@@ -61,7 +66,7 @@ export function resolveSetCompletionDates(profile,at=new Date()){
   const completedAt=conflict?null:derived||direct;
   const days=ageOf(completedAt,now);
   result[id]={completedAt:days===null?null:completedAt,days,
-   source:days===null?null:derived?"five-equipment-acquisitions":"export-set-completion",
+   source:days===null?null:derived?"five-historical-acquisitions":"export-set-completion",
    unresolved:conflict?"conflicting-export-dates":days===null?"missing-or-future-set-completion-date":null};
  }
  return result;

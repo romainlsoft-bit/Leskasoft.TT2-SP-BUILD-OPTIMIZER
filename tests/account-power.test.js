@@ -123,18 +123,23 @@ test("set PerDay metadata is retained but never scored without a completion date
  assert.equal(report.heroWeapons.totalWeaponLevels,5);
  assert.equal(report.heroWeapons.completeSets,null);
 });
-test("fifth separately dated equipment slot completes the set",()=>{
+test("fifth historically acquired equipment slot completes the set even after sale",()=>{
  const pieces=["Sword","Helmet","Armor","Aura","Slash"].map((slot,index)=>({
   id:"piece"+index,setId:"StainGlass",slot,acquiredAt:"2026-10-"+String(index+1).padStart(2,"0")}));
- const full=parseAccountProfile({equipmentSets:["StainGlass"],equipmentInventory:pieces});
+ const full=parseAccountProfile({
+  equipmentSets:["StainGlass"],equipmentAcquisitionHistory:pieces,
+  equipmentInventory:[]
+ });
  const date=resolveSetCompletionDates(full,new Date("2026-10-09T00:00:00Z")).StainGlass;
  assert.equal(date.completedAt,"2026-10-05T00:00:00.000Z");
  assert.equal(date.days,4);
- assert.equal(date.source,"five-equipment-acquisitions");
- const missing=parseAccountProfile({equipmentSets:["StainGlass"],equipmentInventory:pieces.slice(0,4)});
+ assert.equal(date.source,"five-historical-acquisitions");
+ assert.equal(accountDependencyGraph(full).sets.find(s=>s.id==="StainGlass").permanentAfterSale,true);
+ const missing=parseAccountProfile({
+  equipmentSets:["StainGlass"],equipmentAcquisitionHistory:pieces.slice(0,4)});
  assert.equal(resolveSetCompletionDates(missing).StainGlass.days,null);
- const undated=parseAccountProfile({equipmentSets:["StainGlass"],equipmentInventory:
-  pieces.map(({acquiredAt,...item})=>item)});
+ const undated=parseAccountProfile({
+  equipmentSets:["StainGlass"],equipmentAcquisitionHistory:pieces.map(({acquiredAt,...item})=>item)});
  assert.equal(resolveSetCompletionDates(undated).StainGlass.days,null);
 });
 test("exported completion and Transcendence dates accepted without user prompts",()=>{
@@ -194,7 +199,7 @@ test("date-backed PerDay set bonuses respect five-piece completion and max cap",
  const pieces=["Sword","Helmet","Armor","Aura","Slash"].map((slot,i)=>({
   id:"p"+i,slot,setId:"StainGlass",acquiredAt:"2026-01-"+String(i+1).padStart(2,"0")
  }));
- const profile=parseAccountProfile({equipmentSets:["StainGlass"],equipmentInventory:pieces});
+ const profile=parseAccountProfile({equipmentSets:["StainGlass"],equipmentAcquisitionHistory:pieces});
  const day10=extractTimedSetPower(profile,new Date("2026-01-15T00:00:00Z"));
  assert.equal(day10.applied,1);
  assert.equal(day10.entries[0].days,10);
@@ -349,4 +354,33 @@ test("unrecognized equipment cannot create a fictitious Unique bonus",()=>{
  const real=parseAccountProfile({equipmentInventory:[{id:"Weapon_AlphaHeart"}]});
  assert.deepEqual(resolveUniqueOwnership(real).ownedIds,["AlphaHeart"]);
  assert.equal(accountDependencyGraph(real).unmodeledEffects,1);
+});
+
+test("selling all five pieces never removes unlocked permanent set bonuses",()=>{
+ const sold=parseAccountProfile({equipmentSets:["DarkAngel","Samurai","StainGlass"],
+  equipmentInventory:[],equippedEquipment:{}});
+ const graph=accountDependencyGraph(sold);
+ assert.deepEqual(sold.ownedSetIds,["DarkAngel","Samurai","StainGlass"]);
+ assert.equal(graph.sets.length,3);
+ assert.equal(graph.sets.every(set=>set.permanentAfterSale),true);
+ assert.equal(graph.sets.find(set=>set.id==="Samurai").effects.length>0,true);
+ assert.equal(resolveSetCompletionDates(sold).StainGlass.days,null);
+ assert.equal(extractTimedSetPower(sold).applied,0);
+ assert.equal(graph.sets.find(s=>s.id==="StainGlass").effects.some(e=>
+  e.numericalStatus==="ignored-missing-set-completion-date"),true);
+ // A separately recorded completion date survives after every item is sold.
+ const dated=parseAccountProfile({completedEquipmentSets:[
+  {id:"StainGlass",completedAt:"2026-10-01"}],equipmentInventory:[]});
+ const timed=extractTimedSetPower(dated,new Date("2026-10-11T00:00:00Z"));
+ assert.equal(timed.applied,1);
+ assert.equal(timed.entries[0].days,10);
+});
+
+test("re-acquiring all five live equipment items must not invent an old set date",()=>{
+ const pieces=["Sword","Helmet","Armor","Aura","Slash"].map((slot,i)=>({
+  id:"reacquired"+i,setId:"StainGlass",slot,acquiredAt:"2026-11-"+String(i+1).padStart(2,"0")}));
+ const p=parseAccountProfile({equipmentSets:["StainGlass"],equipmentInventory:pieces});
+ assert.equal(resolveSetCompletionDates(p,new Date("2026-11-17T00:00:00Z")).StainGlass.days,null);
+ assert.equal(extractTimedSetPower(p,new Date("2026-11-17T00:00:00Z")).applied,0);
+ assert.equal(accountDependencyGraph(p).sets.length,1);
 });

@@ -17,7 +17,9 @@ const SOURCE_SECTIONS=Object.freeze({
  heroWeapons:["heroWeapons","HeroWeapons","heroWeaponLevels","HeroWeaponLevels"],
  clanScrolls:["clanScrolls","ClanScrolls","clanScrollLevels","ClanScrollLevels","scrollLevels","ScrollLevels"],
  uniqueEquipment:["uniqueEquipment","UniqueEquipment","ownedUniqueEquipment","OwnedUniqueEquipment"],
- equipmentSets:["equipmentSets","EquipmentSets"],
+ equipmentSets:["equipmentSets","EquipmentSets","completedEquipmentSets","CompletedEquipmentSets","ownedEquipmentSets","OwnedEquipmentSets","equipmentSetCollection","EquipmentSetCollection"],
+ // Acquisition history is optional; the live inventory is NOT historical data.
+ equipmentHistory:["equipmentHistory","EquipmentHistory","equipmentAcquisitionHistory","EquipmentAcquisitionHistory","equipmentCollectionHistory","EquipmentCollectionHistory"],
  equippedGear:["equippedEquipment","EquippedEquipment","equippedGear","EquippedGear"],
  equipmentInventory:["equipmentInventory","EquipmentInventory","ownedEquipment","OwnedEquipment","equipmentItems","EquipmentItems","equipment","Equipment"]
 });
@@ -117,7 +119,19 @@ function extractRecord(rawId,item){
   record.enchanted=Boolean(Number(enchanted.value));
  return record;
 }
-function extractEntries(value,maxEntries=MAX_ENTRIES,isEquipment=false){
+function explicitlyUnlocked(value){
+ // Completed-set collections may be boolean maps, not only arrays of IDs.
+ // Never count false/zero or explicitly unfinished collections as acquired.
+ if(value===false||value===0||value==="false"||value==="FALSE"||value==="0")return false;
+ if(!isObject(value))return true;
+ const flags=["owned","Owned","isOwned","IsOwned","unlocked","Unlocked",
+  "completed","Completed","isCompleted","IsCompleted","collected","Collected"];
+ const found=flags.filter(key=>Object.prototype.hasOwnProperty.call(value,key));
+ if(!found.length)return true; // A set listed without a negative flag is owned.
+ return found.every(key=>value[key]===true||value[key]===1||
+  value[key]==="true"||value[key]==="TRUE"||value[key]==="1");
+}
+function extractEntries(value,maxEntries=MAX_ENTRIES,isEquipment=false,isCompletedSetCollection=false){
  let rows;
  if(Array.isArray(value))rows=value.map((item,index)=>
   [itemId(item)??(typeof item==="string"?item:String(index)),item]);
@@ -125,6 +139,7 @@ function extractEntries(value,maxEntries=MAX_ENTRIES,isEquipment=false){
  else return {count:0,records:[],truncated:false};
  const records=[];
  for(const [id,item] of rows.slice(0,maxEntries)){
+  if(isCompletedSetCollection&&!explicitlyUnlocked(item))continue;
   // A slot-keyed equipped export must retain the actual item ID and the slot.
   const slotKey=isEquipment&&/^(?:Weapon|Sword|Hat|Helmet|Suit|Armor|Aura|Slash)$/i.test(String(id));
   const nested=slotKey&&isObject(item)?field(item,["id","Id","ID","equipmentId","EquipmentId","EquipmentID","itemId","ItemId"]):{present:false};
@@ -135,7 +150,8 @@ function extractEntries(value,maxEntries=MAX_ENTRIES,isEquipment=false){
    records.push(normalized);
   }
  }
- return {count:rows.length,records,truncated:rows.length>maxEntries};
+ return {count:isCompletedSetCollection?records.length:rows.length,
+  records,truncated:rows.length>maxEntries};
 }
 const STATS=Object.freeze({
  lifetimeRelics:["Lifetime Relics","LifetimeRelics","Relics Earned","RelicsEarned"],
@@ -156,7 +172,8 @@ export function parseAccountProfile(data){
   const source=field(data,aliases);
   sections[name]=source.present?{present:true,...extractEntries(source.value,
     ["mysticResearch","titanResearch","forbiddenResearch"].includes(name)?2048:MAX_ENTRIES,
-    ["equippedGear","equipmentInventory"].includes(name))}
+    ["equippedGear","equipmentInventory","equipmentHistory"].includes(name),
+    name==="equipmentSets")}
    :{present:false,count:0,records:[],truncated:false};
  }
  const stats=isObject(data.playerStats)?data.playerStats:isObject(data.stats)?data.stats:{};
@@ -177,7 +194,9 @@ export function parseAccountProfile(data){
   gameVersion:safeName(data.Version??data.version)??null,
   sections,stats:selectedStats,
   fixedSystemKeys:fixedSystems,
-  ownedSetIds:sections.equipmentSets.records.map(r=>r.id)};
+  // EquipmentSets is the UNLOCKED collection, not currently held inventory.
+  // Selling the fifth item never removes the permanent set effect.
+  ownedSetIds:[...new Set(sections.equipmentSets.records.map(r=>r.id))]};
 }
 export function profileCoverage(profile){
  if(!isObject(profile)||!isObject(profile.sections))return [];

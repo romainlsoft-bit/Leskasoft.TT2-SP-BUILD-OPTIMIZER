@@ -54,7 +54,7 @@ test("Skill-tree-only exports and pre-8.0 gemstone schemas stay compatible",()=>
  assert.equal(old.sections.gemstones.count,10);
  assert.equal(old.sections.mysticResearch.present,false);
  assert.equal(parseAccountProfile({gemstones:null}).sections.gemstones.present,false);
- assert.equal(PROFILE_SECTION_NAMES.length,16);
+ assert.equal(PROFILE_SECTION_NAMES.length,17);
 });
 test("Import is bounded and rejects unsafe keys",()=>{
  const p=parseAccountProfile({
@@ -76,5 +76,29 @@ test("slot-keyed exports preserve nested equipment IDs and slot metadata",()=>{
  assert.deepEqual(p.sections.equippedGear.records.map(x=>[x.id,x.slot]),[
   ["Weapon_AlphaHeart","Weapon"],["Aura_Sophia","Aura"],["Slash","Slash"]
  ]);
+ assert.deepEqual(p.ownedSetIds,[]);
+});
+
+test("set collection distinguishes permanently unlocked sets from false flags",()=>{
+ const p=parseAccountProfile({equipmentSets:{
+  StainGlass:true,DarkAngel:false,Samurai:{completed:true},
+  Eyeball:{unlocked:false},Orca:0,AlphaHeart:{owned:true},
+  Tortoise:{isOwned:false}
+ },equipmentInventory:[]});
+ assert.deepEqual(p.ownedSetIds,["StainGlass","Samurai","AlphaHeart"]);
+ assert.equal(p.sections.equipmentSets.count,3);
+ assert.equal(p.sections.equipmentHistory.present,false);
+ const alt=parseAccountProfile({completedEquipmentSets:["DarkAngel","Samurai"]});
+ assert.deepEqual(alt.ownedSetIds,["DarkAngel","Samurai"]);
+ const empty=parseAccountProfile({equipmentSets:{DarkAngel:false}});
+ assert.equal(empty.ownedSetIds.length,0);
+});
+test("set history is separate from current inventory and is counted in import coverage",()=>{
+ const p=parseAccountProfile({equipmentAcquisitionHistory:[
+  {id:"old",setId:"StainGlass",slot:"Weapon",acquiredAt:"2025-01-01"}],
+  equipmentInventory:[]});
+ assert.equal(p.sections.equipmentHistory.records.length,1);
+ assert.equal(p.sections.equipmentInventory.records.length,0);
+ assert.ok(profileCoverage(p).some(x=>x.key==="equipmentHistory"&&x.count===1));
  assert.deepEqual(p.ownedSetIds,[]);
 });
