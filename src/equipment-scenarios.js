@@ -5,6 +5,10 @@
  * Score only explicit numeric FIRST effects with verified semantics. Unknown
  * values are kept visible but never given guessed power coefficients.
  */
+import {ARTIFACT_CATALOG} from "../vendor/account-catalog.js";
+import {calculatePermanentArtifactEffects} from "./account-artifacts.js";
+import {petPassiveEvidence} from "./pet-scenarios.js";
+import {extractFixedAccountPower} from "./account-power.js";
 const CATEGORIES=["Sword","Helmet","Armor","Aura","Slash"];
 const GUNBLADE_BUILDS=new Set(["Dagger","Heavenly Strike","Gold Gun","Shadow Clone"]);
 const officialSlots={...Object.fromEntries(CATEGORIES.map(x=>[x.toLowerCase(),x])),
@@ -65,11 +69,66 @@ export function equipmentSecondaryEvidence(item,settings){
  return {recorded:effects.length,known,unknown,
   score:known.reduce((n,x)=>n+x.score,0),complete:unknown.length===0};
 }
-function equipmentEffectScore(item,settings){
+const BOOST_BY_SLOT={Sword:"SwordBoost",Helmet:"HelmetBoost",Armor:"ArmorBoost",
+ Aura:"AuraBoost",Slash:"SlashBoost"};
+const equipmentBoostCache=new WeakMap();
+/** Equipment pet bonus chain: five Exotic pet passives -> Restored Rune
+ * Heart -> equipment primary; alongside Ring of Calisto and slot-specific
+ * artifacts/research. No secondary roll is amplified by this chain.
+ */
+export function equipmentPrimaryAmplifiers(profile){
+ const empty={bySlot:Object.fromEntries(CATEGORIES.map(slot=>[slot,{log10:0,
+  petLog10:0,artifactLog10:0,unknown:[]}]))};
+ if(!profile)return empty;
+ if(equipmentBoostCache.has(profile))return equipmentBoostCache.get(profile);
+ const artifact=calculatePermanentArtifactEffects(profile,ARTIFACT_CATALOG);
+ const pets=petPassiveEvidence(profile);
+ const fixed=extractFixedAccountPower(profile);
+ const all=artifact.entries.find(x=>x.bonusType==="AllEquipmentEffect");
+ const rune=artifact.entries.find(x=>x.bonusType==="EquipmentPetEffect");
+ const bySlot={};
+ for(const slot of CATEGORIES){
+  const bonusType=BOOST_BY_SLOT[slot],unknown=[];
+  let artifactLog10=0,petLog10=0;
+  const target=artifact.entries.find(x=>x.bonusType===bonusType);
+  for(const row of [all,target]){
+   if(!row)continue;
+   if(Number.isFinite(row.log10))artifactLog10+=row.log10;
+   else unknown.push({id:row.id,reason:row.status});
+  }
+  const pet=pets.entries.find(x=>x.bonusType===bonusType);
+  if(pet&&Number.isFinite(pet.log10)){
+   petLog10+=pet.log10;
+   if(rune){
+    if(Number.isFinite(rune.log10))petLog10+=rune.log10;
+    else unknown.push({id:rune.id,reason:rune.status});
+   }
+  }
+  // Account multipliers from research, scrolls and gemstones of this
+  // bonus family are not universally direct damage; route them to this slot.
+  for(const row of fixed.entries)
+   if(row.bonusType===bonusType||row.bonusType==="AllEquipmentEffect"){
+    if(["artifacts","petPassive"].includes(row.system))continue;
+    if(Number.isFinite(row.log10))artifactLog10+=row.log10;
+   }
+  bySlot[slot]={log10:artifactLog10+petLog10,petLog10,
+   artifactLog10,unknown};
+ }
+ const result={bySlot};
+ equipmentBoostCache.set(profile,result);return result;
+}
+function equipmentEffectScore(item,settings,profile){
  const first=firstEffectScore(item,settings),
   secondaries=equipmentSecondaryEvidence(item,settings);
- return {first,secondaries,score:first===null&&secondaries.known.length===0?
-  null:(first??0)+secondaries.score};
+ const primaryAmplifier=equipmentPrimaryAmplifiers(profile).bySlot[item.slot];
+ // sourceWeight=1 for damage and goldWeight for gold, to avoid giving a
+ // gold-only amplifier the wrong weight on the SP comparison.
+ const sourceWeight=directEffectScore(item.bonusType,"10",settings);
+ const amp=first!==null&&sourceWeight!==null?
+  primaryAmplifier.log10*sourceWeight:0;
+ return {first,secondaries,primaryAmplifier,primaryBoostScore:amp,
+  score:first===null&&secondaries.known.length===0?
+   null:(first??0)+amp+secondaries.score};
 }
 
 export function ownedEquipment(profile){
@@ -87,7 +146,7 @@ export function bestEquipmentByCategory(profile,settings,limit=2){
  const output={};
  for(const slot of CATEGORIES){
   const suitable=list.filter(item=>item.slot===slot&&equipmentFit(item,settings));
-  const ranked=suitable.map(item=>({...item,estimatedScore:equipmentEffectScore(item,settings).score}))
+  const ranked=suitable.map(item=>({...item,estimatedScore:equipmentEffectScore(item,settings,profile).score}))
    .sort((a,b)=>(b.estimatedScore??-Infinity)-(a.estimatedScore??-Infinity)
     ||a.displayName.localeCompare(b.displayName));
   const verified=ranked.filter(x=>x.estimatedScore!==null);
@@ -117,10 +176,13 @@ export function gearSelectionEffects(profile,settings,selection={}){
   const automatic=shortlist[slot]?.[0]||null;
   const item=key?items.find(it=>it.uid===key&&it.slot===slot&&equipmentFit(it,settings)):automatic;
   if(!item)continue;
-  const effect=equipmentEffectScore(item,settings);
+  const effect=equipmentEffectScore(item,settings,profile);
   selected[slot]={id:item.uid,name:item.displayName,kind:item.helmetKind,
    modeled:effect.score!==null,
    primaryModeled:effect.first!==null,
+   primaryAmplifierLog10:effect.primaryAmplifier.log10,
+   primaryBoostScore:effect.primaryBoostScore,
+   primaryAmplifierUnresolved:effect.primaryAmplifier.unknown.map(x=>x.id),
    secondaryKnown:effect.secondaries.known.length,
    secondaryUnknown:effect.secondaries.unknown.length,
    secondaryEffects:effect.secondaries.known.map(x=>({type:x.bonusType,score:x.score})),

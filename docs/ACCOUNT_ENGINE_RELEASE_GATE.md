@@ -59,6 +59,13 @@
 - Version 5.10 explicitly added Heart of Storms and Sticky Fruit to Magnifier eligibility, Apollo Orb and Hades Orb to Treasure of Fergus eligibility. The White Dwarf was added to Magnifier in version 5.19. This materially amplifies the Legacy/Exotic pet boosts already incorporated via these artifact effects.
 - If a listed booster exists with unreadable or conflicting source level, its dependent artifact effects are skipped rather than silently assuming an unequipped booster. Exceptional hybrids remain outside this known subset.
 
+## Equipment Pet Effects and equipment-primary amplifiers
+
+- Five Exotic pet bonuses (Annabelle/SwordBoost, Effie/HelmetBoost, Percy/ArmorBoost, Cosmos/AuraBoost, Taffy/SlashBoost) are now connected to their *own gear-slot primary effect*. Their level-based passive effect is amplified by the matching Exotic Damage/Gold pet artifacts and by **Restored Rune Heart** (`EquipmentPetEffect`) when explicitly owned/leveled.
+- **Ring of Calisto** (`AllEquipmentEffect`), slot-specific artifacts (Blade of Damocles, Helmet of Madness, Titanium Plating, Moonlight Bracelet, Amethyst Staff), and researched matching multipliers now feed the corresponding equipment primary, once each. Secondary rolls are NOT falsely amplified by primary-only effects.
+- Equipment scoring rescales these boosts with the correct goldWeight and active Damage/Gold type. Contradictory/missing booster data is explicitly recorded as unknown. Combat Techniques' Equipment Pet Effect, enchanting, set-specific boost interactions and source reductions require real export/in-game validation.
+- This exposes the critical pet→equipment→damage/gold dependency, but an unknown primary remains unknown, and UI gear choices remain provisional rather than guaranteed optimal.
+
 ## Secondary effects of equipped gear — direct subset
 
 - Import up to six explicit secondary type+amount pairs from SecondaryEffects/SecondaryBonuses, string Type:Amount and paired BonusTypeB..F/BonusAmountB..F and numeric suffixes. The same roll represented twice is counted once.

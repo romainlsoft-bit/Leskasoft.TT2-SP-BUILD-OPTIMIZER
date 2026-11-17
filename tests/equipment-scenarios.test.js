@@ -1,7 +1,7 @@
 import {test} from "node:test";
 import assert from "node:assert/strict";
 import {parseAccountProfile} from "../src/account-profile.js";
-import {bestEquipmentByCategory,gearSelectionEffects,ownedEquipment,EQUIPMENT_CATEGORIES,equipmentSecondaryEvidence} from "../src/equipment-scenarios.js";
+import {bestEquipmentByCategory,gearSelectionEffects,ownedEquipment,EQUIPMENT_CATEGORIES,equipmentSecondaryEvidence,equipmentPrimaryAmplifiers} from "../src/equipment-scenarios.js";
 
 const profile=()=>parseAccountProfile({
  equipmentInventory:[
@@ -90,4 +90,40 @@ test("secondary FairyGold only counts for Fairy, not HoG, and chance stays unkno
  const hog=equipmentSecondaryEvidence(item,{damage:"Pet",gold:"HoG",goldWeight:.7});
  assert.ok(fairy.score>40);assert.equal(hog.score,0);
  assert.equal(fairy.unknown.length,1);
+});
+
+test("Exotic equipment pets and Restored Rune Heart boost the matching equipment primary",()=>{
+ const cfgs=cfg("Pet");
+ const base=parseAccountProfile({equipmentInventory:[{
+  id:"SwordX",slot:"Sword",bonusType:"AllDamage",bonusAmount:"1e100"}]});
+ const enriched=parseAccountProfile({
+  equipmentInventory:[{id:"SwordX",slot:"Sword",bonusType:"AllDamage",bonusAmount:"1e100"}],
+  petLevels:{Pet26:100,Pet27:100,Pet28:100,Pet29:100,Pet30:100},
+  artifacts:{Artifact46:{level:100,e:0},
+   Artifact40:{level:100,e:0},Artifact25:{level:100,e:0}}
+ });
+ const amp=equipmentPrimaryAmplifiers(enriched);
+ assert.ok(amp.bySlot.Sword.petLog10>0);
+ assert.ok(amp.bySlot.Sword.artifactLog10>0);
+ assert.ok(amp.bySlot.Helmet.petLog10>0);
+ assert.ok(amp.bySlot.Armor.petLog10>0);
+ assert.ok(amp.bySlot.Aura.petLog10>0);
+ assert.ok(amp.bySlot.Slash.petLog10>0);
+ const a=gearSelectionEffects(base,cfgs),b=gearSelectionEffects(enriched,cfgs);
+ assert.ok(b.independentScore>a.independentScore);
+ assert.ok(b.selected.Sword.primaryAmplifierLog10>0);
+});
+test("equipment-primary boosters never multiply secondary rolls",()=>{
+ const p=parseAccountProfile({
+  petLevels:{Pet26:100},
+  equipmentInventory:[{id:"SwordA",slot:"Sword",bonusType:"AllDamage",
+   bonusAmount:"1e100",secondary:["AllDamage:1e20"]}],
+  artifacts:{Artifact46:{level:100,e:0}}
+ });
+ const chosen=gearSelectionEffects(p,cfg("Pet"));
+ const e=chosen.selected.Sword;
+ assert.equal(e.secondaryKnown,1);
+ assert.ok(e.primaryBoostScore>0);
+ assert.ok(Math.abs(chosen.independentScore-
+  (100+20+e.primaryBoostScore))<1e-9);
 });
