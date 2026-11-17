@@ -20,7 +20,7 @@ import {calculatePermanentArtifactEffects} from "./account-artifacts.js";
 import {resolveMonumentEvidence} from "./account-monuments.js";
 import {petPassiveEvidence} from "./pet-scenarios.js?v=20261117-contract-coupling";
 import {artifactDerivedPower} from "./account-artifact-derived.js";
-import {mergeTitanResearch,resourceResearchEvidence} from "./account-research-resources.js?v=20261117-gemstone-integrity";
+import {mergeTitanResearch,resourceResearchEvidence} from "./account-research-resources.js?v=20261117-resource-integrity";
 import {resolveGemstoneEvidence} from "./account-gemstones.js?v=20261117-contract-coupling";
 
 const MAX_LEVEL=100000;
@@ -79,8 +79,13 @@ export function extractFixedAccountPower(profile){
  const sections=profile.sections||{};
  const entries=[],unsupported=[];
  const from=key=>sections[key]?.records||[];
- findResearchRows(from("mysticResearch"),"gemstoneResearch",entries,unsupported);
- findResearchRows(from("titanCards"),"titanCards",entries,unsupported);
+ // A truncated section cannot support a reliable resource or damage total.
+ // Reject the entire fragment rather than treating omitted tail nodes as 0.
+ for(const [key,group] of [["mysticResearch","gemstoneResearch"],["titanCards","titanCards"]]){
+  if(sections[key]?.truncated===true)
+   unsupported.push({system:group,reason:"truncated-research-export"});
+  else findResearchRows(from(key),group,entries,unsupported);
+ }
  // Both export aliases may contain different nodes, or mirror the same
  // purchases. Reconcile without choosing one partial tree over the other.
  const titanResearch=mergeTitanResearch(profile);

@@ -1,10 +1,10 @@
 import { skillInfo } from "../vendor/skills.js";
 import { baseline } from "../vendor/qol-baseline.js";
 import { optimizeExact } from "./solver-core.js";
-import { scoreAtLevel } from "./effects.js?v=20261117-contract-coupling";
+import { scoreAtLevel } from "./effects.js?v=20261117-resource-integrity";
 import { parseAccountProfile } from "./account-profile.js";
-import {extractFixedAccountPower,fixedAccountScore} from "./account-power.js?v=20261117-contract-coupling";
-import {accountDependencyGraph} from "./account-dependencies.js?v=20261117-contract-coupling";
+import {extractFixedAccountPower,fixedAccountScore} from "./account-power.js?v=20261117-resource-integrity";
+import {accountDependencyGraph} from "./account-dependencies.js?v=20261117-resource-integrity";
 import {resolveSpellCaps} from "./spell-caps.js";
 import {extractTimedSetPower} from "./account-set-bonuses.js";
 import {resolvePermanentSetPower} from "./account-permanent-sets.js";
@@ -250,6 +250,7 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
         gemstones:dependencyReport.researchResources.gemstones,
         titanSouls:dependencyReport.researchResources.titanSouls,
         unknownNodes:dependencyReport.researchResources.unknown.length,
+        audit:dependencyReport.researchResources.audit,
         complete:false
       },
       monuments:{catalog:dependencyReport.monuments.catalogCount,

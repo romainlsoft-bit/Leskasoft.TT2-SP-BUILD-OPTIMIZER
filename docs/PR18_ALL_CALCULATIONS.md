@@ -380,3 +380,34 @@ Test suite:
   modeling when source-backed, and in-game 2,000-stage loss guard.
 
 No stage gain is predicted; do not merge or deploy PR #18 yet.
+
+## Batch F — research/resource integrity and source-backed linear coefficients (17 November 2026)
+
+- Research source: 169 additive \`GemstoneLevel\` nodes from
+  \`GemstoneResearchInfo.csv\` and 62 \`TitanSouls*\` nodes from
+  \`TitanResearchInfo.csv\`. Each valid resource entry retains its exact
+  \`level × EffectPerLevel\` contribution and source table. This is **resource
+  progression**, not extra damage or gold, and never compounds into an
+  already-exported gemstone multiplier.
+- Titan/Necrobear research aliases are merged by canonical node ID. Identical
+  cross-section purchases count once; disjoint nodes unite; same-section
+  duplicate IDs, conflicting levels, missing/invalid levels and incomplete
+  2048-entry sections are rejected with explicit reasons. A truncated
+  research or Titan Card source is excluded from the fixed numerical account
+  baseline rather than contributing a falsely complete fragment.
+- Aggregate Titan Souls per-day/per-prestige additions, raw drop chance and
+  Gemstone Research level additions are shown **only when verifiable from
+  the entire present source**. Invalid or truncated input yields unknown
+  totals, not zero, while individually verified rows remain audit evidence.
+  Base/effective Gemstone level remains unknown; no invented capped chance,
+  soul production rate, or stage gains.
+- The 18-build coverage ledger reports rejected research nodes and
+  truncation. The UI clearly distinguishes unknown aggregate resource
+  rates in all four locales. Versioned browser imports were updated.
+- Regression tests: both source catalog cardinalities and 18-build scoring,
+  mirrored/contradictory/invalid Necrobear purchases, research and Titan Card
+  truncation, scientific-value isolation, and anti-double-counting.
+
+**Validation remains pending** for full \`npm test\`, \`npm run check:data\`,
+22,600+ SP and actual gameplay. These are not declared successful without
+execution. PR remains a draft and must not deploy or merge.

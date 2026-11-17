@@ -61,6 +61,8 @@ export function modeledScenarioCoverage(result,settings,gearSelection={}){
  if(unknownGearSecondaries)gaps.push("unmodeled-equipment-secondaries");
  if(unknownGearAmplifiers)gaps.push("unverified-equipment-amplifiers");
  if(unknownGemstoneBonuses)gaps.push("unmodeled-gemstone-bonuses");
+ const researchAudit=result?.accountIntegration?.researchResources?.audit;
+ if(researchAudit?.incomplete)gaps.push("incomplete-resource-research-export");
  if(conservativeSetEffects)gaps.push("crafting-power-unverified");
  if(missingSetCollection)gaps.push("truncated-owned-set-collection");
  if(uncertainOwnedSetCounts)gaps.push("unverified-set-ownership-counts");
@@ -78,6 +80,8 @@ export function modeledScenarioCoverage(result,settings,gearSelection={}){
   complete:false,inventoryPresent,inventoryTruncated,missingGearSlots,
   missingExplicitSelections,unknownGearPrimaries,unknownGearSecondaries,
   unknownGearAmplifiers,unknownGemstoneBonuses,
+  researchUnresolvedNodes:researchAudit?.excludedOrConflictingNodes||0,
+  researchTruncatedSections:researchAudit?.truncatedSections||[],
   conservativeSetEffects,missingSetCollection,uncertainOwnedSetCounts,
   conflictingCraftingPower,
   invalidDamagePet,invalidGoldPet,
