@@ -6,6 +6,7 @@ import { parseAccountProfile } from "./account-profile.js";
 import {extractFixedAccountPower,fixedAccountScore} from "./account-power.js";
 import {accountDependencyGraph} from "./account-dependencies.js";
 import {resolveSpellCaps} from "./spell-caps.js";
+import {extractTimedSetPower} from "./account-set-bonuses.js";
 
 export const GAME_VERSION = "8.4.0";
 export const DATASET_REVISION = "2026-09-18"; // SkillTreeInfo2.0.csv comparison
@@ -170,12 +171,21 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
     SKILL_IDS.filter(id=>skillInfo[id].Branch===branch).reduce((sum,id)=>sum+COSTS[id][result.levels[id]],0)
   ]));
   const power=extractFixedAccountPower(settings.accountProfile);
-  const fixedAccount=fixedAccountScore(power,settings);
+  const fixedRaw=fixedAccountScore(power,settings);
+  // Recompute date-dependent bonuses on every optimization, never memoize
+  // them by profile identity across days.
+  const timed=extractTimedSetPower(settings.accountProfile);
+  const timedScore=fixedAccountScore({available:timed.applied>0,byType:timed.byType},settings);
+  const fixedAccount={...fixedRaw,
+    damageLog10:fixedRaw.damageLog10+timedScore.damageLog10,
+    goldLog10:fixedRaw.goldLog10+timedScore.goldLog10,
+    weightedLog10:fixedRaw.weightedLog10+timedScore.weightedLog10};
   const dependencyReport=accountDependencyGraph(settings.accountProfile);
   const spellCaps=resolveSpellCaps(settings,result.levels);
   return {...result,prior:current,spent:points,remaining:SP-points,changes,branchTotals,protectedSkills,
     spellCaps,
     accountIntegration:{
+      timedSetPower:{calculated:timed.calculated,applied:timed.applied,omitted:timed.omitted},
       clanScrollLevels:dependencyReport.clanScrolls.totalLevels,
       clanScrollCompleteSets:dependencyReport.clanScrolls.fullSets,
       sourceCatalogs:{sets:dependencyReport.sets.length,artifacts:dependencyReport.artifacts.length},
@@ -184,10 +194,11 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
       releaseReady:false
     },
     fixedAccount:{...fixedAccount,matched:power.matched,unknown:power.unknown,
-      available:power.available,complete:power.complete,
+      available:power.available||timed.applied>0,complete:power.complete,
       // Exact per-source values are used for diagnostics, not for an
       // unsupported claim of a complete end-to-end damage simulation.
-      examples:power.entries.filter(e=>e.bonusType==="PetDamage").slice(0,6)},
+      examples:power.entries.filter(e=>e.bonusType==="PetDamage").slice(0,6),
+      timedSetBonuses:timed.entries.filter(x=>x.log10!==null).slice(0,30)},
     // Add fixed account context to each build's total proxy. Marginal SP
     // optimization remains mathematically unchanged by a constant.
     accountAdjustedScore:result.score+fixedAccount.weightedLog10,

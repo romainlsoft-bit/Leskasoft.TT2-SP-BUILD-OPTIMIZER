@@ -8,7 +8,9 @@ import {ACCOUNT_SCALING} from "../vendor/account-scaling.js";
 import {resolveSetCompletionDates,resolveTranscendenceAge,heroWeaponEvidence} from "../src/account-temporal.js";
 import {clanScrollEvidence} from "../src/account-scrolls.js";
 import {CLAN_SCROLLS} from "../vendor/clan-scrolls.js";
-import {resolveSpellCaps,spellCapBonus} from "../src/spell-caps.js";
+import {resolveSpellCaps,spellCapBonus,spellTableIndex} from "../src/spell-caps.js";
+import {extractTimedSetPower} from "../src/account-set-bonuses.js";
+import {spellInfo} from "../vendor/spells.js";
 import {optimizeBuild} from "../src/engine.js";
 
 const fixture=()=>parseAccountProfile({
@@ -163,15 +165,55 @@ test("Clan Scrolls: 18 types, exact levels, unknown complete sets and additive r
  const additive=parseAccountProfile({clanScrolls:{"ScrollId14":9}});
  assert.equal(extractFixedAccountPower(additive).entries.filter(x=>x.system==="clanScrolls").length,0);
 });
-test("max spell caps: 30 base, +5 set, +5 tier five, 40 is unmodeled by A39",()=>{
+test("max spell caps: 30 base, +5 set, +5 tier five, A39 is level 40",()=>{
  const normal=resolveSpellCaps({maxStage:22000,sets:{}},{});
  assert.equal(normal.spells.BurstDamage.cap,30);
  assert.equal(spellCapBonus("TwilightBell",30),5);
  const full=resolveSpellCaps({maxStage:22000,sets:{tFA:true}},{TwilightBell:30});
  assert.equal(full.spells.BurstDamage.cap,40);
- assert.equal(full.spells.BurstDamage.tabulatedLevel,39);
- assert.equal(full.spells.BurstDamage.unmodeledLevels,1);
+ assert.equal(full.spells.BurstDamage.tabulatedLevel,40);
+ assert.equal(full.spells.BurstDamage.unmodeledLevels,0);
  assert.equal(full.spells.ShadowClone.cap,35);
- assert.equal(full.complete,false);
+ assert.equal(full.complete,true);
  assert.equal(resolveSpellCaps({maxStage:12000},{}).assumeAllActive,false);
+});
+
+test("ActiveSkillInfo A0 is spell level 1, A29 level 30 and A39 level 40",()=>{
+ assert.equal(spellTableIndex(1),0);
+ assert.equal(spellTableIndex(30),29);
+ assert.equal(spellTableIndex(35),34);
+ assert.equal(spellTableIndex(40),39);
+ assert.equal(spellTableIndex(0),null);
+ assert.equal(Number(spellInfo.BurstDamage.A0),100);
+ assert.equal(Number(spellInfo.BurstDamage["A"+spellTableIndex(40)]),3.35e15);
+});
+test("date-backed PerDay set bonuses respect five-piece completion and max cap",()=>{
+ const pieces=["Sword","Helmet","Armor","Aura","Slash"].map((slot,i)=>({
+  id:"p"+i,slot,setId:"StainGlass",acquiredAt:"2026-01-"+String(i+1).padStart(2,"0")
+ }));
+ const profile=parseAccountProfile({equipmentSets:["StainGlass"],equipmentInventory:pieces});
+ const day10=extractTimedSetPower(profile,new Date("2026-01-15T00:00:00Z"));
+ assert.equal(day10.applied,1);
+ assert.equal(day10.entries[0].days,10);
+ assert.ok(Math.abs(day10.byType.AllDamage-10*Math.log10(1.5))<1e-12);
+ const late=extractTimedSetPower(profile,new Date("2027-01-15T00:00:00Z"));
+ assert.ok(Math.abs(late.byType.AllDamage-Math.log10(1.88e64))<1e-12);
+ const missing=parseAccountProfile({equipmentSets:["StainGlass"]});
+ const empty=extractTimedSetPower(missing,new Date("2026-11-17T00:00:00Z"));
+ assert.equal(empty.applied,0);
+ assert.equal(empty.entries[0].status,"ignored-missing-set-completion-date");
+ assert.equal(empty.byType.AllDamage,undefined);
+});
+test("date-backed spell and equipment-dependent daily effects are computed but not double-scored",()=>{
+ const p=parseAccountProfile({equipmentSets:[{id:"Eyeball",completedAt:"2026-10-01"}]});
+ const r=extractTimedSetPower(p,new Date("2026-10-11T00:00:00Z"));
+ assert.equal(r.entries.length,2);
+ assert.equal(r.calculated,2);
+ assert.equal(r.applied,1);
+ assert.ok(r.entries.some(x=>x.bonusType==="BurstDamageSkillAmount"&&x.appliedToScore));
+ const unresolved=parseAccountProfile({equipmentSets:[{id:"Tortoise",completedAt:"2026-10-01"}]});
+ const t=extractTimedSetPower(unresolved,new Date("2026-10-11T00:00:00Z"));
+ assert.equal(t.calculated,1);
+ assert.equal(t.applied,0);
+ assert.equal(t.entries[0].status,"calculated-unscored-interaction");
 });
