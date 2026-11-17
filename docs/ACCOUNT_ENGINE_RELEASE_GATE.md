@@ -59,6 +59,12 @@
 - Version 5.10 explicitly added Heart of Storms and Sticky Fruit to Magnifier eligibility, Apollo Orb and Hades Orb to Treasure of Fergus eligibility. The White Dwarf was added to Magnifier in version 5.19. This materially amplifies the Legacy/Exotic pet boosts already incorporated via these artifact effects.
 - If a listed booster exists with unreadable or conflicting source level, its dependent artifact effects are skipped rather than silently assuming an unequipped booster. Exceptional hybrids remain outside this known subset.
 
+## Combat Techniques: imported equipment-pet eligibility
+
+- The former `CombatTechniques` skill score multiplied a flat damage/gold reduction even when the account exported **no actual Equipment Pet**. Skill A now scores only gear primaries explicitly matched to a recognized equipment pet. Selected active equipment pets can contribute where passive activation is not already present; the pet level skill B still contributes separately.
+- Selected gear coverage and bonus source-weight evidence are passed from `gearSelectionEffects` through the worker to pet scenario and skill score calculations. The source-weight contribution cannot be manufactured when the export lacks pet levels/gear.
+- Until all 5 pieces' direct primary effects and the pet section are known, existing Combat Techniques SP are protected from reallocation by default. Test against real 22k+ SP Pet/Fairy accounts and all 18 damage/gold combos before release.
+
 ## Equipment Pet Effects and equipment-primary amplifiers
 
 - Five Exotic pet bonuses (Annabelle/SwordBoost, Effie/HelmetBoost, Percy/ArmorBoost, Cosmos/AuraBoost, Taffy/SlashBoost) are now connected to their *own gear-slot primary effect*. Their level-based passive effect is amplified by the matching Exotic Damage/Gold pet artifacts and by **Restored Rune Heart** (`EquipmentPetEffect`) when explicitly owned/leveled.
