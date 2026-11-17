@@ -66,13 +66,24 @@ export function resourceResearchEvidence(profile){
  const totals={TitanSoulsPerDay:0,TitanSoulsPerPrestige:0,TitanSoulsChance:0};
  for(const row of soul.valid)totals[row.bonusType]+=row.amount;
  const gemAdded=gem.valid.reduce((n,r)=>n+r.amount,0);
+ const exportedLevel=profile?.stats?.gemstoneLevel;
+ const reported=typeof exportedLevel==="string"&&/^\d+$/.test(exportedLevel)
+  ?Number(exportedLevel):null;
+ const safeReported=Number.isSafeInteger(reported)&&reported>=0?reported:null;
+ const basePlusResearch=safeReported!==null&&
+  Number.isSafeInteger(safeReported+gemAdded)?safeReported+gemAdded:null;
  return {
   gemstones:{
    present:gemSource?.present===true,
    catalogNodes:GEM.size,
    matchedNodes:gem.valid.length,
    extraLevelsFromResearch:gemAdded,
-   // A raw or displayed GemstoneLevel may already contain these bonuses.
+   // The same export label can mean either base or boosted gemstone level.
+   // Additional set/item modifiers may apply, so these are NOT bounds.
+   reportedLevel:safeReported,
+   basePlusResearchHypothesis:basePlusResearch,
+   levelInterpretation:"unverified-base-versus-effective",
+   // Never compound a research bonus into an already exported x10^N effect.
    effectiveGemstoneLevel:null,scoreAdjusted:false
   },
   titanSouls:{

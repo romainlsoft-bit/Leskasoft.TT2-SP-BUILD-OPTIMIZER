@@ -9,7 +9,8 @@ import {ARTIFACT_CATALOG} from "../vendor/account-catalog.js";
 import {calculatePermanentArtifactEffects} from "./account-artifacts.js";
 import {petPassiveEvidence,logPassivePetMultiplier} from "./pet-scenarios.js?v=20261117-pet-integrity";
 import {petLevelEvidence} from "./account-pet-levels.js";
-import {extractFixedAccountPower} from "./account-power.js?v=20261117-pet-integrity";
+import {extractFixedAccountPower} from "./account-power.js?v=20261117-gemstone-integrity";
+import {resolveGemstoneEvidence} from "./account-gemstones.js?v=20261117-gemstone-integrity";
 const CATEGORIES=["Sword","Helmet","Armor","Aura","Slash"];
 const GUNBLADE_BUILDS=new Set(["Dagger","Heavenly Strike","Gold Gun","Shadow Clone"]);
 const officialSlots={...Object.fromEntries(CATEGORIES.map(x=>[x.toLowerCase(),x])),
@@ -85,12 +86,13 @@ export function equipmentPrimaryAmplifiers(profile){
  const artifact=calculatePermanentArtifactEffects(profile,ARTIFACT_CATALOG);
  const pets=petPassiveEvidence(profile);
  const fixed=extractFixedAccountPower(profile);
+ const gems=resolveGemstoneEvidence(profile);
  const all=artifact.entries.find(x=>x.bonusType==="AllEquipmentEffect");
  const rune=artifact.entries.find(x=>x.bonusType==="EquipmentPetEffect");
  const bySlot={};
  for(const slot of CATEGORIES){
   const bonusType=BOOST_BY_SLOT[slot],unknown=[];
-  let artifactLog10=0,petLog10=0;
+  let artifactLog10=0,petLog10=0,gemstoneLog10=0;
   const target=artifact.entries.find(x=>x.bonusType===bonusType);
   for(const row of [all,target]){
    if(!row)continue;
@@ -115,10 +117,15 @@ export function equipmentPrimaryAmplifiers(profile){
   for(const row of fixed.entries)
    if(row.bonusType===bonusType||row.bonusType==="AllEquipmentEffect"){
     if(["artifacts","petPassive"].includes(row.system))continue;
-    if(Number.isFinite(row.log10))artifactLog10+=row.log10;
+    if(Number.isFinite(row.log10)){
+     if(row.system==="gemstones")gemstoneLog10+=row.log10;
+     else artifactLog10+=row.log10;
+    }
    }
-  bySlot[slot]={log10:artifactLog10+petLog10,petLog10,
-   artifactLog10,unknown};
+  for(const row of gems.unknown)
+   unknown.push({id:row.id??"gemstones",reason:row.reason});
+  bySlot[slot]={log10:artifactLog10+gemstoneLog10+petLog10,
+   petLog10,artifactLog10,gemstoneLog10,unknown};
  }
  const result={bySlot};
  equipmentBoostCache.set(profile,result);return result;
@@ -216,6 +223,7 @@ export function gearSelectionEffects(profile,settings,selection={}){
     Object.hasOwn(petLevelEvidence(profile).levels,id))&&
    profile?.sections?.equipmentInventory?.present===true&&
    profile?.sections?.equipmentInventory?.truncated!==true&&
+   resolveGemstoneEvidence(profile).unknown.length===0&&
    CATEGORIES.every(slot=>selected[slot]?.primaryModeled===true)};
 }
 export const EQUIPMENT_CATEGORIES=CATEGORIES;
