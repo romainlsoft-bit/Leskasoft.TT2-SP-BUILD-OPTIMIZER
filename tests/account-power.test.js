@@ -260,3 +260,27 @@ test("Clan Scroll full-set source applies first +5%, then +10% each, only for a 
  assert.ok(Math.abs(partial.log10-2*Math.log10(1.43))<1e-12);
  assert.equal(partial.setBoostModeled,false);
 });
+
+test("duplicate owned-set records never stack the same timed bonus twice",()=>{
+ const p=parseAccountProfile({equipmentSets:[
+  {id:"StainGlass",completedAt:"2026-10-01"},
+  {id:"StainGlass",completedAt:"2026-10-01"}
+ ]});
+ const result=extractTimedSetPower(p,new Date("2026-10-11T00:00:00Z"));
+ assert.equal(result.entries.length,1);
+ assert.equal(result.applied,1);
+ assert.ok(Math.abs(result.byType.AllDamage-10*Math.log10(1.5))<1e-12);
+ assert.equal(accountDependencyGraph(p).sets.length,1);
+});
+test("conflicting duplicate set completion dates disable only the time bonus",()=>{
+ const p=parseAccountProfile({equipmentSets:[
+  {id:"StainGlass",completedAt:"2026-10-01"},
+  {id:"StainGlass",completedAt:"2026-10-02"}
+ ]});
+ const dated=resolveSetCompletionDates(p,new Date("2026-10-11T00:00:00Z"));
+ assert.equal(dated.StainGlass.days,null);
+ assert.equal(dated.StainGlass.unresolved,"conflicting-export-dates");
+ const result=extractTimedSetPower(p,new Date("2026-10-11T00:00:00Z"));
+ assert.equal(result.entries.length,1);
+ assert.equal(result.applied,0);
+});

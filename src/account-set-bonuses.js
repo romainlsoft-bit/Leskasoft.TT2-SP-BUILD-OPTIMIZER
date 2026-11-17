@@ -23,7 +23,8 @@ export function extractTimedSetPower(profile,now=new Date()){
  const dates=resolveSetCompletionDates(profile,now);
  const entries=[],byType=Object.create(null);
  let calculated=0,applied=0,omitted=0;
- for(const id of profile?.ownedSetIds||[]){
+ // Duplicate records must never multiply a permanent account bonus.
+ for(const id of new Set(profile?.ownedSetIds||[])){
   const set=EQUIPMENT_SET_CATALOG[id];
   if(!set)continue;
   for(const effect of set.bonuses){
