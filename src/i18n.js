@@ -5,6 +5,11 @@ export const SUPPORTED_LANGUAGES = ["en","fr","uk","ru"];
 export const NATIVE_LANGUAGE_NAMES = {en:"English",fr:"Français",uk:"Українська",ru:"Русский"};
 export const translations = {
 fr:{
+ "Pet comparison has not converged: the selected pair is provisional. Current SP investments remain protected.":"La comparaison des familiers n’a pas convergé : la paire retenue est provisoire. Les SP actuels restent protégés.",
+ "Equipment inventory is truncated: automatic gear ranking was disabled. Scores are incomplete.":"Inventaire d’équipement tronqué : le classement automatique est désactivé. Les scores sont incomplets.",
+ "Incomplete equipment inventory: automatic gear selection is disabled.":"Inventaire d’équipement incomplet : la sélection automatique est désactivée.",
+ "{count} requested equipment choices could not be verified and were not scored.":"{count} choix d’équipement demandés n’ont pas pu être vérifiés et sont exclus du score.",
+ "Pet comparison checks at most three candidates per slot and is not a globally verified optimal choice.":"La comparaison porte sur trois familiers au maximum par emplacement ; l’optimalité globale n’est pas démontrée.",
  "Modeled log10 score: skills {skills}, account {account}, equipped gear {gear}, active pets above passive {pets}; combined {total}. Not predicted stages.":"Score log10 modélisé : compétences {skills}, compte {account}, équipements portés {gear}, familiers actifs au-delà des passifs {pets} ; total {total}. Ce n’est pas une prévision de stages.",
  "Gemstone effects: {direct} direct, {equipment} equipment and {pets} pet-amplifier bonuses recognized; {unresolved} unresolved. Research-granted levels are not multiplied again into exported effects.":"Effets des gemstones : {direct} bonus directs, {equipment} bonus d’équipement et {pets} amplificateurs de familiers reconnus ; {unresolved} non résolus. Les niveaux obtenus par recherche ne sont pas remultipliés dans les effets exportés.",
  "Pet import warning: {count} invalid, conflicting or unknown pet records were excluded from calculations.":"Import des familiers : {count} entrées invalides, contradictoires ou inconnues ont été exclues des calculs.",
@@ -220,6 +225,11 @@ fr:{
  "Free Tap Titans 2 skill tree optimizer for TT2 8.4. Optimize skill points for Clan Ship, Pet, Shadow Clone, Heavenly Strike, Dagger or Gold Gun. Import game data or configure manually.":"Optimiseur gratuit de compétences Tap Titans 2 version 8.4. Import des données ou configuration manuelle pour tous les types de builds."
 },
 uk:{
+ "Pet comparison has not converged: the selected pair is provisional. Current SP investments remain protected.":"Порівняння улюбленців не збіглося: вибрана пара попередня. Поточні вкладення SP залишаються захищеними.",
+ "Equipment inventory is truncated: automatic gear ranking was disabled. Scores are incomplete.":"Інвентар спорядження обрізано: автоматичне ранжування вимкнено. Оцінки неповні.",
+ "Incomplete equipment inventory: automatic gear selection is disabled.":"Неповний інвентар спорядження: автоматичний вибір вимкнено.",
+ "{count} requested equipment choices could not be verified and were not scored.":"{count} запитаних елементів спорядження не вдалося перевірити, тому їх не враховано.",
+ "Pet comparison checks at most three candidates per slot and is not a globally verified optimal choice.":"Порівняння охоплює щонайбільше трьох улюбленців на слот; глобальна оптимальність не доведена.",
  "Modeled log10 score: skills {skills}, account {account}, equipped gear {gear}, active pets above passive {pets}; combined {total}. Not predicted stages.":"Змодельований показник log10: навички {skills}, акаунт {account}, спорядження {gear}, активні улюбленці понад пасивні бонуси {pets}; разом {total}. Це не прогноз етапів.",
  "Gemstone effects: {direct} direct, {equipment} equipment and {pets} pet-amplifier bonuses recognized; {unresolved} unresolved. Research-granted levels are not multiplied again into exported effects.":"Ефекти gemstones: розпізнано {direct} прямих бонусів, {equipment} бонусів спорядження та {pets} підсилень улюбленців; {unresolved} невизначених. Рівні з досліджень не додаються повторно до експортованих множників.",
  "Pet import warning: {count} invalid, conflicting or unknown pet records were excluded from calculations.":"Імпорт улюбленців: {count} недійсних, суперечливих або невідомих записів виключено з обчислень.",
@@ -385,6 +395,11 @@ uk:{
  "Free Tap Titans 2 skill tree optimizer for TT2 8.4. Optimize skill points for Clan Ship, Pet, Shadow Clone, Heavenly Strike, Dagger or Gold Gun. Import game data or configure manually.":"Безкоштовний оптимізатор дерева навичок Tap Titans 2 версії 8.4. Імпорт даних або ручне налаштування для всіх збірок."
 },
 ru:{
+ "Pet comparison has not converged: the selected pair is provisional. Current SP investments remain protected.":"Сравнение питомцев не сошлось: выбранная пара предварительная. Текущие вложения SP остаются защищёнными.",
+ "Equipment inventory is truncated: automatic gear ranking was disabled. Scores are incomplete.":"Инвентарь экипировки обрезан: автоматический подбор отключён. Оценки неполные.",
+ "Incomplete equipment inventory: automatic gear selection is disabled.":"Неполный инвентарь экипировки: автоматический выбор отключён.",
+ "{count} requested equipment choices could not be verified and were not scored.":"{count} выбранных предметов экипировки не удалось проверить, поэтому они не оценивались.",
+ "Pet comparison checks at most three candidates per slot and is not a globally verified optimal choice.":"Сравнение охватывает не более трёх питомцев на слот; глобальная оптимальность не доказана.",
  "Modeled log10 score: skills {skills}, account {account}, equipped gear {gear}, active pets above passive {pets}; combined {total}. Not predicted stages.":"Расчётный показатель log10: навыки {skills}, аккаунт {account}, экипировка {gear}, активные питомцы сверх пассивных бонусов {pets}; всего {total}. Это не прогноз этапов.",
  "Gemstone effects: {direct} direct, {equipment} equipment and {pets} pet-amplifier bonuses recognized; {unresolved} unresolved. Research-granted levels are not multiplied again into exported effects.":"Эффекты gemstones: распознано {direct} прямых бонусов, {equipment} бонусов экипировки и {pets} усилений питомцев; {unresolved} не определены. Уровни исследований не добавляются повторно к экспортированным множителям.",
  "Pet import warning: {count} invalid, conflicting or unknown pet records were excluded from calculations.":"Импорт питомцев: {count} недопустимых, противоречивых или неизвестных записей исключено из расчётов.",

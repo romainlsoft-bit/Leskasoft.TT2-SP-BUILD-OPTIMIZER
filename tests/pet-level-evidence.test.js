@@ -57,7 +57,7 @@ test("Conflicting pet ID/name observations exclude the pet from all scores",()=>
  const power=extractFixedAccountPower(p);
  assert.equal(power.petPassives.rejectedLevels,1);
  assert.ok(power.unsupported.some(x=>x.system==="petLevels"&&x.reason==="conflicting-pet-levels"));
- assert.ok(power.byType.GoldAll>0);
+ assert.ok(power.byType.FairyGold>0,"Pet20 (Jaws) contributes FairyGold, not GoldAll");
  assert.equal(power.byType.AllDamage||0,0,"cannot manufacture damage from rejected Nova");
 });
 

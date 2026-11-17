@@ -118,3 +118,65 @@ Sources for further verification: TT2 maintained data in
 `vendor/`, [Game Hive](https://www.gamehive.com/blog/),
 [TT2 Compendium](https://www.tt2-compendium.com/), and
 the [TT2 community](https://www.reddit.com/r/TapTitans2/).
+
+## Substantial batch B1 — pet-pair score consistency and inventory safety (17 Nov 2026)
+
+This batch addresses *three coupled recommendation defects*, not a complete
+source-accurate account simulator.
+
+1. **Damage/Gold pet pairing:** the old worker chose the winning Damage pet
+   against one Gold pet, then changed the Gold pet without re-evaluating the
+   first slot. With account-dependent Combat Techniques and a new optimized
+   skill tree, that can produce a pair which was never jointly validated.
+   `src/pet-pair-search.js` performs alternating coordinate passes, caches
+   identical pair evaluations, checks the winning Damage pet against the
+   *final* Gold pet and reports `converged:false` instead of claiming global
+   correctness when the iteration cap is reached. At most three preselected
+   candidates per slot; **not a guarantee of the best of 45 pets or all pairs**.
+2. **Pet screening at unknown Combat Techniques levels:** `recommendPets`
+   no longer presumes CT level 30 for every build. It samples level 0,
+   one-quarter, half, three-quarters and the source-defined skill cap, and
+   includes the actual incremental Exotic Equipment Pet CT A influence.
+   This is a heuristic screening envelope, not a proven upper bound on the
+   untested levels; candidates are re-optimized through the solver later.
+3. **Truncated equipment imports:** 512 saved items are not a reliable
+   *complete* item collection when the source had >512. The automatic gear
+   shortlist is **suppressed** for truncated inventories; a user explicitly
+   selecting a present item can still score that one item without pretending
+   the remainder of the inventory is absent. Missing explicit selections,
+   unsupported primaries/secondaries and uncertain equipment amplifiers are
+   preserved as separate audit defects, never replaced with better-looking
+   guessed equipment.
+
+The unified scenario ledger now also reports a structured coverage object
+(inventory completeness, missing/invalid choices, unmodeled sources, pet
+selection validity, missing gear slots, unresolved Gemstones and Stage
+HP/cross-skill limitations). UI messages are localized in English/French/
+Ukrainian/Russian and clearly flag truncated gear and nonconvergent pet
+pair choices. No score is advertised as a stage-gain prediction.
+
+### New regression fixtures and verification commands
+
+- `tests/pet-pair-search.test.js`: synthetic coupled pet/gold score table
+  where a stale Damage winner demonstrably changes after Gold choice,
+  nonconvergence, evaluation cache, missing slot, ties, invalid scores.
+- `tests/pet-selection-envelope.test.js`: 0..CT-cap screening,
+  source-dependent Exotic pet CT A advantage, real seasonal pets,
+  source-specific gold eligibility.
+- `tests/equipment-coverage.test.js`: truncated 513-row inventory,
+  explicitly chosen surviving equipment, invalid explicit item, incomplete
+  sources, invalid pet selectors, and raw account provenance.
+- `tests/worker-pair-integration.test.js`: actual worker result must match
+  the selected pet pair in its own score ledger; no automatic gear score
+  from a truncated inventory.
+- Fixed the older regression assertion that incorrectly classified
+  `Pet20` (Jaws, FairyGold) as `GoldAll`.
+- Run `npm test`, `npm run check:data`,
+  `npm run bench:22k -- --all --sp 22600` (18 fixed-pet combinations),
+  then `npm run bench:22k -- --all --sp 22600 --pair-search
+  --profile /path/to/anonymized-account.json` (actual two-slot shortlist
+  search; more expensive). No raw account export should enter Git or logs.
+
+**The release gates remain open.** Even convergence among shortlisted pets
+does not verify full cross-build optimality, in-game stage gains or effects
+that still lack source-backed scaling rules.

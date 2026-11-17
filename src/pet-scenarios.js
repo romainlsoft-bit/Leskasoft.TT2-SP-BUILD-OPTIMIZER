@@ -167,10 +167,39 @@ export function petScenarioScore(settings,combatTechniques=0){
 export function petCombatTechniquesIncrement(settings,level){
  return petScenarioScore(settings,level)-petScenarioScore(settings,0);
 }
+/**
+ * Source-based upper screening for candidates when the optimal Combat
+ * Techniques level is unknown before running the SP solver. A single level
+ * (formerly hard-coded at 30) can discard the actually best pet at 0 or 50.
+ *
+ * In addition to the selected pet's active value above passive, an Exotic
+ * Equipment Pet may replace an inactive partial passive in the CT A
+ * calculation. Include only that *difference* when estimating a candidate.
+ *
+ * The maximum of these sampled scores is a SCREENING heuristic, not a
+ * certified upper bound or proof that the globally best pet is shortlisted.
+ */
+export function petCandidateEnvelope(settings,petId,slot){
+ const pet=ALL_PETS[petId];
+ if(!pet||petWeight(pet,slot,settings)<=0)return null;
+ const max=Math.max(0,Number(skillInfo.CombatTechniques?.MaxLevel)||0);
+ const levels=[0,Math.floor(max/4),Math.floor(max/2),Math.floor(3*max/4),max];
+ const selection=slot==="damage"?"selectedDamagePet":"selectedGoldPet";
+ const chosen={...settings,[selection]:petId};
+ const baseline={...chosen,[selection]:null};
+ const samples=Array.from(new Set(levels)).map(level=>{
+  const active=petSlotScore(chosen,petId,slot,level);
+  const ctDelta=petEquipmentCombatTechniquesIncrement(chosen,level)-
+   petEquipmentCombatTechniquesIncrement(baseline,level);
+  return {combatTechniquesLevel:level,score:active+ctDelta};
+ });
+ return {petId,estimatedGain:Math.max(...samples.map(x=>x.score)),
+  samples,screeningOnly:true};
+}
 export function recommendPets(profile,settings,slot,count=3){
  const source={...settings,accountProfile:profile};
  const candidates=availablePets(profile).filter(p=>petWeight(ALL_PETS[p.id],slot,source)>0);
- return candidates.map(p=>({...p,estimatedGain:petSlotScore(source,p.id,slot,30)}))
+ return candidates.map(p=>({...p,...petCandidateEnvelope(source,p.id,slot)}))
   .sort((a,b)=>b.estimatedGain-a.estimatedGain||a.id.localeCompare(b.id))
   .slice(0,Math.max(0,Math.min(3,Math.floor(count))));
 }

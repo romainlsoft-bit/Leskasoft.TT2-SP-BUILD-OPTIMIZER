@@ -1,0 +1,85 @@
+/**
+ * Coordinate-wise search over the two actual active pet slots.
+ *
+ * A damage-pet winner scored against gold-pet G1 may not remain best after
+ * the gold slot switches to G2 (Combat Techniques, skill-point allocation
+ * and branch-cache signatures can change). Do not return a damage choice
+ * evaluated for a different gold pet, or compare two incompatible score
+ * contexts. The search evaluates one axis at a time, never constructs a
+ * Cartesian 3 x 3 candidate product, and reuses evaluated pairs.
+ *
+ * A three-per-slot SHORTLIST is not proof of the globally optimal pet pair.
+ * If a fixed point has not been reached within the pass cap, report it as
+ * unresolved instead of claiming convergence.
+ */
+const ID=x=>x?.id??null;
+const finite=(score)=>typeof score==="number"&&Number.isFinite(score);
+const stablePick=(rows,current)=>rows.reduce((best,row)=>{
+ if(!best||row.adjustedScore>best.adjustedScore+1e-10)return row;
+ if(Math.abs(row.adjustedScore-best.adjustedScore)<1e-10&&
+    (row.petId===current&&best.petId!==current))return row;
+ return best;
+},null);
+
+export function selectPetPair(damageCandidates=[],goldCandidates=[],evaluate,options={}){
+ if(typeof evaluate!=="function")throw new TypeError("Pet scenario evaluator required");
+ const maxPasses=options.maxPasses===undefined?3:Number(options.maxPasses);
+ if(!Number.isSafeInteger(maxPasses)||maxPasses<1||maxPasses>6)
+  throw new RangeError("Pet search passes must be 1–6");
+ const damage=damageCandidates.filter(x=>typeof ID(x)==="string"&&ID(x));
+ const gold=goldCandidates.filter(x=>typeof ID(x)==="string"&&ID(x));
+ if(new Set(damage.map(ID)).size!==damage.length||new Set(gold.map(ID)).size!==gold.length)
+  throw new Error("Duplicated pet candidate IDs");
+ if(damage.length>3||gold.length>3)
+  throw new RangeError("At most three candidate pets per slot");
+ const visited=new Map(),attempts=[],progress=options.onProgress;
+ let damagePet=ID(damage[0]),goldPet=ID(gold[0]),passes=0,
+  damageResults=[],goldResults=[],converged=false;
+ function evaluatePair(d,g){
+  const key=JSON.stringify([d,g]);
+  if(visited.has(key))return visited.get(key);
+  const result=evaluate(d,g);
+  if(!result||!finite(result.adjustedScore))
+   throw new Error("Non-finite pet scenario for "+key);
+  const entry={...result,damagePet:d,goldPet:g,
+   adjustedScore:result.adjustedScore};
+  visited.set(key,entry);
+  attempts.push({damagePet:d,goldPet:g,score:entry.adjustedScore});
+  progress?.({completed:visited.size,total:maxPasses*(damage.length+gold.length),
+   phase:"pet-scenarios"});
+  return entry;
+ }
+ if(!damage.length&&!gold.length)
+  return {best:null,damageResults:[],goldResults:[],converged:true,
+   passes:0,uniqueEvaluations:0,attempts:[]};
+ for(let pass=0;pass<maxPasses;pass++){
+  passes++;
+  const priorDamage=damagePet,priorGold=goldPet;
+  damageResults=damage.length?damage.map(p=>{
+   const scored=evaluatePair(ID(p),goldPet);
+   return {...scored,petId:ID(p),slot:"damage"};
+  }):[];
+  if(damageResults.length)damagePet=stablePick(damageResults,damagePet).petId;
+  goldResults=gold.length?gold.map(p=>{
+   const scored=evaluatePair(damagePet,ID(p));
+   return {...scored,petId:ID(p),slot:"gold"};
+  }):[];
+  if(goldResults.length)goldPet=stablePick(goldResults,goldPet).petId;
+  if(priorDamage===damagePet&&priorGold===goldPet){converged=true;break}
+ }
+ // Always materialize an optimization for the actual selected pair,
+ // not a stale result captured while optimizing an alternative gold pet.
+ const best=evaluatePair(damagePet,goldPet);
+ const consistentDamageResults=damage.length?damage.map(p=>({
+  ...evaluatePair(ID(p),goldPet),petId:ID(p),slot:"damage"
+ })):[];
+ // The search may stop without convergence. Report this rather than
+ // mistakenly implying that both axes have settled at their true optimum.
+ const damageWinner=consistentDamageResults.length?
+  stablePick(consistentDamageResults,damagePet).petId:damagePet;
+ if(damageWinner!==damagePet)converged=false;
+ return {best,damageResults:consistentDamageResults,goldResults,
+  converged,passes,uniqueEvaluations:visited.size,attempts,
+  candidateCount:{damage:damage.length,gold:gold.length},
+  shortlistOnly:true};
+}
