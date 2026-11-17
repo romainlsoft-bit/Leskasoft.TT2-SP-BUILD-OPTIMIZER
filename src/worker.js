@@ -1,8 +1,8 @@
-import {optimizeBuild} from "./engine.js?v=20261117-crafting-set-power";
-import {recommendPets} from "./pet-scenarios.js?v=20261117-crafting-set-power";
+import {optimizeBuild} from "./engine.js?v=20261117-per-set-counts";
+import {recommendPets} from "./pet-scenarios.js?v=20261117-per-set-counts";
 import {calculateModeledScenario} from "./calculation-ledger.js";
 import {selectPetPair} from "./pet-pair-search.js";
-import {bestEquipmentByCategory,gearSelectionEffects} from "./equipment-scenarios.js?v=20261117-crafting-set-power";
+import {bestEquipmentByCategory,gearSelectionEffects} from "./equipment-scenarios.js?v=20261117-per-set-counts";
 
 // One worker, one cache. The solver checks per-branch score and constraint
 // signatures: changing a pet can change Summoner/Combat Techniques, while

@@ -5,6 +5,8 @@ export const SUPPORTED_LANGUAGES = ["en","fr","uk","ru"];
 export const NATIVE_LANGUAGE_NAMES = {en:"English",fr:"Français",uk:"Українська",ru:"Русский"};
 export const translations = {
 fr:{
+ "{count} effects per owned equipment set were scored from the completed-set collection ({mythic} Mythic, {legendary} Legendary and {unique} Unique sets).":"{count} effets par set possédé calculés à partir des sets complets ({mythic} mythiques, {legendary} légendaires et {unique} Unique).",
+ "Bonuses per completed set cannot be verified without a complete unlocked-set collection; unknown counts were not scored.":"Les bonus par set complet ne peuvent pas être vérifiés sans la collection complète des sets débloqués ; les quantités inconnues ne sont pas comptabilisées.",
  "Permanent sets: {sets} unlocked (including {unique} Unique); {direct} direct bonuses and {gear} equipment-primary boosts calculated using Crafting Power {cp}. These are not a complete damage model.":"Sets permanents : {sets} débloqués (dont {unique} Unique) ; {direct} bonus directs et {gear} amplifications d'équipements calculés avec le Crafting Power {cp}. Ce n'est pas un modèle complet des dégâts.",
  "{count} set multipliers use only their minimum unboosted value because Crafting Power is not confirmed.":"{count} multiplicateurs de sets utilisent uniquement leur valeur minimale non amplifiée, car le Crafting Power n'est pas confirmé.",
  "The Crafting Power from the account export overrides a conflicting form value.":"Le Crafting Power de l'export du compte prévaut sur la valeur contradictoire du formulaire.",
@@ -228,6 +230,8 @@ fr:{
  "Free Tap Titans 2 skill tree optimizer for TT2 8.4. Optimize skill points for Clan Ship, Pet, Shadow Clone, Heavenly Strike, Dagger or Gold Gun. Import game data or configure manually.":"Optimiseur gratuit de compétences Tap Titans 2 version 8.4. Import des données ou configuration manuelle pour tous les types de builds."
 },
 uk:{
+ "{count} effects per owned equipment set were scored from the completed-set collection ({mythic} Mythic, {legendary} Legendary and {unique} Unique sets).":"Обчислено {count} ефектів за кожен зібраний набір ({mythic} міфічних, {legendary} легендарних і {unique} унікальних наборів).",
+ "Bonuses per completed set cannot be verified without a complete unlocked-set collection; unknown counts were not scored.":"Бонуси за зібрані набори неможливо перевірити без повного списку відкритих наборів; невідомі кількості не враховано.",
  "Permanent sets: {sets} unlocked (including {unique} Unique); {direct} direct bonuses and {gear} equipment-primary boosts calculated using Crafting Power {cp}. These are not a complete damage model.":"Постійні комплекти: відкрито {sets} (з них {unique} унікальних); розраховано {direct} прямих бонусів і {gear} підсилень основних ефектів спорядження за Crafting Power {cp}. Це не повна модель шкоди.",
  "{count} set multipliers use only their minimum unboosted value because Crafting Power is not confirmed.":"{count} множників комплектів враховують лише мінімальне значення без підсилення, оскільки Crafting Power не підтверджено.",
  "The Crafting Power from the account export overrides a conflicting form value.":"Значення Crafting Power з експорту акаунта має пріоритет над суперечливим значенням у формі.",
@@ -401,6 +405,8 @@ uk:{
  "Free Tap Titans 2 skill tree optimizer for TT2 8.4. Optimize skill points for Clan Ship, Pet, Shadow Clone, Heavenly Strike, Dagger or Gold Gun. Import game data or configure manually.":"Безкоштовний оптимізатор дерева навичок Tap Titans 2 версії 8.4. Імпорт даних або ручне налаштування для всіх збірок."
 },
 ru:{
+ "{count} effects per owned equipment set were scored from the completed-set collection ({mythic} Mythic, {legendary} Legendary and {unique} Unique sets).":"Рассчитано {count} эффектов за каждый собранный комплект ({mythic} мифических, {legendary} легендарных и {unique} уникальных комплектов).",
+ "Bonuses per completed set cannot be verified without a complete unlocked-set collection; unknown counts were not scored.":"Бонусы за собранные комплекты невозможно проверить без полного списка открытых комплектов; неизвестные количества не учтены.",
  "Permanent sets: {sets} unlocked (including {unique} Unique); {direct} direct bonuses and {gear} equipment-primary boosts calculated using Crafting Power {cp}. These are not a complete damage model.":"Постоянные комплекты: открыто {sets} (в том числе {unique} уникальных); рассчитано {direct} прямых бонусов и {gear} усилений основных эффектов экипировки с Crafting Power {cp}. Это не полная модель урона.",
  "{count} set multipliers use only their minimum unboosted value because Crafting Power is not confirmed.":"{count} множителей комплектов учитываются лишь по минимальному значению без усиления, поскольку Crafting Power не подтверждён.",
  "The Crafting Power from the account export overrides a conflicting form value.":"Значение Crafting Power из экспорта аккаунта имеет приоритет над противоречащим значением формы.",

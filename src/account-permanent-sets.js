@@ -29,6 +29,20 @@ const EQUIPMENT=new Set([
  "SwordBoost","HelmetBoost","ArmorBoost","AuraBoost","SlashBoost",
  "AllEquipmentEffect"
 ]);
+/**
+ * Multipliers of the form "×A per completed [rarity] equipment set".
+ * Source: TT2 8.4 EquipmentSetInfo and the Game Hive 2.12 Mechanized Sword
+ * devlog, TT2 community discussion about exponentiating by owned sets.
+ * Only apply when a COMPLETE, non-truncated completed-set collection was
+ * actually exported. We do not use currently held gear to infer full sets.
+ */
+const PER_SET=Object.freeze({
+ DamagePerEquipmentSet:{kind:null,bonusType:"AllDamage"},
+ DamagePerMythicSet:{kind:"Mythic",bonusType:"AllDamage"},
+ DamagePerLegendarySet:{kind:"Legendary",bonusType:"AllDamage"},
+ DamagePerUniqueSet:{kind:"Unique",bonusType:"AllDamage"},
+ GoldPerLegendarySet:{kind:"Legendary",bonusType:"GoldAll"}
+});
 const SET_BY_ID=new Map(Object.keys(EQUIPMENT_SET_CATALOG)
  .map(id=>[id.toLowerCase(),id]));
 const cache=new WeakMap();
@@ -101,34 +115,61 @@ export function resolvePermanentSetPower(profile,settings={}){
  if(existing?.has(key))return existing.get(key);
  const owned=canonicalOwnedSets(profile);
  const entries=[],byType=Object.create(null),unknown=[...owned.unknown];
- let appliedDirect=0,appliedEquipment=0,unresolved=0,conservative=0;
+ // An exported completed-set roster is independent of the currently
+ // equipped/owned gear and retains bonuses after all pieces are sold.
+ // Only a full roster permits a verified exponent for per-set bonuses.
+ const ownedRosterComplete=profile.sections?.equipmentSets?.present===true&&
+  profile.sections?.equipmentSets?.truncated!==true&&owned.unknown.length===0;
+ const ownedCounts={All:owned.ids.length,Mythic:0,Legendary:0,Unique:0,
+  Rare:0,Event:0};
+ for(const id of owned.ids){
+  const kind=EQUIPMENT_SET_CATALOG[id]?.type;
+  if(kind&&Object.hasOwn(ownedCounts,kind))ownedCounts[kind]++;
+ }
+ let appliedDirect=0,appliedEquipment=0,unresolved=0,conservative=0,
+  countedEffectsApplied=0;
  for(const id of owned.ids){
   const set=EQUIPMENT_SET_CATALOG[id];
   if(!set||set.enabled===false)continue;
   for(const [index,bonus] of set.bonuses.entries()){
    if(bonus.perDay===true)continue;
-   const route=DIRECT.has(bonus.type)?"direct":
+   const counted=PER_SET[bonus.type]||null;
+   const route=DIRECT.has(bonus.type)||counted?"direct":
     EQUIPMENT.has(bonus.type)?"equipment":"unresolved";
    const effect=route==="unresolved"?{log10:null,status:"conditional-or-additive-set-effect"}:
     calculateCraftedSetMultiplier(bonus,cp.level);
-   const apply=route!=="unresolved"&&effect.log10!==null;
+   const count=counted?(counted.kind===null?ownedCounts.All:
+    ownedCounts[counted.kind]):null;
+   const countKnown=!counted||ownedRosterComplete;
+   // A multiplier per owned set is raised to the number of completed sets;
+   // the multiplier is NOT added once per item or per inventory piece.
+   // Without a complete set roster, its exponent is unknown, not zero.
+   const outputType=counted?.bonusType??bonus.type;
+   const log10=countKnown&&effect.log10!==null?
+    effect.log10*(count??1):null;
+   const apply=route!=="unresolved"&&log10!==null&&Number.isFinite(log10);
+   const reason=!countKnown?"unknown-completed-set-count":effect.status;
    if(apply){
-    byType[bonus.type]=(byType[bonus.type]||0)+effect.log10;
+    byType[outputType]=(byType[outputType]||0)+log10;
     if(route==="direct")appliedDirect++;else appliedEquipment++;
+    if(counted)countedEffectsApplied++;
     if(effect.conservative)conservative++;
    }else{
     unresolved++;
     if(route!=="unresolved")
-     unknown.push({system:"sets",id,bonusType:bonus.type,reason:effect.status});
+     unknown.push({system:"sets",id,bonusType:bonus.type,reason});
    }
-   entries.push({system:"sets",id,index,bonusType:bonus.type,
-    kind:set.type,route,perDay:false,
+   entries.push({system:"sets",id,index,bonusType:outputType,
+    sourceBonusType:bonus.type,kind:set.type,route,perDay:false,
     amount:bonus.amount,inc:bonus.inc,expo:bonus.expo,
-    log10:apply?effect.log10:null,
+    countKind:counted?(counted.kind??"All"):null,
+    count:countKnown?count:null,countVerified:countKnown,
+    log10:apply?log10:null,
     baseLog10:effect.baseLog10??null,
     craftingPower:effect.craftingPower??null,
     conservative:effect.conservative===true,
-    status:apply?effect.status:"not-scored-"+effect.status,
+    status:apply?counted?"counted-equipment-set-multiplier":
+     effect.status:"not-scored-"+reason,
     appliedToAccount:apply&&route==="direct",
     appliedToEquipment:apply&&route==="equipment",
     source:owned.sources[id]});
@@ -138,6 +179,7 @@ export function resolvePermanentSetPower(profile,settings={}){
   recognizedSets:owned.ids.length,ownedSetCount:owned.ids.length,
   uniqueOwnedCount:owned.uniqueOwned,
   appliedDirect,appliedEquipment,unresolved,conservative,
+  countedEffectsApplied,ownedRosterComplete,ownedCounts,
   perDayProcessedHere:false,
   ownedSetSectionTruncated:profile.sections?.equipmentSets?.truncated===true,
   complete:false};

@@ -258,3 +258,54 @@ reinterpreted as an account-wide Pet Damage multiplier.
 effects, spell count, cooldown, crit and GemstoneLevel), fully accurate
 nonlinear hero damage conversions, complete PerDay crafting interactions,
 actual game parity, and cross-build stage calibration. Keep PR #18 DRAFT.
+
+## Batch C — 8.4 bonuses *per completed set* (17 November 2026)
+
+The static 214-set catalog has five multiplicative effects that were previously
+recognized but **not computed** because their value is contingent on the count
+of other complete sets. The dependency is now explicit in
+`src/account-permanent-sets.js`:
+
+| Source effect | Required count | Route |
+| --- | --- | --- |
+| `DamagePerEquipmentSet` (Blacksmith) | Every distinct completed equipment set | AllDamage |
+| `DamagePerMythicSet` (Mech / Mechanized Sword) | Completed Mythic sets | AllDamage |
+| `DamagePerLegendarySet` (Diamond) | Completed Legendary sets | AllDamage |
+| `DamagePerUniqueSet` (Collector) | Owned Unique sets | AllDamage |
+| `GoldPerLegendarySet` (Midas) | Completed Legendary sets | GoldAll |
+
+Each source's **Crafting Power-adjusted multiplier** is computed as in the
+previous batch, then **raised to the verified category count** (add
+`count * log10(multiplier)`, not `count * multiplier`). A complete
+category count comes from the full exported unlocked-set collection, not
+the player's current worn/retained gear. Explicitly owned Unique sets are
+de-duplicated with the completed-set roster and remain permanent after sale.
+Missing or truncated completed-set records, or unrecognized catalog IDs,
+make the category count unverified: the per-set effect is **not scored**,
+not treated as `count=0` nor estimated from inventory.
+
+Individual permanent set multipliers still apply separately; neither the
+per-set bonus nor the individual set bonus is counted twice. The set count is
+independent of an optimizer candidate's SP allocation and remains in the fixed
+account ledger. Equipment-primary boosters continue along their separate path
+and do not multiply secondary rolls.
+
+The source mechanic is confirmed by [Game Hive's Mechanized Sword patch
+notes](https://www.gamehive.com/blog/tt2-devlog-30-v212-patch-notes/)
+(`×2 All Damage per Mythic Set`) and [a TT2 community discussion on
+per-set exponentiation](https://www.reddit.com/r/TapTitans2/comments/17hvccc/).
+The contemporary 8.4 `EquipmentSetInfo.csv` catalog is the source for
+Amount/Inc/Expo, set IDs and bonus categories. Exact in-game power parity,
+particularly the interpretation of an export's Unique collection,
+**still requires player validation**.
+
+`tests/per-set-counts.test.js` covers: five actual catalog rows, expected
+mythic/legendary/unique/total counts, arithmetic in log10 at CP5, sold items,
+duplicate Unique sightings, absent or truncated complete-set collection,
+inventory-only Mythic pieces, unknown-as-zero safeguards and the complete
+6×3 matrix through `optimizeBuild`. UI report and coverage ledger now
+disclose when the count is not verified.
+
+**The public release gate is still closed.** Recomputing these immutable
+account constants does not prove a better marginal SP allocation or accurate
+stage prediction. No deploy from PR #18.
