@@ -14,7 +14,7 @@
  * Do not add another fixedAccountScore here, nor multiply these values by
  * account Gemstone levels. Both would double-count existing contributions.
  */
-import {petScenarioScore,availablePets} from "./pet-scenarios.js?v=20261117-crafting-set-power";
+import {petScenarioScore,availablePets} from "./pet-scenarios.js?v=20261117-per-set-counts";
 
 function finite(value,label){
  if(typeof value!=="number"||!Number.isFinite(value))
@@ -30,6 +30,8 @@ export function modeledScenarioCoverage(result,settings,gearSelection={}){
  const permanentSetPower=result?.accountIntegration?.permanentSetPower||null;
  const conservativeSetEffects=Number(permanentSetPower?.conservativeCPBaseEffects)||0;
  const missingSetCollection=permanentSetPower?.missingOwnedSetRows===true;
+ const uncertainOwnedSetCounts=permanentSetPower?.ownedRosterComplete===false&&
+  (Number(permanentSetPower?.recognizedSets)||0)>0;
  const conflictingCraftingPower=permanentSetPower?.craftingPower?.conflictingSettings===true;
  const unknownGearPrimaries=gearSelection.primaryUnknownCount??
   Object.values(selected).filter(x=>x.primaryModeled===false).length;
@@ -61,6 +63,7 @@ export function modeledScenarioCoverage(result,settings,gearSelection={}){
  if(unknownGemstoneBonuses)gaps.push("unmodeled-gemstone-bonuses");
  if(conservativeSetEffects)gaps.push("crafting-power-unverified");
  if(missingSetCollection)gaps.push("truncated-owned-set-collection");
+ if(uncertainOwnedSetCounts)gaps.push("unverified-set-ownership-counts");
  if(conflictingCraftingPower)gaps.push("conflicting-crafting-power-input");
  if(invalidDamagePet||invalidGoldPet)gaps.push("invalid-selected-pet");
  if(unresolvedAccountEffects||unknownCatalogIds)gaps.push("incomplete-account-formulas");
@@ -70,7 +73,8 @@ export function modeledScenarioCoverage(result,settings,gearSelection={}){
   complete:false,inventoryPresent,inventoryTruncated,missingGearSlots,
   missingExplicitSelections,unknownGearPrimaries,unknownGearSecondaries,
   unknownGearAmplifiers,unknownGemstoneBonuses,
-  conservativeSetEffects,missingSetCollection,conflictingCraftingPower,
+  conservativeSetEffects,missingSetCollection,uncertainOwnedSetCounts,
+  conflictingCraftingPower,
   invalidDamagePet,invalidGoldPet,
   unresolvedAccountEffects,unknownCatalogIds,
   safeForAutomaticGearRecommendation:inventoryPresent&&!inventoryTruncated&&

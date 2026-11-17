@@ -1,10 +1,10 @@
 import { skillInfo } from "../vendor/skills.js";
 import { baseline } from "../vendor/qol-baseline.js";
 import { optimizeExact } from "./solver-core.js";
-import { scoreAtLevel } from "./effects.js?v=20261117-crafting-set-power";
+import { scoreAtLevel } from "./effects.js?v=20261117-per-set-counts";
 import { parseAccountProfile } from "./account-profile.js";
-import {extractFixedAccountPower,fixedAccountScore} from "./account-power.js?v=20261117-crafting-set-power";
-import {accountDependencyGraph} from "./account-dependencies.js?v=20261117-crafting-set-power";
+import {extractFixedAccountPower,fixedAccountScore} from "./account-power.js?v=20261117-per-set-counts";
+import {accountDependencyGraph} from "./account-dependencies.js?v=20261117-per-set-counts";
 import {resolveSpellCaps} from "./spell-caps.js";
 import {extractTimedSetPower} from "./account-set-bonuses.js";
 import {resolvePermanentSetPower} from "./account-permanent-sets.js";
