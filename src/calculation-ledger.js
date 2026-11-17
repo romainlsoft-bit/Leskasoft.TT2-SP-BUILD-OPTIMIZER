@@ -58,9 +58,13 @@ export function modeledScenarioCoverage(result,settings,gearSelection={}){
  const missingGearSlots=Math.max(0,5-Object.keys(selected).length);
  const hero=result?.accountIntegration?.heroProgression;
  const scroll=result?.accountIntegration?.clanScrollPower;
- const heroHelmetUnverified=["Ranged hero","Spell hero","Melee hero"].includes(selected.Helmet?.kind);
+ const specializedHelmet=["Ranged hero","Spell hero","Melee hero"].includes(selected.Helmet?.kind);
+ const dominant=settings?.accountProfile?.dominantHero??null;
+ const heroHelmetClassKnown=specializedHelmet&&dominant?.verified===true;
+ const heroHelmetUnverified=specializedHelmet&&!heroHelmetClassKnown;
  const gaps=[];
  if(heroHelmetUnverified)gaps.push("unverified-dominant-hero-helmet");
+ if(heroHelmetClassKnown)gaps.push("hero-helmet-effect-unmodeled");
  if(hero?.unresolved?.length)gaps.push("unverified-hero-progression-interactions");
  if(scroll?.truncated)gaps.push("truncated-clan-scroll-export");
  if(scroll?.recognized>0&&!scroll?.completeRoster)
@@ -114,7 +118,8 @@ export function modeledScenarioCoverage(result,settings,gearSelection={}){
  return {gaps,
   complete:false,inventoryPresent,inventoryTruncated,missingGearSlots,
   missingExplicitSelections,linkedAuraCount,unresolvedAuraLinks,
-  heroHelmetUnverified,heroRosterVerified:hero?.rosterVerified===true,
+  heroHelmetUnverified,heroHelmetClassKnown,
+  heroRosterVerified:hero?.rosterVerified===true,
   unknownGearPrimaries,unknownGearSecondaries,
   unknownGearAmplifiers,unknownGemstoneBonuses,
   researchUnresolvedNodes:researchAudit?.excludedOrConflictingNodes||0,
@@ -134,7 +139,7 @@ export function modeledScenarioCoverage(result,settings,gearSelection={}){
   safeForAutomaticGearRecommendation:inventoryPresent&&!inventoryTruncated&&
    !missingExplicitSelections&&!unknownGearPrimaries&&
    !unknownGearSecondaries&&!unknownGearAmplifiers&&!unresolvedAuraLinks&&
-   !heroHelmetUnverified,
+   !heroHelmetUnverified&&!heroHelmetClassKnown,
   realStagePredictionValidated:false};
 }
 

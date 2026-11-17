@@ -10,7 +10,7 @@ import {equipmentEffectReduction,EQUIPMENT_AURA_TARGETS} from "./equipment-reduc
 import {calculatePermanentArtifactEffects} from "./account-artifacts.js";
 import {petPassiveEvidence,logPassivePetMultiplier} from "./pet-scenarios.js?v=20261117-contract-coupling";
 import {petLevelEvidence} from "./account-pet-levels.js";
-import {extractFixedAccountPower} from "./account-power.js?v=20261117-hero-scrolls";
+import {extractFixedAccountPower} from "./account-power.js?v=20261117-hero-classes";
 import {resolveGemstoneEvidence} from "./account-gemstones.js?v=20261117-contract-coupling";
 import {resolvePermanentSetPower,resolveCraftingPower} from "./account-permanent-sets.js";
 const CATEGORIES=["Sword","Helmet","Armor","Aura","Slash"];
@@ -38,10 +38,15 @@ function helmetKind(item){
  if(/melee|tank|ground/.test(text))return "Melee hero";
  return "Unknown";
 }
-function equipmentFit(item,settings){
+function equipmentFit(item,settings,profile){
  if(item.slot!=="Helmet")return true;
  const kind=helmetKind(item);
  if(GUNBLADE_BUILDS.has(settings.damage))return kind==="Gunblade";
+ // Only an explicit strongest hero ID from the export permits class
+ // filtering; no selection from the last-unlocked hero or weapon roster.
+ const dominant=profile?.dominantHero;
+ if(dominant?.verified===true)
+  return kind==="Elder Snow Cap"||kind===dominant.heroClass+" hero";
  return ["Elder Snow Cap","Ranged hero","Spell hero","Melee hero"].includes(kind);
 }
 function directEffectScore(type,amount,settings){
@@ -205,7 +210,7 @@ export function bestEquipmentByCategory(profile,settings,limit=2){
  // Targets MUST precede Aura: its primary effect is linked to precisely one
  // already selected Sword, Helmet or Slash, never independent damage.
  for(const slot of ["Sword","Helmet","Armor","Slash","Aura"]){
-  const suitable=list.filter(item=>item.slot===slot&&equipmentFit(item,settings));
+  const suitable=list.filter(item=>item.slot===slot&&equipmentFit(item,settings,profile));
   output[slot]=rankEquipment(suitable,settings,profile,limit,selected);
   if(output[slot][0])selected[slot]=output[slot][0];
  }
@@ -236,7 +241,7 @@ export function gearSelectionEffects(profile,settings,selection={}){
   const options=slot=>{
    if(selection[slot]){
     return [items.find(it=>it.uid===selection[slot]&&
-     it.slot===slot&&equipmentFit(it,settings))??null];
+     it.slot===slot&&equipmentFit(it,settings,profile))??null];
    }
    return shortlist[slot]?.length?shortlist[slot]:[null];
   };
@@ -273,7 +278,7 @@ export function gearSelectionEffects(profile,settings,selection={}){
   const key=selection[slot];
   const automatic=autoChoices[slot]??null;
   const item=key?items.find(it=>it.uid===key&&it.slot===slot&&
-   equipmentFit(it,settings)):automatic;
+   equipmentFit(it,settings,profile)):automatic;
   if(key&&!item)
    missingExplicitSelections.push({slot,id:key,reason:"selected-gear-not-in-import-or-not-compatible"});
   if(!item)continue;
@@ -309,6 +314,8 @@ export function gearSelectionEffects(profile,settings,selection={}){
  }
  const petLevelReport=petLevelEvidence(profile);
  return {selected,independentScore,
+   dominantHero:profile?.dominantHero??null,
+   heroClassRestricted:profile?.dominantHero?.verified===true,
   inventoryTruncated,autoSelectionBlocked:inventoryTruncated,
   missingExplicitSelections,linkedAuraCount,unresolvedAuraLinks,
   primaryUnknownCount:Object.values(selected).filter(x=>!x.primaryModeled).length,

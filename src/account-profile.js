@@ -3,6 +3,7 @@
  * Only allowlisted mechanics fields are retained, without any identity data.
  * A present section is NOT necessarily modeled by the optimizer score.
  */
+import {HERO_CLASS_BY_ID} from "../vendor/hero-classes.js";
 const SOURCE_SECTIONS=Object.freeze({
  artifacts:["artifacts","Artifacts","artifactLevels","ArtifactLevels"],
  gemstones:["gemstones","Gemstones","mysticGemstones","MysticGemstones"],
@@ -240,6 +241,20 @@ export function parseAccountProfile(data){
   const text=numericText(primary.present?primary.value:secondary.value);
   if(text!==null)selectedStats[key]=text;
  }
+ // Dominant hero ID must be explicitly exported; weapon levels or unlock
+ // order cannot prove which hero dominates the live DPS.
+ const aliases=["DominantHeroID","DominantHeroId","dominantHeroId",
+  "StrongestHeroID","StrongestHeroId","strongestHeroId","CurrentStrongestHeroID"];
+ const reported=[...new Set(aliases.flatMap(k=>[stats[k],data[k]])
+  .filter(v=>v!==undefined&&v!==null&&String(v).trim()!=="")
+  .map(v=>safeName(v)?.toUpperCase()??null))];
+ const dominantId=reported.length===1&&Object.hasOwn(HERO_CLASS_BY_ID,reported[0])?
+  reported[0]:null;
+ const dominantHero={id:dominantId,
+  heroClass:dominantId?HERO_CLASS_BY_ID[dominantId]:null,
+  verified:dominantId!==null,source:dominantId?"explicit-export-id":null,
+  status:reported.length>1?"conflicting-export-hero":
+   reported.length===0?"not-exported":dominantId?"verified-export-id":"unrecognized-hero-id"};
  const seasonDate=field(stats,["TranscendenceStartDate","SeasonStartDate","SeasonStartedAt"]);
  const seasonTopDate=field(data,["TranscendenceStartDate","SeasonStartDate","SeasonStartedAt"]);
  const transcendenceStartedAt=dateText(seasonDate.present?seasonDate.value:seasonTopDate.value);
@@ -248,6 +263,7 @@ export function parseAccountProfile(data){
  const fixedSystems=["artifacts","seasonArtifacts","gemstones","mysticResearch","titanCards","forbiddenResearch","titanResearch","petLevels","passiveSkills","monuments","heroWeapons","clanScrolls","uniqueEquipment"];
  return {schema:"tt2-account-profile-v1",
   dates:transcendenceStartedAt?{transcendenceStartedAt}:{},
+   dominantHero,
   gameVersion:safeName(data.Version??data.version)??null,
   sections,stats:selectedStats,
   fixedSystemKeys:fixedSystems,
