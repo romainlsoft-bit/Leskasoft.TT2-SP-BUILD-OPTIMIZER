@@ -47,6 +47,12 @@
 - Raw `EnchantmentMult` is retained separately from `EnchantmentMagnitude`. The only row whose two fields materially differ is SeasonalArtifact34 (Temperance Training Ground: 10 versus 1e20). We calculate a possible enchanted additive pool but do **not** inject it into the score until its exact stacking/interactions are confirmed in game.
 - All calculations remain stable for huge scientific levels. Missing enchant status is not guessed.
 
+## Separate Artifact Damage / Heavenly Sword / White Dwarf chain
+
+- Artifact Damage is the ADDITIVE sum of source DamageBonus×Level contributions (logarithmic summation), independent from individual artifact's multiplicative primary effects. A conservative direct AllDamage baseline now includes the recognized raw pool and the verified Heavenly Sword multiplier. Missing enchantment effects, unrecognized artifacts or missing Heavenly Sword level remain explicit omissions; never assume the conservative baseline is the total game multiplier.
+- The White Dwarf's per-owned-artifact effect is applied to each uniquely recognized, positive-level, non-conflicting owned artifact. Its effect is amplified by the Magnifier under the official v5.19 rule; the artifact count is not made up from a hardcoded 103.
+- This conservative fixed AllDamage account baseline is common to every SP allocation with the same account, so it **cannot** correct the marginal skill optimizer or guarantee a stage gain. Additional artifact enchantment pool contributions and remaining per-source reductions still require validation.
+
 ## Artifact multiplier boosters: Magnifier and Treasure of Fergus
 
 - The Magnifier (`Artifact80`) and The Treasure of Fergus (`Artifact81`) are capped boosters. A verified booster raises eligible artifacts' multiplicative primary effect to its power; it does not multiply the separate additive Artifact Damage pool. Retain BonusIcon for all 103 catalog artifacts to identify uncapped damage/gold effects.

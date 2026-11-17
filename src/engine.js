@@ -209,6 +209,7 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
         perSeasonDay:dependencyReport.monuments.perSeasonDay,
         modeled:dependencyReport.monuments.modeled},
       petPassives:power.petPassives,
+      artifactDerived:power.artifactDerived,
       additiveDamage:{
         artifactPool:dependencyReport.additiveDamage.artifacts,
         monumentPool:dependencyReport.additiveDamage.monuments,
