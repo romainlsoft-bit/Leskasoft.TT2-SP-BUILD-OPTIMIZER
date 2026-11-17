@@ -18,6 +18,8 @@ import {UNIQUE_EQUIPMENT_TO_SET} from "../vendor/unique-equipment.js";
 import {resolveMonumentEvidence} from "../src/account-monuments.js";
 import {computeArtifactEffect,calculatePermanentArtifactEffects,positiveLog10,log10OnePlusPower} from "../src/account-artifacts.js";
 import {rawDamageLog10,additiveDamageEvidence,log10Sum} from "../src/account-damage-pools.js";
+import {RESOURCE_RESEARCH_CATALOG} from "../vendor/account-research-resources.js";
+import {mergeTitanResearch,resourceResearchEvidence} from "../src/account-research-resources.js";
 
 const fixture=()=>parseAccountProfile({
  Version:"8.4.0",playerName:"HIDDEN",accountId:"PRIVATE",
@@ -556,4 +558,70 @@ test("large additive pools add in log-space without multiplying independent monu
  const row=SEASON_ARTIFACT_CATALOG.SeasonalArtifact34;
  assert.ok(Math.abs(rawDamageLog10(row,"1e9999","monument")-
   (Math.log10(Number(row.damageBonus))+9999*Number(row.damageExpo)))<1e-8);
+});
+
+test("169 additive Mystic Research nodes grant exact gemstone levels without multiplying power",()=>{
+ assert.equal(RESOURCE_RESEARCH_CATALOG.gemstoneLevel.length,169);
+ const p=parseAccountProfile({
+  gemstonesResearch:{0:{level:30},2:{level:7},503:{level:5}},
+  playerStats:{"Gemstone Level":8000}
+ });
+ const e=resourceResearchEvidence(p);
+ assert.equal(e.gemstones.extraLevelsFromResearch,42);
+ assert.equal(e.gemstones.matchedNodes,3);
+ assert.equal(e.gemstones.effectiveGemstoneLevel,null);
+ assert.equal(e.gemstones.scoreAdjusted,false);
+ assert.equal(p.stats.gemstoneLevel,"8000");
+ assert.equal(extractFixedAccountPower(p).entries.filter(x=>x.bonusType==="GemstoneLevel").length,0);
+});
+test("62 Titan Soul utility nodes correctly sum days, prestige and chance separately",()=>{
+ assert.equal(RESOURCE_RESEARCH_CATALOG.titanSouls.length,62);
+ const p=parseAccountProfile({
+  titanResearch:{"1":{level:3},"5":{level:2},"6":{level:3},"17":{level:4}},
+  playerStats:{"Titan Souls":"1e900","Titan Souls Spent":"2e800"}
+ });
+ const e=resourceResearchEvidence(p);
+ assert.equal(e.titanSouls.matchedNodes,4);
+ assert.equal(e.titanSouls.bonusPerDay,70);
+ assert.equal(e.titanSouls.bonusPerPrestige,50);
+ assert.ok(Math.abs(e.titanSouls.rawChanceBonusFraction-0.006)<1e-12);
+ assert.equal(e.titanSouls.balance,"1e900");
+ assert.equal(e.titanSouls.lifetimeSpent,"2e800");
+ assert.equal(e.titanSouls.bonusAppliedToDamageScore,false);
+ assert.equal(e.titanSouls.totalGainPerDay,null);
+});
+test("mirror and disjoint Necrobear sections count each node exactly once",()=>{
+ const p=parseAccountProfile({
+  titanResearch:{"2":{level:3},"6":{level:2}},
+  forbiddenResearch:{"2":{level:3},"17":{level:4}}
+ });
+ const merged=mergeTitanResearch(p);
+ assert.deepEqual(merged.records.map(x=>x.id).sort(),["17","2","6"]);
+ assert.equal(merged.unknown.length,0);
+ const e=resourceResearchEvidence(p);
+ assert.equal(e.titanSouls.bonusPerDay,60);
+ const score=extractFixedAccountPower(p);
+ assert.equal(score.entries.filter(x=>x.system==="titanResearch"&&x.id==="2").length,1);
+});
+test("inconsistent mirror research and same-section duplicates are excluded",()=>{
+ const p=parseAccountProfile({
+  titanResearch:[{id:"2",level:3},{id:"6",level:1},{id:"6",level:1}],
+  forbiddenResearch:[{id:"2",level:5},{id:"17",level:2}]
+ });
+ const merged=mergeTitanResearch(p);
+ assert.deepEqual(merged.records.map(x=>x.id),["17"]);
+ assert.equal(merged.unknown.length,2);
+ assert.equal(resourceResearchEvidence(p).titanSouls.bonusPerDay,20);
+ assert.equal(extractFixedAccountPower(p).entries.filter(x=>x.system==="titanResearch"&&x.id==="2").length,0);
+});
+test("invalid research purchases never grant power or resource income",()=>{
+ const p=parseAccountProfile({gemstonesResearch:[
+  {id:"0",level:31},{id:"2",level:10},{id:"2",level:10}
+ ],titanResearch:{"1":{level:4},"6":{level:-2}}});
+ const e=resourceResearchEvidence(p);
+ assert.equal(e.gemstones.extraLevelsFromResearch,0);
+ assert.equal(e.titanSouls.bonusPerDay,0);
+ assert.equal(e.titanSouls.rawChanceBonusFraction,0);
+ assert.ok(e.unknown.length>=4);
+ assert.equal(e.complete,false);
 });

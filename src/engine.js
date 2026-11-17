@@ -194,6 +194,12 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
     spellCaps,
     accountIntegration:{
       timedSetPower:{calculated:timed.calculated,applied:timed.applied,omitted:timed.omitted},
+      researchResources:{
+        gemstones:dependencyReport.researchResources.gemstones,
+        titanSouls:dependencyReport.researchResources.titanSouls,
+        unknownNodes:dependencyReport.researchResources.unknown.length,
+        complete:false
+      },
       monuments:{catalog:dependencyReport.monuments.catalogCount,
         activeInCatalog:dependencyReport.monuments.activeInCatalog,
         identified:dependencyReport.monuments.recognized,

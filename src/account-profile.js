@@ -159,6 +159,7 @@ const STATS=Object.freeze({
  relics:["Relics","Current Relics","CurrentRelics"],
  titanSouls:["Titan Souls","TitanSouls","Current Titan Souls","CurrentTitanSouls"],
  titanSoulsSpent:["Titan Souls Spent","TitanSoulsSpent","Lifetime Titan Souls Spent","LifetimeTitanSoulsSpent"],
+ gemstoneLevel:["Gemstone Level","GemstoneLevel","Mystic Gemstone Level","MysticGemstoneLevel"],
  craftingPower:["Crafting Power","CraftingPower","CP"],
  heroWeaponUpgrades:["Hero Weapon Upgrades","HeroWeaponUpgrades"],
  clanScrollUpgrades:["Clan Scroll Upgrades","ClanScrollUpgrades"],
