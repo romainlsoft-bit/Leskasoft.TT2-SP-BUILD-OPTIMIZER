@@ -35,7 +35,7 @@ const DIRECT_DAMAGE_TYPES=Object.freeze({
 const DIRECT_GOLD_TYPES=Object.freeze({
  Fairy:["FairyGold"],
  HoG:["GoldBoss"],
- Chesterson:["GoldChesterson"]
+ Chesterson:["ChestAmount","GoldChesterson"]
 });
 const cache=new WeakMap();
 function logScientific(value){

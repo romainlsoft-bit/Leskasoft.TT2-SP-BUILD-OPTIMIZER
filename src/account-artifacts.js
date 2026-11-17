@@ -52,7 +52,7 @@ export function computeArtifactEffect(catalog,level,enchanted=false){
 const DIRECT_DAMAGE=new Set(["AllDamage","PetDamage","ClanShipDamage",
  "GoldGunDamage","UltraDaggerDamage","BurstDamageSkillAmount",
  "ShadowCloneSkillAmount"]);
-const DIRECT_GOLD=new Set(["GoldAll","FairyGold","GoldBoss","GoldChesterson"]);
+const DIRECT_GOLD=new Set(["GoldAll","FairyGold","GoldBoss","GoldChesterson","ChestAmount"]);
 export function isDirectBonusType(bonusType){
  return DIRECT_DAMAGE.has(bonusType)||DIRECT_GOLD.has(bonusType);
 }
