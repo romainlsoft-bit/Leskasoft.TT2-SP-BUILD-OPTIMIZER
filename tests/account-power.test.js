@@ -6,6 +6,9 @@ import {accountDependencyGraph,bonusDependence,invalidateAccountNodes,validateAc
 import {ARTIFACT_CATALOG,EQUIPMENT_SET_CATALOG,SEASON_ARTIFACT_CATALOG} from "../vendor/account-catalog.js";
 import {ACCOUNT_SCALING} from "../vendor/account-scaling.js";
 import {resolveSetCompletionDates,resolveTranscendenceAge,heroWeaponEvidence} from "../src/account-temporal.js";
+import {clanScrollEvidence} from "../src/account-scrolls.js";
+import {CLAN_SCROLLS} from "../vendor/clan-scrolls.js";
+import {resolveSpellCaps,spellCapBonus} from "../src/spell-caps.js";
 import {optimizeBuild} from "../src/engine.js";
 
 const fixture=()=>parseAccountProfile({
@@ -144,4 +147,31 @@ test("owned Unique items persist independently of selected equipment",()=>{
  assert.ok(graph.uniquePermanentOwnership.includes("AlphaHeart"));
  assert.ok(graph.uniquePermanentOwnership.includes("ElderSnow"));
  assert.equal(heroWeaponEvidence(p).completeRosterVerified,false);
+});
+
+test("Clan Scrolls: 18 types, exact levels, unknown complete sets and additive rows",()=>{
+ assert.equal(CLAN_SCROLLS.length,18);
+ const profile=parseAccountProfile({clanScrolls:{"ScrollId1":2,"ScrollId2":3}});
+ const scrolls=clanScrollEvidence(profile);
+ assert.equal(scrolls.totalLevels,5);
+ assert.equal(scrolls.fullSets,null);
+ const entry=extractFixedAccountPower(profile).entries.find(e=>e.system==="clanScrolls"&&e.id==="ScrollId2");
+ assert.ok(Math.abs(entry.log10-3*Math.log10(1.43))<1e-12);
+ const full=parseAccountProfile({clanScrolls:Object.fromEntries(CLAN_SCROLLS.map(x=>[x.id,5]))});
+ assert.equal(clanScrollEvidence(full).fullSets,5);
+ assert.equal(clanScrollEvidence(full).boostsModeled,false);
+ const additive=parseAccountProfile({clanScrolls:{"ScrollId14":9}});
+ assert.equal(extractFixedAccountPower(additive).entries.filter(x=>x.system==="clanScrolls").length,0);
+});
+test("max spell caps: 30 base, +5 set, +5 tier five, 40 is unmodeled by A39",()=>{
+ const normal=resolveSpellCaps({maxStage:22000,sets:{}},{});
+ assert.equal(normal.spells.BurstDamage.cap,30);
+ assert.equal(spellCapBonus("TwilightBell",30),5);
+ const full=resolveSpellCaps({maxStage:22000,sets:{tFA:true}},{TwilightBell:30});
+ assert.equal(full.spells.BurstDamage.cap,40);
+ assert.equal(full.spells.BurstDamage.tabulatedLevel,39);
+ assert.equal(full.spells.BurstDamage.unmodeledLevels,1);
+ assert.equal(full.spells.ShadowClone.cap,35);
+ assert.equal(full.complete,false);
+ assert.equal(resolveSpellCaps({maxStage:12000},{}).assumeAllActive,false);
 });

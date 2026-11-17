@@ -5,6 +5,7 @@
  */
 import {ARTIFACT_CATALOG,EQUIPMENT_SET_CATALOG,SEASON_ARTIFACT_CATALOG} from "../vendor/account-catalog.js";
 import {resolveSetCompletionDates,resolveTranscendenceAge,heroWeaponEvidence} from "./account-temporal.js";
+import {clanScrollEvidence} from "./account-scrolls.js";
 
 const object=x=>x&&typeof x==="object";
 const byName=(catalog,value)=>{
@@ -26,10 +27,11 @@ const NODES=Object.freeze([
  {id:"ownedSetEffects",after:["accountInventory"]},
  {id:"uniquePermanentEffects",after:["accountInventory"]},
  {id:"heroWeaponCollections",after:["accountInventory","ownedSetEffects","uniquePermanentEffects"]},
+ {id:"clanScrollCollections",after:["accountInventory","ownedSetEffects"]},
  {id:"artifactEffects",after:["accountInventory","ownedSetEffects","uniquePermanentEffects"]},
  {id:"equipmentGrantedLevels",after:["accountInventory","ownedSetEffects"]},
  {id:"gemstoneEffectiveLevels",after:["ownedSetEffects","artifactEffects","equipmentGrantedLevels"]},
- {id:"heroEffectiveLevels",after:["ownedSetEffects","artifactEffects","heroWeaponCollections"]},
+ {id:"heroEffectiveLevels",after:["ownedSetEffects","artifactEffects","heroWeaponCollections","clanScrollCollections"]},
  {id:"petEffectiveLevels",after:["gemstoneEffectiveLevels","equipmentGrantedLevels","ownedSetEffects","artifactEffects"]},
  {id:"equipmentEffectiveBonuses",after:["gemstoneEffectiveLevels","equipmentGrantedLevels","heroEffectiveLevels","ownedSetEffects","artifactEffects","petEffectiveLevels"]},
  {id:"skillEffects",after:["petEffectiveLevels","equipmentEffectiveBonuses","heroEffectiveLevels"]},
@@ -40,6 +42,7 @@ export function accountDependencyGraph(profile){
  const setDates=resolveSetCompletionDates(profile);
  const transcendence=resolveTranscendenceAge(profile);
  const heroWeapons=heroWeaponEvidence(profile);
+ const clanScrolls=clanScrollEvidence(profile);
  const uniqueOwned=new Set((profile?.sections?.uniqueEquipment?.records||[]).map(x=>String(x.id)));
  let ignoredTimedEffects=0;
  for(const id of profile?.ownedSetIds||[]){
@@ -86,7 +89,7 @@ export function accountDependencyGraph(profile){
  const groups=[...new Set([...sets.flatMap(s=>s.effects.map(e=>e.dependsOn)),
   ...artifacts.map(a=>a.dependsOn)])];
  return {nodes:NODES,order:NODES.map(n=>n.id),sets,artifacts,groups,unknown,
-  uniquePermanentOwnership:[...uniqueOwned],heroWeapons,transcendence,
+  uniquePermanentOwnership:[...uniqueOwned],heroWeapons,clanScrolls,transcendence,
   ignoredTimedEffects,
   ready:false,unmodeledEffects:
    sets.reduce((sum,x)=>sum+x.effects.length,0)+artifacts.length,

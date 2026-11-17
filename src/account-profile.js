@@ -15,6 +15,7 @@ const SOURCE_SECTIONS=Object.freeze({
  monuments:["monuments","Monuments"],
  seasonArtifacts:["seasonArtifacts","SeasonArtifacts","seasonalArtifacts","SeasonalArtifacts","transcendentArtifacts","TranscendentArtifacts"],
  heroWeapons:["heroWeapons","HeroWeapons","heroWeaponLevels","HeroWeaponLevels"],
+ clanScrolls:["clanScrolls","ClanScrolls","clanScrollLevels","ClanScrollLevels","scrollLevels","ScrollLevels"],
  uniqueEquipment:["uniqueEquipment","UniqueEquipment","ownedUniqueEquipment","OwnedUniqueEquipment"],
  equipmentSets:["equipmentSets","EquipmentSets"],
  equippedGear:["equippedEquipment","EquippedEquipment","equippedGear","EquippedGear"],
@@ -161,7 +162,7 @@ export function parseAccountProfile(data){
  const transcendenceStartedAt=dateText(seasonDate.present?seasonDate.value:seasonTopDate.value);
  // Permanent progression is an immutable input snapshot, never a candidate
  // search dimension. Gear/pet changes must not mutate gems or Necrobear.
- const fixedSystems=["artifacts","seasonArtifacts","gemstones","mysticResearch","titanCards","forbiddenResearch","titanResearch","petLevels","passiveSkills","monuments","heroWeapons","uniqueEquipment"];
+ const fixedSystems=["artifacts","seasonArtifacts","gemstones","mysticResearch","titanCards","forbiddenResearch","titanResearch","petLevels","passiveSkills","monuments","heroWeapons","clanScrolls","uniqueEquipment"];
  return {schema:"tt2-account-profile-v1",
   dates:transcendenceStartedAt?{transcendenceStartedAt}:{},
   gameVersion:safeName(data.Version??data.version)??null,

@@ -5,6 +5,7 @@ import { scoreAtLevel } from "./effects.js?v=20261117-transcendent";
 import { parseAccountProfile } from "./account-profile.js";
 import {extractFixedAccountPower,fixedAccountScore} from "./account-power.js";
 import {accountDependencyGraph} from "./account-dependencies.js";
+import {resolveSpellCaps} from "./spell-caps.js";
 
 export const GAME_VERSION = "8.4.0";
 export const DATASET_REVISION = "2026-09-18"; // SkillTreeInfo2.0.csv comparison
@@ -171,8 +172,12 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
   const power=extractFixedAccountPower(settings.accountProfile);
   const fixedAccount=fixedAccountScore(power,settings);
   const dependencyReport=accountDependencyGraph(settings.accountProfile);
+  const spellCaps=resolveSpellCaps(settings,result.levels);
   return {...result,prior:current,spent:points,remaining:SP-points,changes,branchTotals,protectedSkills,
+    spellCaps,
     accountIntegration:{
+      clanScrollLevels:dependencyReport.clanScrolls.totalLevels,
+      clanScrollCompleteSets:dependencyReport.clanScrolls.fullSets,
       sourceCatalogs:{sets:dependencyReport.sets.length,artifacts:dependencyReport.artifacts.length},
       unmodeledEffects:dependencyReport.unmodeledEffects,
       unknownCatalogIds:dependencyReport.unknown.length,

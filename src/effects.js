@@ -111,7 +111,9 @@ export function scoreAtLevel(id,level,settings){
       const additional=spells.reduce((sum,spellId)=>{
         const spell=spellInfo[spellId];
         const weight=num(spell_reductions[spellId]?.[settings.damage])+num(spell_reductions[spellId]?.[settings.gold])*goldWeight;
-        const base=settings.sets?.tFA?34:29;
+        // A30 = spell level 30. Fallen Angel raises this to 35.
+        // Values above A39 remain unknown and must not be extrapolated.
+        const base=settings.sets?.tFA?35:30;
         const max=Object.keys(spell).filter(k=>/^A\d+$/.test(k)).map(k=>num(k.slice(1))).reduce((a,b)=>Math.max(a,b),base);
         const get=n=>lg(spell["A"+Math.min(max,base+B(n))]);
         return sum+weight*lr(get);
