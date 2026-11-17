@@ -7,10 +7,10 @@
  */
 import {ARTIFACT_CATALOG} from "../vendor/account-catalog.js";
 import {calculatePermanentArtifactEffects} from "./account-artifacts.js";
-import {petPassiveEvidence,logPassivePetMultiplier} from "./pet-scenarios.js?v=20261117-skill-sp-sets";
+import {petPassiveEvidence,logPassivePetMultiplier} from "./pet-scenarios.js?v=20261117-contract-coupling";
 import {petLevelEvidence} from "./account-pet-levels.js";
-import {extractFixedAccountPower} from "./account-power.js?v=20261117-skill-sp-sets";
-import {resolveGemstoneEvidence} from "./account-gemstones.js?v=20261117-skill-sp-sets";
+import {extractFixedAccountPower} from "./account-power.js?v=20261117-contract-coupling";
+import {resolveGemstoneEvidence} from "./account-gemstones.js?v=20261117-contract-coupling";
 import {resolvePermanentSetPower,resolveCraftingPower} from "./account-permanent-sets.js";
 const CATEGORIES=["Sword","Helmet","Armor","Aura","Slash"];
 const GUNBLADE_BUILDS=new Set(["Dagger","Heavenly Strike","Gold Gun","Shadow Clone"]);

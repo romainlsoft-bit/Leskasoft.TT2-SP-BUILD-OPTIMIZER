@@ -1,12 +1,12 @@
-import {SKILLS,SKILL_IDS,BRANCH_NAMES,PRESETS,DAMAGE_TYPES,GOLD_TYPES,GAME_VERSION,parseExport,exportBuild,spentPoints,ownedSetFlags} from "./engine.js?v=20261117-skill-sp-sets";
-import { t, localizeDocument, SUPPORTED_LANGUAGES } from "./i18n.js?v=20261117-skill-sp-sets";
+import {SKILLS,SKILL_IDS,BRANCH_NAMES,PRESETS,DAMAGE_TYPES,GOLD_TYPES,GAME_VERSION,parseExport,exportBuild,spentPoints,ownedSetFlags} from "./engine.js?v=20261117-contract-coupling";
+import { t, localizeDocument, SUPPORTED_LANGUAGES } from "./i18n.js?v=20261117-contract-coupling";
 import { readClipboardText } from "./clipboard.js";
 import { profileCoverage } from "./account-profile.js";
 import {petLevelEvidence} from "./account-pet-levels.js";
-import {resolveGemstoneEvidence} from "./account-gemstones.js?v=20261117-skill-sp-sets";
-import {formatLogMultiplier} from "./account-power.js?v=20261117-skill-sp-sets";
-import {availablePets,recommendPets} from "./pet-scenarios.js?v=20261117-skill-sp-sets";
-import {bestEquipmentByCategory,EQUIPMENT_CATEGORIES} from "./equipment-scenarios.js?v=20261117-skill-sp-sets";
+import {resolveGemstoneEvidence} from "./account-gemstones.js?v=20261117-contract-coupling";
+import {formatLogMultiplier} from "./account-power.js?v=20261117-contract-coupling";
+import {availablePets,recommendPets} from "./pet-scenarios.js?v=20261117-contract-coupling";
+import {bestEquipmentByCategory,EQUIPMENT_CATEGORIES} from "./equipment-scenarios.js?v=20261117-contract-coupling";
 const $=id=>document.getElementById(id);
 let locale="en";
 let lastStatus={message:"Import your account or enter your skill points to begin.",type:"",params:{}};
@@ -360,7 +360,7 @@ function optimize(){
  if(!$("skill-points").value){status("Enter your total Skill Points or import a player export.","error");return;}
  button.disabled=false;button.textContent=tr("Cancel optimization");
  status("Checking prerequisites and calculating the best allocation for the chosen scoring model…");
- worker=new Worker(new URL("./worker.js?v=20261117-skill-sp-sets",import.meta.url),{type:"module"});
+ worker=new Worker(new URL("./worker.js?v=20261117-contract-coupling",import.meta.url),{type:"module"});
  worker.onmessage=event=>{
    const data=event.data;
    if(data.progress){
@@ -452,6 +452,24 @@ function renderAccountIntegration(result){
  if(treeSets?.completedSetRosterPresent===false)
   panel.textContent+=" "+tr(
    "No unlocked-set collection was found in the export; skill-tree set bonuses cannot be verified.");
+ const contract=result.contractScenario;
+ if(contract){
+  if(contract.assumptions.maximumRampReached){
+   panel.textContent+=" "+tr(
+    "Conditional contracts (maximum ramp): damage {damage}, gold {gold}, initial mana drain {drain}/s. Mana sustainability and actual uptime are not verified.",
+    {damage:formatLogMultiplier(contract.damageLog10),
+     gold:formatLogMultiplier(contract.goldLog10),
+     drain:contract.baseDrain.combined===null
+      ?tr("not verifiable from this export")
+      :numberText(Math.round(contract.baseDrain.combined*100)/100)});
+   if(contract.titanReduction.duringContracts>0)
+    panel.textContent+=" "+tr(
+     "Terrifying Pact reduces titans per stage during active contracts; this speed effect is not converted to damage.");
+  }else if(contract.levels.ForbiddenContract||contract.levels.RoyalContract||
+            contract.levels.TerrifyingPact)
+   panel.textContent+=" "+tr(
+    "Contracts are present, but their full bonuses are excluded because maximum active ramp is not assumed.");
+ }
  const modeled=result.modeledScenario;
  if(modeled){
   panel.textContent+=" "+tr(

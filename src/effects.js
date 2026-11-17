@@ -8,8 +8,9 @@ import { reductions } from "../vendor/reductions.js";
 import { spellInfo, spell_reductions } from "../vendor/spells.js";
 import {spellTableIndex} from "./spell-caps.js";
 import { clone } from "../vendor/clone.js";
-import {petCombatTechniquesIncrement,petEquipmentCombatTechniquesIncrement} from "./pet-scenarios.js?v=20261117-skill-sp-sets";
+import {petCombatTechniquesIncrement,petEquipmentCombatTechniquesIncrement} from "./pet-scenarios.js?v=20261117-contract-coupling";
 import {skillTreeSetScore} from "./skill-tree-set-effects.js";
+import {contractSkillScore} from "./contract-scenarios.js";
 
 const num=(v,fallback=0)=>{ const x=Number(v); return Number.isFinite(x)?x:fallback; };
 const lg=v=>Math.log10(num(v)>0?num(v):1);
@@ -82,22 +83,17 @@ function sourceSkillScoreAtLevel(id,level,settings){
       return r*lr(logA)+goldWeight*lr(logB);
     case "ForbiddenContract":
     case "RoyalContract":
-      // The table gives MAXIMUM ramped bonuses, not always-on effects.
-      // These require sustained mana and time at the push-limit boss.
-      return settings.assumeContractsAtMax===true ? r*lr(logA) : 0;
+      // Damage, gold and mana assumptions are source-specific. Never treat
+      // maximum contract effects as passive, always-on multipliers.
+      return contractSkillScore(id,level,settings);
     case "CloneDmg":
       return r*lr(n=>logA(n)+Math.log10((4+B(n))/4));
     case "CritSkillBoost":
       return r*lightningStrike(info,level,settings);
-    case "TerrifyingPact": {
-      // Pact applies only while the corresponding contract is active.
-      // Never score its max gold/damage buffs as unconditional bonuses.
-      if(settings.assumeContractsAtMax!==true)return 0;
-      // Do not assume contracts are enabled merely because they are selectable.
-      // Include synergy only when minimum/preserved levels guarantee activation.
-      const force=id=>num(settings.minimums?.[id]||(settings.preserveCurrent?settings.currentLevels?.[id]:0))>0;
-      return (force("ForbiddenContract")?r*lr(logA):0)+(force("RoyalContract")?lr(logB):0);
-    }
+    case "TerrifyingPact":
+      // A = gold under Forbidden, B = damage under Royal. The solver may
+      // award only those pieces whose corresponding contract is guaranteed.
+      return contractSkillScore(id,level,settings);
     case "PoisonedBlade":
       return r*lr(n=>Math.log10(1+10*A(n)));
     case "HandOfMidasMultiCastSkillBoost": {
