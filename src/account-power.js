@@ -18,6 +18,7 @@ import {clanScrollEvidence} from "./account-scrolls.js";
 import {ARTIFACT_CATALOG} from "../vendor/account-catalog.js";
 import {calculatePermanentArtifactEffects} from "./account-artifacts.js";
 import {resolveMonumentEvidence} from "./account-monuments.js";
+import {petPassiveEvidence} from "./pet-scenarios.js";
 import {mergeTitanResearch,resourceResearchEvidence} from "./account-research-resources.js";
 
 const MAX_LEVEL=100000;
@@ -137,12 +138,25 @@ export function extractFixedAccountPower(profile){
   else unsupported.push({system:"monuments",id:row.id,reason:row.formulaStatus});
  }
  for(const row of monuments.unknown)unsupported.push({system:"monuments",...row});
+ const passivePets=petPassiveEvidence(profile);
+ for(const row of passivePets.entries){
+  if(row.appliedToScore&&row.log10!==null)entries.push({
+   system:"petPassive",id:row.id,bonusType:row.bonusType,
+   log10:row.log10,level:row.level,tier:row.tier
+  });
+ }
+ for(const row of passivePets.unmodeled)
+  unsupported.push({system:"petPassive",...row});
+ for(const row of passivePets.unknownAmplifiers)
+  unsupported.push({system:"petAmplifier",...row});
  const byType={};
  for(const entry of entries)byType[entry.bonusType]=(byType[entry.bonusType]||0)+entry.log10;
  const value={available:entries.length>0,byType,entries,unsupported,
   matched:entries.length,unknown:unsupported.length,
   // These only describe *some* systems. They must not be treated as complete.
   complete:false,
+  petPassives:{imported:passivePets.imported,scored:passivePets.scored,
+   unknownAmplifiers:passivePets.unknownAmplifiers.length,complete:false},
   artifactEffects:{recognized:artifactEffects.recognized,computed:artifactEffects.computed,
    scored:artifactEffects.scored,duplicateRecords:artifactEffects.duplicateRecords},
   researchResources:resourceResearchEvidence(profile),
@@ -153,7 +167,7 @@ export function extractFixedAccountPower(profile){
 }
 export function fixedAccountScore(power,settings){
  if(!power?.available)return {damageLog10:0,goldLog10:0,weightedLog10:0,types:[]};
- const types=["AllDamage",...(DIRECT_DAMAGE_TYPES[settings.damage]||[])];
+ const types=["AllDamage","BossDamage",...(DIRECT_DAMAGE_TYPES[settings.damage]||[])];
  const goldTypes=["GoldAll",...(DIRECT_GOLD_TYPES[settings.gold]||[])];
  const damageLog10=types.reduce((a,t)=>a+(power.byType[t]||0),0);
  const goldLog10=goldTypes.reduce((a,t)=>a+(power.byType[t]||0),0);

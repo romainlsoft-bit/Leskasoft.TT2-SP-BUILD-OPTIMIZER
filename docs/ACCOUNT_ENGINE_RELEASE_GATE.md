@@ -47,6 +47,14 @@
 - Raw `EnchantmentMult` is retained separately from `EnchantmentMagnitude`. The only row whose two fields materially differ is SeasonalArtifact34 (Temperance Training Ground: 10 versus 1e20). We calculate a possible enchanted additive pool but do **not** inject it into the score until its exact stacking/interactions are confirmed in game.
 - All calculations remain stable for huge scientific levels. Missing enchant status is not guessed.
 
+## Passive pet bonuses and tier-dependent amplifiers
+
+- All 30 permanent pets are loaded. Account-wide passive share: no bonus below 5, +5 percentage points per five levels, 100% at level 100, with logarithmically stable computations. Previously active pet rankings calculated only an additional selected-pet increment and omitted the entire passive baseline.
+- Direct passive AllDamage/BossDamage and GoldAll/FairyGold/GoldBoss contributions are now included once in the fixed context, while other pet bonus types stay diagnostic pending hero/equipment/skill reductions.
+- Heart of Storms/Apollo Orb and Sticky Fruit/Hades Orb are resolved from source artifact effects and applied to corresponding Legacy/Exotic Damage/Gold pet bonuses, respectively, never to unrelated types or Pet Attack Damage. Missing enchantment flags remain unknown.
+- Equipped-pet ranking compares only the increment above passive, preventing 100%-passive pets from being counted twice. Fatal Samurai and Combat Techniques still alter the active pet's bonus via effective levels.
+- All active pets, equipment pets and Transcendent season/hero/special conditions still need full in-game qualification. Raw multiplier proxy does not guarantee stages gained.
+
 ## Gemstones and Titan Souls — utility research integrated
 
 - TT2 8.4 has **169 GemstoneLevel research nodes**. All 169 have `BaseEffect=0`, `EffectPerLevel=1`, `GrowthExpo=0`, `MaxLevel=30`: the bonus contributed by an explicitly purchased node is +1 gemstone level per research level. Imported purchases are now summed without assuming missing nodes are zero. Any unknown/duplicate/out-of-range purchase is excluded.
