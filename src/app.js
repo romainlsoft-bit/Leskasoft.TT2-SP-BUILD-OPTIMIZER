@@ -1,6 +1,9 @@
-import {SKILLS,SKILL_IDS,BRANCH_NAMES,SETS,PRESETS,DAMAGE_TYPES,GOLD_TYPES,GAME_VERSION,parseExport,exportBuild,spentPoints} from "./engine.js";
-import { t, localizeDocument, SUPPORTED_LANGUAGES } from "./i18n.js";
+import {SKILLS,SKILL_IDS,BRANCH_NAMES,SETS,PRESETS,DAMAGE_TYPES,GOLD_TYPES,GAME_VERSION,parseExport,exportBuild,spentPoints} from "./engine.js?v=20261117-account-profile";
+import { t, localizeDocument, SUPPORTED_LANGUAGES } from "./i18n.js?v=20261117-account-profile";
 import { readClipboardText } from "./clipboard.js";
+import { profileCoverage } from "./account-profile.js";
+import {availablePets,recommendPets} from "./pet-scenarios.js";
+import {bestEquipmentByCategory,EQUIPMENT_CATEGORIES} from "./equipment-scenarios.js";
 const $=id=>document.getElementById(id);
 let locale="en";
 let lastStatus={message:"Import your account or enter your skill points to begin.",type:"",params:{}};
@@ -16,6 +19,7 @@ function setLocale(next){
  if(leskasoft)leskasoft.href="https://www.leskasoft.fr/"+locale;
  renderChoices();renderEditor($("skill-search").value);
  $("source-label").textContent=tr(state.sourceImported?"Imported from TT2":"Manual setup");
+ renderAccountProfile();renderPetControls();
  $("result-mode").textContent=lastResult?(lastResult.solver==="bounded-grid-dp"?tr("Optimized · bounded grid"):tr("Optimized · exact DP")):tr("Ready when you are");
  if(lastResult)renderResults(lastResult,false);
  status(lastStatus.message,lastStatus.type,lastStatus.params);
@@ -53,8 +57,8 @@ function engineError(message){
 }
 const iconMap={"Clan Ship":"⛵","Pet":"🐾","Shadow Clone":"◈","Heavenly Strike":"⚡","Dagger":"🗡","Gold Gun":"✦"};
 const branchColors={Knight:"#d77879",Summoner:"#edab66",Warlord:"#e7ca75",Sorcerer:"#86adf7",Rogue:"#7ad0a0",Alchemist:"#b595ed"};
-const fresh=()=>({damage:"Clan Ship",gold:"Fairy",skillPoints:0,maxStage:0,playstyle:"balanced",qol:"recommended",goldWeight:.7,craftingPower:1,timeToKill:8,sClone:30,sets:{},currentLevels:{},minimums:{},excluded:[],preserveCurrent:false,assumeHaystActive:false,assumeSnapActive:false,assumeContractsAtMax:false,astralActivations:0,mode:"power"});
-let state=fresh(),lastResult=null,worker=null;
+const fresh=()=>({damage:"Clan Ship",gold:"Fairy",skillPoints:0,maxStage:0,playstyle:"balanced",qol:"recommended",goldWeight:.7,craftingPower:1,timeToKill:8,sClone:30,sets:{},currentLevels:{},minimums:{},excluded:[],preserveCurrent:false,assumeHaystActive:false,assumeSnapActive:false,assumeContractsAtMax:false,astralActivations:0,mode:"power",accountProfile:null,selectedDamagePet:null,selectedGoldPet:null,comparePetScenarios:true,selectedEquipment:{}});
+let state=fresh(),lastResult=null,lastScenarios=[],lastEquipment={},worker=null;
 // Fixed-position notifications are shared by errors and successful actions.
 // Errors stay visible until dismissed; successes auto-dismiss after six seconds.
 let toastDismissTimer=null;
@@ -102,7 +106,145 @@ function renderEditor(filter=""){
  }).join("");
  if(!matches.length)$("skill-editor").innerHTML="<p class='hint'>"+safe(tr("No skills match your search."))+"</p>";
 }
+function renderAccountProfile(){
+ let el=$("account-profile-summary");
+ if(!el){
+  const box=document.querySelector(".import-box");
+  if(!box)return;
+  el=document.createElement("p");
+  el.id="account-profile-summary";
+  el.className="hint";
+  el.setAttribute("role","status");
+  box.appendChild(el);
+ }
+ const profile=state.accountProfile;
+ if(!profile){el.hidden=true;return;}
+ const labels={
+  artifacts:"Artifacts",gemstones:"Mystic Gemstones",mysticResearch:"Mystic Research",
+  titanCards:"Titan cards",forbiddenResearch:"Forbidden Research",
+  petLevels:"Pets",passiveSkills:"Passive skills",monuments:"Monuments",
+  heroWeapons:"Hero weapons",equipmentSets:"Owned equipment sets",equippedGear:"Equipped gear",equipmentInventory:"Equipment inventory"
+ };
+ const found=profileCoverage(profile);
+ const names=found.map(item=>tr(labels[item.key])+": "+numberText(item.count));
+ el.textContent=names.length
+  ?tr("Detected account categories: {categories}. Pet and equipment-set effects are modeled where supported; other account data is diagnostic.",{categories:names.join(" · ")})
+  :tr("Skill-tree-only export: no additional account categories detected.");
+ el.hidden=false;
+}
+function renderPetControls(){
+ let box=$("pet-setup");
+ if(!box){
+  box=document.createElement("div");box.id="pet-setup";box.className="import-box";
+  const importer=document.querySelector(".setup .import-box");
+  if(!importer)return;
+  importer.insertAdjacentElement("afterend",box);
+  box.addEventListener("change",event=>{
+   const target=event.target,id=target.id;
+   if(id==="pet-damage-select")state.selectedDamagePet=target.value||null;
+   else if(id==="pet-gold-select")state.selectedGoldPet=target.value||null;
+   else if(id==="pet-compare")state.comparePetScenarios=target.checked;
+   else if(target.dataset.gearSlot){
+    state.selectedEquipment={...state.selectedEquipment,
+     [target.dataset.gearSlot]:target.value||null};
+   }else return;
+   remember();
+  });
+ }
+ const pets=availablePets(state.accountProfile);
+ const shortlisted=bestEquipmentByCategory(state.accountProfile,state,2);
+ const hasGear=EQUIPMENT_CATEGORIES.some(slot=>(shortlisted[slot]||[]).length>0);
+ if(!pets.length&&!hasGear){box.hidden=true;return;}
+ box.hidden=false;
+ let html='<h3>'+safe(tr("Pets and equipment"))+'</h3>';
+ if(pets.length){
+  const renderOptions=(slot,selected)=>{
+   const options=pets.filter(p=>p.equipType===(slot==="damage"?"Damage":"Support"));
+   return '<option value="">'+safe(tr("Automatic"))+'</option>'+options.map(p=>
+    '<option value="'+safe(p.id)+'" '+(selected===p.id?"selected":"")+'>'+
+    safe(p.name)+' · '+safe(p.type)+' · '+numberText(p.level)+' '+safe(tr("levels"))+'</option>').join("");
+  };
+  html+='<p class="hint">'+safe(tr("A Damage pet and a Gold pet are equipped together. The tool evaluates the three best candidates in each slot independently."))+'</p>'
+   +'<div class="field-grid"><label>'+safe(tr("Damage pet"))+'<select id="pet-damage-select">'+renderOptions("damage",state.selectedDamagePet)+'</select></label>'
+   +'<label>'+safe(tr("Gold pet"))+'<select id="pet-gold-select">'+renderOptions("gold",state.selectedGoldPet)+'</select></label></div>'
+   +'<label class="toggle"><input id="pet-compare" type="checkbox" '+(state.comparePetScenarios?"checked":"")+'>'+
+     safe(tr("Automatically compare three Damage pets and three Gold pets"))+'</label>';
+ }
+ if(hasGear){
+  html+='<h3>'+safe(tr("Equipment candidates"))+'</h3>'
+   +'<p class="hint">'+safe(tr("The two strongest known candidates per equipment slot are shown. Unknown effects remain unscored."))+'</p>'
+   +'<div class="field-grid">';
+  for(const slot of EQUIPMENT_CATEGORIES){
+   const options=shortlisted[slot]||[];
+   if(!options.length)continue;
+   const active=state.selectedEquipment?.[slot]||"";
+   html+='<label>'+safe(tr(slot))+'<select data-gear-slot="'+slot+'">'
+    +'<option value="">'+safe(tr("Automatic"))+'</option>'
+    +options.map(item=>'<option value="'+safe(item.uid)+'" '+(active===item.uid?"selected":"")+'>'+
+      safe(item.displayName)+ (item.estimatedScore===null?' · ?':' · '+item.estimatedScore.toFixed(2)+' log10')+'</option>').join("")
+    +'</select></label>';
+  }
+  html+='</div>';
+  if(shortlisted.helmetRotation){
+   const h=shortlisted.helmetRotation;
+   const names=[...h.unique,...h.ranged,...h.spell,...h.melee].map(x=>x.displayName);
+   if(names.length)html+='<p class="hint">'+safe(tr("Helmet alternatives/rotation: {names}",{names:names.join(" · ")}))+'</p>';
+  }
+  html+='<p class="hint">'+safe(tr("Gunblade helmets are required for Dagger, Heavenly Strike, Gold Gun and Shadow Clone. Other builds can use Elder Snow Cap or rotate hero-type helmets."))+'</p>';
+ }
+ html+='<p class="hint">'+safe(tr("Automatic damage and gold source selection will require calibrated cross-build scoring; it is not yet safe to rank those builds together."))+'</p>';
+ box.innerHTML=html;
+}
+function renderPetComparisons(){
+ let el=$("pet-comparison-results");
+ if(!el){
+  el=document.createElement("div");el.id="pet-comparison-results";el.className="result-detail";
+  $("branch-chart").insertAdjacentElement("afterend",el);
+  el.addEventListener("click",event=>{
+   const button=event.target.closest("button[data-scenario-index]");
+   if(!button)return;
+   const selected=lastScenarios[Number(button.dataset.scenarioIndex)];
+   if(!selected)return;
+   state.selectedDamagePet=selected.damagePet;state.selectedGoldPet=selected.goldPet;
+   lastResult=selected.result;fillInputs();persist();renderResults(selected.result,false);
+  });
+ }
+ if(!lastScenarios.length){el.hidden=true;return;}
+ el.hidden=false;
+ const sections=[["damage",tr("Damage pets")],["gold",tr("Gold pets")]];
+ const renderSection=([slot,title])=>{
+  const list=lastScenarios.map((x,i)=>({...x,index:i})).filter(x=>x.slot===slot);
+  if(!list.length)return "";
+  list.sort((a,b)=>b.adjustedScore-a.adjustedScore);
+  const best=list[0].adjustedScore;
+  return '<h4>'+safe(title)+'</h4><div class="table-wrapper"><table><thead><tr><th>'
+   +safe(tr("Pet"))+'</th><th>'+safe(tr("Gap to best"))+'</th><th>SP</th><th></th></tr></thead><tbody>'
+   +list.map(item=>'<tr><td>'+safe(slot==="damage"?item.damageName:item.goldName)+'</td><td>'
+    +(best-item.adjustedScore).toFixed(3)+' log10</td><td>'+numberText(item.result.spent)
+    +' SP</td><td><button type="button" class="btn tiny secondary" data-scenario-index="'+item.index+'">'
+    +safe(tr("Select"))+'</button></td></tr>').join("")
+   +'</tbody></table></div>';
+ };
+ el.innerHTML='<h3>'+safe(tr("Compared pet setups"))+'</h3>'
+  +'<p class="hint">'+safe(tr("Damage and Gold pet rankings are independent; only changed skill-tree branches are recalculated. These are theoretical scores, not guaranteed stages."))+'</p>'
+  +sections.map(renderSection).join("");
+}
+function renderEquipmentRecommendations(){
+ let el=$("equipment-comparison-results");
+ if(!el){
+  el=document.createElement("div");el.id="equipment-comparison-results";el.className="result-detail";
+  $("branch-chart").insertAdjacentElement("afterend",el);
+ }
+ const available=EQUIPMENT_CATEGORIES.filter(slot=>(lastEquipment[slot]||[]).length>0);
+ if(!available.length){el.hidden=true;return;}
+ el.hidden=false;
+ el.innerHTML='<h3>'+safe(tr("Equipment shortlist"))+'</h3>'+
+  '<p class="hint">'+safe(tr("The strongest two supported items are displayed in each slot, when the export includes equipment inventory. Constant equipment multipliers do not require rerunning the SP optimizer."))+'</p>'+
+  available.map(slot=>'<p><strong>'+safe(tr(slot))+':</strong> '+
+   lastEquipment[slot].map(item=>safe(item.displayName)+(item.estimatedScore===null?' (?)':'')).join(' · ')+'</p>').join('');
+}
 function fillInputs(){
+ renderAccountProfile();renderPetControls();
  $("skill-points").value=state.skillPoints||"";
  $("max-stage").value=state.maxStage||"";
  $("gold-weight").value=state.goldWeight;
@@ -117,7 +259,7 @@ function fillInputs(){
  $("astral-activations").value=state.astralActivations??0;
  renderChoices();renderEditor($("skill-search").value);
 }
-function remember(){persist();lastResult=null;$("actual-results").hidden=true;$("empty-results").hidden=false;$("result-mode").textContent=tr("Settings changed");}
+function remember(){persist();lastScenarios=[];lastEquipment={};lastResult=null;$("actual-results").hidden=true;$("empty-results").hidden=false;$("result-mode").textContent=tr("Settings changed");}
 function applyPreset(id){
  const preset=PRESETS[id];state.playstyle=id;state.goldWeight=preset.goldWeight;state.qol=preset.qol;
  fillInputs();remember();
@@ -128,12 +270,16 @@ function importRaw(raw){
  if(parsed.skillPoints!==null&&parsed.skillPoints>0)state.skillPoints=parsed.skillPoints;
  else if(!state.skillPoints)state.skillPoints=spentPoints(parsed.levels);
  state.maxStage=parsed.maxStage;state.craftingPower=parsed.craftingPower;state.sets=parsed.sets;
+ state.accountProfile=parsed.profile;
+ state.selectedDamagePet=null;state.selectedGoldPet=null;state.comparePetScenarios=true;
+ state.selectedEquipment={};
  state.sClone=state.sets.tFA?35:30;
  if(parsed.damage)state.damage=parsed.damage;
  if(parsed.gold)state.gold=parsed.gold;
  state.sourceImported=true;
  $("source-label").textContent=tr("Imported from TT2");
  fillInputs();remember();
+ $("import-json").value=""; // Do not retain the raw full-account export in the DOM.
  status("Account data imported. Review the damage/gold choices and optimize.","success");
 }
 function offerManualPaste(message,params={},clipboardContent=null){
@@ -196,21 +342,22 @@ function optimize(){
  if(!$("skill-points").value){status("Enter your total Skill Points or import a player export.","error");return;}
  button.disabled=false;button.textContent=tr("Cancel optimization");
  status("Checking prerequisites and calculating the best allocation for the chosen scoring model…");
- worker=new Worker(new URL("./worker.js?v=20261116-sp-budget-fix",import.meta.url),{type:"module"});
+ worker=new Worker(new URL("./worker.js?v=20261117-account-profile",import.meta.url),{type:"module"});
  worker.onmessage=event=>{
    const data=event.data;
    if(data.progress){
-     const phase=data.progress.phase==="skills"?"Building skill-tree options":"Combining skill trees";
+     const phase=data.progress.phase==="pet-scenarios"?"Comparing pet setups":data.progress.phase==="skills"?"Building skill-tree options":"Combining skill trees";
      status("{phase}: {completed}/{total} complete. You can cancel at any time.","",{phase,completed:data.progress.completed,total:data.progress.total});
      return;
    }
    resetOptimizeButton();
-   if(data.ok){lastResult=data.result;renderResults(data.result);persist();status(data.result.optimality?.mode==="bounded-power"?"Build ready with a certified upper bound on the score gap. See accuracy details below.":"Build optimized. Copy the result to import it into TT2.","success");}
+   if(data.ok){lastScenarios=[...(data.petComparisons?.damage||[]),...(data.petComparisons?.gold||[])];lastEquipment=data.equipment||{};state.selectedDamagePet=data.selectedPets?.damage||null;state.selectedGoldPet=data.selectedPets?.gold||null;fillInputs();lastResult=data.result;renderResults(data.result);persist();status(data.result.optimality?.mode==="bounded-power"?"Build ready with a certified upper bound on the score gap. See accuracy details below.":"Build optimized. Copy the result to import it into TT2.","success");}
    else{status(data.error||"Optimization failed.","error");$("result-mode").textContent="Could not optimize";}
    worker.terminate();worker=null;
  };
  worker.onerror=event=>{resetOptimizeButton();status("Optimizer worker failed: {detail}","error",{detail:event.message||"unknown error"});worker?.terminate();worker=null;};
- worker.postMessage({type:"optimize",settings:structuredClone(state)});
+ const compare=state.comparePetScenarios&&availablePets(state.accountProfile).length>0;
+ worker.postMessage({type:compare?"optimize-pet-scenarios":"optimize",settings:structuredClone(state)});
 }
 function renderResults(result,scroll=true){
  $("empty-results").hidden=true;$("actual-results").hidden=false;if(scroll)$("results").scrollIntoView({behavior:"smooth",block:"start"});
@@ -237,6 +384,7 @@ function renderResults(result,scroll=true){
  $("change-count").textContent=result.changes.length;
  const max=Math.max(1,...Object.values(result.branchTotals));
  $("branch-chart").innerHTML=Object.entries(result.branchTotals).map(([name,points])=>`<div class="branch-row"><div class="branch-header"><span>${safe(tr(name))}</span><strong>${numberText(points)} SP</strong></div><div class="progress-track"><div class="progress-fill" style="width:${points/max*100}%;background:${branchColors[name]}"></div></div></div>`).join("");
+ renderPetComparisons();renderEquipmentRecommendations();
  $("full-tree").innerHTML=Object.entries(BRANCH_NAMES).map(([code,name])=>`<h4 class="group-title">${safe(tr(name))}</h4>`+SKILL_IDS.filter(id=>SKILLS[id].Branch===code&&result.levels[id]>0).map(id=>`<div class="tree-row"><span>${safe(SKILLS[id].Name)}</span><strong>${result.levels[id]}</strong></div>`).join("")).join("");
  $("delta-count").textContent="("+result.changes.length+")";
  $("diff-list").innerHTML=result.changes.length?result.changes.map(change=>`<div class="change-row"><span>${safe(change.name)}</span><span><small>${change.before} → ${change.after}</small> <strong class="${change.difference>=0?"plus":"minus"}">${change.difference>0?"+":""}${change.difference}</strong></span></div>`).join(""):"<p class='hint'>"+safe(tr("No skill-level changes."))+"</p>";
