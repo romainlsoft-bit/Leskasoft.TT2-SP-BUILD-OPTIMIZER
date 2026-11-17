@@ -1,8 +1,8 @@
-import {SKILLS,SKILL_IDS,BRANCH_NAMES,SETS,PRESETS,DAMAGE_TYPES,GOLD_TYPES,GAME_VERSION,parseExport,exportBuild,spentPoints} from "./engine.js?v=20261117-conditional-guard";
+import {SKILLS,SKILL_IDS,BRANCH_NAMES,SETS,PRESETS,DAMAGE_TYPES,GOLD_TYPES,GAME_VERSION,parseExport,exportBuild,spentPoints} from "./engine.js?v=20261117-transcendent";
 import { t, localizeDocument, SUPPORTED_LANGUAGES } from "./i18n.js?v=20261117-account-profile";
 import { readClipboardText } from "./clipboard.js";
 import { profileCoverage } from "./account-profile.js";
-import {availablePets,recommendPets} from "./pet-scenarios.js";
+import {availablePets,recommendPets} from "./pet-scenarios.js?v=20261117-transcendent";
 import {bestEquipmentByCategory,EQUIPMENT_CATEGORIES} from "./equipment-scenarios.js";
 const $=id=>document.getElementById(id);
 let locale="en";
@@ -162,7 +162,7 @@ function renderPetControls(){
    const options=pets.filter(p=>p.equipType===(slot==="damage"?"Damage":"Support"));
    return '<option value="">'+safe(tr("Automatic"))+'</option>'+options.map(p=>
     '<option value="'+safe(p.id)+'" '+(selected===p.id?"selected":"")+'>'+
-    safe(p.name)+' · '+safe(p.type)+' · '+numberText(p.level)+' '+safe(tr("levels"))+'</option>').join("");
+    safe(p.name)+' · '+safe(tr(p.tier))+' · '+safe(p.type)+' · '+numberText(p.level)+' '+safe(tr("levels"))+'</option>').join("");
   };
   html+='<p class="hint">'+safe(tr("A Damage pet and a Gold pet are equipped together. The tool evaluates the three best candidates in each slot independently."))+'</p>'
    +'<div class="field-grid"><label>'+safe(tr("Damage pet"))+'<select id="pet-damage-select">'+renderOptions("damage",state.selectedDamagePet)+'</select></label>'
@@ -344,7 +344,7 @@ function optimize(){
  if(!$("skill-points").value){status("Enter your total Skill Points or import a player export.","error");return;}
  button.disabled=false;button.textContent=tr("Cancel optimization");
  status("Checking prerequisites and calculating the best allocation for the chosen scoring model…");
- worker=new Worker(new URL("./worker.js?v=20261117-conditional-guard",import.meta.url),{type:"module"});
+ worker=new Worker(new URL("./worker.js?v=20261117-transcendent",import.meta.url),{type:"module"});
  worker.onmessage=event=>{
    const data=event.data;
    if(data.progress){

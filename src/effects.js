@@ -7,7 +7,7 @@ import { skillInfo } from "../vendor/skills.js";
 import { reductions } from "../vendor/reductions.js";
 import { spellInfo, spell_reductions } from "../vendor/spells.js";
 import { clone } from "../vendor/clone.js";
-import { petCombatTechniquesIncrement } from "./pet-scenarios.js";
+import { petCombatTechniquesIncrement } from "./pet-scenarios.js?v=20261117-transcendent";
 
 const num=(v,fallback=0)=>{ const x=Number(v); return Number.isFinite(x)?x:fallback; };
 const lg=v=>Math.log10(num(v)>0?num(v):1);

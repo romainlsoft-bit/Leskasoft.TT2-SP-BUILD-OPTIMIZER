@@ -5,6 +5,9 @@ export const SUPPORTED_LANGUAGES = ["en","fr","uk","ru"];
 export const NATIVE_LANGUAGE_NAMES = {en:"English",fr:"Français",uk:"Українська",ru:"Русский"};
 export const translations = {
 fr:{
+ "Transcendent":"Transcendant",
+ "Legacy":"Historique",
+ "Exotic":"Exotique",
  "Existing conditional skills preserved because their effects are not fully modeled: {skills}":"Compétences conditionnelles existantes conservées, car leurs effets ne sont pas entièrement modélisés : {skills}",
  "Detected account categories: {categories}. Pet and equipment-set effects are modeled where supported; other account data is diagnostic.":"Catégories du compte détectées : {categories}. Les effets des familiers et des sets d’équipement sont modélisés lorsqu’ils sont pris en charge ; les autres données servent au diagnostic.",
  "Equipment inventory":"Inventaire d’équipement",
@@ -203,6 +206,9 @@ fr:{
  "Free Tap Titans 2 skill tree optimizer for TT2 8.4. Optimize skill points for Clan Ship, Pet, Shadow Clone, Heavenly Strike, Dagger or Gold Gun. Import game data or configure manually.":"Optimiseur gratuit de compétences Tap Titans 2 version 8.4. Import des données ou configuration manuelle pour tous les types de builds."
 },
 uk:{
+ "Transcendent":"Трансцендентний",
+ "Legacy":"Класичний",
+ "Exotic":"Екзотичний",
  "Existing conditional skills preserved because their effects are not fully modeled: {skills}":"Наявні умовні навички збережено, оскільки їхній вплив ще не повністю враховано: {skills}",
  "Detected account categories: {categories}. Pet and equipment-set effects are modeled where supported; other account data is diagnostic.":"Виявлені категорії акаунта: {categories}. Ефекти улюбленців і комплектів спорядження враховуються, якщо підтримуються; решта даних — для діагностики.",
  "Equipment inventory":"Інвентар спорядження",
@@ -351,6 +357,9 @@ uk:{
  "Free Tap Titans 2 skill tree optimizer for TT2 8.4. Optimize skill points for Clan Ship, Pet, Shadow Clone, Heavenly Strike, Dagger or Gold Gun. Import game data or configure manually.":"Безкоштовний оптимізатор дерева навичок Tap Titans 2 версії 8.4. Імпорт даних або ручне налаштування для всіх збірок."
 },
 ru:{
+ "Transcendent":"Трансцендентный",
+ "Legacy":"Классический",
+ "Exotic":"Экзотический",
  "Existing conditional skills preserved because their effects are not fully modeled: {skills}":"Существующие условные навыки сохранены, так как модель пока не полностью учитывает их эффекты: {skills}",
  "Detected account categories: {categories}. Pet and equipment-set effects are modeled where supported; other account data is diagnostic.":"Обнаружены категории аккаунта: {categories}. Эффекты питомцев и наборов учитываются, где поддерживаются; остальное служит для диагностики.",
  "Equipment inventory":"Инвентарь снаряжения",
