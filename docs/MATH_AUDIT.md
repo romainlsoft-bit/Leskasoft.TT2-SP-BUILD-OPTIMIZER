@@ -378,3 +378,24 @@ Data provenance:
 - Focused V8 verification: **25/25** checks on actual versioned source
   data and all 18 Damage/Gold combinations. Full Node/browser tests and
   in-game mana/stage validation are still open release gates.
+
+## Research and resource integrity — Batch F (2026-11-17)
+
+- TT2 v8.4 \`GemstoneResearchInfo.csv\`: 169 \`GemstoneLevel\` additive nodes.
+  \`TitanResearchInfo.csv\`: 62 additive Titan Souls acquisition nodes.
+  Formula for each *purchased* resource node: \`level * EffectPerLevel\`;
+  \`BaseEffect=GrowthExpo=0\` for this generated subset. Other Necrobear
+  research effect families remain handled separately and are not resource
+  contributions by implication.
+- Exported Gemstone effects can already contain the effective level.
+  \`Gemstone Level\` stat is ambiguous (base vs effective). The
+  \`stat + research\` figure is a hypothesis, **not a scored multiplier**.
+  Per-day and per-prestige research terms do not determine actual income;
+  raw drop chance does not determine capped final chance.
+- Inconsistent research ID mirrors are not summed. An incomplete section
+  prevents numerical research scoring from that section; unresolved
+  aggregates stay null rather than masquerading as verified zero.
+- New tests in \`tests/resource-research-integrity.test.js\` exercise source
+  counts, invalid/mirrored/contradictory IDs, truncation and all 18
+  damage/gold combinations. No in-game multiplier parity or full suite
+  has been claimed for this batch.
