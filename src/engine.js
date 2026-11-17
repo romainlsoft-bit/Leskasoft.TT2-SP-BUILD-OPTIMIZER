@@ -3,6 +3,8 @@ import { baseline } from "../vendor/qol-baseline.js";
 import { optimizeExact } from "./solver-core.js";
 import { scoreAtLevel } from "./effects.js?v=20261117-transcendent";
 import { parseAccountProfile } from "./account-profile.js";
+import {extractFixedAccountPower,fixedAccountScore} from "./account-power.js";
+import {accountDependencyGraph} from "./account-dependencies.js";
 
 export const GAME_VERSION = "8.4.0";
 export const DATASET_REVISION = "2026-09-18"; // SkillTreeInfo2.0.csv comparison
@@ -166,7 +168,24 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
   const branchTotals=Object.fromEntries(Object.entries(BRANCH_NAMES).map(([branch,name])=>[name,
     SKILL_IDS.filter(id=>skillInfo[id].Branch===branch).reduce((sum,id)=>sum+COSTS[id][result.levels[id]],0)
   ]));
+  const power=extractFixedAccountPower(settings.accountProfile);
+  const fixedAccount=fixedAccountScore(power,settings);
+  const dependencyReport=accountDependencyGraph(settings.accountProfile);
   return {...result,prior:current,spent:points,remaining:SP-points,changes,branchTotals,protectedSkills,
+    accountIntegration:{
+      sourceCatalogs:{sets:dependencyReport.sets.length,artifacts:dependencyReport.artifacts.length},
+      unmodeledEffects:dependencyReport.unmodeledEffects,
+      unknownCatalogIds:dependencyReport.unknown.length,
+      releaseReady:false
+    },
+    fixedAccount:{...fixedAccount,matched:power.matched,unknown:power.unknown,
+      available:power.available,complete:power.complete,
+      // Exact per-source values are used for diagnostics, not for an
+      // unsupported claim of a complete end-to-end damage simulation.
+      examples:power.entries.filter(e=>e.bonusType==="PetDamage").slice(0,6)},
+    // Add fixed account context to each build's total proxy. Marginal SP
+    // optimization remains mathematically unchanged by a constant.
+    accountAdjustedScore:result.score+fixedAccount.weightedLog10,
     combatAssumptions:{hayst:combatContext.assumeHaystActive,
       snap:combatContext.assumeSnapActive,astralActivations,
       contractsAtMax:combatContext.assumeContractsAtMax},

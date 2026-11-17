@@ -9,9 +9,11 @@ const SOURCE_SECTIONS=Object.freeze({
  mysticResearch:["gemstonesResearch","GemstonesResearch","gemstoneResearch","GemstoneResearch","mysticResearch","MysticResearch"],
  titanCards:["titanCards","TitanCards","necrobearCards","NecrobearCards","titanCollection","TitanCollection"],
  forbiddenResearch:["forbiddenResearch","ForbiddenResearch","necrobearResearch","NecrobearResearch","forbiddenResearchTree","ForbiddenResearchTree"],
+ titanResearch:["titanResearch","TitanResearch","titanResearchLevels","TitanResearchLevels"],
  petLevels:["petLevels","PetLevels","pets","Pets"],
  passiveSkills:["passiveSkills","PassiveSkills"],
  monuments:["monuments","Monuments"],
+ seasonArtifacts:["seasonArtifacts","SeasonArtifacts","seasonalArtifacts","SeasonalArtifacts","transcendentArtifacts","TranscendentArtifacts"],
  heroWeapons:["heroWeapons","HeroWeapons","heroWeaponLevels","HeroWeaponLevels"],
  equipmentSets:["equipmentSets","EquipmentSets"],
  equippedGear:["equippedEquipment","EquippedEquipment","equippedGear","EquippedGear"],
@@ -93,18 +95,18 @@ function extractRecord(rawId,item){
   record.enchanted=Boolean(Number(enchanted.value));
  return record;
 }
-function extractEntries(value){
+function extractEntries(value,maxEntries=MAX_ENTRIES){
  let rows;
  if(Array.isArray(value))rows=value.map((item,index)=>
   [itemId(item)??(typeof item==="string"?item:String(index)),item]);
  else if(isObject(value))rows=Object.entries(value);
  else return {count:0,records:[],truncated:false};
  const records=[];
- for(const [id,item] of rows.slice(0,MAX_ENTRIES)){
+ for(const [id,item] of rows.slice(0,maxEntries)){
   const normalized=extractRecord(id,item);
   if(normalized!==null)records.push(normalized);
  }
- return {count:rows.length,records,truncated:rows.length>MAX_ENTRIES};
+ return {count:rows.length,records,truncated:rows.length>maxEntries};
 }
 const STATS=Object.freeze({
  lifetimeRelics:["Lifetime Relics","LifetimeRelics","Relics Earned","RelicsEarned"],
@@ -122,7 +124,7 @@ export function parseAccountProfile(data){
  const sections={};
  for(const [name,aliases] of Object.entries(SOURCE_SECTIONS)){
   const source=field(data,aliases);
-  sections[name]=source.present?{present:true,...extractEntries(source.value)}
+  sections[name]=source.present?{present:true,...extractEntries(source.value,["mysticResearch","titanResearch","forbiddenResearch"].includes(name)?2048:MAX_ENTRIES)}
    :{present:false,count:0,records:[],truncated:false};
  }
  const stats=isObject(data.playerStats)?data.playerStats:isObject(data.stats)?data.stats:{};
@@ -134,7 +136,7 @@ export function parseAccountProfile(data){
  }
  // Permanent progression is an immutable input snapshot, never a candidate
  // search dimension. Gear/pet changes must not mutate gems or Necrobear.
- const fixedSystems=["artifacts","gemstones","mysticResearch","titanCards","forbiddenResearch","petLevels","passiveSkills","monuments","heroWeapons"];
+ const fixedSystems=["artifacts","seasonArtifacts","gemstones","mysticResearch","titanCards","forbiddenResearch","titanResearch","petLevels","passiveSkills","monuments","heroWeapons"];
  return {schema:"tt2-account-profile-v1",
   gameVersion:safeName(data.Version??data.version)??null,
   sections,stats:selectedStats,

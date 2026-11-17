@@ -5,6 +5,7 @@ export const SUPPORTED_LANGUAGES = ["en","fr","uk","ru"];
 export const NATIVE_LANGUAGE_NAMES = {en:"English",fr:"Français",uk:"Українська",ru:"Русский"};
 export const translations = {
 fr:{
+ "Account baseline (verified formulas only): Damage {damage}, Gold {gold}; {count} numerical effects imported. {unresolved} artifact/set effects remain uncalibrated. Not a validated total build-power estimate.":"Base du compte (formules vérifiées uniquement) : dégâts {damage}, or {gold} ; {count} effets numériques importés. {unresolved} effets d’artefacts/sets restent non calibrés. Il ne s’agit pas d’une estimation validée de la puissance totale du build.",
  "Transcendent":"Transcendant",
  "Legacy":"Historique",
  "Exotic":"Exotique",
@@ -206,6 +207,7 @@ fr:{
  "Free Tap Titans 2 skill tree optimizer for TT2 8.4. Optimize skill points for Clan Ship, Pet, Shadow Clone, Heavenly Strike, Dagger or Gold Gun. Import game data or configure manually.":"Optimiseur gratuit de compétences Tap Titans 2 version 8.4. Import des données ou configuration manuelle pour tous les types de builds."
 },
 uk:{
+ "Account baseline (verified formulas only): Damage {damage}, Gold {gold}; {count} numerical effects imported. {unresolved} artifact/set effects remain uncalibrated. Not a validated total build-power estimate.":"Базові бонуси акаунта (лише перевірені формули): шкода {damage}, золото {gold}; імпортовано {count} числових ефектів. Не відкалібровано {unresolved} ефектів артефактів/комплектів. Це не підтверджена оцінка загальної потужності збірки.",
  "Transcendent":"Трансцендентний",
  "Legacy":"Класичний",
  "Exotic":"Екзотичний",
@@ -357,6 +359,7 @@ uk:{
  "Free Tap Titans 2 skill tree optimizer for TT2 8.4. Optimize skill points for Clan Ship, Pet, Shadow Clone, Heavenly Strike, Dagger or Gold Gun. Import game data or configure manually.":"Безкоштовний оптимізатор дерева навичок Tap Titans 2 версії 8.4. Імпорт даних або ручне налаштування для всіх збірок."
 },
 ru:{
+ "Account baseline (verified formulas only): Damage {damage}, Gold {gold}; {count} numerical effects imported. {unresolved} artifact/set effects remain uncalibrated. Not a validated total build-power estimate.":"Базовые бонусы аккаунта (только проверенные формулы): урон {damage}, золото {gold}; импортировано {count} числовых эффектов. Не откалибровано {unresolved} эффектов артефактов/наборов. Это не подтверждённая оценка общей силы билда.",
  "Transcendent":"Трансцендентный",
  "Legacy":"Классический",
  "Exotic":"Экзотический",
