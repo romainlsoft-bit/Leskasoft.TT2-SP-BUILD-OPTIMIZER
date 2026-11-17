@@ -7,6 +7,7 @@
  */
 import {ARTIFACT_CATALOG} from "../vendor/account-catalog.js";
 import {calculatePermanentArtifactEffects} from "./account-artifacts.js";
+import {resolveGemstoneEvidence} from "./account-gemstones.js?v=20261117-pet-gemstone-chain";
 const TYPES=Object.freeze({
  Legacy:Object.freeze({damage:"LegacyPetDamageEffect",gold:"LegacyPetGoldEffect"}),
  Exotic:Object.freeze({damage:"ExoticPetDamageEffect",gold:"ExoticPetGoldEffect"})
@@ -21,6 +22,7 @@ export function petArtifactAmplifiers(profile){
  if(!profile)return {byTier:{Legacy:{damage:0,gold:0},Exotic:{damage:0,gold:0}},unknown:[],recognized:0};
  if(cache.has(profile))return cache.get(profile);
  const artifact=calculatePermanentArtifactEffects(profile,ARTIFACT_CATALOG);
+ const gemstone=resolveGemstoneEvidence(profile);
  const byTier={},unknown=[];
  let recognized=0;
  for(const [tier,kinds] of Object.entries(TYPES)){
@@ -35,12 +37,24 @@ export function petArtifactAmplifiers(profile){
    byTier[tier][kind]=row.log10;
   }
  }
+ // Gemstone pet-effect multipliers are explicit exported values; they
+ // amplify the same family as the matching artifact. Do not multiply by
+ // GemstoneLevel research again.
+ for(const [tier,kinds] of Object.entries(TYPES))
+  for(const [kind,type] of Object.entries(kinds))
+   byTier[tier][kind]+=gemstone.entries.filter(x=>x.bonusType===type)
+    .reduce((total,row)=>total+row.log10,0);
  const rune=artifact.entries.find(x=>x.bonusType==="EquipmentPetEffect");
  const equipmentPetEffectLog10=rune?
   (Number.isFinite(rune.log10)?rune.log10:null):0;
  if(rune&&equipmentPetEffectLog10===null)
   unknown.push({tier:"equipment",kind:"pet",id:rune.id,reason:rune.status});
- const result={byTier,unknown,recognized,equipmentPetEffectLog10};
+ const gemRune=gemstone.entries.filter(x=>x.bonusType==="EquipmentPetEffect")
+  .reduce((total,row)=>total+row.log10,0);
+ const result={byTier,unknown,recognized,
+  equipmentPetEffectLog10:equipmentPetEffectLog10===null?null:
+   equipmentPetEffectLog10+gemRune,
+  exportedGemstoneAmplifiers:gemstone.entries.filter(x=>x.route==="pet").length};
  cache.set(profile,result);return result;
 }
 export function logPassivePetMultiplier(fullLog,level){

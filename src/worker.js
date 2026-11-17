@@ -1,6 +1,6 @@
-import {optimizeBuild} from "./engine.js?v=20261117-gemstone-integrity";
-import {recommendPets,petScenarioScore} from "./pet-scenarios.js?v=20261117-gemstone-integrity";
-import {bestEquipmentByCategory,gearSelectionEffects} from "./equipment-scenarios.js?v=20261117-gemstone-integrity";
+import {optimizeBuild} from "./engine.js?v=20261117-pet-gemstone-chain";
+import {recommendPets,petScenarioScore} from "./pet-scenarios.js?v=20261117-pet-gemstone-chain";
+import {bestEquipmentByCategory,gearSelectionEffects} from "./equipment-scenarios.js?v=20261117-pet-gemstone-chain";
 
 // One worker, one cache. The solver checks per-branch score and constraint
 // signatures: changing a pet can change Summoner/Combat Techniques, while

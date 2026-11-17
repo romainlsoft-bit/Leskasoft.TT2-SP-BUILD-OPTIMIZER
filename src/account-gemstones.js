@@ -22,6 +22,10 @@ const EQUIPMENT=new Set([
  "AllEquipmentEffect","SwordBoost","HelmetBoost","ArmorBoost",
  "AuraBoost","SlashBoost"
 ]);
+const PET_AMPLIFIER=new Set([
+ "LegacyPetDamageEffect","LegacyPetGoldEffect",
+ "ExoticPetDamageEffect","ExoticPetGoldEffect","EquipmentPetEffect"
+]);
 const cache=new WeakMap();
 function positiveMultiplierLog10(value){
  const text=String(value??"").trim();
@@ -113,7 +117,8 @@ export function resolveGemstoneEvidence(profile){
      continue;
     }
     seen.add(identity);
-    const route=DIRECT.has(type)?"direct":EQUIPMENT.has(type)?"equipment":"unresolved";
+    const route=DIRECT.has(type)?"direct":EQUIPMENT.has(type)?"equipment":
+     PET_AMPLIFIER.has(type)?"pet":"unresolved";
     if(route==="unresolved")
      unknown.push({system:"gemstones",id,slot:bonus.slot,
       bonusType:type,reason:"dependent-or-unknown-bonus-type"});
@@ -132,6 +137,7 @@ export function resolveGemstoneEvidence(profile){
   entries,byType,unknown,
   directEffects:entries.filter(x=>x.route==="direct").length,
   equipmentEffects:entries.filter(x=>x.route==="equipment").length,
+  petEffects:entries.filter(x=>x.route==="pet").length,
   unresolvedEffects:entries.filter(x=>x.route==="unresolved").length,
   // Explicit exported bonuses may already incorporate research/sets.
   researchLevelsAddedToExportedValues:false,

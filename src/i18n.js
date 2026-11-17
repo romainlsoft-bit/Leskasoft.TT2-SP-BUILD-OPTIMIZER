@@ -5,7 +5,7 @@ export const SUPPORTED_LANGUAGES = ["en","fr","uk","ru"];
 export const NATIVE_LANGUAGE_NAMES = {en:"English",fr:"Français",uk:"Українська",ru:"Русский"};
 export const translations = {
 fr:{
- "Gemstone effects: {direct} direct and {equipment} equipment bonuses recognized; {unresolved} unresolved. Research-granted levels are not multiplied again into exported effects.":"Effets des gemstones : {direct} bonus directs et {equipment} bonus d’équipement reconnus ; {unresolved} non résolus. Les niveaux obtenus par recherche ne sont pas remultipliés dans les effets exportés.",
+ "Gemstone effects: {direct} direct, {equipment} equipment and {pets} pet-amplifier bonuses recognized; {unresolved} unresolved. Research-granted levels are not multiplied again into exported effects.":"Effets des gemstones : {direct} bonus directs, {equipment} bonus d’équipement et {pets} amplificateurs de familiers reconnus ; {unresolved} non résolus. Les niveaux obtenus par recherche ne sont pas remultipliés dans les effets exportés.",
  "Pet import warning: {count} invalid, conflicting or unknown pet records were excluded from calculations.":"Import des familiers : {count} entrées invalides, contradictoires ou inconnues ont été exclues des calculs.",
  "Guide to bonuses and imports":"Guide des bonus et de l’import",
  "Seasonal artifacts":"Artefacts saisonniers",
@@ -219,7 +219,7 @@ fr:{
  "Free Tap Titans 2 skill tree optimizer for TT2 8.4. Optimize skill points for Clan Ship, Pet, Shadow Clone, Heavenly Strike, Dagger or Gold Gun. Import game data or configure manually.":"Optimiseur gratuit de compétences Tap Titans 2 version 8.4. Import des données ou configuration manuelle pour tous les types de builds."
 },
 uk:{
- "Gemstone effects: {direct} direct and {equipment} equipment bonuses recognized; {unresolved} unresolved. Research-granted levels are not multiplied again into exported effects.":"Ефекти gemstones: розпізнано {direct} прямих і {equipment} бонусів спорядження; {unresolved} невизначених. Рівні з досліджень не додаються повторно до експортованих множників.",
+ "Gemstone effects: {direct} direct, {equipment} equipment and {pets} pet-amplifier bonuses recognized; {unresolved} unresolved. Research-granted levels are not multiplied again into exported effects.":"Ефекти gemstones: розпізнано {direct} прямих бонусів, {equipment} бонусів спорядження та {pets} підсилень улюбленців; {unresolved} невизначених. Рівні з досліджень не додаються повторно до експортованих множників.",
  "Pet import warning: {count} invalid, conflicting or unknown pet records were excluded from calculations.":"Імпорт улюбленців: {count} недійсних, суперечливих або невідомих записів виключено з обчислень.",
  "Guide to bonuses and imports":"Посібник із бонусів та імпорту",
  "Seasonal artifacts":"Сезонні артефакти",
@@ -383,7 +383,7 @@ uk:{
  "Free Tap Titans 2 skill tree optimizer for TT2 8.4. Optimize skill points for Clan Ship, Pet, Shadow Clone, Heavenly Strike, Dagger or Gold Gun. Import game data or configure manually.":"Безкоштовний оптимізатор дерева навичок Tap Titans 2 версії 8.4. Імпорт даних або ручне налаштування для всіх збірок."
 },
 ru:{
- "Gemstone effects: {direct} direct and {equipment} equipment bonuses recognized; {unresolved} unresolved. Research-granted levels are not multiplied again into exported effects.":"Эффекты gemstones: распознано {direct} прямых и {equipment} бонусов экипировки; {unresolved} не определены. Уровни исследований не добавляются повторно к экспортированным множителям.",
+ "Gemstone effects: {direct} direct, {equipment} equipment and {pets} pet-amplifier bonuses recognized; {unresolved} unresolved. Research-granted levels are not multiplied again into exported effects.":"Эффекты gemstones: распознано {direct} прямых бонусов, {equipment} бонусов экипировки и {pets} усилений питомцев; {unresolved} не определены. Уровни исследований не добавляются повторно к экспортированным множителям.",
  "Pet import warning: {count} invalid, conflicting or unknown pet records were excluded from calculations.":"Импорт питомцев: {count} недопустимых, противоречивых или неизвестных записей исключено из расчётов.",
  "Guide to bonuses and imports":"Руководство по бонусам и импорту",
  "Seasonal artifacts":"Сезонные артефакты",
