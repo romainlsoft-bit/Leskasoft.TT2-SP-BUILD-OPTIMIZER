@@ -169,7 +169,9 @@ export function bestEquipmentByCategory(profile,settings,limit=2){
 export function gearSelectionEffects(profile,settings,selection={}){
  const items=ownedEquipment(profile);
  const shortlist=bestEquipmentByCategory(profile,settings,2);
- const selected={};
+ const selected={},petWeights={},passiveWeights={};
+ const equippedPets=new Map(petPassiveEvidence(profile).entries
+  .filter(x=>x.level>0).map(x=>[x.bonusType,x]));
  let independentScore=0;
  for(const slot of CATEGORIES){
   const key=selection[slot];
@@ -190,7 +192,19 @@ export function gearSelectionEffects(profile,settings,selection={}){
   // Explicit direct secondaries are included once; conditional reductions
   // and probability effects have no invented score.
   if(effect.score!==null)independentScore+=effect.score;
+  const equipmentPet=equippedPets.get(BOOST_BY_SLOT[slot]);
+  const primaryWeight=effect.first===null?0:
+   Math.max(0,directEffectScore(item.bonusType,"10",settings)??0);
+  if(equipmentPet&&primaryWeight>0){
+   petWeights[slot]=primaryWeight;
+   if(equipmentPet.passiveFraction>0)passiveWeights[slot]=primaryWeight;
+  }
  }
- return {selected,independentScore};
+ return {selected,independentScore,
+  petEquipmentSlotWeights:petWeights,
+  petEquipmentPassiveWeights:passiveWeights,
+  petEquipmentCoverageComplete:profile?.sections?.petLevels?.present===true&&
+   profile?.sections?.equipmentInventory?.present===true&&
+   CATEGORIES.every(slot=>selected[slot]?.primaryModeled===true)};
 }
 export const EQUIPMENT_CATEGORIES=CATEGORIES;
