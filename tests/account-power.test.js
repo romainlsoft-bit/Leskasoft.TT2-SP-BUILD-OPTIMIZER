@@ -496,3 +496,29 @@ test("monument enchantment magnitude, capped levels, category and conditional sc
  assert.equal(temper.enchantmentDeltaLog10>0,true);
  assert.equal(m.entries.every(x=>x.appliedToScore===false),true);
 });
+
+test("missing enchant marker is unknown for enchantable permanent artifacts",()=>{
+ const p=parseAccountProfile({artifacts:{Artifact31:{level:100}}});
+ const r=calculatePermanentArtifactEffects(p,ARTIFACT_CATALOG);
+ assert.equal(r.scored,0);
+ assert.equal(r.entries[0].status,"unknown-enchantment-state");
+ assert.equal(r.entries[0].enchanted,null);
+ const known=parseAccountProfile({artifacts:{Artifact31:{level:100,e:0}}});
+ const r2=calculatePermanentArtifactEffects(known,ARTIFACT_CATALOG);
+ assert.equal(r2.scored,1);
+ assert.equal(r2.entries[0].enchanted,false);
+});
+test("monuments retain genuine boolean enchantment state and unknown season blocks scoring",()=>{
+ const p=parseAccountProfile({playerStats:{"Transcendence Season":13},
+  monuments:{SeasonalArtifact34:{level:100,e:1}}});
+ const r=resolveMonumentEvidence(p,new Date("2026-11-17T00:00:00Z"));
+ assert.equal(r.entries[0].enchanted,true);
+ assert.equal(r.entries[0].enchantmentDeltaLog10>0,true);
+ const unknown=parseAccountProfile({monuments:{SeasonalArtifact10:{level:100,enchanted:true}}});
+ const u=resolveMonumentEvidence(unknown);
+ assert.equal(u.entries[0].formulaStatus,"unknown-season-category");
+ assert.equal(u.modeled,0);
+ const missing=parseAccountProfile({playerStats:{"Transcendence Season":13},
+  monuments:{SeasonalArtifact34:{level:100}}});
+ assert.equal(resolveMonumentEvidence(missing).entries[0].formulaStatus,"unknown-enchantment-state");
+});

@@ -73,9 +73,15 @@ export function calculatePermanentArtifactEffects(profile,catalog){
   const levels=[...new Set(rows.map(x=>x.level).filter(x=>x!=null).map(String))];
   const enchants=[...new Set(rows.map(x=>x.enchanted).filter(x=>x!==undefined))];
   const conflict=levels.length>1||enchants.length>1;
-  const enchanted=enchants.length===1?enchants[0]:false;
+  const knownEnchantment=enchants.length===1;
+  const enchanted=knownEnchantment?enchants[0]:null;
+  const enhancementCanChangePower=positiveLog10(data.enchantedMagnitude)!==0;
+  // An absent enchant flag is NOT evidence that the artifact is unenchanted.
+  // For enchantable items keep the coefficient unknown and do not score it.
   const effect=conflict?{status:"conflicting-source-records",log10:null}:
-   computeArtifactEffect(data,levels[0],enchanted);
+   !knownEnchantment&&enhancementCanChangePower?
+    {status:"unknown-enchantment-state",log10:null}:
+    computeArtifactEffect(data,levels[0],enchanted===true);
   const scoreable=effect.log10!==null&&isDirectBonusType(data.bonusType);
   if(scoreable)byType[data.bonusType]=(byType[data.bonusType]||0)+effect.log10;
   entries.push({system:"artifacts",id,name:data.name,bonusType:data.bonusType,

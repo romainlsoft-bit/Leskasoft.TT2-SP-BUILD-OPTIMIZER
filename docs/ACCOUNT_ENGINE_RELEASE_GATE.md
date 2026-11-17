@@ -37,7 +37,8 @@
 - Explicit known direct AllDamage, GoldAll, Pet, Clan Ship, Dagger, Gold Gun, Fairy, HoG, HS and Shadow Clone types enter the provisional score. Other artifacts retain a separately calculated effect but do **not** receive invented damage/gold source reductions.
 - Duplicate or conflicting enchanted artifact records are excluded rather than scored twice. The additive artifact-damage boost pool, Heavenly Sword amplification, Gold damage conversion, conditional and skill cap chains remain incomplete.
 - Reference implementation: https://github.com/nebula2/tt2-master/blob/main/src/TT2Master/Model/Arti/ArtifactOptimization.cs (`EffectAtLevel`). Enchantment scaling: https://www.reddit.com/r/TapTitans2/comments/cvnz7m/
-- For monuments, official DevLog #231 declares season 13 categories Celestial/Viper/Arcanas. These override stale `IsActive` values in older TT2_CSV snapshots, preventing Pirate seasonal bonuses from leaking into season 13. Unknown seasons retain explicit catalog diagnostic-only semantics until verified.
+- For monuments, official DevLog #231 declares season 13 categories Celestial/Viper/Arcanas. These override stale `IsActive` values in older TT2_CSV snapshots, preventing Pirate seasonal bonuses from leaking into season 13. If the season cannot be matched to a verified category calendar, the bonus may be inspected but **never scored**.
+- Missing enchantment status is **not treated as unenchanted** for items whose EnchantmentMagnitude differs from 1; the main numerical score is withheld pending an explicit export field. Boolean enchantment flags are normalized before computing their effects.
 
 ## Clan Scrolls and spell level caps (not yet complete)
 
