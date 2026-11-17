@@ -56,9 +56,17 @@ function lookupRow(group,id){
  return source.find(r=>r.id===raw||(group==="titanCards"&&r.name?.toLowerCase()===name))||null;
 }
 function findResearchRows(records,group,out,unknown){
- for(const record of records){
-  const row=lookupRow(group,record.id);
+ // Normalize IDs before counting: an ID and its localized/display name can
+ // identify the same Titan Card. All ambiguous duplicates are excluded,
+ // including the first occurrence, rather than choosing a favorable level.
+ const rows=records.map(record=>({record,row:lookupRow(group,record.id)}));
+ const occurrences=new Map();
+ for(const {row} of rows)if(row)occurrences.set(row.id,(occurrences.get(row.id)||0)+1);
+ for(const {record,row} of rows){
   if(!row){unknown.push({system:group,id:record.id,reason:"unknown-id-or-nonmultiplicative"});continue;}
+  if(occurrences.get(row.id)>1){
+   unknown.push({system:group,id:row.id,reason:"duplicate-source-id"});continue;
+  }
   const level=numericLevel(record.level,row.maxLevel);
   if(level===null){unknown.push({system:group,id:record.id,reason:"missing-or-invalid-level"});continue;}
   const log10=level*Math.log10(row.growth);
