@@ -24,6 +24,13 @@
 - **Unique equipment**: all 20 Unique item IDs are matched against TT2 8.4 C_EquipmentInfo.csv and their set IDs. Ownership is reconciled from explicit Unique records, completed sets, owned inventory and equipment keyed by slot. An item is counted once, whether currently equipped or not. Unknown IDs do not generate bonuses; permanent scaling and Crafting Power interactions remain unverified.
 - An ignored effect means **unknown in-game contribution**, not zero in-game power. Never present the proxy as an absolute damage model.
 
+## Transcendence monuments — source-identification stage
+
+- All 52 TT2 8.4 EndgameSeasonArtifactInfo.csv monuments have category, activity, cap, damage, cost and enchantment metadata; 33 are catalog-marked active.
+- The import combines `monuments` and `seasonArtifacts` by catalog ID or name (including apostrophes), so duplicate entries do not stack. Conflicting levels, mismatched explicit season markers, invalid capped levels and missing time evidence are flagged.
+- Exactly four monument bonus rows depend on Transcendence age: `JackpotGoldPerSeasonDay`, `AllDamagePerSeasonDay` (twice), `CritDamagePerSeasonDay`. Season 13's documented start (2026-08-12) yields 97 elapsed days on 2026-11-17.
+- No monument bonus is added to the optimizer score until its distinct level scaling, enchantment and conditional conversion have been verified. `EffectPerLevel` and `GrowthExpo` are retained as metadata, not treated as universally valid standalone multipliers.
+
 ## Clan Scrolls and spell level caps (not yet complete)
 
 - ClanScrollInfo.csv (18 types) is imported without inferring individual levels from aggregate stats. Raw non-additive multipliers are in log10. When all 18 scroll levels are explicitly available, complete-set amplification is applied: first set +5%, each additional set +10%; multiplicative scroll bonus raised to (1+setBoostPercent). See https://tap-titans-2.fandom.com/wiki/Heroes (Clan Scrolls, post 6.5). Additive scrolls, Quill of Scrolls, Old King’s Stamp, ScrollTutor and ScrollMaster remain unmodeled.

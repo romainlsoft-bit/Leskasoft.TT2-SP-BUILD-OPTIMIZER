@@ -102,3 +102,14 @@ test("set history is separate from current inventory and is counted in import co
  assert.ok(profileCoverage(p).some(x=>x.key==="equipmentHistory"&&x.count===1));
  assert.deepEqual(p.ownedSetIds,[]);
 });
+
+test("monument names with apostrophes and per-record season markers survive import",()=>{
+ const p=parseAccountProfile({monuments:[
+  {id:"Beast Hunter's Grave",lv:3,season:13},
+  {id:"Rosabella's Village",lv:2,seasonNumber:13}
+ ]});
+ assert.equal(p.sections.monuments.records.length,2);
+ assert.equal(p.sections.monuments.records[0].id,"Beast Hunter's Grave");
+ assert.equal(p.sections.monuments.records[0].season,"13");
+ assert.equal(p.sections.monuments.records[1].id,"Rosabella's Village");
+});

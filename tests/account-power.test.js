@@ -15,6 +15,7 @@ import {spellInfo} from "../vendor/spells.js";
 import {optimizeBuild} from "../src/engine.js";
 import {resolveUniqueOwnership} from "../src/account-unique.js";
 import {UNIQUE_EQUIPMENT_TO_SET} from "../vendor/unique-equipment.js";
+import {resolveMonumentEvidence} from "../src/account-monuments.js";
 
 const fixture=()=>parseAccountProfile({
  Version:"8.4.0",playerName:"HIDDEN",accountId:"PRIVATE",
@@ -383,4 +384,43 @@ test("re-acquiring all five live equipment items must not invent an old set date
  assert.equal(resolveSetCompletionDates(p,new Date("2026-11-17T00:00:00Z")).StainGlass.days,null);
  assert.equal(extractTimedSetPower(p,new Date("2026-11-17T00:00:00Z")).applied,0);
  assert.equal(accountDependencyGraph(p).sets.length,1);
+});
+
+test("52 monuments are canonicalized across two import sections without double counting",()=>{
+ assert.equal(Object.keys(SEASON_ARTIFACT_CATALOG).length,52);
+ const p=parseAccountProfile({playerStats:{"Transcendence Season":13},
+  monuments:[{id:"SeasonalArtifact8",lv:12},{id:"Beast Hunter's Grave",lv:4}],
+  seasonArtifacts:[{id:"Red Water Wreckage",lv:12}]
+ });
+ const m=resolveMonumentEvidence(p,new Date("2026-11-17T00:00:00Z"));
+ assert.equal(m.catalogCount,52);
+ assert.equal(m.activeInCatalog,33);
+ assert.equal(m.importedRecords,3);assert.equal(m.recognized,2);
+ assert.equal(m.entries.find(x=>x.id==="SeasonalArtifact8").seasonDays,97);
+ assert.equal(m.entries.find(x=>x.id==="SeasonalArtifact8").duplicated,true);
+ assert.ok(m.entries.find(x=>x.id==="SeasonalArtifact4"));
+ assert.equal(m.entries.every(x=>!x.appliedToScore),true);
+ const graph=accountDependencyGraph(p);
+ assert.equal(graph.artifacts.filter(x=>x.monument).length,2);
+ assert.equal(graph.monuments.recognized,2);
+});
+test("conflicting monument entries, mismatched seasons and invalid levels are excluded",()=>{
+ const conflict=parseAccountProfile({
+  monuments:{SeasonalArtifact8:12},seasonArtifacts:{"Red Water Wreckage":14}});
+ assert.equal(resolveMonumentEvidence(conflict).entries[0].formulaStatus,"ignored-conflicting-export-records");
+ const wrong=parseAccountProfile({playerStats:{"Transcendence Season":13},
+  monuments:[{id:"SeasonalArtifact8",level:2,season:12}]});
+ assert.equal(resolveMonumentEvidence(wrong).entries[0].formulaStatus,"ignored-wrong-transcendence-season");
+ const over=parseAccountProfile({monuments:{SeasonalArtifact8:41}});
+ assert.equal(resolveMonumentEvidence(over).entries[0].formulaStatus,"ignored-missing-or-invalid-level");
+ const noAge=parseAccountProfile({monuments:{SeasonalArtifact8:3}});
+ assert.equal(resolveMonumentEvidence(noAge).entries[0].formulaStatus,"ignored-missing-transcendence-age");
+});
+test("uncapped monuments preserve scientific levels and inactive monuments do not score",()=>{
+ const p=parseAccountProfile({monuments:{
+  SeasonalArtifact2:{level:"1e9999"},SeasonalArtifact22:{level:3}}});
+ const m=resolveMonumentEvidence(p);
+ assert.equal(m.entries.find(x=>x.id==="SeasonalArtifact2").level,"1e9999");
+ assert.equal(m.entries.find(x=>x.id==="SeasonalArtifact22").formulaStatus,"inactive-in-8.4-catalog");
+ assert.equal(m.modeled,0);
 });
