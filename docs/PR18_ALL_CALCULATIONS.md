@@ -565,3 +565,48 @@ checked against every in-game monument value.
   and game-vs-source numeric parity must be run on a complete checkout.
   The account score remains provisional and the PR stays DRAFT.
 
+
+
+## Batch I — equipment source reductions and coupled Aura primaries (17 November 2026)
+
+The five equipped items are **not five independent multipliers**. Normal Aura
+primaries are Sword/Helmet/Slash **Primary Effect boosts**, not unconditional
+All Damage. Their source-specific bonus can only enter the score when the
+target primary is explicitly selected and can be reduced to the active
+damage/gold strategy. An aura may not manufacture a helmet or sword bonus
+when its target is missing or unsupported. The target's own item-primary
+amplifier and the aura's item-primary amplifier are calculated separately;
+secondary rolls inherit neither boost.
+
+Implemented in `src/equipment-scenarios.js` and
+`src/equipment-reductions.js`: source-specific `TapDamage` and
+`AllHeroDamage`/ `HeroDamage` coefficients from the pinned
+`vendor/reductions.js`, plus direct 6-damage/3-gold-family reductions;
+per-effect diagnostics distinguish inapplicable, unverified, and modeled
+bonuses. The Aura shortlist depends on the chosen Sword/Helmet/Slash.
+Explicit gear overrides trigger a *fresh Aura choice*, rather than using
+an outdated Aura shortlist. The chosen setup also explores the **top two**
+independently screened Sword/Helmet/Slash candidates jointly with eligible
+Auras; a weaker standalone primary can win by enabling a stronger coupled
+Aura. This is bounded candidate optimization, **not** global optimality over
+all inventory items or hero-class rotations. The existing five exotic equipment pets, sets,
+Gemstones and artifact primary amplifiers still apply once to the primary
+slot only. All 18 source combinations are covered by targeted tests.
+
+Source evidence:
+- [Game Hive v6.2 patch notes](https://gamehive.com/blog/devlog-140-version-6-2-0-patch-notes/)
+  (Elder Snow Cap All Hero primary; slot-specific secondaries)
+- [TT2 Wiki equipment primary categories](https://tap-titans-2.fandom.com/wiki/Equipment)
+  (Aura Sword/Helmet/Slash primary strength, not a standalone damage type)
+- [TT2 Compendium Knight's Valor](https://www.tt2-compendium.com/sp/wiki/skills/knightsvalor)
+  (TapDamage contributors)
+- MIT-licensed `vendor/reductions.js` (damage-source conversion coefficients,
+  with in-game 8.4 parity still requiring an anonymized export).
+
+**Unresolved (not estimated):** Hero-family helmet rotation without actual
+strongest hero and hero stat, crit and chance caps, duration/uptime, gunblade
+patch-specific reductions, Unique per-resource primary values, secondary
+probability effects and cross-pet/gear/SP optimization. The scenario score
+is a **non-calibrated log10 proxy**, never a stage prediction. Imported
+equipment categories and aura aliases must be checked against a genuine
+TT2 8.4 export before claiming full coverage.

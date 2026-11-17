@@ -6,6 +6,7 @@
  * values are kept visible but never given guessed power coefficients.
  */
 import {ARTIFACT_CATALOG} from "../vendor/account-catalog.js";
+import {equipmentEffectReduction,EQUIPMENT_AURA_TARGETS} from "./equipment-reductions.js";
 import {calculatePermanentArtifactEffects} from "./account-artifacts.js";
 import {petPassiveEvidence,logPassivePetMultiplier} from "./pet-scenarios.js?v=20261117-contract-coupling";
 import {petLevelEvidence} from "./account-pet-levels.js";
@@ -21,7 +22,8 @@ const finiteLog=value=>{
  if(!/^(?:\d+(?:\.\d*)?|\.\d+)(?:[Ee][+-]?\d+)?$/.test(s))return null;
  const match=s.match(/^(\d+(?:\.\d*)?|\.\d+)(?:[Ee]([+-]?\d+))?$/);
  const mantissa=Number(match[1]),exp=Number(match[2]||0);
- return mantissa>0&&Number.isFinite(mantissa)&&Number.isFinite(exp)?Math.log10(mantissa)+exp:null;
+ return mantissa>0&&Number.isFinite(mantissa)&&Number.isSafeInteger(exp)?
+  Math.log10(mantissa)+exp:null;
 };
 const slotOf=record=>{
  const raw=String(record.slot||"").replace(/[^a-z]/gi,"").toLowerCase();
@@ -43,33 +45,26 @@ function equipmentFit(item,settings){
  return ["Elder Snow Cap","Ranged hero","Spell hero","Melee hero"].includes(kind);
 }
 function directEffectScore(type,amount,settings){
- const log=finiteLog(amount);
- if(log===null||log<0)return null;
- const byDamage={
-  "Pet":["PetDamage"],"Clan Ship":["ClanShipDamage"],
-  "Shadow Clone":["ShadowCloneSkillAmount","CloneDmg"],
-  "Heavenly Strike":["BurstDamageSkillAmount"],
-  "Dagger":["UltraDaggerDamage"],"Gold Gun":["GoldGunDamage"]
- };
- if(["AllDamage","BossDamage"].includes(type)||
-    (byDamage[settings.damage]||[]).includes(type))return log;
- const weight=Math.max(0,Number(settings.goldWeight)||0);
- if(type==="GoldAll")return log*weight;
- const byGold={Fairy:["FairyGold"],HoG:["GoldBoss"],Chesterson:["ChestAmount"]};
- if((byGold[settings.gold]||[]).includes(type))return log*weight;
- return null;
+ const log=finiteLog(amount),reduction=equipmentEffectReduction(type,settings);
+ return log===null||log<0||reduction.weight===null?null:log*reduction.weight;
 }
 function firstEffectScore(item,settings){
  return directEffectScore(item.bonusType,item.bonusAmount,settings);
 }
+function linkedAuraTarget(item){
+ return item?.slot==="Aura"?EQUIPMENT_AURA_TARGETS[item.bonusType]??null:null;
+}
 export function equipmentSecondaryEvidence(item,settings){
- const known=[],unknown=[],effects=item.secondaryEffects||[];
+ const known=[],unknown=[],inapplicable=[],effects=item.secondaryEffects||[];
  for(const effect of effects){
+  const reduction=equipmentEffectReduction(effect.bonusType,settings);
   const score=directEffectScore(effect.bonusType,effect.bonusAmount,settings);
-  if(score===null)unknown.push({...effect,status:"requires-verified-reduction-or-probability"});
-  else known.push({...effect,score});
+  if(score===null)unknown.push({...effect,status:reduction.status});
+  else if(reduction.status==="inapplicable")
+   inapplicable.push({...effect,score:0,source:reduction.source});
+  else known.push({...effect,score,source:reduction.source,reduction:reduction.weight});
  }
- return {recorded:effects.length,known,unknown,
+ return {recorded:effects.length,known,unknown,inapplicable,
   score:known.reduce((n,x)=>n+x.score,0),complete:unknown.length===0};
 }
 const BOOST_BY_SLOT={Sword:"SwordBoost",Helmet:"HelmetBoost",Armor:"ArmorBoost",
@@ -148,18 +143,49 @@ export function equipmentPrimaryAmplifiers(profile,settings={}){
  equipmentBoostCache.set(profile,cached);
  return result;
 }
-function equipmentEffectScore(item,settings,profile){
- const first=firstEffectScore(item,settings),
-  secondaries=equipmentSecondaryEvidence(item,settings);
+/**
+ * Aura primaries strengthen exactly ONE other currently selected gear primary.
+ * No phantom aura damage when its target is missing or not reducible. The
+ * target's own primary amplifier has already been counted on that slot.
+ * Never amplify the target's secondary rolls.
+ */
+function equipmentEffectScore(item,settings,profile,selectedGear={}){
+ const linkedSlot=linkedAuraTarget(item);
+ const secondaries=equipmentSecondaryEvidence(item,settings);
  const primaryAmplifier=equipmentPrimaryAmplifiers(profile,settings).bySlot[item.slot];
- // sourceWeight=1 for damage and goldWeight for gold, to avoid giving a
- // gold-only amplifier the wrong weight on the SP comparison.
- const sourceWeight=directEffectScore(item.bonusType,"10",settings);
- const amp=first!==null&&sourceWeight!==null?
-  primaryAmplifier.log10*sourceWeight:0;
+ const target=linkedSlot?selectedGear[linkedSlot]:null;
+ const reduction=equipmentEffectReduction(
+  linkedSlot?(target?.bonusType??"") : item.bonusType,settings);
+ const base=finiteLog(item.bonusAmount);
+ const targetFirst=target?firstEffectScore(target,settings):null;
+ const primarySourceWeight=reduction.weight;
+ let first=null,amp=0;
+ if(linkedSlot){
+  if(target&&targetFirst!==null&&base!==null&&base>=0&&
+     primarySourceWeight!==null){
+   first=base*primarySourceWeight;
+   amp=primaryAmplifier.log10*primarySourceWeight;
+  }
+ }else{
+  first=firstEffectScore(item,settings);
+  if(first!==null&&primarySourceWeight!==null)
+   amp=primaryAmplifier.log10*primarySourceWeight;
+ }
+ const unresolvedAura=linkedSlot!==null&&first===null;
  return {first,secondaries,primaryAmplifier,primaryBoostScore:amp,
+  primarySourceWeight,linkedSlot,unresolvedAura,
+  primaryReductionSource:reduction.source,
   score:first===null&&secondaries.known.length===0?
    null:(first??0)+amp+secondaries.score};
+}
+function rankEquipment(items,settings,profile,limit,selected={}){
+ const ranked=items.map(item=>({...item,
+  estimatedScore:equipmentEffectScore(item,settings,profile,selected).score}))
+  .sort((a,b)=>(b.estimatedScore??-Infinity)-(a.estimatedScore??-Infinity)
+   ||a.displayName.localeCompare(b.displayName));
+ const verified=ranked.filter(x=>x.estimatedScore!==null);
+ const unknown=ranked.filter(x=>x.estimatedScore===null);
+ return [...verified.slice(0,limit),...unknown.slice(0,Math.max(0,limit-verified.length))];
 }
 
 export function ownedEquipment(profile){
@@ -173,23 +199,16 @@ export function ownedEquipment(profile){
  }).filter(Boolean);
 }
 export function bestEquipmentByCategory(profile,settings,limit=2){
- // A truncated inventory is not a safe candidate set for automatic gear
- // recommendations. Omitted rows might contain the actual best item.
- // Explicitly selected rows remain usable through gearSelectionEffects.
  const incomplete=profile?.sections?.equipmentInventory?.truncated===true;
  const list=incomplete?[]:ownedEquipment(profile);
- const output={};
- for(const slot of CATEGORIES){
+ const output={},selected={};
+ // Targets MUST precede Aura: its primary effect is linked to precisely one
+ // already selected Sword, Helmet or Slash, never independent damage.
+ for(const slot of ["Sword","Helmet","Armor","Slash","Aura"]){
   const suitable=list.filter(item=>item.slot===slot&&equipmentFit(item,settings));
-  const ranked=suitable.map(item=>({...item,estimatedScore:equipmentEffectScore(item,settings,profile).score}))
-   .sort((a,b)=>(b.estimatedScore??-Infinity)-(a.estimatedScore??-Infinity)
-    ||a.displayName.localeCompare(b.displayName));
-  const verified=ranked.filter(x=>x.estimatedScore!==null);
-  const unknown=ranked.filter(x=>x.estimatedScore===null);
-  output[slot]=[...verified.slice(0,limit),...unknown.slice(0,Math.max(0,limit-verified.length))];
+  output[slot]=rankEquipment(suitable,settings,profile,limit,selected);
+  if(output[slot][0])selected[slot]=output[slot][0];
  }
- // A set of Ranged/Spell/Melee helmets is a rotation suggestion, not
- // one helmet worn simultaneously or three independent gear slots.
  if(!GUNBLADE_BUILDS.has(settings.damage)){
   const helmets=list.filter(x=>x.slot==="Helmet");
   output.helmetRotation={
@@ -204,45 +223,94 @@ export function bestEquipmentByCategory(profile,settings,limit=2){
 export function gearSelectionEffects(profile,settings,selection={}){
  const items=ownedEquipment(profile);
  const shortlist=bestEquipmentByCategory(profile,settings,2);
- const selected={},petWeights={},passiveWeights={};
+ const selected={},selectedGear={},petWeights={},passiveWeights={};
  const inventoryTruncated=profile?.sections?.equipmentInventory?.truncated===true;
  const missingExplicitSelections=[];
+ // A strong Aura can make a slightly weaker standalone Sword/Helmet/Slash
+ // the better *combined* choice. Enumerate the bounded two-per-slot shortlist
+ // instead of choosing every primary independently; honor manual selections.
+ // This is NOT a global optimum proof over unexamined inventory candidates.
+ const autoChoices={...Object.fromEntries(CATEGORIES.map(slot=>[
+  slot,shortlist[slot]?.[0]??null]))};
+ if(!inventoryTruncated){
+  const options=slot=>{
+   if(selection[slot]){
+    return [items.find(it=>it.uid===selection[slot]&&
+     it.slot===slot&&equipmentFit(it,settings))??null];
+   }
+   return shortlist[slot]?.length?shortlist[slot]:[null];
+  };
+  let winning=-Infinity;
+  const armor=selection.Armor?
+   items.find(it=>it.uid===selection.Armor&&it.slot==="Armor")??null:
+   autoChoices.Armor;
+  const armorScore=armor?equipmentEffectScore(armor,settings,profile).score??0:0;
+  for(const sword of options("Sword"))
+   for(const helmet of options("Helmet"))
+    for(const slash of options("Slash")){
+     const gear={Sword:sword,Helmet:helmet,Slash:slash};
+     const base=[sword,helmet,slash].reduce((sum,item)=>
+      sum+(item?equipmentEffectScore(item,settings,profile).score??0:0),armorScore);
+     const auraOptions=selection.Aura?
+      [items.find(it=>it.uid===selection.Aura&&it.slot==="Aura")??null]:
+      rankEquipment(items.filter(it=>it.slot==="Aura"),settings,profile,2,gear);
+     if(!auraOptions.length)auraOptions.push(null);
+     for(const aura of auraOptions){
+      const total=base+(aura?
+       equipmentEffectScore(aura,settings,profile,gear).score??0:0);
+      if(total>winning){
+       winning=total;
+       Object.assign(autoChoices,{Sword:sword,Helmet:helmet,Slash:slash,
+        Armor:armor,Aura:aura});
+      }
+     }
+    }
+ }
  const equippedPets=new Map(petPassiveEvidence(profile).entries
   .filter(x=>x.level>0).map(x=>[x.bonusType,x]));
- let independentScore=0;
- for(const slot of CATEGORIES){
+ let independentScore=0,unresolvedAuraLinks=0,linkedAuraCount=0;
+ for(const slot of ["Sword","Helmet","Armor","Slash","Aura"]){
   const key=selection[slot];
-  const automatic=shortlist[slot]?.[0]||null;
-  const item=key?items.find(it=>it.uid===key&&it.slot===slot&&equipmentFit(it,settings)):automatic;
+  const automatic=autoChoices[slot]??null;
+  const item=key?items.find(it=>it.uid===key&&it.slot===slot&&
+   equipmentFit(it,settings)):automatic;
   if(key&&!item)
    missingExplicitSelections.push({slot,id:key,reason:"selected-gear-not-in-import-or-not-compatible"});
   if(!item)continue;
-  const effect=equipmentEffectScore(item,settings,profile);
+  selectedGear[slot]=item;
+  const effect=equipmentEffectScore(item,settings,profile,selectedGear);
+  if(effect.linkedSlot)linkedAuraCount++;
+  if(effect.unresolvedAura)unresolvedAuraLinks++;
   selected[slot]={id:item.uid,name:item.displayName,kind:item.helmetKind,
    modeled:effect.score!==null,
    primaryModeled:effect.first!==null,
+   primaryReduction:effect.primarySourceWeight,
+   primaryReductionSource:effect.primaryReductionSource,
+   linkedPrimaryTarget:effect.linkedSlot,
+   linkedPrimaryResolved:effect.linkedSlot? !effect.unresolvedAura:null,
    primaryAmplifierLog10:effect.primaryAmplifier.log10,
    primaryBoostScore:effect.primaryBoostScore,
    permanentSetPrimaryAmplifierLog10:effect.primaryAmplifier.setLog10,
    primaryAmplifierUnresolved:effect.primaryAmplifier.unknown.map(x=>x.id),
    secondaryKnown:effect.secondaries.known.length,
+   secondaryInapplicable:effect.secondaries.inapplicable.length,
    secondaryUnknown:effect.secondaries.unknown.length,
-   secondaryEffects:effect.secondaries.known.map(x=>({type:x.bonusType,score:x.score})),
+   secondaryEffects:effect.secondaries.known.map(x=>({
+    type:x.bonusType,score:x.score,reduction:x.reduction,source:x.source})),
    unmodeledSecondaryTypes:effect.secondaries.unknown.map(x=>x.bonusType)};
-  // Explicit direct secondaries are included once; conditional reductions
-  // and probability effects have no invented score.
   if(effect.score!==null)independentScore+=effect.score;
   const equipmentPet=equippedPets.get(BOOST_BY_SLOT[slot]);
   const primaryWeight=effect.first===null?0:
-   Math.max(0,directEffectScore(item.bonusType,"10",settings)??0);
+   Math.max(0,effect.primarySourceWeight??0);
   if(equipmentPet&&primaryWeight>0){
    petWeights[slot]=primaryWeight;
    if(equipmentPet.passiveFraction>0)passiveWeights[slot]=primaryWeight;
   }
  }
+ const petLevelReport=petLevelEvidence(profile);
  return {selected,independentScore,
   inventoryTruncated,autoSelectionBlocked:inventoryTruncated,
-  missingExplicitSelections,
+  missingExplicitSelections,linkedAuraCount,unresolvedAuraLinks,
   primaryUnknownCount:Object.values(selected).filter(x=>!x.primaryModeled).length,
   secondaryUnknownCount:Object.values(selected).reduce((n,x)=>n+x.secondaryUnknown,0),
   unresolvedAmplifiersCount:Object.values(selected).reduce(
@@ -250,11 +318,9 @@ export function gearSelectionEffects(profile,settings,selection={}){
   selectedSlotCount:Object.keys(selected).length,
   petEquipmentSlotWeights:petWeights,
   petEquipmentPassiveWeights:passiveWeights,
-  // A present pet section is not necessarily a complete Exotic roster.
-  // Unknown levels must not permit the solver to discard existing CT SP.
-  petEquipmentCoverageComplete:petLevelEvidence(profile).trustworthy&&
+  petEquipmentCoverageComplete:petLevelReport.trustworthy&&
    ["Pet26","Pet27","Pet28","Pet29","Pet30"].every(id=>
-    Object.hasOwn(petLevelEvidence(profile).levels,id))&&
+    Object.hasOwn(petLevelReport.levels,id))&&
    profile?.sections?.equipmentInventory?.present===true&&
    profile?.sections?.equipmentInventory?.truncated!==true&&
    resolveGemstoneEvidence(profile).unknown.length===0&&

@@ -34,7 +34,8 @@ test("rank only top two per equipment slot, with no fake value for unknown bonus
  assert.equal(r.Sword[1].displayName,"Sword B");
  assert.equal(r.Sword[0].estimatedScore,280);
  assert.ok(Math.abs(r.Armor[0].estimatedScore-84)<1e-8);
- assert.equal(r.Helmet[0].estimatedScore,null);
+ assert.ok(Math.abs(r.Helmet[0].estimatedScore-
+  (Math.log10(4e140)*.5))<1e-8);
 });
 test("gunblade for four specified builds; others get Elder Snow Cap or hero rotation",()=>{
  const p=profile();

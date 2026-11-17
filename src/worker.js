@@ -1,8 +1,8 @@
-import {optimizeBuild} from "./engine.js?v=20261117-monument-pools";
-import {recommendPets} from "./pet-scenarios.js?v=20261117-monument-pools";
+import {optimizeBuild} from "./engine.js?v=20261117-equipment-coupling";
+import {recommendPets} from "./pet-scenarios.js?v=20261117-equipment-coupling";
 import {calculateModeledScenario} from "./calculation-ledger.js";
 import {selectPetPair} from "./pet-pair-search.js";
-import {bestEquipmentByCategory,gearSelectionEffects} from "./equipment-scenarios.js?v=20261117-monument-pools";
+import {bestEquipmentByCategory,gearSelectionEffects} from "./equipment-scenarios.js?v=20261117-equipment-coupling";
 
 // One worker, one cache. The solver checks per-branch score and constraint
 // signatures: changing a pet can change Summoner/Combat Techniques, while
