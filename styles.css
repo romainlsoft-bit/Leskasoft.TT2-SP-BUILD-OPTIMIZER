@@ -166,3 +166,75 @@ hr{border:0;border-top:1px solid #384158;margin:27px 0}.playstyles{display:grid;
 .app-toast[data-kind="success"] .toast-content p{color:#e0f7eb}
 .app-toast[data-kind="success"] .toast-close{border-color:#90d8b277;background:#255245}
 .app-toast[data-kind="success"] .toast-close:hover{background:#306b55}
+
+
+/* Language-agnostic layout: content may wrap without shifting controls.
+   No fixed text height; all four locales use the same responsive grid. */
+.workspace,.panel,.panel-head,.panel-head-actions,.import-title,.button-row,
+.field-grid,.form-group,.choice-grid,.choice,.segmented,.playstyles,.playstyle,
+.select-line,.result-banner,.metric,.result-buttons,.topbar,.header-right{
+ min-width:0;
+}
+.panel-head{align-items:flex-start;flex-wrap:wrap;row-gap:10px}
+.panel-head>div:first-child{min-width:0;flex:1 1 160px}
+.panel-head-actions{flex:0 1 auto;max-width:100%;flex-wrap:wrap;justify-content:flex-end}
+.panel-head-actions .subtle{overflow-wrap:anywhere;text-align:right;min-width:0}
+.import-title>div{min-width:0}
+.import-title p,.import-title h3{overflow-wrap:anywhere}
+.field-grid>label{display:block;min-width:0;overflow-wrap:anywhere;line-height:1.4}
+.field-grid input,.field-grid select,.field-grid textarea{
+ display:block;width:100%;max-width:100%;min-width:0;margin-top:8px;
+}
+.button-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:stretch}
+.button-row>.btn{min-width:0;min-height:48px;white-space:normal;overflow-wrap:anywhere;line-height:1.3}
+.choice-grid{grid-template-columns:repeat(3,minmax(0,1fr));align-items:stretch}
+.choice-grid .choice{min-width:0;min-height:82px;line-height:1.3;overflow-wrap:anywhere;word-break:normal;white-space:normal;padding:9px 7px}
+.choice-grid .choice span{flex:0 0 auto}
+.segmented{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));align-items:stretch}
+.segmented button{min-width:0;white-space:normal;overflow-wrap:anywhere;line-height:1.35}
+.playstyles{align-items:stretch}
+.playstyle{min-width:0;width:100%;height:100%;min-height:145px;display:grid;
+ grid-template-rows:32px minmax(2.5em,auto) minmax(3.5em,auto);
+ align-content:start;justify-items:center;gap:8px;
+ line-height:1.35;text-align:center;white-space:normal;overflow-wrap:anywhere}
+.playstyle strong,.playstyle small{min-width:0;max-width:100%;line-height:1.35;overflow-wrap:anywhere;text-align:center}
+.playstyle .emoji{line-height:1;align-self:center}
+.select-line{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:center}
+.select-line label{min-width:0;overflow-wrap:anywhere}
+.select-line select{width:100%;max-width:100%;min-width:0}
+.toggle{min-width:0;align-items:flex-start;overflow-wrap:anywhere;line-height:1.45}
+.toggle input[type=checkbox]{flex:0 0 17px;margin-top:3px}
+.equipment-grid label,.equipment-grid label span{min-width:0;overflow-wrap:anywhere}
+.result-banner{gap:12px;flex-wrap:wrap}
+.result-banner>div{min-width:0;overflow-wrap:anywhere}
+.result-buttons .btn{min-width:0;white-space:normal;overflow-wrap:anywhere}
+.metric{min-width:0;overflow-wrap:anywhere}
+.metric strong{font-size:clamp(16px,2.5vw,22px)}
+.result-detail{min-width:0;overflow-wrap:anywhere}
+.result-detail .table-wrapper{max-width:100%;overflow-x:auto}
+.result-detail table{width:100%;border-collapse:collapse}
+.result-detail th,.result-detail td{padding:8px;vertical-align:middle;text-align:left;overflow-wrap:anywhere}
+.topbar .brand{min-width:0}
+.topbar .brand>span:last-child{min-width:0;overflow-wrap:anywhere}
+.header-right{flex-wrap:wrap;justify-content:flex-end}
+@media(max-width:600px){
+ .field-grid{grid-template-columns:minmax(0,1fr)}
+ .choice-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .playstyles{grid-template-columns:minmax(0,1fr)}
+ .playstyle{min-height:80px;grid-template-columns:38px minmax(0,1fr);
+  grid-template-rows:auto auto;gap:2px 10px;text-align:left;
+  justify-items:start;align-content:center;padding:10px 13px}
+ .playstyle .emoji{grid-row:1/3;grid-column:1;font-size:25px;align-self:center}
+ .playstyle strong{grid-column:2;grid-row:1;text-align:left}
+ .playstyle small{grid-column:2;grid-row:2;text-align:left}
+ .metric-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .panel-head-actions{justify-content:flex-start}
+ .panel-head-actions .subtle{text-align:left}
+}
+@media(max-width:420px){
+ .button-row{grid-template-columns:minmax(0,1fr)}
+ .segmented{grid-template-columns:minmax(0,1fr)}
+ .select-line{grid-template-columns:minmax(0,1fr);gap:8px}
+ .metric-grid{grid-template-columns:minmax(0,1fr)}
+ .header-right{width:100%;justify-content:flex-start}
+}

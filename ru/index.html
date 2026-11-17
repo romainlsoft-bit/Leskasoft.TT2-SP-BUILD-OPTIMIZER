@@ -13,10 +13,10 @@
 <link rel="alternate" hreflang="uk" href="https://tap-titans.leskasoft.com/uk/">
 <link rel="alternate" hreflang="ru" href="https://tap-titans.leskasoft.com/ru/">
 <link rel="alternate" hreflang="x-default" href="https://tap-titans.leskasoft.com/">
-<link rel="icon" type="image/svg+xml" href="../assets/favicon.svg"><link rel="stylesheet" href="../styles.css">
+<link rel="icon" type="image/svg+xml" href="../assets/favicon.svg"><link rel="stylesheet" href="../styles.css?v=20261117-locale-layout">
 <title>Оптимизатор дерева навыков TT2 8.4 — бесплатный калькулятор | Leskasoft</title>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Оптимизатор дерева навыков Tap Titans 2","description":"Калькулятор очков навыков Tap Titans 2: импорт JSON, ручной ввод, настройки QoL и экспорт билда до 50 000 очков.","applicationCategory":"GameApplication","operatingSystem":"Any","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"url":"https://tap-titans.leskasoft.com/ru/","inLanguage":"ru","@id":"https://tap-titans.leskasoft.com/ru/#tool"}</script>
-<script type="module" src="../src/app.js?v=20261117-account-profile" defer></script>
+<script type="module" src="../src/app.js?v=20261117-conditional-guard" defer></script>
 </head>
 <body>
 <div class="site">
@@ -70,6 +70,7 @@
     <label class="toggle"><input type="checkbox" id="contracts-at-max"> Оба контракта достигают максимальных бонусов против самого сложного босса (требует много маны)</label>
     <label>Нажатия на сферы Astral Awakening (0–5) <input type="number" id="astral-activations" min="0" max="5" step="1" inputmode="numeric" value="0"></label>
     <label class="toggle"><input type="checkbox" id="preserve-current">Сохранить текущие уровни как минимальные</label>
+    <label class="toggle"><input type="checkbox" id="protect-unmodeled-skills" checked> Сохранять имеющиеся условные навыки, если модель не учитывает их эффект (рекомендуется)</label>
     <h3>Имеющиеся наборы снаряжения</h3>
     <p class="hint">Автоматически определяются из экспорта игрока TT2, если доступны.</p>
     <div class="equipment-grid" id="equipment-choices"></div>

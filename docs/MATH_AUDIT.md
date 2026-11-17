@@ -204,3 +204,39 @@ shareable link.
 
 Source reference:
 https://github.com/rawrzcookie/TT2_CSV/blob/main/csv/PetInfo.csv
+
+
+## 17 November 2026 — live -2,000 stage regression and safety guard
+
+A Pet/Fairy player at roughly 22,600 SP reports losing **2,000 stages**
+with the new optimizer. The allocation overspent relative to the player's
+successful Warlord distribution and **removed Forbidden Contract**.
+
+The deterministic 22,640/22,642-SP Pet/Fairy fixture reproduces the root
+cause of the disappearing contract investments: under the conservative
+default \`assumeContractsAtMax=false\`, Forbidden Contract, Royal Contract
+and Terrifying Pact have **zero modeled value**. The optimizer consequently
+removed the player's already-invested levels, redistributing the SP elsewhere
+(including Warlord). This proxy assumption must not silently delete
+potentially valuable skills and then present the result as an improvement.
+
+**Mitigation (default ON):** when current levels are supplied, the optimizer
+retains only those existing conditional skills whose actual bonus is
+deliberately not modeled: FC/RC/TP when full contract bonuses are not assumed,
+Quick Fortune without Hayst, Philosopher's Flux without Snap, and Astral
+Awakening without taps. Their imported levels become explicit minimums.
+This is NOT a Warlord allocation cap and does NOT pretend to predict actual
+contract mana/uptime. The guard can be disabled in Advanced settings; the
+existing "keep all current levels" option remains separate.
+
+A regression test compares guarded and unguarded Pet/Fairy allocations at
+22,642 SP and verifies the retained contract skills and the direct effect
+on Warlord spend. All four localized pages include the new setting and
+responsive alignment rules for variable-length text and controls.
+
+**Remaining limitation:** the score is still a weighted log-proxy. Further
+mechanical verification of contract activation, skill interactions,
+cross-build/gear rankings, and actual stages gained is mandatory before
+claiming the optimizer recommends the objectively strongest build.
+Issue #9 remains open. The actual -2,000 stage test's complete build settings
+and equipment export are not yet captured in an anonymized regression case.

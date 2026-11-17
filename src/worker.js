@@ -1,4 +1,4 @@
-import {optimizeBuild} from "./engine.js?v=20261117-account-profile";
+import {optimizeBuild} from "./engine.js?v=20261117-conditional-guard";
 import {recommendPets,petScenarioScore} from "./pet-scenarios.js";
 import {bestEquipmentByCategory,gearSelectionEffects} from "./equipment-scenarios.js";
 

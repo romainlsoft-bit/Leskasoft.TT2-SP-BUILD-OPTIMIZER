@@ -178,7 +178,7 @@ test("Combat conditions survive optimization and out-of-range taps are rejected"
   assert.throws(()=>optimizeBuild({...defaults,skillPoints:50,astralActivations:n}),/between 0 and 5/);
  const out=optimizeBuild({...defaults,skillPoints:50,damage:"Pet",gold:"Fairy",
   assumeSnapActive:true,assumeHaystActive:false,astralActivations:2});
- assert.deepEqual(out.combatAssumptions,{hayst:false,snap:true,astralActivations:2});
+ assert.deepEqual(out.combatAssumptions,{hayst:false,snap:true,astralActivations:2,contractsAtMax:false});
 });
 
 test("Max-ramped contracts require explicit peak activation at the boss",()=>{
@@ -230,4 +230,44 @@ test("Legacy direct solver ratio mode is normalized to full-budget power",()=>{
  const result=optimizeExact(skills,3,(_,level)=>[0,10,11,12][level],"efficiency");
  assert.equal(result.levels.root,3);
  assert.equal(result.score,12);
+});
+
+
+test("Real Pet/Fairy regression: unknown contracts remain at their already-invested levels",()=>{
+ const {better}=observedPetFairy;
+ const settings={...defaults,damage:"Pet",gold:"Fairy",skillPoints:22642,
+  qol:"recommended",maxStage:300000,currentLevels:better,
+  assumeContractsAtMax:false,assumeHaystActive:false,
+  assumeSnapActive:false,astralActivations:0};
+ const protectedBuild=optimizeBuild(settings);
+ for(const id of ["ForbiddenContract","RoyalContract","TerrifyingPact",
+                   "QuickFortune","PhilosophersFlux","HelperDmgQTE"]){
+   assert.ok(protectedBuild.levels[id]>=better[id],
+     id+" was removed even though its real activation is not modeled");
+   assert.ok(protectedBuild.protectedSkills.includes(id));
+ }
+ assert.ok(protectedBuild.spent<=settings.skillPoints);
+ // No Warlord limit is imposed: preserving the missing contract value alone
+ // recovers its SP. The old model misplaced those SP elsewhere.
+ const unsafe=optimizeBuild({...settings,protectUnmodeledSkills:false});
+ assert.ok(unsafe.levels.ForbiddenContract<better.ForbiddenContract);
+ assert.ok(unsafe.branchTotals.Warlord>protectedBuild.branchTotals.Warlord);
+ assert.deepEqual(unsafe.protectedSkills,[]);
+});
+test("Unknown conditional skills are only protected when already imported and unmodeled",()=>{
+ const s={...defaults,damage:"Pet",gold:"Fairy",skillPoints:400,qol:"none",
+  currentLevels:{ForbiddenContract:1,RoyalContract:1,QuickFortune:2,PhilosophersFlux:1}};
+ const guarded=optimizeBuild(s);
+ assert.ok(guarded.levels.ForbiddenContract>=1);
+ assert.ok(guarded.levels.RoyalContract>=1);
+ assert.ok(guarded.levels.QuickFortune>=2);
+ assert.ok(guarded.levels.PhilosophersFlux>=1);
+ const active=optimizeBuild({...s,assumeContractsAtMax:true,
+  assumeHaystActive:true,assumeSnapActive:true});
+ assert.ok(!active.protectedSkills.includes("ForbiddenContract"));
+ assert.ok(!active.protectedSkills.includes("QuickFortune"));
+ assert.ok(!active.protectedSkills.includes("PhilosophersFlux"));
+ const noHistory=optimizeBuild({...defaults,damage:"Pet",gold:"Fairy",
+  skillPoints:400,qol:"none"});
+ assert.deepEqual(noHistory.protectedSkills,[]);
 });

@@ -1,4 +1,4 @@
-import {SKILLS,SKILL_IDS,BRANCH_NAMES,SETS,PRESETS,DAMAGE_TYPES,GOLD_TYPES,GAME_VERSION,parseExport,exportBuild,spentPoints} from "./engine.js?v=20261117-account-profile";
+import {SKILLS,SKILL_IDS,BRANCH_NAMES,SETS,PRESETS,DAMAGE_TYPES,GOLD_TYPES,GAME_VERSION,parseExport,exportBuild,spentPoints} from "./engine.js?v=20261117-conditional-guard";
 import { t, localizeDocument, SUPPORTED_LANGUAGES } from "./i18n.js?v=20261117-account-profile";
 import { readClipboardText } from "./clipboard.js";
 import { profileCoverage } from "./account-profile.js";
@@ -57,7 +57,7 @@ function engineError(message){
 }
 const iconMap={"Clan Ship":"⛵","Pet":"🐾","Shadow Clone":"◈","Heavenly Strike":"⚡","Dagger":"🗡","Gold Gun":"✦"};
 const branchColors={Knight:"#d77879",Summoner:"#edab66",Warlord:"#e7ca75",Sorcerer:"#86adf7",Rogue:"#7ad0a0",Alchemist:"#b595ed"};
-const fresh=()=>({damage:"Clan Ship",gold:"Fairy",skillPoints:0,maxStage:0,playstyle:"balanced",qol:"recommended",goldWeight:.7,craftingPower:1,timeToKill:8,sClone:30,sets:{},currentLevels:{},minimums:{},excluded:[],preserveCurrent:false,assumeHaystActive:false,assumeSnapActive:false,assumeContractsAtMax:false,astralActivations:0,mode:"power",accountProfile:null,selectedDamagePet:null,selectedGoldPet:null,comparePetScenarios:true,selectedEquipment:{}});
+const fresh=()=>({damage:"Clan Ship",gold:"Fairy",skillPoints:0,maxStage:0,playstyle:"balanced",qol:"recommended",goldWeight:.7,craftingPower:1,timeToKill:8,sClone:30,sets:{},currentLevels:{},minimums:{},excluded:[],preserveCurrent:false,assumeHaystActive:false,assumeSnapActive:false,assumeContractsAtMax:false,astralActivations:0,mode:"power",accountProfile:null,selectedDamagePet:null,selectedGoldPet:null,comparePetScenarios:true,selectedEquipment:{},protectUnmodeledSkills:true});
 let state=fresh(),lastResult=null,lastScenarios=[],lastEquipment={},worker=null;
 // Fixed-position notifications are shared by errors and successful actions.
 // Errors stay visible until dismissed; successes auto-dismiss after six seconds.
@@ -253,6 +253,7 @@ function fillInputs(){
  $("clone-level").value=state.sClone;
  $("qol-mode").value=state.qol;
  $("preserve-current").checked=state.preserveCurrent;
+ $("protect-unmodeled-skills").checked=state.protectUnmodeledSkills!==false;
  $("hayst-active").checked=state.assumeHaystActive===true;
  $("snap-active").checked=state.assumeSnapActive===true;
  $("contracts-at-max").checked=state.assumeContractsAtMax===true;
@@ -324,6 +325,7 @@ function readInputs(){
  state.sClone=Number($("clone-level").value);
  state.qol=$("qol-mode").value;
  state.preserveCurrent=$("preserve-current").checked;
+ state.protectUnmodeledSkills=$("protect-unmodeled-skills").checked;
  state.assumeHaystActive=$("hayst-active").checked;
  state.assumeSnapActive=$("snap-active").checked;
  state.assumeContractsAtMax=$("contracts-at-max").checked;
@@ -342,7 +344,7 @@ function optimize(){
  if(!$("skill-points").value){status("Enter your total Skill Points or import a player export.","error");return;}
  button.disabled=false;button.textContent=tr("Cancel optimization");
  status("Checking prerequisites and calculating the best allocation for the chosen scoring model…");
- worker=new Worker(new URL("./worker.js?v=20261117-account-profile",import.meta.url),{type:"module"});
+ worker=new Worker(new URL("./worker.js?v=20261117-conditional-guard",import.meta.url),{type:"module"});
  worker.onmessage=event=>{
    const data=event.data;
    if(data.progress){
@@ -371,6 +373,12 @@ function renderResults(result,scroll=true){
    {hayst:tr(assumptions.hayst?"active":"inactive"),
     snap:tr(assumptions.snap?"active":"inactive"),stacks:assumptions.astralActivations??0})
    +" · "+tr("Contracts at full bonus: {status}",{status:tr(assumptions.contractsAtMax?"yes":"no")});
+ const guarded=result.protectedSkills||[];
+ if(guarded.length){
+   const names=guarded.map(id=>SKILLS[id]?.Name||id).join(", ");
+   $("combat-assumptions-summary").textContent+=" · "+
+     tr("Existing conditional skills preserved because their effects are not fully modeled: {skills}",{skills:names});
+ }
  const accuracy=document.querySelector(".math-disclaimer");
  if(bounded&&accuracy){
    const o=result.optimality;
@@ -393,7 +401,7 @@ function renderResults(result,scroll=true){
 function sharePayload(){
  // Compact URL encoding; the exported skill tree itself is intentionally
  // not encrypted. Sharing the link discloses the included game settings.
- return {sp:state.skillPoints,st:state.maxStage,da:state.damage,go:state.gold,p:state.playstyle,q:state.qol,w:state.goldWeight,cp:state.craftingPower,tk:state.timeToKill,cl:state.sClone,s:state.sets,cur:state.currentLevels,min:state.minimums,exc:state.excluded,keep:state.preserveCurrent,hay:state.assumeHaystActive,snap:state.assumeSnapActive,contracts:state.assumeContractsAtMax,astral:state.astralActivations};
+ return {protect:state.protectUnmodeledSkills!==false,sp:state.skillPoints,st:state.maxStage,da:state.damage,go:state.gold,p:state.playstyle,q:state.qol,w:state.goldWeight,cp:state.craftingPower,tk:state.timeToKill,cl:state.sClone,s:state.sets,cur:state.currentLevels,min:state.minimums,exc:state.excluded,keep:state.preserveCurrent,hay:state.assumeHaystActive,snap:state.assumeSnapActive,contracts:state.assumeContractsAtMax,astral:state.astralActivations};
 }
 function decodeLink(){
  const hash=window.location.hash;
@@ -402,7 +410,7 @@ function decodeLink(){
   const payload=JSON.parse(decodeURIComponent(escape(atob(hash.slice(7)))));
   if(!payload||typeof payload!=="object")return;
   state={...fresh(),skillPoints:payload.sp??0,maxStage:payload.st??0,damage:payload.da??"Clan Ship",gold:payload.go??"Fairy",playstyle:payload.p??"balanced",qol:payload.q??"recommended",goldWeight:payload.w??.7,craftingPower:payload.cp??1,timeToKill:payload.tk??8,sClone:payload.cl??30,sets:payload.s||{},currentLevels:payload.cur||{},minimums:payload.min||{},excluded:Array.isArray(payload.exc)?payload.exc:[],preserveCurrent:Boolean(payload.keep),assumeHaystActive:payload.hay===true,
-    assumeSnapActive:payload.snap===true,assumeContractsAtMax:payload.contracts===true,astralActivations:payload.astral??0,mode:"power"};
+    assumeSnapActive:payload.snap===true,assumeContractsAtMax:payload.contracts===true,astralActivations:payload.astral??0,protectUnmodeledSkills:payload.protect!==false,mode:"power"};
   window.history.replaceState(null,"",window.location.pathname+window.location.search);
   status("Shared build settings loaded. Optimize to calculate a new recommendation.","success");
  }catch(e){status("Could not load this shared build link.","error");}
