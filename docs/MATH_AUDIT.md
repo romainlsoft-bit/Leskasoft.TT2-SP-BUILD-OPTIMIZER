@@ -495,3 +495,69 @@ A full set of 37 weapon levels contributes `log10(5) × min(levels)` to AllHelpe
 Correct J: completed hero weapon sets affect **base** hero damage, so the full-set type is `BaseHeroDamage` added once without build-specific `AllHelperDmg` reduction. That table still reduces true `AllHelperDamage` from artifacts and Clan Scroll #3. Verified uncapped? No: Morgelai `Artifact71` and Ringing `Artifact91` are **capped level 50**, at source `perLevel=0.01`; each at 50 gives factor `1.5`. Ringing modifies the fully verified full-set factor from ×5 to ×7.5, `sets×log10(5×factor)`. Morgelai modifies the **individual hero** weapon coefficient from ×1.5 to ×2.25, `level×log10(1.5×factor)`, exposed per 37 source IDs but excluded from global score until relative hero DPS, ascent/level, equipped class and multipliers are proven. Unsupported MythicSmith/ScrollTutor, Worldshaper, Quill/Stamp and seasonal boosters are *not* compounded.
 
 Only explicit non-conflicting export `DominantHeroId`/ `StrongestHeroId` identifying a canonical 8.4 helper can establish a dominant class for filtering helmet candidates. This ID alone is not proof of its damage share, and no class-helmet multiplier is scored from it. No fabricated stages. Full ESM Node suite and in-game 8.4 parity remain required.
+
+## Batch L — hero-weapon and Clan Scroll booster dependencies (17 November 2026)
+
+Verified pinned TT2 8.4 EquipmentSetInfo.csv catalog: MythicSmith is a permanent
+completed-set bonus with two independent bonus types: HelperWeaponBoost=1.25
+and HelperWeaponSetBoost=1.25; both have Inc=1, so are CP-independent.
+Only explicit completed-set ownership from a non-truncated account collection
+can activate this pair, even after the set's equipment pieces are sold.
+
+Full 37-hero weapon sets enter the fixed BaseHeroDamage ledger ONCE:
+  fullSets * log10(5 * RingingFactor * MythicSmithSetFactor).
+Individual hero weapon levels remain auditable, NOT global AllDamage:
+  level * log10(1.5 * MorgelaiFactor * MythicSmithIndividualFactor).
+At source level 50, Ringing and Morgelai each contribute x1.5;
+with MythicSmith the full-set factor is x9.375 and the individual weapon
+factor x2.8125. Individual hero DPS, hero ascensions, levels, class
+damage shares and specialized helmet coefficients are not known reliably
+from the present export; they are never added as universal damage.
+
+Artifact92 Quill of Scrolls (ClanScrollBoost) and Artifact93 Old King's Stamp
+(ClanScrollSetBoost) are both capped at 50, with main-effect formula
+1+0.005*level; at 50 both give x1.25. Separate targets prevent double count:
+  scroll_effect_log10 = level*log10(scrollBonusAmount)
+  boosted = scroll_effect_log10 * QuillFactor
+  set_percent = fullSets > 0 ? (0.05 + (fullSets-1)*0.10) : 0
+  final_boosted = boosted * (1 + set_percent * StampFactor)
+This follows the 6.5 scroll-set percent definition and the two distinct
+8.4 bonus types. The combination is a SOURCE-BASED PROVISIONAL model:
+the exact in-game ordering still requires independent account comparison.
+Do not score additive ManaPoolCap, ManaRegen, TapDamageFromHelpers scroll
+rows as multipliers. Partial scroll rosters never establish a set count.
+Unknown/contradictory/truncated/recycled amplifier inputs do not produce
+additional power: diagnostics expose the missing or conflicted factor.
+
+ScrollTutor source rows use ClanScrollBoost=0.25 and
+ClanScrollSetBoost=0.25 (ADDITIVE coefficients). Their combination with
+Quill and Stamp is not proven: their values remain audit-only, NOT x0.25.
+Worldshaper is mentioned by the 7.11 community notes, but its numerical
+row is absent from the current pinned 8.4 EquipmentSetInfo-derived catalog.
+Worldshaper is unscored, with an explicit source-gap diagnostic.
+
+Integration: src/hero-progression.js, src/account-scrolls.js,
+src/account-power.js, src/account-dependencies.js, src/engine.js,
+src/calculation-ledger.js; translated diagnostic messages in
+src/app.js and src/i18n.js (EN/FR/UK/RU). Four HTML entrypoint script
+cache URLs and app/worker/engine imports use 20261117-hero-scroll-l.
+Nothing is deployed to GitHub Pages.
+
+New tests/hero-scroll-amplifier-stack.test.js declares ten Node tests:
+source rows, sold equipment, stacking, invalid ownership, incomplete
+rosters, conflicts, additive guards, 18 fixed build routes and 18
+native optimizeBuild integrations. Prior mixed Ringing/MythicSmith
+assertion is adapted in tests/hero-weapons-scroll-routing.test.js.
+These tests MUST be executed with the full Node checkout before a release.
+V8-only targeted module checks are distinct from native npm test.
+
+Release gate remains closed: log10 weighted proxy is not a prediction
+of stages, and the observed Pet/Fairy circa 2,000-stage regression has
+not been validated as fixed. Next large lot: hero ascension and strongest
+hero DPS from verified exports, Worldshaper/ScrollTutor source stacking,
+then complete Node tests and 22,600 SP in-game calibration.
+
+Sources: TT2 8.4 pinned vendor/account-catalog.js and
+vendor/clan-scrolls.js; Game Hive 6.5 Clan Scroll rework
+https://gamehive.com/blog/devlog-146-version-6-5-0-patch-notes/ ;
+worldshaper discussion https://www.reddit.com/r/TapTitans2/comments/1kzavgy/ .

@@ -51,11 +51,11 @@ export function accountDependencyGraph(profile){
  const timedByKey=new Map(timedSetPower.entries.map(x=>[x.setId+"|"+x.bonusType,x]));
  const transcendence=resolveTranscendenceAge(profile);
  const heroWeapons=heroWeaponEvidence(profile);
- const clanScrolls=clanScrollEvidence(profile);
+ const permanentArtifacts=calculatePermanentArtifactEffects(profile,ARTIFACT_CATALOG);
+ const clanScrolls=clanScrollEvidence(profile,permanentArtifacts);
  const researchResources=resourceResearchEvidence(profile);
  const gemstones=resolveGemstoneEvidence(profile);
  const monuments=resolveMonumentEvidence(profile);
- const permanentArtifacts=calculatePermanentArtifactEffects(profile,ARTIFACT_CATALOG);
  const additiveDamage=additiveDamageEvidence(permanentArtifacts,monuments,
   ARTIFACT_CATALOG,SEASON_ARTIFACT_CATALOG);
  const knownArtifacts=new Map(permanentArtifacts.entries.map(x=>[x.id,x]));

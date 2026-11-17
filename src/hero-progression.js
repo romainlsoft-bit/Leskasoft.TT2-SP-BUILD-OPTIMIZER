@@ -1,64 +1,88 @@
 /**
- * 8.4 hero-weapon baseline. The 37-hero full-set effect is All Hero Damage;
- * individual weapon effects and amplifier dependencies remain unverified.
+ * TT2 8.4: source-backed weapon sets, per-hero weapon boosters and
+ * conditional effects. Per-hero DPS requires verified ascensions/levels.
  */
 import {heroWeaponEvidence} from "./account-temporal.js";
 import {HERO_CLASS_BY_ID} from "../vendor/hero-classes.js";
 import {ARTIFACT_CATALOG,EQUIPMENT_SET_CATALOG} from "../vendor/account-catalog.js";
 const BOOST_IDS=["Artifact71","Artifact91","Artifact92","Artifact93"];
+function artifactFactor(id,profile,effects){
+ const info=ARTIFACT_CATALOG[id];
+ const owned=(profile?.sections?.artifacts?.records||[]).some(x=>
+  [id,info?.name].some(name=>String(x.id).toLowerCase()===String(name).toLowerCase())&&
+  x.owned!==false&&x.salvaged!==true);
+ const row=effects?.entries?.find(x=>x.id===id);
+ const verified=owned&&!effects?.truncated&&
+  row?.status==="computed-unscored-interaction"&&
+  row.level!==null&&Number.isFinite(row.log10)&&row.log10>=0&&
+  row.bonusType===info?.bonusType;
+ return {id,name:info?.name??id,owned,verified,
+  factor:verified?10**row.log10:1,applied:false,
+  effectLog10:Number.isFinite(row?.log10)?row.log10:null,
+  status:verified?"source-effect":owned?"unverified-amplifier":"absent-or-unknown"};
+}
+function mythicSmithEvidence(profile){
+ const set=EQUIPMENT_SET_CATALOG.MythicSmith;
+ const owned=profile?.sections?.equipmentSets?.present===true&&
+  profile.sections.equipmentSets.truncated!==true&&
+  (profile?.ownedSetIds||[]).includes("MythicSmith");
+ const types=["HelperWeaponBoost","HelperWeaponSetBoost"];
+ const rows=types.map(type=>set?.bonuses?.filter(b=>b.type===type)||[]);
+ // Inc=1 in pinned CSV: no Crafting Power assumption is necessary.
+ const verified=owned&&rows.every(items=>items.length===1&&
+  Number.isFinite(Number(items[0].amount))&&Number(items[0].amount)>=1&&
+  Number(items[0].inc)===1&&Number.isFinite(Number(items[0].expo)));
+ return {id:"MythicSmith",owned,verified,
+  individualFactor:verified?Number(rows[0][0].amount):1,
+  setFactor:verified?Number(rows[1][0].amount):1,
+  applied:verified,status:verified?"catalog-cp-independent":
+   owned?"unverified-mythic-source":"not-proven-owned"};
+}
 export function heroProgressionEvidence(profile,artifactEffects=null){
- const weapons=heroWeaponEvidence(profile),artifactRows=artifactEffects?.entries||[];
- const artifactBoosters=BOOST_IDS.map(id=>{
-  const data=ARTIFACT_CATALOG[id],effect=artifactRows.find(x=>x.id===id);
-  const owned=(profile?.sections?.artifacts?.records||[]).some(x=>
-   [id,data?.name].some(name=>String(x.id).toLowerCase()===String(name).toLowerCase())&&
-   x.owned!==false&&x.salvaged!==true);
-  return {id,name:data?.name||id,owned,
-   effectLog10:Number.isFinite(effect?.log10)?effect.log10:null,applied:false};
- });
+ const weapons=heroWeaponEvidence(profile);
+ const artifactBoosters=BOOST_IDS.map(id=>artifactFactor(id,profile,artifactEffects));
+ const ringing=artifactBoosters.find(b=>b.id==="Artifact91");
+ const morgelai=artifactBoosters.find(b=>b.id==="Artifact71");
+ const mythicSmith=mythicSmithEvidence(profile);
+ // Official Worldshaper 7.11 is absent from our pinned source rows.
+ const worldshaper={owned:(profile?.ownedSetIds||[]).some(id=>
+   /^(?:The ?)?Worldshaper$/i.test(id)),
+  catalogPresent:Object.keys(EQUIPMENT_SET_CATALOG).some(id=>/worldshaper/i.test(id)),
+  applied:false,status:"missing-versioned-formula"};
  const completed=new Set(profile?.ownedSetIds||[]);
  const mythicBoosts=["MythicSmith","ScrollTutor"].map(id=>({
-  id,owned:completed.has(id)&&profile?.sections?.equipmentSets?.truncated!==true,
+  id,owned:completed.has(id)&&profile?.sections?.equipmentSets?.present===true&&
+    profile.sections.equipmentSets.truncated!==true,
   types:EQUIPMENT_SET_CATALOG[id]?.bonuses?.filter(x=>
-   /HelperWeapon|ClanScroll/.test(x.type)).map(x=>x.type)||[],applied:false
+   /HelperWeapon|ClanScroll/.test(x.type)).map(x=>x.type)||[],
+  applied:id==="MythicSmith"&&mythicSmith.applied
  }));
  const sets=weapons.completeRosterVerified?weapons.completeSets:null;
- // Level-50 Ringing or Morgelai: (1+0.01*50)=1.5 applied to the
- // respective underlying ×5 set / ×1.5 individual weapon factor.
- const booster=id=>{
-  const b=artifactBoosters.find(x=>x.id===id);
-  const row=artifactRows.find(x=>x.id===id);
-  const valid=!artifactEffects?.truncated&&b?.owned===true&&
-   Number.isFinite(row?.log10)&&row.log10>=0&&row.level!==null&&
-   row.status==="computed-unscored-interaction";
-  return {id,factor:valid?10**row.log10:1,verified:valid,
-   status:valid?"source-effect":b?.owned?"unverified-amplifier":"absent-or-unknown"};
- };
- const ringing=booster("Artifact91"),morgelai=booster("Artifact71");
+ const individualFactor=1.5*morgelai.factor*mythicSmith.individualFactor;
+ const setFactor=5*ringing.factor*mythicSmith.setFactor;
  const individual=weapons.individual.map(w=>({
   id:w.id,heroClass:HERO_CLASS_BY_ID[w.id]??null,level:w.level,
   baseWeaponLog10:w.unboostedHeroLog10,
-  boostedWeaponLog10:w.level*Math.log10(1.5*morgelai.factor),
+  boostedWeaponLog10:w.level*Math.log10(individualFactor),
   modeledIndividually:true,inGlobalDamageScore:false
  }));
  const strongest=profile?.dominantHero??{id:null,heroClass:null,verified:false,status:"not-exported"};
+ const baseSetLog10=sets===null?null:sets*Math.log10(setFactor);
  const entries=sets>0?[{system:"heroWeapons",id:"full-hero-weapon-sets",
-  bonusType:"BaseHeroDamage",level:sets,log10:sets*Math.log10(5*ringing.factor),
-  conservative:true,source:"37-hero full weapon set ×5 All Hero Damage"}]:[];
+  bonusType:"BaseHeroDamage",level:sets,log10:baseSetLog10,
+  conservative:true,source:"8.4 weapon sets ×5; Ringing/MythicSmith boosts"}]:[];
  const unresolved=[];
- if(ringing.status==="unverified-amplifier"||morgelai.status==="unverified-amplifier")
+ if(artifactBoosters.some(b=>b.owned&&!b.verified&&["Artifact71","Artifact91"].includes(b.id)))
   unresolved.push("unverified-artifact-amplifier");
- if(individual.length&&!strongest.verified)
-  unresolved.push("unknown-dominant-hero");
+ if(mythicSmith.owned&&!mythicSmith.verified)unresolved.push("unverified-mythic-smith");
+ if(worldshaper.owned)unresolved.push("missing-worldshaper-formula");
+ if(individual.length&&!strongest.verified)unresolved.push("unknown-dominant-hero");
  if(profile?.sections?.heroWeapons?.present&&sets===null)
   unresolved.push("unverified-37-hero-weapon-roster");
  if(weapons.uniqueKnownHeroes>0)
-  unresolved.push("per-hero-weapon-levels-require-dominant-hero-and-ascension");
- if(artifactBoosters.some(x=>x.owned)||mythicBoosts.some(x=>x.owned))
-  unresolved.push("unverified-hero-weapon-and-scroll-amplifiers");
+  unresolved.push("per-hero-weapon-levels-require-dps-and-ascension");
  return {weapons,entries,unresolved,artifactBoosters,mythicBoosts,
-  ringing,morgelai,individual,strongest,
-  baseSetLog10:sets===null?null:sets*Math.log10(5*ringing.factor),
-  individualWeaponsScored:false,amplifiersScored:ringing.verified&&sets>0,
-  complete:false};
+  ringing,morgelai,mythicSmith,worldshaper,individual,strongest,
+  individualFactor,setFactor,baseSetLog10,individualWeaponsScored:false,
+  amplifiersScored:(ringing.verified||mythicSmith.applied)&&sets>0,complete:false};
 }

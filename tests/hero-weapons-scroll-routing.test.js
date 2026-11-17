@@ -49,7 +49,7 @@ test("Ringing set boost is modeled while other artifact/mythic interactions rema
  assert.equal(e.artifactBoosters.filter(x=>x.owned).length,4);
  assert.equal(e.mythicBoosts.filter(x=>x.owned).length,2);
  assert.equal(e.amplifiersScored,true);
- close(extractFixedAccountPower(p).byType.BaseHeroDamage,2*Math.log10(7.5));
+ close(extractFixedAccountPower(p).byType.BaseHeroDamage,2*Math.log10(9.375));
 });
 test("18 damage/gold combinations route Clan Scroll 3 through hero reductions",()=>{
  const power=extractFixedAccountPower(parseAccountProfile({heroWeapons:heroes(2),clanScrolls:scrolls(1)}));
