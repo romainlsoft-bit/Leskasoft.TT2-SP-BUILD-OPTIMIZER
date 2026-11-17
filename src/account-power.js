@@ -15,6 +15,9 @@
  */
 import {ACCOUNT_SCALING} from "../vendor/account-scaling.js";
 import {clanScrollEvidence} from "./account-scrolls.js";
+import {ARTIFACT_CATALOG} from "../vendor/account-catalog.js";
+import {calculatePermanentArtifactEffects} from "./account-artifacts.js";
+import {resolveMonumentEvidence} from "./account-monuments.js";
 
 const MAX_LEVEL=100000;
 const KNOWN_MULTIPLIER=/^[A-Za-z][A-Za-z0-9_]*:([+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[Ee][+-]?\d+)?)$/;
@@ -116,12 +119,32 @@ export function extractFixedAccountPower(profile){
    rawLog10:row.log10,setBonusPercent:scrolls.setBonusPercent});
  }
  for(const row of scrolls.unknown)unsupported.push({system:"clanScrolls",...row});
+ // Main effects of permanent artifacts and season-eligible monuments are
+ // independent from separate additive artifact/monument damage pools.
+ const artifactEffects=calculatePermanentArtifactEffects(profile,ARTIFACT_CATALOG);
+ for(const row of artifactEffects.entries){
+  if(row.appliedToScore)entries.push({system:"artifacts",id:row.id,
+   bonusType:row.bonusType,level:row.level,enchanted:row.enchanted,log10:row.log10});
+  else unsupported.push({system:"artifacts",id:row.id,reason:row.status});
+ }
+ for(const row of artifactEffects.unknown)unsupported.push({system:"artifacts",...row});
+ const monuments=resolveMonumentEvidence(profile);
+ for(const row of monuments.entries){
+  if(row.appliedToScore)entries.push({system:"monuments",id:row.id,bonusType:row.type,
+   level:row.level,enchanted:row.enchanted,log10:row.log10});
+  else unsupported.push({system:"monuments",id:row.id,reason:row.formulaStatus});
+ }
+ for(const row of monuments.unknown)unsupported.push({system:"monuments",...row});
  const byType={};
  for(const entry of entries)byType[entry.bonusType]=(byType[entry.bonusType]||0)+entry.log10;
  const value={available:entries.length>0,byType,entries,unsupported,
   matched:entries.length,unknown:unsupported.length,
   // These only describe *some* systems. They must not be treated as complete.
-  complete:false};
+  complete:false,
+  artifactEffects:{recognized:artifactEffects.recognized,computed:artifactEffects.computed,
+   scored:artifactEffects.scored,duplicateRecords:artifactEffects.duplicateRecords},
+  monumentEffects:{recognized:monuments.recognized,
+   computed:monuments.computed||0,scored:monuments.modeled||0}};
  cache.set(profile,value);
  return value;
 }

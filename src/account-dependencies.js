@@ -9,6 +9,7 @@ import {clanScrollEvidence} from "./account-scrolls.js";
 import {extractTimedSetPower} from "./account-set-bonuses.js";
 import {resolveUniqueOwnership} from "./account-unique.js";
 import {resolveMonumentEvidence} from "./account-monuments.js";
+import {calculatePermanentArtifactEffects} from "./account-artifacts.js";
 
 const object=x=>x&&typeof x==="object";
 const byName=(catalog,value)=>{
@@ -49,6 +50,8 @@ export function accountDependencyGraph(profile){
  const heroWeapons=heroWeaponEvidence(profile);
  const clanScrolls=clanScrollEvidence(profile);
  const monuments=resolveMonumentEvidence(profile);
+ const permanentArtifacts=calculatePermanentArtifactEffects(profile,ARTIFACT_CATALOG);
+ const knownArtifacts=new Map(permanentArtifacts.entries.map(x=>[x.id,x]));
  const uniqueEquipment=resolveUniqueOwnership(profile);
  const uniqueOwned=new Set(uniqueEquipment.ownedIds);
  for(const id of new Set(profile?.ownedSetIds||[])){
@@ -76,13 +79,15 @@ export function accountDependencyGraph(profile){
   artifacts.push({id:item.id,name:item.name,level:entry.level??null,
    enchanted:entry.enchanted??null,type:item.bonusType,
    dependsOn:bonusDependence(item.bonusType),perSeasonDay:false,
-   seasonDays:null,numericalStatus:"requires-verified-artifact-formula"});
+   seasonDays:null,
+   numericalStatus:knownArtifacts.get(item.id)?.status??"requires-verified-artifact-formula"});
  }
  for(const item of monuments.entries){
   artifacts.push({id:item.id,name:item.name,level:item.level,
    enchanted:item.enchanted,type:item.type,category:item.category,
    dependsOn:bonusDependence(item.type),perSeasonDay:item.perSeasonDay,
-   seasonDays:item.seasonDays,monument:true,numericalStatus:item.formulaStatus});
+   seasonDays:item.seasonDays,monument:true,numericalStatus:item.formulaStatus,
+   enchantedMagnitude:item.enchantmentMagnitude,appliedToScore:item.appliedToScore});
  }
  for(const item of monuments.unknown)
   unknown.push({system:item.section,id:item.id,reason:item.reason});
@@ -100,12 +105,12 @@ export function accountDependencyGraph(profile){
  const groups=[...new Set([...sets.flatMap(s=>s.effects.map(e=>e.dependsOn)),
   ...artifacts.map(a=>a.dependsOn)])];
  return {nodes:NODES,order:NODES.map(n=>n.id),sets,artifacts,groups,unknown,
-  uniquePermanentOwnership:[...uniqueOwned].sort(),uniqueEquipment,heroWeapons,clanScrolls,transcendence,monuments,
+  uniquePermanentOwnership:[...uniqueOwned].sort(),uniqueEquipment,heroWeapons,clanScrolls,transcendence,monuments,permanentArtifacts,
   ignoredTimedEffects:timedSetPower.omitted,
   timedSetPower:{calculated:timedSetPower.calculated,applied:timedSetPower.applied,omitted:timedSetPower.omitted},
   ready:false,unmodeledEffects:
    sets.reduce((sum,x)=>sum+x.effects.length,0)+additionalUniqueEffects+
-   artifacts.length-timedSetPower.applied,
+   artifacts.length-timedSetPower.applied-permanentArtifacts.scored-monuments.modeled,
   warning:"Source catalog and dependency order are known; numerical effect formulas and stacking are not fully validated."};
 }
 

@@ -16,6 +16,7 @@ import {optimizeBuild} from "../src/engine.js";
 import {resolveUniqueOwnership} from "../src/account-unique.js";
 import {UNIQUE_EQUIPMENT_TO_SET} from "../vendor/unique-equipment.js";
 import {resolveMonumentEvidence} from "../src/account-monuments.js";
+import {computeArtifactEffect,calculatePermanentArtifactEffects,positiveLog10,log10OnePlusPower} from "../src/account-artifacts.js";
 
 const fixture=()=>parseAccountProfile({
  Version:"8.4.0",playerName:"HIDDEN",accountId:"PRIVATE",
@@ -423,4 +424,75 @@ test("uncapped monuments preserve scientific levels and inactive monuments do no
  assert.equal(m.entries.find(x=>x.id==="SeasonalArtifact2").level,"1e9999");
  assert.equal(m.entries.find(x=>x.id==="SeasonalArtifact22").formulaStatus,"inactive-in-8.4-catalog");
  assert.equal(m.modeled,0);
+});
+
+test("main artifact scaling and enchantments match TT2Master equation, not linear estimates",()=>{
+ const row=ARTIFACT_CATALOG.Artifact31;
+ const lv=100;
+ const baseline=1+Number(row.perLevel)*lv**Number(row.growthExpo);
+ const enchanted=1+Number(row.perLevel)*Number(row.enchantedMagnitude)*lv**Number(row.growthExpo);
+ assert.ok(Math.abs(computeArtifactEffect(row,lv).log10-Math.log10(baseline))<1e-12);
+ assert.ok(Math.abs(computeArtifactEffect(row,lv,true).log10-Math.log10(enchanted))<1e-12);
+ assert.ok(computeArtifactEffect(row,lv,true).log10>computeArtifactEffect(row,lv).log10+11);
+});
+test("enchantment and scientific notation are numerically stable for huge artifact levels",()=>{
+ const r=computeArtifactEffect(ARTIFACT_CATALOG.Artifact38,"1e9999",true);
+ assert.equal(r.status,"computed-main-effect");
+ assert.ok(Number.isFinite(r.log10));
+ assert.ok(r.log10>19900);
+ assert.equal(positiveLog10("1e9999"),9999);
+ assert.ok(Math.abs(log10OnePlusPower(1e5)-1e5)<1e-12);
+});
+test("direct artifact gold/damage enter provisional account scoring but conditional skills do not",()=>{
+ const p=parseAccountProfile({artifacts:{
+  Artifact31:{lv:100,enchanted:true},Artifact20:{lv:100,enchanted:true},
+  Artifact22:{lv:100,enchanted:true},Artifact38:{lv:100,enchanted:true}
+ }});
+ const eff=calculatePermanentArtifactEffects(p,ARTIFACT_CATALOG);
+ assert.equal(eff.recognized,4);
+ assert.equal(eff.scored,3);
+ assert.ok(eff.byType.AllDamage>10);
+ assert.ok(eff.byType.GoldAll>10);
+ const power=extractFixedAccountPower(p);
+ const score=fixedAccountScore(power,{damage:"Pet",gold:"Fairy",goldWeight:0.7});
+ assert.ok(score.damageLog10>eff.byType.AllDamage+eff.byType.PetDamage-1e-10);
+ assert.ok(score.goldLog10>=eff.byType.GoldAll);
+ assert.equal(eff.entries.find(x=>x.id==="Artifact22").appliedToScore,false);
+});
+test("conflicting duplicate artifact levels or enchant flags never multiply bonuses twice",()=>{
+ const p=parseAccountProfile({artifacts:[
+  {id:"Artifact31",lv:100,enchanted:false},
+  {id:"Divine Retribution",lv:101,enchanted:true}
+ ]});
+ const r=calculatePermanentArtifactEffects(p,ARTIFACT_CATALOG);
+ assert.equal(r.recognized,1);
+ assert.equal(r.scored,0);
+ assert.equal(r.entries[0].status,"conflicting-source-records");
+});
+test("season 13 category rotation supersedes outdated CSV IsActive flags",()=>{
+ const p=parseAccountProfile({playerStats:{"Transcendence Season":13},
+  monuments:{
+   SeasonalArtifact22:{lv:20,enchanted:true},
+   SeasonalArtifact8:{lv:20,enchanted:true},
+   SeasonalArtifact31:{lv:100,enchanted:true}
+  }});
+ const e=resolveMonumentEvidence(p,new Date("2026-11-17T00:00:00Z"));
+ assert.equal(e.entries.find(x=>x.id==="SeasonalArtifact22").categoryAllowed,true);
+ assert.equal(e.entries.find(x=>x.id==="SeasonalArtifact8").categoryAllowed,false);
+ assert.equal(e.entries.find(x=>x.id==="SeasonalArtifact8").formulaStatus,
+  "not-in-current-transcendence-rotation");
+ assert.equal(e.entries.find(x=>x.id==="SeasonalArtifact22").seasonDays,97);
+ assert.equal(e.entries.find(x=>x.id==="SeasonalArtifact22").appliedToScore,false);
+});
+test("monument enchantment magnitude, capped levels, category and conditional scores",()=>{
+ const p=parseAccountProfile({playerStats:{"Transcendence Season":13},
+  monuments:{SeasonalArtifact34:{level:100,enchanted:true},
+   SeasonalArtifact31:{level:"1e100",enchanted:true}}});
+ const m=resolveMonumentEvidence(p,new Date("2026-11-17T00:00:00Z"));
+ const temper=m.entries.find(x=>x.id==="SeasonalArtifact34");
+ assert.ok(temper.log10>0);
+ assert.equal(temper.enchanted,true);
+ assert.equal(temper.appliedToScore,false);
+ assert.equal(temper.enchantmentDeltaLog10>0,true);
+ assert.equal(m.entries.every(x=>x.appliedToScore===false),true);
 });

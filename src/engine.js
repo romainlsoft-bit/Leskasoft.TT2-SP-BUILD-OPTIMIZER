@@ -201,7 +201,10 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
         conflicts:dependencyReport.monuments.conflicts,
         seasonDays:dependencyReport.monuments.seasonDays,
         perSeasonDay:dependencyReport.monuments.perSeasonDay,
-        modeled:0},
+        modeled:dependencyReport.monuments.modeled},
+      artifacts:{identified:dependencyReport.permanentArtifacts.recognized,
+        computed:dependencyReport.permanentArtifacts.computed,
+        modeled:dependencyReport.permanentArtifacts.scored},
       uniqueOwnedCount:dependencyReport.uniqueEquipment.ownedCount,
       uniquePermanentBonusesModeled:false,
       heroWeaponFullSets:dependencyReport.heroWeapons.completeSets,
@@ -219,6 +222,7 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
       // Exact per-source values are used for diagnostics, not for an
       // unsupported claim of a complete end-to-end damage simulation.
       examples:power.entries.filter(e=>e.bonusType==="PetDamage").slice(0,6),
+      artifactEffects:power.artifactEffects,monumentEffects:power.monumentEffects,
       timedSetBonuses:timed.entries.filter(x=>x.log10!==null).slice(0,30)},
     // Add fixed account context to each build's total proxy. Marginal SP
     // optimization remains mathematically unchanged by a constant.

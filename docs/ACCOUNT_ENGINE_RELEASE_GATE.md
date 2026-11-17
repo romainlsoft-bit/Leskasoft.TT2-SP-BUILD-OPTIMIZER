@@ -29,7 +29,15 @@
 - All 52 TT2 8.4 EndgameSeasonArtifactInfo.csv monuments have category, activity, cap, damage, cost and enchantment metadata; 33 are catalog-marked active.
 - The import combines `monuments` and `seasonArtifacts` by catalog ID or name (including apostrophes), so duplicate entries do not stack. Conflicting levels, mismatched explicit season markers, invalid capped levels and missing time evidence are flagged.
 - Exactly four monument bonus rows depend on Transcendence age: `JackpotGoldPerSeasonDay`, `AllDamagePerSeasonDay` (twice), `CritDamagePerSeasonDay`. Season 13's documented start (2026-08-12) yields 97 elapsed days on 2026-11-17.
-- No monument bonus is added to the optimizer score until its distinct level scaling, enchantment and conditional conversion have been verified. `EffectPerLevel` and `GrowthExpo` are retained as metadata, not treated as universally valid standalone multipliers.
+- Monument main-effect scaling now uses the same sourced artifact structure: 1+EffectPerLevel×Level^GrowthExpo, enchantment multiplying the coefficient by EnchantmentMagnitude; represented in log10. Direct unconditional types enter the provisional score only when season rotation allows them; time/skill/spell/hero/gear-dependent bonuses are computed separately but excluded from scoring until their condition is modeled. The separate additive Monument Damage pool and EnchantmentMult interactions (which differ for SeasonalArtifact34) remain unresolved. `EffectPerLevel` and `GrowthExpo` are retained as metadata, not treated as universally valid standalone multipliers.
+
+## Permanent artifacts and enchantments — numeric main effect layer
+
+- All 103 artifact primary effects share the TT2Master implementation `1 + EffectPerLevel * Level^GrowthExpo`. Artifacts with `enchanted=true` use the source `EnchantmentMagnitude` multiplier on EffectPerLevel; the result is calculated entirely in log10 without rounding huge scientific levels.
+- Explicit known direct AllDamage, GoldAll, Pet, Clan Ship, Dagger, Gold Gun, Fairy, HoG, HS and Shadow Clone types enter the provisional score. Other artifacts retain a separately calculated effect but do **not** receive invented damage/gold source reductions.
+- Duplicate or conflicting enchanted artifact records are excluded rather than scored twice. The additive artifact-damage boost pool, Heavenly Sword amplification, Gold damage conversion, conditional and skill cap chains remain incomplete.
+- Reference implementation: https://github.com/nebula2/tt2-master/blob/main/src/TT2Master/Model/Arti/ArtifactOptimization.cs (`EffectAtLevel`). Enchantment scaling: https://www.reddit.com/r/TapTitans2/comments/cvnz7m/
+- For monuments, official DevLog #231 declares season 13 categories Celestial/Viper/Arcanas. These override stale `IsActive` values in older TT2_CSV snapshots, preventing Pirate seasonal bonuses from leaking into season 13. Unknown seasons retain explicit catalog diagnostic-only semantics until verified.
 
 ## Clan Scrolls and spell level caps (not yet complete)
 
