@@ -78,3 +78,20 @@ test("MIT licensing includes original author notice and visible credit",()=>{
  assert.ok(html.includes("Original optimizer by"));
  assert.ok(html.includes('href="https://github.com/rawrzcookie/rawrzcookie.github.io"'));
 });
+
+test("account coverage diagnostics are localized and all 16 imported categories displayed",()=>{
+ const keys=["Seasonal artifacts","Titan Research","Clan Scrolls","Owned unique equipment",
+ "not verifiable from this export",
+ "Detected account categories: {categories}. Some effects are modeled; other imported categories remain diagnostic.",
+ "Coverage: timed effects scored {applied}/{total}; hero weapon sets {weapons}; Clan Scroll sets {scrolls}. These figures are not predicted stages."];
+ for(const key of keys)for(const lang of ["fr","uk","ru"]){
+  assert.ok(translations[lang][key],"Missing translation: "+lang+" "+key);
+  assert.notEqual(t(key,lang),key);
+ }
+ for(const id of ["titanResearch","seasonArtifacts","clanScrolls","uniqueEquipment"])
+  assert.ok(app.includes(id+':'),"Missing account category "+id);
+ for(const lang of ["en","fr","uk","ru"]){
+  const value=t(keys[6],lang,{applied:2,total:3,weapons:5,scrolls:7});
+  for(const number of ["2","3","5","7"])assert.ok(value.includes(number));
+ }
+});

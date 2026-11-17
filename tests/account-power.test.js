@@ -284,3 +284,14 @@ test("conflicting duplicate set completion dates disable only the time bonus",()
  assert.equal(result.entries.length,1);
  assert.equal(result.applied,0);
 });
+
+test("graph diagnostic excludes direct PerDay effects once scored",()=>{
+ const scored=parseAccountProfile({equipmentSets:[{id:"StainGlass",completedAt:"2026-10-01"}]});
+ const unresolved=parseAccountProfile({equipmentSets:["StainGlass"]});
+ const scoredGraph=accountDependencyGraph(scored);
+ const unknownGraph=accountDependencyGraph(unresolved);
+ assert.equal(scoredGraph.timedSetPower.applied,1);
+ assert.equal(unknownGraph.timedSetPower.applied,0);
+ assert.equal(unknownGraph.unmodeledEffects-scoredGraph.unmodeledEffects,1);
+ assert.ok(scoredGraph.unmodeledEffects>=0);
+});

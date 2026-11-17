@@ -122,14 +122,16 @@ function renderAccountProfile(){
  if(!profile){el.hidden=true;return;}
  const labels={
   artifacts:"Artifacts",gemstones:"Mystic Gemstones",mysticResearch:"Mystic Research",
-  titanCards:"Titan cards",forbiddenResearch:"Forbidden Research",
+  titanCards:"Titan cards",forbiddenResearch:"Forbidden Research",titanResearch:"Titan Research",
   petLevels:"Pets",passiveSkills:"Passive skills",monuments:"Monuments",
-  heroWeapons:"Hero weapons",equipmentSets:"Owned equipment sets",equippedGear:"Equipped gear",equipmentInventory:"Equipment inventory"
+  seasonArtifacts:"Seasonal artifacts",heroWeapons:"Hero weapons",clanScrolls:"Clan Scrolls",
+  uniqueEquipment:"Owned unique equipment",equipmentSets:"Owned equipment sets",
+  equippedGear:"Equipped gear",equipmentInventory:"Equipment inventory"
  };
  const found=profileCoverage(profile);
  const names=found.map(item=>tr(labels[item.key])+": "+numberText(item.count));
  el.textContent=names.length
-  ?tr("Detected account categories: {categories}. Pet and equipment-set effects are modeled where supported; other account data is diagnostic.",{categories:names.join(" · ")})
+  ?tr("Detected account categories: {categories}. Some effects are modeled; other imported categories remain diagnostic.",{categories:names.join(" · ")})
   :tr("Skill-tree-only export: no additional account categories detected.");
  el.hidden=false;
 }
@@ -376,6 +378,8 @@ function renderAccountIntegration(result){
  const power=result.fixedAccount,coverage=result.accountIntegration;
  if(!power||!coverage){panel.hidden=true;return;}
  const counts=Number(coverage.unmodeledEffects||0);
+ const timed=coverage.timedSetPower||{};
+ const knownOrUnknown=n=>Number.isSafeInteger(n)&&n>=0?numberText(n):tr("not verifiable from this export");
  panel.hidden=false;
  panel.textContent=tr(
   "Account baseline (verified formulas only): Damage {damage}, Gold {gold}; {count} numerical effects imported. {unresolved} artifact/set effects remain uncalibrated. Not a validated total build-power estimate.",
@@ -385,7 +389,12 @@ function renderAccountIntegration(result){
    count:numberText(power.matched||0),
    unresolved:numberText(counts)
   }
- );
+ )+" "+tr("Coverage: timed effects scored {applied}/{total}; hero weapon sets {weapons}; Clan Scroll sets {scrolls}. These figures are not predicted stages.",{
+  applied:numberText(timed.applied||0),
+  total:numberText(timed.calculated||0),
+  weapons:knownOrUnknown(coverage.heroWeaponFullSets),
+  scrolls:knownOrUnknown(coverage.clanScrollCompleteSets)
+ });
 }
 function renderResults(result,scroll=true){
  $("empty-results").hidden=true;$("actual-results").hidden=false;if(scroll)$("results").scrollIntoView({behavior:"smooth",block:"start"});
