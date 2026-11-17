@@ -189,6 +189,7 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
       heroWeaponFullSets:dependencyReport.heroWeapons.completeSets,
       heroWeaponMissingIds:dependencyReport.heroWeapons.missingHeroes,
       clanScrollLevels:dependencyReport.clanScrolls.totalLevels,
+      clanScrollSetBoostPercent:dependencyReport.clanScrolls.setBonusPercent,
       clanScrollCompleteSets:dependencyReport.clanScrolls.fullSets,
       sourceCatalogs:{sets:dependencyReport.sets.length,artifacts:dependencyReport.artifacts.length},
       unmodeledEffects:dependencyReport.unmodeledEffects,
