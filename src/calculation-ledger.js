@@ -58,11 +58,21 @@ export function modeledScenarioCoverage(result,settings,gearSelection={}){
  const missingGearSlots=Math.max(0,5-Object.keys(selected).length);
  const hero=result?.accountIntegration?.heroProgression;
  const scroll=result?.accountIntegration?.clanScrollPower;
+ const spellScenario=result?.spellScenario;
+ const manaEvidence=result?.manaEvidence;
  const specializedHelmet=["Ranged hero","Spell hero","Melee hero"].includes(selected.Helmet?.kind);
  const dominant=settings?.accountProfile?.dominantHero??null;
  const heroHelmetClassKnown=specializedHelmet&&dominant?.verified===true;
  const heroHelmetUnverified=specializedHelmet&&!heroHelmetClassKnown;
  const gaps=[];
+ if(!spellScenario?.selection?.valid)gaps.push("unverified-equipped-six-spell-loadout");
+ if(spellScenario?.appliedToScenario)
+  gaps.push("unverified-spell-uptime-mana-and-cooldowns");
+ if(manaEvidence?.sustainedContractManaVerified===false&&
+    result?.contractScenario?.assumptions?.maximumRampReached)
+  gaps.push("unverified-sustained-contract-mana");
+ if(spellScenario?.unsupported?.length)
+  gaps.push("unverified-spell-source-activation-or-cap");
  if(heroHelmetUnverified)gaps.push("unverified-dominant-hero-helmet");
  if(heroHelmetClassKnown)gaps.push("hero-helmet-effect-unmodeled");
  if(hero?.unresolved?.length)gaps.push("unverified-hero-progression-interactions");
@@ -156,8 +166,13 @@ export function calculateModeledScenario(result,settings,gearSelection){
  const equippedGearLog10=finite(gearSelection?.independentScore??0,"equipment");
  const activePetsAbovePassivesLog10=finite(
   petScenarioScore(settings,0),"selected-pets");
+ // The baseline A29/A34 spell multipliers are NOT in the account or SP
+ // ledger. SP-induced cap marginal increments are already in scoreAtLevel.
+ const selectedSpellBaselineLog10=finite(result.spellScenario?.appliedToScenario?
+  result.spellScenario.weightedLog10:0,"six selected spell baseline");
  const totalLog10=finite(skillLog10+fixedAccountLog10+
-  equippedGearLog10+activePetsAbovePassivesLog10,"total");
+  equippedGearLog10+activePetsAbovePassivesLog10+
+  selectedSpellBaselineLog10,"total");
  const accountAdjusted=finite(result.accountAdjustedScore,"account-adjusted");
  const discrepancy=Math.abs(accountAdjusted-(skillLog10+fixedAccountLog10));
  if(discrepancy>1e-7*Math.max(1,Math.abs(accountAdjusted)))
@@ -167,11 +182,13 @@ export function calculateModeledScenario(result,settings,gearSelection){
  return {
   schema:"tt2-modeled-scenario-v1",
   totalLog10,skillLog10,fixedAccountLog10,equippedGearLog10,
-  activePetsAbovePassivesLog10,
+  activePetsAbovePassivesLog10,selectedSpellBaselineLog10,
+  spellScenario:result.spellScenario??null,
+  manaEvidence:result.manaEvidence??null,
   damageLog10:finite(fixed.damageLog10,"damage"),
   goldLog10:finite(fixed.goldLog10,"gold"),
   goldWeight:Number(settings.goldWeight),
-  components:4,
+  components:result.spellScenario?.appliedToScenario?5:4,
   fixedAccountRecognized:Number(fixed.matched)||0,
   selectedGearCount:Object.keys(gearSelection?.selected||{}).length,
   selectedDamagePet:settings.selectedDamagePet??null,

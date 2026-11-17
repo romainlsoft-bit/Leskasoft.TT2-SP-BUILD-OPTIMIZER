@@ -814,3 +814,129 @@ level DPS, specialized helmet class reductions, unverified relic
 secondary effects, complete native test/benchmark pipeline and
 the Pet/Fairy ~2,000-stage regression. The log10 scoring proxy remains
 uncalibrated; no stage estimate is certified.
+
+
+## Batch N — 2026-11-18: TT2 8.4 spells, six-slot loadout, cap SP effects and mana evidence
+
+### Source contract and anti-double-count gates
+
+- TT2 8.4 `vendor/spells.js` / `vendor/active-spell-caps.js`
+  (ActiveSkillInfo.csv) provide **11 spell IDs**, A/M at **levels 1–40**
+  (A0/M0 = level 1, A29/M29 = 30, A39/M39 = 40), base
+  cap 30, mana costs and source duration/cooldown fields. Spell effects
+  have per-build damage/gold reductions from `spell_reductions`.
+  The **six simultaneously equipped spell slots** do not mean that all
+  11 can be credited. Spells requiring talents are unavailable until
+  that unlock is purchased.
+- Optional six-slot **actual export** aliases:
+  `selectedSpells` / `SelectedSpells` /
+  `equippedSpells` / `EquippedSpells`; the parser stores only
+  allowlisted, sanitized spell IDs in `profile.spellLoadout`, not raw data.
+  Duplicate, unrecognized, missing, conflicting or **more than six**
+  spell records NEVER establish a valid equipped loadout. Imported
+  spell level dictionaries are NOT converted to selection data.
+  No additional manual form is required, but not all game export
+  formats expose this section; missing information remains a diagnostic.
+- A valid loadout plus **maximum-spell activation scenario** is required
+  before the six *baseline* main effects are scored. The pre-existing
+  max-stage >= 15,000 convention remains an **explicitly labeled
+  assumption**, NOT evidence that those spells are currently active
+  or sustained. `assumeMaxSpells=false` overrides that convention.
+- New `src/spell-scenarios.js` resolves the 6-slot source and applies
+  `baseSpellLog10 = log10(ActiveSkillInfo.A[(baseCap + FallenAngel) - 1])`
+  only for **currently unlocked selected spells**. In detail, the base
+  is level 30, or 35 with verified Fallen Angel. Damage and gold are
+  reduced with exact per-spell `spell_reductions`, and gold is
+  additionally weighted once by `settings.goldWeight`.
+  No multipliers are invented for missing A levels beyond the table.
+- The **SP-induced bonus cap** from Twilight Bell,
+  Echoflurry Onslaught, Phantom Blades and Ancient Mastery is *already*
+  a marginal effect in `scoreAtLevel` and must not also be inserted
+  into the scenario baseline. Their per-spell caps are taken from the
+  8.4 skill B rows. Only credit marginal spell strength when its spell
+  is among the actual six, the source is a max-level scenario, and
+  any cross-branch unlock is **provably purchased** through a minimum
+  / explicitly preserved current investment. The separable branch-DP
+  cannot presume a future different-branch skill will be purchased.
+  Unknown cap value may understate a real synergy, but does not
+  manufacture a source-backed multiplier.
+- Missing or incomplete loadout instead protects existing
+  spell-cap skill investments in the optimizer, preventing a
+  Pet/Fairy or another build from selling proven in-game talents
+  solely because their contribution is not numerically understood.
+- `recommendSourceSpellSlots` provides up to six **notional source-only
+  candidates** based on eligible spell A rows, exact reductions and
+  the chosen Damage×Gold context. These are **not equipped**, not
+  mana/uptime optimized, and **never added to the score**. This
+  avoids requiring players to type all their spell values.
+- Actual scenario ledger adds the **selected base spell value only**
+  as a conditional **fifth component**:
+  `total = skillSP + fixedAccount + gear + activePetsAbovePassives
+       + selectedBaseSpellLog10`.
+  `accountAdjustedScore = skillSP + fixedAccount` remains unchanged;
+  the cast baseline is not falsely called a fixed permanent account
+  bonus. Source-based cap deltas remain marginal inside skill scores.
+  This is still a **proxy**, not an actual stage projection or a
+  proof of globally optimal spell loadout.
+
+### Mana: exact raw source rows, no guessed sustain
+
+- New `src/mana-evidence.js` reports
+  `MPCapacityBoost` (Limit Break), `ManaStealSkillBoost` (Mana
+  Siphon) and `ManaMonster` (Manni Mana) source A/B values
+  at the **chosen actual SP levels**, without inventing mana proc
+  frequency, cast frequency, mana-per-minute, duration extension or
+  effective combat uptime. Exact selected spell base/final M rows are
+  retained; the total **one cast per selected spell** mana cost is
+  shown separately from the already-modeled conditional contracts'
+  **initial drain** (which grows over time). Multiplayer multicast
+  costs and precise active durations still require formulas.
+- `Mana Pool` / `Mana Regen` may optionally appear in the exported
+  final player stats. These are **already effective values** and
+  must never be multiplied by Limit Break, Clan Scrolls or Titan
+  Research again. The comparison with one-cast gross cost is a
+  static snapshot, **not** a sustainability or full-uptime proof.
+- Source durations and cooldowns are audit metadata only.
+  Mana sufficiency, spell casts, contract ramp and resource-limited
+  optimization remain **unverified** and cause explicit coverage gaps.
+
+### Integration and tests
+
+Files: `src/spell-scenarios.js`, `src/mana-evidence.js`,
+`src/account-profile.js`, `src/spell-caps.js`,
+`src/effects.js`, `src/engine.js`,
+`src/calculation-ledger.js`, `src/app.js`,
+`src/i18n.js`, `src/worker.js`, four localized HTML
+entrypoints, and the two audit documents. New revision
+`20261118-spell-mana-n` propagates across entrypoints/worker/engine
+module imports without publishing Pages.
+
+`tests/spell-scenarios-lot-n.test.js` declares **16 Node tests**:
+11-source/6-slot contract, export parse, conflicts/truncation,
+primary A29 routing and M29 costs, Fallen Angel A34, activation
+opt-out, 4 cap skills/unlock minima, source-only recommendation,
+mana evidence/initial contract drain, 18 fixed Damage×Gold routes,
+18 native `optimizeBuild` / `calculateModeledScenario` cases and
+absence of unverified stage claims. These tests must run in native
+Node before release. Targeted V8 sandbox checks are NOT equivalent
+to `npm test`.
+
+Remaining release gates: `npm test`, `npm run check:data`,
+`npm run bench:22k -- --all --sp 22600`, pair search, game export
+loadout verification, actual boss-stage mana/uptime and in-game
+Pet/Fairy regression comparison. **Do not merge or deploy**.
+This work does not calibrate the log10 proxy or resolve observed
+stage regressions. Unproven cross-branch spell/perk synergies,
+multicast resource requirements, effects scaling with *number of
+active spells*, and true cast schedules are still unresolved.
+
+Source references: `vendor/spells.js` and `vendor/skills.js` TT2
+8.4; source repository https://github.com/rawrzcookie/TT2_CSV ;
+Game Hive 7.17 DevLog
+https://gamehive.com/blog/devlog-205-version-7-17-0-patch-notes/ ;
+8.4 DevLog
+https://gamehive.com/blog/devlog-239-version-840-patch-notes/ ;
+Compendium mana guide
+https://www.tt2-compendium.com/fr/builds/build/pet-fairy ;
+six-slot player discussion
+https://www.reddit.com/r/TapTitans2/comments/oohl85/ .

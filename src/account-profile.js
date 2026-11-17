@@ -222,6 +222,8 @@ const STATS=Object.freeze({
  titanSoulsSpent:["Titan Souls Spent","TitanSoulsSpent","Lifetime Titan Souls Spent","LifetimeTitanSoulsSpent"],
  gemstoneLevel:["Gemstone Level","GemstoneLevel","Mystic Gemstone Level","MysticGemstoneLevel"],
  craftingPower:["Crafting Power","CraftingPower","CP"],
+ manaPool:["Mana Pool","ManaPool","Max Mana","MaxMana"],
+ manaRegen:["Mana Regen per Second","ManaRegenPerSecond","ManaRegen","Mana Regen"],
  heroWeaponUpgrades:["Hero Weapon Upgrades","HeroWeaponUpgrades"],
  clanScrollUpgrades:["Clan Scroll Upgrades","ClanScrollUpgrades"],
  totalPetLevels:["Total Pet Levels","TotalPetLevels"],
@@ -260,6 +262,19 @@ export function parseAccountProfile(data){
   verified:dominantId!==null,source:dominantId?"explicit-export-id":null,
   status:reported.length>1?"conflicting-export-hero":
    reported.length===0?"not-exported":dominantId?"verified-export-id":"unrecognized-hero-id"};
+ // The spell selection list is optional and must be an actual six-slot
+ // array, not the 11-spell inventory or a dictionary of spell levels.
+ // Retain only sanitized spell IDs; never infer equipment/activation.
+ const spellAliases=["selectedSpells","SelectedSpells","equippedSpells","EquippedSpells"];
+ const spellTop=field(data,spellAliases),spellStats=field(stats,spellAliases);
+ const spellInput=spellTop.present?spellTop:spellStats;
+ const spellArray=Array.isArray(spellInput.value)?spellInput.value:null;
+ const spellLoadout={present:spellInput.present,
+  ids:spellArray?spellArray.slice(0,6).map(row=>
+   safeName(typeof row==="string"?row:
+    isObject(row)?row.id??row.Id??row.spellId??row.SpellId:null)??"invalid"):[],
+  truncated:spellInput.present&&(!spellArray||spellArray.length>6),
+  source:spellInput.present?"explicit-exported-spell-slots":null};
  const seasonDate=field(stats,["TranscendenceStartDate","SeasonStartDate","SeasonStartedAt"]);
  const seasonTopDate=field(data,["TranscendenceStartDate","SeasonStartDate","SeasonStartedAt"]);
  const transcendenceStartedAt=dateText(seasonDate.present?seasonDate.value:seasonTopDate.value);
@@ -268,7 +283,7 @@ export function parseAccountProfile(data){
  const fixedSystems=["artifacts","seasonArtifacts","gemstones","mysticResearch","titanCards","forbiddenResearch","titanResearch","petLevels","passiveSkills","monuments","heroWeapons","clanScrolls","uniqueEquipment"];
  return {schema:"tt2-account-profile-v1",
   dates:transcendenceStartedAt?{transcendenceStartedAt}:{},
-   dominantHero,
+   dominantHero,spellLoadout,
   gameVersion:safeName(data.Version??data.version)??null,
   sections,stats:selectedStats,
   fixedSystemKeys:fixedSystems,
