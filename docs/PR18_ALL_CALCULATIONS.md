@@ -700,3 +700,117 @@ Sources: TT2 8.4 pinned vendor/account-catalog.js and
 vendor/clan-scrolls.js; Game Hive 6.5 Clan Scroll rework
 https://gamehive.com/blog/devlog-146-version-6-5-0-patch-notes/ ;
 worldshaper discussion https://www.reddit.com/r/TapTitans2/comments/1kzavgy/ .
+
+
+## Batch M (2026-11-17) — Display-name aliases, additive scroll lanes, hero snapshots
+
+This section **supersedes** the Batch L claim that Worldshaper and
+ScrollTutor have no source-backed numerical application. The internal
+8.4 catalog uses different identifiers from the names announced by Game Hive:
+
+| Public mythic set | Internal 8.4 set ID | Verified primary bonus rows | Evidence |
+| --- | --- | --- | --- |
+| **The Worldshaper** (7.11) | `MythicSmith` | `HelperWeaponBoost=1.25`, `HelperWeaponSetBoost=1.25` | Game Hive DevLog #189 + EquipmentSetInfo 8.4 |
+| **Dragon Weaver** (7.4) | `ScrollTutor` | `ClanScrollBoost=0.25`, `ClanScrollSetBoost=0.25`, both additive | Game Hive DevLog #171 + EquipmentSetInfo 8.4 |
+
+Public names, optional "The", and existing internal IDs normalize to **one**
+canonical ID, from the unlocked **permanent completed-set** collection.
+Two aliases in a save do not imply two owned sets and are explicitly
+diagnosed as mirrored entries. Partial collections are not inferred from
+currently-held gear. Existing `MythicSmith` and `ScrollTutor` internal
+identifiers remain supported. **The numerical secondary Prestige Relic
+effect is NOT inferred from this crosswalk**: the public patch text and
+the pinned CSV require a separate formula audit, so only the two primary
+weapon/scroll rows are asserted by this alias.
+
+### Worldshaper, per-hero weapons, hero levels
+
+The 37-hero full-weapon-set fixed baseline remains
+
+```
+log10BaseHero = verifiedFullSets *
+  log10(5 * RingingStoneFactor * WorldshaperSetFactor)
+WorldshaperSetFactor = 1.25 when permanently owned
+individualHeroWeaponLog10 = heroWeaponLevel *
+  log10(1.5 * MorgelaiSwordFactor * WorldshaperIndividualFactor)
+WorldshaperIndividualFactor = 1.25 when permanently owned
+```
+
+The full-set base enters the fixed ledger **once**, with no damage-source
+reduction. Individual-hero weapon multipliers are **still diagnostic only**:
+the optimizer does not know their marginal effect on the sum of DPS over
+all heroes, or their interaction with the currently-equipped helmet.
+
+An optional **explicit** `heroLevels` / `HeroLevels` / `heroProgression`
+section can supply records containing `id`, `level`, `ascension`,
+and optional `dps` in scientific notation. These records are **not
+fabricated** from the weapon inventory. The strict 37-ID roster checks
+duplicates, invalid levels and ascensions, truncated sources, and unknown
+IDs. When all 37 current DPS values are present, stable log-sum-exp
+derives the current DPS and Melee/Ranged/Spell shares; a conflict with
+explicit DominantHeroID is diagnosed. An all-zero DPS roster does not
+produce a speculative dominant hero. Current DPS already contains weapon
+and equipment effects: **do not add it to fixed damage** or claim a
+helmet/hero optimum until a genuinely unboosted level/ascension damage
+model and 8.4 stacking rules are verified.
+
+### Dragon Weaver and Quill/Stamp
+
+The 8.4 `ScrollTutor` primary `Amount=0.25` means **+25%**
+(`1 + 0.25 = 1.25`), never `×0.25`. When Dragon Weaver is verified
+and its respective lane has no competing owned amplifier, apply
+
+```
+individualFactor = QuillFactor * (DragonWeaverIndividualEligible ? 1.25 : 1)
+setPercentFactor = StampFactor * (DragonWeaverSetEligible ? 1.25 : 1)
+baseScrollLog10 = scrollLevel * log10(scrollBonusAmount)
+modeledScrollLog10 = baseScrollLog10 * individualFactor *
+  (1 + verifiedCompleteSetPercent * setPercentFactor)
+```
+
+DragonWeaverIndividualEligible requires no owned Quill; set eligibility
+requires no owned Stamp. This intentional *lane isolation* avoids
+inventing whether +25% is added or multiplied to the artifact's
+improvement. If both Quill and Dragon Weaver are owned, count only
+the previously verified Quill individual lane; independently count
+Dragon Weaver's set lane if Stamp is absent. If both Quill and Stamp are
+owned, count neither Dragon Weaver lane until cross-stacking is proven,
+and mark `dragon-weaver-artifact-cross-stack-unverified`. This is an
+**incomplete lower bound**, not a complete stack model. Three additive
+resource scroll categories remain unscored. Missing 18-scroll roster
+cannot establish any number of full scroll sets.
+
+### Integration, tests, gates
+
+Files: `src/equipment-set-aliases.js`, `src/hero-levels.js`, plus
+profile/hero/scroll import, fixed score, dependency DAG, optimization
+coverage, translated diagnostics and four HTML entrypoints. Cache marker:
+`20261117-hero-scroll-m`. The source of the public labels is verified
+against pinned primary rows; these aliases are not generic normalization
+of every unknown set in the game.
+
+New `tests/hero-scroll-lot-m.test.js`: 12 native Node test cases covering
+the two aliases and mirrored IDs, long scientific DPS, conditional
+two-lane stacking, 18 fixed Damage×Gold routes, and 18 native optimizer
+integrations. Existing Batch L tests are adjusted to account for the
+verified standalone Dragon Weaver effect. **Declared Node tests are not
+proof they ran.** For release, execute `npm test`,
+`npm run check:data`, `npm run bench:22k -- --all --sp 22600`,
+pair-search and compare a real 8.4 account with in-game progress.
+Keep the PR DRAFT, no merge, and no GitHub Pages deployment.
+
+Provenance:
+- Game Hive DevLog #171, Dragon Weaver:
+  https://gamehive.com/blog/devlog-171-version-7-4-0-patch-notes/
+- Game Hive DevLog #189, The Worldshaper:
+  https://gamehive.com/blog/devlog-189-version-7-11-0-patch-notes/
+- `vendor/account-catalog.js` 8.4 primary bonus rows.
+- Game Hive 6.5 Clan Scroll:
+  https://gamehive.com/blog/devlog-146-version-6-5-0-patch-notes/
+
+**Still open for Batch N or a dedicated formula gate:** exact
+Dragon Weaver × Quill/Stamp stacking, ascension and individual hero
+level DPS, specialized helmet class reductions, unverified relic
+secondary effects, complete native test/benchmark pipeline and
+the Pet/Fairy ~2,000-stage regression. The log10 scoring proxy remains
+uncalibrated; no stage estimate is certified.

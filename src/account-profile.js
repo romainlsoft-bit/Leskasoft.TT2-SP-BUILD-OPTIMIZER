@@ -4,6 +4,7 @@
  * A present section is NOT necessarily modeled by the optimizer score.
  */
 import {HERO_CLASS_BY_ID} from "../vendor/hero-classes.js";
+import {canonicalEquipmentSetId} from "./equipment-set-aliases.js";
 const SOURCE_SECTIONS=Object.freeze({
  artifacts:["artifacts","Artifacts","artifactLevels","ArtifactLevels"],
  gemstones:["gemstones","Gemstones","mysticGemstones","MysticGemstones"],
@@ -16,6 +17,8 @@ const SOURCE_SECTIONS=Object.freeze({
  monuments:["monuments","Monuments"],
  seasonArtifacts:["seasonArtifacts","SeasonArtifacts","seasonalArtifacts","SeasonalArtifacts","transcendentArtifacts","TranscendentArtifacts"],
  heroWeapons:["heroWeapons","HeroWeapons","heroWeaponLevels","HeroWeaponLevels"],
+ // Optional explicitly exported hero snapshot, not inferred from weapons.
+ heroLevels:["heroLevels","HeroLevels","heroProgression","HeroProgression"],
  clanScrolls:["clanScrolls","ClanScrolls","clanScrollLevels","ClanScrollLevels","scrollLevels","ScrollLevels"],
  uniqueEquipment:["uniqueEquipment","UniqueEquipment","ownedUniqueEquipment","OwnedUniqueEquipment"],
  equipmentSets:["equipmentSets","EquipmentSets","completedEquipmentSets","CompletedEquipmentSets","ownedEquipmentSets","OwnedEquipmentSets","equipmentSetCollection","EquipmentSetCollection"],
@@ -100,6 +103,8 @@ function secondaryEffects(item,record){
 }
 const RECORD_FIELDS={
  level:["level","Level","lvl","Lvl","lv","Lv","upgradeLevel","UpgradeLevel"],
+ ascension:["ascension","Ascension","ascensionLevel","AscensionLevel"],
+ dps:["dps","DPS","heroDps","HeroDps","heroDPS","HeroDPS"],
  amount:["amount","Amount","num","Num","count","Count","quantity","Quantity","total","Total"],
  primary:["primary","Primary","primaryBonus","PrimaryBonus","BonusTypeA"],
  secondary:["secondary","Secondary","secondaryBonus","SecondaryBonus","BonusTypeB"]
@@ -269,7 +274,7 @@ export function parseAccountProfile(data){
   fixedSystemKeys:fixedSystems,
   // EquipmentSets is the UNLOCKED collection, not currently held inventory.
   // Selling the fifth item never removes the permanent set effect.
-  ownedSetIds:[...new Set(sections.equipmentSets.records.map(r=>r.id))]};
+  ownedSetIds:[...new Set(sections.equipmentSets.records.map(r=>canonicalEquipmentSetId(r.id)))]};
 }
 export function profileCoverage(profile){
  if(!isObject(profile)||!isObject(profile.sections))return [];

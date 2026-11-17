@@ -2,8 +2,8 @@ import { skillInfo } from "../vendor/skills.js";
 import { baseline } from "../vendor/qol-baseline.js";
 import { optimizeExact } from "./solver-core.js";
 import { scoreAtLevel } from "./effects.js?v=20261117-artifact-interactions";
-import { parseAccountProfile } from "./account-profile.js";
-import {extractFixedAccountPower,fixedAccountScore} from "./account-power.js?v=20261117-hero-scroll-l";
+import { parseAccountProfile } from "./account-profile.js?v=20261117-hero-scroll-m";
+import {extractFixedAccountPower,fixedAccountScore} from "./account-power.js?v=20261117-hero-scroll-m";
 import {accountDependencyGraph} from "./account-dependencies.js?v=20261117-monument-pools";
 import {resolveSpellCaps} from "./spell-caps.js";
 import {extractTimedSetPower} from "./account-set-bonuses.js";
@@ -295,6 +295,8 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
         worldshaper:power.heroProgression?.worldshaper??null,
         morgelai:power.heroProgression?.morgelai??null,
         strongest:power.heroProgression?.strongest??null,
+        heroLevels:power.heroProgression?.heroLevels??null,
+        aliasEvidence:power.heroProgression?.aliasEvidence??null,
         individualWeaponRows:power.heroProgression?.individual??[],
         individuallyScored:false,
         baseBonusScored:(power.heroProgression?.entries?.length||0)>0,

@@ -14,8 +14,8 @@
  * required for absolute context and later *validated* cross-build ranking.
  */
 import {ACCOUNT_SCALING} from "../vendor/account-scaling.js";
-import {clanScrollEvidence} from "./account-scrolls.js";
-import {heroProgressionEvidence} from "./hero-progression.js";
+import {clanScrollEvidence} from "./account-scrolls.js?v=20261117-hero-scroll-m";
+import {heroProgressionEvidence} from "./hero-progression.js?v=20261117-hero-scroll-m";
 import {equipmentEffectReduction} from "./equipment-reductions.js";
 import {ARTIFACT_CATALOG} from "../vendor/account-catalog.js";
 import {calculatePermanentArtifactEffects} from "./account-artifacts.js";
@@ -186,6 +186,7 @@ export function extractFixedAccountPower(profile){
    completeSets:scrolls.fullSets,unknown:scrolls.unknown.length,
    truncated:scrolls.truncated,additionalAmplifiersScored:scrolls.boostsModeled,
    quill:scrolls.quill,stamp:scrolls.stamp,scrollTutor:scrolls.scrollTutor,
+   dragonWeaver:scrolls.scrollTutor,
    boostStackComplete:scrolls.boostStackComplete,
    enhancedSetBonusPercent:scrolls.enhancedSetBonusPercent,complete:false},
   gemstones:{present:gemstoneEvidence.present,
