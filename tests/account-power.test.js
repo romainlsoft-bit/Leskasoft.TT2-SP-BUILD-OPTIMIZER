@@ -5,6 +5,7 @@ import {extractFixedAccountPower,fixedAccountScore,formatLogMultiplier} from "..
 import {accountDependencyGraph,bonusDependence,invalidateAccountNodes,validateAccountGraph} from "../src/account-dependencies.js";
 import {ARTIFACT_CATALOG,EQUIPMENT_SET_CATALOG,SEASON_ARTIFACT_CATALOG} from "../vendor/account-catalog.js";
 import {ACCOUNT_SCALING} from "../vendor/account-scaling.js";
+import {resolveSetCompletionDates,resolveTranscendenceAge,heroWeaponEvidence} from "../src/account-temporal.js";
 import {optimizeBuild} from "../src/engine.js";
 
 const fixture=()=>parseAccountProfile({
@@ -99,4 +100,48 @@ test("Graph rejects circular equipment/pet dependencies instead of looping",()=>
   {id:"equipmentEffectiveBonuses",after:["petEffectiveLevels"]}
  ];
  assert.throws(()=>validateAccountGraph(cyclic),/Cyclic/);
+});
+
+test("set PerDay metadata is retained but never scored without a completion date",()=>{
+ const p=parseAccountProfile({playerStats:{"Transcendence Season":13},
+  equipmentSets:["StainGlass","Druid","PetGroomer"],heroWeapons:{"Hero1":3,"Hero2":2}});
+ const report=accountDependencyGraph(p);
+ assert.equal(report.transcendence.source,"official-season-calendar");
+ const t=report.sets.find(s=>s.id==="StainGlass").effects.find(e=>e.type==="AllDamage");
+ assert.equal(t.perDay,true);
+ assert.equal(t.maxValue,"1.88E+64");
+ assert.equal(t.numericalStatus,"ignored-missing-set-completion-date");
+ assert.equal(report.sets.find(s=>s.id==="Druid").effects.filter(e=>e.perDay).length,2);
+ assert.equal(report.heroWeapons.totalWeaponLevels,5);
+ assert.equal(report.heroWeapons.completeSets,null);
+});
+test("fifth separately dated equipment slot completes the set",()=>{
+ const pieces=["Sword","Helmet","Armor","Aura","Slash"].map((slot,index)=>({
+  id:"piece"+index,setId:"StainGlass",slot,acquiredAt:"2026-10-"+String(index+1).padStart(2,"0")}));
+ const full=parseAccountProfile({equipmentSets:["StainGlass"],equipmentInventory:pieces});
+ const date=resolveSetCompletionDates(full,new Date("2026-10-09T00:00:00Z")).StainGlass;
+ assert.equal(date.completedAt,"2026-10-05T00:00:00.000Z");
+ assert.equal(date.days,4);
+ assert.equal(date.source,"five-equipment-acquisitions");
+ const missing=parseAccountProfile({equipmentSets:["StainGlass"],equipmentInventory:pieces.slice(0,4)});
+ assert.equal(resolveSetCompletionDates(missing).StainGlass.days,null);
+ const undated=parseAccountProfile({equipmentSets:["StainGlass"],equipmentInventory:
+  pieces.map(({acquiredAt,...item})=>item)});
+ assert.equal(resolveSetCompletionDates(undated).StainGlass.days,null);
+});
+test("exported completion and Transcendence dates accepted without user prompts",()=>{
+ const p=parseAccountProfile({equipmentSets:[{id:"Orca",completedAt:"2026-10-01"}],
+  playerStats:{"Transcendence Season":13,"TranscendenceStartDate":"2026-08-12"}});
+ assert.equal(resolveSetCompletionDates(p,new Date("2026-10-05T00:00:00Z")).Orca.days,4);
+ assert.equal(resolveTranscendenceAge(p,new Date("2026-08-20T00:00:00Z")).days,8);
+ const future=parseAccountProfile({equipmentSets:[{id:"Orca",completedAt:"2026-12-01"}]});
+ assert.equal(resolveSetCompletionDates(future,new Date("2026-11-17T00:00:00Z")).Orca.days,null);
+});
+test("owned Unique items persist independently of selected equipment",()=>{
+ const p=parseAccountProfile({equipmentSets:["AlphaHeart"],equippedEquipment:[],
+  uniqueEquipment:[{id:"ElderSnow"}]});
+ const graph=accountDependencyGraph(p);
+ assert.ok(graph.uniquePermanentOwnership.includes("AlphaHeart"));
+ assert.ok(graph.uniquePermanentOwnership.includes("ElderSnow"));
+ assert.equal(heroWeaponEvidence(p).completeRosterVerified,false);
 });
