@@ -112,6 +112,9 @@ test("Exotic equipment pets and Restored Rune Heart boost the matching equipment
  const a=gearSelectionEffects(base,cfgs),b=gearSelectionEffects(enriched,cfgs);
  assert.ok(b.independentScore>a.independentScore);
  assert.ok(b.selected.Sword.primaryAmplifierLog10>0);
+ assert.equal(b.petEquipmentSlotWeights.Sword,1);
+ assert.equal(b.petEquipmentPassiveWeights.Sword,1);
+ assert.equal(b.petEquipmentCoverageComplete,false);
 });
 test("equipment-primary boosters never multiply secondary rolls",()=>{
  const p=parseAccountProfile({

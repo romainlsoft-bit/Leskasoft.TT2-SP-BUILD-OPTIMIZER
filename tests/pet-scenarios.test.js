@@ -6,7 +6,7 @@ import {parseAccountProfile} from "../src/account-profile.js";
 import {extractFixedAccountPower,fixedAccountScore} from "../src/account-power.js";
 import {scoreAtLevel} from "../src/effects.js";
 import {optimizeBuild} from "../src/engine.js";
-import {ALL_PETS,availablePets,logPetBonus,activePetGain,petScenarioScore,petCombatTechniquesIncrement,recommendPets,resolvePetLevels,petPassiveEvidence,petArtifactAmplifiers,petTier,logPassivePetMultiplier} from "../src/pet-scenarios.js";
+import {ALL_PETS,availablePets,logPetBonus,activePetGain,petScenarioScore,petCombatTechniquesIncrement,recommendPets,resolvePetLevels,petPassiveEvidence,petArtifactAmplifiers,petTier,logPassivePetMultiplier,petEquipmentCombatTechniquesWeight,petWeight} from "../src/pet-scenarios.js";
 
 const sample=()=>parseAccountProfile({
  Version:"8.4.0",
@@ -160,4 +160,34 @@ test("Legacy and Exotic artifacts amplify only matching pet families",()=>{
  assert.equal(p.entries.find(x=>x.id==="Pet22").amplifierLog10,amp.byTier.Exotic.damage);
  assert.equal(petTier(PETS.Pet20),"Exotic");
  assert.equal(petTier(TRANSCENDENT_PETS.SeasonalPet2),"Transcendent");
+});
+
+test("Combat Techniques cannot fabricate Equipment Pet Effect without eligible gear",()=>{
+ const p=parseAccountProfile({petLevels:{Pet1:100,Pet20:100}});
+ const context={...settings(),accountProfile:p};
+ assert.equal(petEquipmentCombatTechniquesWeight(context),0);
+ assert.equal(petWeight(PETS.Pet26,"damage",context),0);
+ assert.equal(scoreAtLevel("CombatTechniques",20,context),0);
+});
+test("Combat Techniques score reflects verified Sword and Armor exotic pets",()=>{
+ const context={...settings(),
+  accountProfile:parseAccountProfile({petLevels:{Pet26:100,Pet28:100}}),
+  equipmentPetSlotWeights:{Sword:1,Armor:.7},
+  equipmentPetPassiveWeights:{Sword:1,Armor:.7},
+  selectedDamagePet:"Pet26"
+ };
+ assert.ok(Math.abs(petEquipmentCombatTechniquesWeight(context)-1.7)<1e-12);
+ assert.equal(petWeight(PETS.Pet26,"damage",context),1);
+ assert.equal(petWeight(PETS.Pet28,"gold",context),.7);
+ const baseline={...context,equipmentPetSlotWeights:{},
+  equipmentPetPassiveWeights:{},selectedDamagePet:null};
+ assert.ok(scoreAtLevel("CombatTechniques",20,context)>
+  scoreAtLevel("CombatTechniques",20,baseline));
+});
+test("unknown equipment inventory protects existing Combat Techniques SP from destructive reset",()=>{
+ const context={...settings(),accountProfile:parseAccountProfile({}),
+  currentLevels:{CombatTechniques:8}};
+ const result=optimizeBuild(context);
+ assert.ok(result.protectedSkills.includes("CombatTechniques"));
+ assert.ok(result.levels.CombatTechniques>=8);
 });
