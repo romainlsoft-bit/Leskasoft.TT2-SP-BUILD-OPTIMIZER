@@ -240,3 +240,23 @@ test("unknown hero names and duplicate IDs never trigger fabricated completed se
  assert.deepEqual(e.unknownHeroIds,["Unknown"]);
  assert.equal(e.missingHeroes,35);
 });
+
+test("Clan Scroll full-set source applies first +5%, then +10% each, only for a complete roster",()=>{
+ const zero=parseAccountProfile({clanScrolls:Object.fromEntries(CLAN_SCROLLS.map(x=>[x.id,0]))});
+ assert.equal(clanScrollEvidence(zero).setBonusPercent,0);
+ const one=parseAccountProfile({clanScrolls:Object.fromEntries(CLAN_SCROLLS.map(x=>[x.id,1]))});
+ assert.equal(clanScrollEvidence(one).setBonusPercent,0.05);
+ const two=parseAccountProfile({clanScrolls:Object.fromEntries(CLAN_SCROLLS.map(x=>[x.id,2]))});
+ const evidence=clanScrollEvidence(two);
+ assert.ok(Math.abs(evidence.setBonusPercent-0.15)<1e-12);
+ const entry=evidence.entries.find(x=>x.id==="ScrollId2");
+ assert.ok(Math.abs(entry.setBoostedLog10-2*Math.log10(1.43)*1.15)<1e-12);
+ const fromScore=extractFixedAccountPower(two).entries.find(x=>x.system==="clanScrolls"&&x.id==="ScrollId2");
+ assert.ok(Math.abs(fromScore.log10-entry.setBoostedLog10)<1e-12);
+ assert.equal(fromScore.setBoostModeled,true);
+ const missing=parseAccountProfile({clanScrolls:{"ScrollId2":2}});
+ assert.equal(clanScrollEvidence(missing).setBonusPercent,null);
+ const partial=extractFixedAccountPower(missing).entries.find(x=>x.system==="clanScrolls"&&x.id==="ScrollId2");
+ assert.ok(Math.abs(partial.log10-2*Math.log10(1.43))<1e-12);
+ assert.equal(partial.setBoostModeled,false);
+});

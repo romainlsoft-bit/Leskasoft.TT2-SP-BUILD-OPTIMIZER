@@ -22,7 +22,7 @@
 
 ## Clan Scrolls and spell level caps (not yet complete)
 
-- ClanScrollInfo.csv (18 types) is imported without inferring individual levels from aggregate stats. Raw non-additive scroll multipliers are in log10. Additive scrolls, ScrollTutor, ScrollMaster and completed-set amplification remain unmodeled.
+- ClanScrollInfo.csv (18 types) is imported without inferring individual levels from aggregate stats. Raw non-additive multipliers are in log10. When all 18 scroll levels are explicitly available, complete-set amplification is applied: first set +5%, each additional set +10%; multiplicative scroll bonus raised to (1+setBoostPercent). See https://tap-titans-2.fandom.com/wiki/Heroes (Clan Scrolls, post 6.5). Additive scrolls, Quill of Scrolls, Old King’s Stamp, ScrollTutor and ScrollMaster remain unmodeled.
 - Active spells have base cap 30 (not 29). Fallen Angel gives +5 and four tier-five skills each give up to +5 to their own spell families. The input assumption is spells active and at max when Max Stage >= 15,000.
 - **Corrected off-by-one:** A0 is level 1, A29 is level 30, A34 is level 35, and A39 is level 40. A40 would correspond to level 41. The cap-40 table is complete for 8.4.
 - Perks are intentionally out of scope.
@@ -39,7 +39,7 @@
 - [ ] Validate Hero Weapon boosted effects (Morgelai Sword, Ringing Stone) and hero-specific impact by build source, Unique equipment permanent effects, and time-based monument formulas against complete TT2 exports; uncomputable effects remain omitted.
 - [ ] Run full Node test suite and browser tests for import, calculators, language changes and small-screen layout.
 - [ ] Run benchmark on 22,600+ SP with account context, and confirm cache invalidation avoids full recomputation for unchanged branches.
-- [ ] Verify cap-dependent spell damage interactions, full-spell activation assumptions, and scroll-set/amplification formulas against complete exports.
+- [ ] Verify cap-dependent spell damage interactions, full-spell activation assumptions, scroll full-set (first +5%, subsequent +10%) against actual account exports, and artifact/equipment amplification.
 - [ ] Validate PerDay floor-day semantics and formula against real game screenshots; max values match the source table, not a player result.
 - [ ] Final code review (source formulas / no hidden assumptions / PII / numerical precision) and manual approval.
 

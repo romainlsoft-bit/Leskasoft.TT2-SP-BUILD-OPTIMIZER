@@ -103,7 +103,9 @@ export function extractFixedAccountPower(profile){
  const scrolls=clanScrollEvidence(profile);
  for(const row of scrolls.entries){
   if(row.log10===null){unsupported.push({system:"clanScrolls",id:row.id,reason:"additive-unverified"});continue;}
-  entries.push({system:"clanScrolls",id:row.id,bonusType:row.bonusType,level:row.level,log10:row.log10});
+  entries.push({system:"clanScrolls",id:row.id,bonusType:row.bonusType,level:row.level,
+   log10:row.setBoostedLog10??row.log10,setBoostModeled:scrolls.setBoostModeled,
+   rawLog10:row.log10,setBonusPercent:scrolls.setBonusPercent});
  }
  for(const row of scrolls.unknown)unsupported.push({system:"clanScrolls",...row});
  const byType={};

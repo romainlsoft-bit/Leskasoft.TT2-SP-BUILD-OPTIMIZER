@@ -47,7 +47,6 @@ export function accountDependencyGraph(profile){
  const heroWeapons=heroWeaponEvidence(profile);
  const clanScrolls=clanScrollEvidence(profile);
  const uniqueOwned=new Set((profile?.sections?.uniqueEquipment?.records||[]).map(x=>String(x.id)));
- let ignoredTimedEffects=0;
  for(const id of profile?.ownedSetIds||[]){
   const data=byName(EQUIPMENT_SET_CATALOG,id);
   if(!data){unknown.push({system:"set",id,reason:"not-in-dataset"});continue;}
@@ -56,7 +55,6 @@ export function accountDependencyGraph(profile){
    completion:setDates[id]||null,
    effects:data.bonuses.map(effect=>{
     const perDay=effect.perDay===true;
-    if(perDay)ignoredTimedEffects++;
     return {type:effect.type,dependsOn:bonusDependence(effect.type),
      rawAmount:effect.amount,rawInc:effect.inc,rawExpo:effect.expo,
      perDay,maxValue:effect.maxValue??null,
