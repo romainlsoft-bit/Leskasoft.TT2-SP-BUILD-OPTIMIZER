@@ -3,6 +3,8 @@ import assert from "node:assert/strict";
 import {parseAccountProfile} from "../src/account-profile.js";
 import {heroWeaponEvidence} from "../src/account-temporal.js";
 import {heroProgressionEvidence} from "../src/hero-progression.js";
+import {calculatePermanentArtifactEffects} from "../src/account-artifacts.js";
+import {ARTIFACT_CATALOG} from "../vendor/account-catalog.js";
 import {clanScrollEvidence} from "../src/account-scrolls.js";
 import {extractFixedAccountPower,fixedAccountScore} from "../src/account-power.js";
 import {equipmentEffectReduction} from "../src/equipment-reductions.js";
@@ -24,7 +26,7 @@ test("complete hero weapon sets score verified All Hero Damage only once",()=>{
  const e=heroProgressionEvidence(p),power=extractFixedAccountPower(p);
  assert.equal(e.weapons.completeSets,3);
  assert.equal(e.entries.length,1);
- close(power.byType.AllHelperDamage,3*Math.log10(5));
+ close(power.byType.BaseHeroDamage,3*Math.log10(5));
  assert.equal(power.byType.AllDamage||0,0);
  assert.equal(e.individualWeaponsScored,false);
 });
@@ -39,20 +41,20 @@ test("missing, duplicate, unrecognized, invalid and truncated rosters exclude se
  assert.equal(heroProgressionEvidence(huge).entries.length,0);
  assert.equal(heroWeaponEvidence(p({...heroes(3),H01:0})).completeSets,0);
 });
-test("four artifact and two mythic amplifiers are evidence not scored",()=>{
+test("Ringing set boost is modeled while other artifact/mythic interactions remain audit evidence",()=>{
  const p=parseAccountProfile({heroWeapons:heroes(2),
   artifacts:Object.fromEntries(["Artifact71","Artifact91","Artifact92","Artifact93"].map(id=>[id,{level:50,enchanted:false}])),
   equipmentSets:["MythicSmith","ScrollTutor"]});
- const e=heroProgressionEvidence(p);
+ const e=heroProgressionEvidence(p,calculatePermanentArtifactEffects(p,ARTIFACT_CATALOG));
  assert.equal(e.artifactBoosters.filter(x=>x.owned).length,4);
  assert.equal(e.mythicBoosts.filter(x=>x.owned).length,2);
- assert.equal(e.amplifiersScored,false);
- close(extractFixedAccountPower(p).byType.AllHelperDamage,2*Math.log10(5));
+ assert.equal(e.amplifiersScored,true);
+ close(extractFixedAccountPower(p).byType.BaseHeroDamage,2*Math.log10(7.5));
 });
-test("18 damage/gold combinations route All Hero Damage using source reductions",()=>{
+test("18 damage/gold combinations route Clan Scroll 3 through hero reductions",()=>{
  const power=extractFixedAccountPower(parseAccountProfile({heroWeapons:heroes(2),clanScrolls:scrolls(1)}));
  const source=power.byType.AllHelperDamage;
- assert.ok(source>2*Math.log10(5));
+ assert.ok(source>0);
  for(const damage of ["Pet","Clan Ship","Shadow Clone","Heavenly Strike","Dagger","Gold Gun"])
   for(const gold of ["Fairy","HoG","Chesterson"]){
    const settings={damage,gold,goldWeight:0.7};
@@ -80,6 +82,6 @@ test("actual optimizeBuild includes full sets in fixed score, not marginal SP",(
  assert.equal(r.accountIntegration.heroProgression.fullSets,2);
  assert.equal(r.accountIntegration.heroProgression.baseBonusScored,true);
  close(r.accountAdjustedScore-r.score,r.fixedAccount.weightedLog10);
- close(r.fixedAccount.damageLog10,2*Math.log10(5)*equipmentEffectReduction("AllHelperDamage",settings).weight);
+ close(r.fixedAccount.damageLog10,2*Math.log10(5));
  assert.equal(r.fixedAccount.complete,false);
 });

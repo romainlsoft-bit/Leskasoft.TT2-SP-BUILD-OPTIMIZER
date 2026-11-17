@@ -225,12 +225,15 @@ export function fixedAccountScore(power,settings){
   const ratio=equipmentEffectReduction(type,settings).weight;
   return sum+(Number.isFinite(ratio)?(power.byType[type]||0)*ratio:0);
  },0);
- const damageLog10=types.reduce((a,t)=>a+(power.byType[t]||0),heroLog10);
+ // Unlike AllHelperDamage, weapon mastery boosts BASE hero damage and
+ // do not receive an additional build-source reduction.
+ const baseHeroLog10=power.byType.BaseHeroDamage||0;
+ const damageLog10=types.reduce((a,t)=>a+(power.byType[t]||0),heroLog10+baseHeroLog10);
  const goldLog10=goldTypes.reduce((a,t)=>a+(power.byType[t]||0),0);
  const weight=Number(settings.goldWeight);
  return {damageLog10,goldLog10,
   weightedLog10:damageLog10+(Number.isFinite(weight)?weight:0)*goldLog10,
-  types:[...types,...heroTypes,...goldTypes]};
+  types:[...types,"BaseHeroDamage",...heroTypes,...goldTypes]};
 }
 export function formatLogMultiplier(log10){
  if(!Number.isFinite(log10))return "unknown";

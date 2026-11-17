@@ -488,3 +488,10 @@ executed; absence of CI evidence is not a passed gate.
 ## 17 Nov 2026 — Batch J
 
 A full set of 37 weapon levels contributes `log10(5) × min(levels)` to AllHelperDamage **only** after verifying unique IDs, untruncated source and valid level range. The source reduction `AllHelperDmg[damage]` is applied once to the fixed total, including the prior unscored AllHeroDamage/scroll contributions. Individual weapon ×1.5 levels, dominant hero class/ascension, class helmets, Ringing/Morgelai, Quill/Stamp and MythicSmith/ScrollTutor boosts remain unresolved without 8.4 parity. Truncated Clan Scroll exports cannot score a convenient partial baseline. The engine remains an uncalibrated log10 scoring proxy, not a stage predictor.
+
+
+## 17 Nov 2026 — Batch K base hero damage and boosters
+
+Correct J: completed hero weapon sets affect **base** hero damage, so the full-set type is `BaseHeroDamage` added once without build-specific `AllHelperDmg` reduction. That table still reduces true `AllHelperDamage` from artifacts and Clan Scroll #3. Verified uncapped? No: Morgelai `Artifact71` and Ringing `Artifact91` are **capped level 50**, at source `perLevel=0.01`; each at 50 gives factor `1.5`. Ringing modifies the fully verified full-set factor from ×5 to ×7.5, `sets×log10(5×factor)`. Morgelai modifies the **individual hero** weapon coefficient from ×1.5 to ×2.25, `level×log10(1.5×factor)`, exposed per 37 source IDs but excluded from global score until relative hero DPS, ascent/level, equipped class and multipliers are proven. Unsupported MythicSmith/ScrollTutor, Worldshaper, Quill/Stamp and seasonal boosters are *not* compounded.
+
+Only explicit non-conflicting export `DominantHeroId`/ `StrongestHeroId` identifying a canonical 8.4 helper can establish a dominant class for filtering helmet candidates. This ID alone is not proof of its damage share, and no class-helmet multiplier is scored from it. No fabricated stages. Full ESM Node suite and in-game 8.4 parity remain required.

@@ -1,8 +1,8 @@
-import {optimizeBuild} from "./engine.js?v=20261117-hero-scrolls";
-import {recommendPets} from "./pet-scenarios.js?v=20261117-hero-scrolls";
+import {optimizeBuild} from "./engine.js?v=20261117-hero-classes";
+import {recommendPets} from "./pet-scenarios.js?v=20261117-hero-classes";
 import {calculateModeledScenario} from "./calculation-ledger.js";
 import {selectPetPair} from "./pet-pair-search.js";
-import {bestEquipmentByCategory,gearSelectionEffects} from "./equipment-scenarios.js?v=20261117-hero-scrolls";
+import {bestEquipmentByCategory,gearSelectionEffects} from "./equipment-scenarios.js?v=20261117-hero-classes";
 
 // One worker, one cache. The solver checks per-branch score and constraint
 // signatures: changing a pet can change Summoner/Combat Techniques, while
