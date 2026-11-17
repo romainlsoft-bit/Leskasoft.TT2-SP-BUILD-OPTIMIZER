@@ -17,6 +17,7 @@ import {resolveUniqueOwnership} from "../src/account-unique.js";
 import {UNIQUE_EQUIPMENT_TO_SET} from "../vendor/unique-equipment.js";
 import {resolveMonumentEvidence} from "../src/account-monuments.js";
 import {computeArtifactEffect,calculatePermanentArtifactEffects,positiveLog10,log10OnePlusPower} from "../src/account-artifacts.js";
+import {rawDamageLog10,additiveDamageEvidence,log10Sum} from "../src/account-damage-pools.js";
 
 const fixture=()=>parseAccountProfile({
  Version:"8.4.0",playerName:"HIDDEN",accountId:"PRIVATE",
@@ -521,4 +522,38 @@ test("monuments retain genuine boolean enchantment state and unknown season bloc
  const missing=parseAccountProfile({playerStats:{"Transcendence Season":13},
   monuments:{SeasonalArtifact34:{level:100}}});
  assert.equal(resolveMonumentEvidence(missing).entries[0].formulaStatus,"unknown-enchantment-state");
+});
+
+test("artifact damage is a separate linear pool, not repeated main artifact multiplier",()=>{
+ const p=parseAccountProfile({artifacts:{
+  Artifact31:{level:100,e:1},Artifact38:{level:100,e:0}
+ }});
+ const effects=calculatePermanentArtifactEffects(p,ARTIFACT_CATALOG);
+ const additive=additiveDamageEvidence(effects,{entries:[]},ARTIFACT_CATALOG,SEASON_ARTIFACT_CATALOG);
+ assert.equal(additive.artifacts.components,2);
+ assert.ok(Math.abs(additive.artifacts.unenchantedPoolLog10-
+  Math.log10((Number(ARTIFACT_CATALOG.Artifact31.damageBonus)+
+   Number(ARTIFACT_CATALOG.Artifact38.damageBonus))*100))<1e-10);
+ assert.equal(additive.appliedToScore,false);
+});
+test("additive Monument Damage uses DamageExpo and never multiplies monument components",()=>{
+ const info=SEASON_ARTIFACT_CATALOG.SeasonalArtifact34;
+ const mon={entries:[{id:"SeasonalArtifact34",level:"100",enchanted:true,
+  categoryAllowed:true,formulaStatus:"computed-unscored-interaction"}]};
+ const additive=additiveDamageEvidence({entries:[]},mon,ARTIFACT_CATALOG,SEASON_ARTIFACT_CATALOG);
+ assert.equal(additive.monuments.components,1);
+ assert.ok(Math.abs(additive.monuments.unenchantedPoolLog10-
+  (Math.log10(Number(info.damageBonus))+
+    Number(info.damageExpo)*Math.log10(100)))<1e-7);
+ assert.ok(additive.monuments.candidateEnchantedPoolLog10-
+  additive.monuments.unenchantedPoolLog10>19);
+ assert.equal(info.enchantmentMagnitude,"1.00E+01");
+ assert.equal(info.enchantmentMult,"1.00E+20");
+});
+test("large additive pools add in log-space without multiplying independent monuments",()=>{
+ assert.ok(Math.abs(log10Sum([100,100])-(100+Math.log10(2)))<1e-12);
+ assert.equal(log10Sum([]),null);
+ const row=SEASON_ARTIFACT_CATALOG.SeasonalArtifact34;
+ assert.ok(Math.abs(rawDamageLog10(row,"1e9999","monument")-
+  (Math.log10(Number(row.damageBonus))+9999*Number(row.damageExpo)))<1e-8);
 });

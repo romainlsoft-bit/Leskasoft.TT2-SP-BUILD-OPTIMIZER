@@ -202,6 +202,11 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
         seasonDays:dependencyReport.monuments.seasonDays,
         perSeasonDay:dependencyReport.monuments.perSeasonDay,
         modeled:dependencyReport.monuments.modeled},
+      additiveDamage:{
+        artifactPool:dependencyReport.additiveDamage.artifacts,
+        monumentPool:dependencyReport.additiveDamage.monuments,
+        appliedToScore:false
+      },
       artifacts:{identified:dependencyReport.permanentArtifacts.recognized,
         computed:dependencyReport.permanentArtifacts.computed,
         modeled:dependencyReport.permanentArtifacts.scored},
