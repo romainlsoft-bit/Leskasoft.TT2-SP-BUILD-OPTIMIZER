@@ -54,7 +54,7 @@ test("Skill-tree-only exports and pre-8.0 gemstone schemas stay compatible",()=>
  assert.equal(old.sections.gemstones.count,10);
  assert.equal(old.sections.mysticResearch.present,false);
  assert.equal(parseAccountProfile({gemstones:null}).sections.gemstones.present,false);
- assert.equal(PROFILE_SECTION_NAMES.length,12);
+ assert.equal(PROFILE_SECTION_NAMES.length,13);
 });
 test("Import is bounded and rejects unsafe keys",()=>{
  const p=parseAccountProfile({

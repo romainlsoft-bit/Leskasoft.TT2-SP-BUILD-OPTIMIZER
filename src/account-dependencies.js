@@ -4,6 +4,7 @@
  * The graph is a DAG of dependency *classes*, not an invented skill model.
  */
 import {ARTIFACT_CATALOG,EQUIPMENT_SET_CATALOG,SEASON_ARTIFACT_CATALOG} from "../vendor/account-catalog.js";
+import {resolveSetCompletionDates,resolveTranscendenceAge,heroWeaponEvidence} from "./account-temporal.js";
 
 const object=x=>x&&typeof x==="object";
 const byName=(catalog,value)=>{
@@ -23,10 +24,12 @@ export function bonusDependence(type){
 const NODES=Object.freeze([
  {id:"accountInventory",after:[]},
  {id:"ownedSetEffects",after:["accountInventory"]},
- {id:"artifactEffects",after:["accountInventory","ownedSetEffects"]},
+ {id:"uniquePermanentEffects",after:["accountInventory"]},
+ {id:"heroWeaponCollections",after:["accountInventory","ownedSetEffects","uniquePermanentEffects"]},
+ {id:"artifactEffects",after:["accountInventory","ownedSetEffects","uniquePermanentEffects"]},
  {id:"equipmentGrantedLevels",after:["accountInventory","ownedSetEffects"]},
  {id:"gemstoneEffectiveLevels",after:["ownedSetEffects","artifactEffects","equipmentGrantedLevels"]},
- {id:"heroEffectiveLevels",after:["ownedSetEffects","artifactEffects"]},
+ {id:"heroEffectiveLevels",after:["ownedSetEffects","artifactEffects","heroWeaponCollections"]},
  {id:"petEffectiveLevels",after:["gemstoneEffectiveLevels","equipmentGrantedLevels","ownedSetEffects","artifactEffects"]},
  {id:"equipmentEffectiveBonuses",after:["gemstoneEffectiveLevels","equipmentGrantedLevels","heroEffectiveLevels","ownedSetEffects","artifactEffects","petEffectiveLevels"]},
  {id:"skillEffects",after:["petEffectiveLevels","equipmentEffectiveBonuses","heroEffectiveLevels"]},
@@ -34,15 +37,29 @@ const NODES=Object.freeze([
 ]);
 export function accountDependencyGraph(profile){
  const sets=[],artifacts=[],unknown=[];
+ const setDates=resolveSetCompletionDates(profile);
+ const transcendence=resolveTranscendenceAge(profile);
+ const heroWeapons=heroWeaponEvidence(profile);
+ const uniqueOwned=new Set((profile?.sections?.uniqueEquipment?.records||[]).map(x=>String(x.id)));
+ let ignoredTimedEffects=0;
  for(const id of profile?.ownedSetIds||[]){
   const data=byName(EQUIPMENT_SET_CATALOG,id);
   if(!data){unknown.push({system:"set",id,reason:"not-in-dataset"});continue;}
+  if(data.type==="Unique")uniqueOwned.add(data.id);
   sets.push({id:data.id,kind:data.type,enabled:data.enabled,
-   effects:data.bonuses.map(effect=>({
-    type:effect.type,dependsOn:bonusDependence(effect.type),
-    rawAmount:effect.amount,rawInc:effect.inc,rawExpo:effect.expo,
-    numericalStatus:"requires-verified-scaling"
-   }))});
+   completion:setDates[id]||null,
+   effects:data.bonuses.map(effect=>{
+    const perDay=effect.perDay===true;
+    if(perDay)ignoredTimedEffects++;
+    return {type:effect.type,dependsOn:bonusDependence(effect.type),
+     rawAmount:effect.amount,rawInc:effect.inc,rawExpo:effect.expo,
+     perDay,maxValue:effect.maxValue??null,
+     numericalStatus:perDay
+      ?setDates[id]?.days===null||setDates[id]?.days===undefined
+       ?"ignored-missing-set-completion-date"
+       :"ignored-per-day-formula-unverified"
+      :"requires-verified-scaling"};
+   })});
  }
  for(const [section,catalog] of [
   ["artifacts",ARTIFACT_CATALOG],["seasonArtifacts",SEASON_ARTIFACT_CATALOG]
@@ -50,10 +67,14 @@ export function accountDependencyGraph(profile){
   for(const entry of profile?.sections?.[section]?.records||[]){
    const item=byName(catalog,entry.id);
    if(!item){unknown.push({system:section,id:entry.id,reason:"not-in-dataset"});continue;}
+   const perSeasonDay=String(item.bonusType).includes("PerSeasonDay");
    artifacts.push({id:item.id,name:item.name,level:entry.level??null,
     enchanted:entry.enchanted??null,type:item.bonusType,
-    dependsOn:bonusDependence(item.bonusType),
-    numericalStatus:"requires-verified-artifact-formula"});
+    dependsOn:bonusDependence(item.bonusType),perSeasonDay,
+    seasonDays:perSeasonDay?transcendence.days:null,
+    numericalStatus:perSeasonDay&&transcendence.days===null
+     ?"ignored-missing-transcendence-start"
+     :"requires-verified-artifact-formula"});
   }
  }
  const seen=new Set();
@@ -65,6 +86,8 @@ export function accountDependencyGraph(profile){
  const groups=[...new Set([...sets.flatMap(s=>s.effects.map(e=>e.dependsOn)),
   ...artifacts.map(a=>a.dependsOn)])];
  return {nodes:NODES,order:NODES.map(n=>n.id),sets,artifacts,groups,unknown,
+  uniquePermanentOwnership:[...uniqueOwned],heroWeapons,transcendence,
+  ignoredTimedEffects,
   ready:false,unmodeledEffects:
    sets.reduce((sum,x)=>sum+x.effects.length,0)+artifacts.length,
   warning:"Source catalog and dependency order are known; numerical effect formulas and stacking are not fully validated."};

@@ -15,6 +15,7 @@ const SOURCE_SECTIONS=Object.freeze({
  monuments:["monuments","Monuments"],
  seasonArtifacts:["seasonArtifacts","SeasonArtifacts","seasonalArtifacts","SeasonalArtifacts","transcendentArtifacts","TranscendentArtifacts"],
  heroWeapons:["heroWeapons","HeroWeapons","heroWeaponLevels","HeroWeaponLevels"],
+ uniqueEquipment:["uniqueEquipment","UniqueEquipment","ownedUniqueEquipment","OwnedUniqueEquipment"],
  equipmentSets:["equipmentSets","EquipmentSets"],
  equippedGear:["equippedEquipment","EquippedEquipment","equippedGear","EquippedGear"],
  equipmentInventory:["equipmentInventory","EquipmentInventory","ownedEquipment","OwnedEquipment","equipmentItems","EquipmentItems","equipment","Equipment"]
@@ -46,6 +47,18 @@ const itemId=x=>{
   const v=safeName(x[k]);if(v!==null)return v;
  }
  return null;
+};
+const dateText=value=>{
+ if(typeof value==="number"&&Number.isFinite(value)&&value>=946684800){
+  const ms=value<1e12?value*1000:value;
+  const d=new Date(ms);
+  return Number.isFinite(d.getTime())?d.toISOString():null;
+ }
+ if(typeof value!=="string"||value.length>40)return null;
+ const v=value.trim();
+ if(!/^\d{4}-\d{2}-\d{2}(?:T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?(?:Z|[+-]\d{2}:\d{2}))?$/.test(v))return null;
+ const d=new Date(v);
+ return Number.isFinite(d.getTime())?d.toISOString():null;
 };
 const RECORD_FIELDS={
  level:["level","Level","lvl","Lvl","lv","Lv","upgradeLevel","UpgradeLevel"],
@@ -82,13 +95,21 @@ function extractRecord(rawId,item){
   name:["name","Name","displayName","DisplayName"],
   rarity:["rarity","Rarity"],
   bonusType:["bonusType","BonusType","primaryType","PrimaryType","BonusTypeA"],
-  bonusAmount:["bonusAmount","BonusAmount","primaryAmount","PrimaryAmount","A","a"]
+  bonusAmount:["bonusAmount","BonusAmount","primaryAmount","PrimaryAmount","A","a"],
+  setId:["setId","SetId","equipmentSet","EquipmentSet","setName","SetName"]
  };
  for(const [key,aliases] of Object.entries(metadata)){
   const selected=field(item,aliases);
   if(!selected.present)continue;
   const value=key==="bonusAmount"?numericText(selected.value):safeName(selected.value);
   if(value!==null)record[key]=value;
+ }
+ for(const [key,aliases] of Object.entries({
+  acquiredAt:["acquiredAt","AcquiredAt","acquiredAtUtc","AcquiredAtUtc","obtainedAt","ObtainedAt","acquisitionDate","AcquisitionDate"],
+  completedAt:["completedAt","CompletedAt","completionDate","CompletionDate","setCompletedAt","SetCompletedAt"]
+ })){
+  const found=field(item,aliases);
+  if(found.present){const date=dateText(found.value);if(date)record[key]=date;}
  }
  const enchanted=field(item,["enchanted","Enchanted","isEnchanted","IsEnchanted","e"]);
  if(enchanted.present&&[true,false,0,1,"0","1"].includes(enchanted.value))
@@ -117,6 +138,7 @@ const STATS=Object.freeze({
  heroWeaponUpgrades:["Hero Weapon Upgrades","HeroWeaponUpgrades"],
  clanScrollUpgrades:["Clan Scroll Upgrades","ClanScrollUpgrades"],
  totalPetLevels:["Total Pet Levels","TotalPetLevels"],
+ transcendenceSeason:["Transcendence Season","TranscendenceSeason","SeasonNumber"],
  necrobearLevel:["Necrobear Level","NecrobearLevel"]
 });
 export function parseAccountProfile(data){
@@ -134,10 +156,14 @@ export function parseAccountProfile(data){
   const text=numericText(primary.present?primary.value:secondary.value);
   if(text!==null)selectedStats[key]=text;
  }
+ const seasonDate=field(stats,["TranscendenceStartDate","SeasonStartDate","SeasonStartedAt"]);
+ const seasonTopDate=field(data,["TranscendenceStartDate","SeasonStartDate","SeasonStartedAt"]);
+ const transcendenceStartedAt=dateText(seasonDate.present?seasonDate.value:seasonTopDate.value);
  // Permanent progression is an immutable input snapshot, never a candidate
  // search dimension. Gear/pet changes must not mutate gems or Necrobear.
- const fixedSystems=["artifacts","seasonArtifacts","gemstones","mysticResearch","titanCards","forbiddenResearch","titanResearch","petLevels","passiveSkills","monuments","heroWeapons"];
+ const fixedSystems=["artifacts","seasonArtifacts","gemstones","mysticResearch","titanCards","forbiddenResearch","titanResearch","petLevels","passiveSkills","monuments","heroWeapons","uniqueEquipment"];
  return {schema:"tt2-account-profile-v1",
+  dates:transcendenceStartedAt?{transcendenceStartedAt}:{},
   gameVersion:safeName(data.Version??data.version)??null,
   sections,stats:selectedStats,
   fixedSystemKeys:fixedSystems,
