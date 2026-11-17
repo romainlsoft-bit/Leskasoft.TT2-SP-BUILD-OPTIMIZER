@@ -63,7 +63,10 @@ export function parseExport(source){
     skillPoints:Number.isFinite(Number(skillPoints))?Number(skillPoints):null,
     maxStage:Number(stats["Max Prestige Stage"]??stats.MaxStage??0)||0,
     craftingPower:Number(stats["Crafting Power"]??stats.CP??1)||1,
-    sets:Object.fromEntries(Object.entries(EXPORTED_SETS).map(([gameId,key])=>[key,sets.has(gameId)||Boolean(stats[key])])),
+    // Explicitly false string values must not activate otherwise absent sets.
+    sets:Object.fromEntries(Object.entries(EXPORTED_SETS).map(([gameId,key])=>[
+      key,sets.has(gameId)||[true,1,"true","TRUE","1"].includes(stats[key])
+    ])),
     damage:DAMAGE_TYPES.includes(stats.typeDamage)?stats.typeDamage:null,
     gold:GOLD_TYPES.includes(stats.typeGold)?stats.typeGold:null,
     importedVersion:data.Version||stats.buildVersion||null,

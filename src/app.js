@@ -126,6 +126,7 @@ function renderAccountProfile(){
   petLevels:"Pets",passiveSkills:"Passive skills",monuments:"Monuments",
   seasonArtifacts:"Seasonal artifacts",heroWeapons:"Hero weapons",clanScrolls:"Clan Scrolls",
   uniqueEquipment:"Owned unique equipment",equipmentSets:"Owned equipment sets",
+  equipmentHistory:"Equipment acquisition history",
   equippedGear:"Equipped gear",equipmentInventory:"Equipment inventory"
  };
  const found=profileCoverage(profile);

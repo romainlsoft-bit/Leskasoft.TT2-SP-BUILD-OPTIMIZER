@@ -54,6 +54,7 @@ export function accountDependencyGraph(profile){
   if(!data){unknown.push({system:"set",id,reason:"not-in-dataset"});continue;}
   if(data.type==="Unique")uniqueOwned.add(data.id);
   sets.push({id:data.id,kind:data.type,enabled:data.enabled,
+   permanentAfterSale:true,ownershipSource:"unlocked-set-collection",
    completion:setDates[id]||null,
    effects:data.bonuses.map(effect=>{
     const perDay=effect.perDay===true;
