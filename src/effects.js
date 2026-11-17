@@ -8,7 +8,8 @@ import { reductions } from "../vendor/reductions.js";
 import { spellInfo, spell_reductions } from "../vendor/spells.js";
 import {spellTableIndex} from "./spell-caps.js";
 import { clone } from "../vendor/clone.js";
-import {petCombatTechniquesIncrement,petEquipmentCombatTechniquesIncrement} from "./pet-scenarios.js?v=20261117-per-set-counts";
+import {petCombatTechniquesIncrement,petEquipmentCombatTechniquesIncrement} from "./pet-scenarios.js?v=20261117-skill-sp-sets";
+import {skillTreeSetScore} from "./skill-tree-set-effects.js";
 
 const num=(v,fallback=0)=>{ const x=Number(v); return Number.isFinite(x)?x:fallback; };
 const lg=v=>Math.log10(num(v)>0?num(v):1);
@@ -35,7 +36,7 @@ function lightningStrike(info,level,settings) {
   };
   return one(level)-one(0);
 }
-export function scoreAtLevel(id,level,settings){
+function sourceSkillScoreAtLevel(id,level,settings){
   if(level===0)return 0;
   const info=skillInfo[id];
   if(!info||!Number.isInteger(level)||level<0||level>Number(info.MaxLevel))throw new Error("Invalid talent level: "+id);
@@ -123,6 +124,17 @@ export function scoreAtLevel(id,level,settings){
       return r*lr(logA)+additional;
     }
   }
+}
+/**
+ * SP-tree set bonuses are marginal benefits of investment in this exact
+ * branch, and therefore must be added *inside* the DP scoreAtLevel table.
+ * Never add them to the fixed account baseline (that would leave optimum
+ * SP allocations unchanged and double count their final multiplier).
+ */
+export function scoreAtLevel(id,level,settings){
+ const baseline=sourceSkillScoreAtLevel(id,level,settings);
+ if(level===0)return baseline;
+ return baseline+skillTreeSetScore(id,level,settings);
 }
 export function assertFiniteScores(ids,settings){
   const issues=[];

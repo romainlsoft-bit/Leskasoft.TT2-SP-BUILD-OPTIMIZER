@@ -309,3 +309,43 @@ disclose when the count is not verified.
 **The public release gate is still closed.** Recomputing these immutable
 account constants does not prove a better marginal SP allocation or accurate
 stage prediction. No deploy from PR #18.
+
+
+## Batch D — six source-verified skill-tree bonuses per allocated SP
+
+Official Game Hive DevLog #140:
+https://gamehive.com/blog/devlog-140-version-6-2-0-patch-notes/
+
+The six Mythic sets `FairyKnight`, `FireKnight`,
+`ElectricWarlord`, `WaterSorcerer`, `EarthRogue`,
+`SteampunkKnight` each grant **×1.01 All Damage per actual skill point
+allocated to their corresponding skill tree**. The versioned 8.4 catalog
+uses `SkillTree*AllDamage` effect types; `Inc=1` means the factor is
+independent of Crafting Power.
+
+`src/skill-tree-set-effects.js` resolves proven completed-set ownership
+(not live gear), maps the six types onto six branches and uses the exact
+`Co0..CoN` cumulative source cost for every skill level. The new term
+is incorporated **before optimization** inside `scoreAtLevel` rather
+than incorrectly appended as a fixed account constant. Diagnostics
+include per-branch spending, coefficients and total modeled effect.
+The UI also discloses unverified ownership when the set collection is
+absent, without inferring sets or asking for interminable manual values.
+
+**Important:** for users owning *all six* sets and spending exactly the
+same total SP, the per-SP addition is constant across branches. For
+partial Mythic ownership it can alter which branch receives the next
+SP. It still does not imply an accurate stage predictor.
+
+Verification:
+- Focused V8 checks: **5,184 / 5,184** on the 72 current source skills,
+  18 Damage/Gold combinations and levels 0/1/5/Max, with actual
+  8.4 vendor skill/bonus tables, checking the incremental difference
+  precisely equals `log10(1.01) × cumulative allocated SP`.
+- `tests/skill-tree-set-effects.test.js`: all 6 branches, 18 combo
+  optimizer integrations, ownership permanence, missing/truncated roster,
+  no double accounting, per-branch report.
+- Must still run full `npm test`, `npm run check:data` and high-SP
+  benchmark on CI. No direct game parity proof yet.
+
+**PR #18 remains DRAFT; all release gates remain open.**
