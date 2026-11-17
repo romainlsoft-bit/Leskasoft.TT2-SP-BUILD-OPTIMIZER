@@ -268,3 +268,61 @@ without the precise equipped item and its supported mechanics.
 
 Source: https://github.com/rawrzcookie/TT2_CSV/blob/main/csv/EndgamePetInfo.csv
 Official: https://gamehive.com/blog/devlog-149-version-6-6-0-patch-notes/
+
+
+## 17 November 2026 — six Mythic skill-tree damage-per-SP effects
+
+**Source-backed nonconstant objective term.** Game Hive DevLog #140 (version
+6.2.0, 5 September 2023) explicitly replaced Tier-4 bonus levels on six
+Mythic sets with **×1.01 All Damage per skill point assigned to a specific
+skill tree**:
+https://gamehive.com/blog/devlog-140-version-6-2-0-patch-notes/
+
+The 8.4 EquipmentSetInfo.csv includes `SkillTreeKnightAllDamage`,
+`SkillTreePetAllDamage`, `SkillTreeWarlordAllDamage`,
+`SkillTreeSorcererAllDamage`, `SkillTreeRogueAllDamage` and
+`SkillTreeAlchemistAllDamage`. All six rows have `Amount=1.01`,
+`Inc=1`, `Expo=1` and are independent of Crafting Power. They
+respectively amplify Red/Knight, Orange/Summoner, Yellow/Warlord,
+Blue/Sorcerer, Green/Rogue, Purple/Alchemist **skill-point spending**.
+
+A skill candidate at level L costs the cumulative source SP
+`sum(Co0...Co[L-1])`. The exact modeled marginal term, in log10 units, is
+
+```text
+  skillLevelSetBonus(skill, L) =
+    cumulativeSpentSP(skill, L) × log10(1.01)
+      if its matching Mythic set is explicitly completed,
+    0 otherwise
+```
+
+The independent score sum over each branch is `log10(1.01) ×
+totalSpentSPInThatBranch`. Ownership is taken ONLY from the unlocked-set
+collection; present inventory pieces are not used to guess completed sets.
+Sold items do not reduce the permanent bonuses. If all six sets are
+completed and the solver spends the same total SP, this source contribution
+is the **same across all branch allocations**, so it does **not** alter
+relative scores between those allocations. If some sets are missing, the
+branch-specific coefficients differ and the best allocation **can** change.
+
+This value belongs **inside the marginal DP score**, not in the
+`fixedAccount` constant or the equipped-item score. There is no additional
+global multiplier when calculating the output. The per-branch score and
+SP count appear in `accountIntegration.skillTreeSetPower`.
+
+Evidence:
+- Official Game Hive release note (linked above).
+- Version-pinned 8.4 `vendor/account-catalog.js` and
+  `vendor/skills.js`, with source amounts, branches and cumulative SP costs.
+- `tests/skill-tree-set-effects.test.js`: six catalog rows, sold pieces,
+  inventory-only negatives, duplicate ids, incomplete ownership lists,
+  six branch score comparisons and 18 Damage × Gold combinations.
+- V8 local verification of **5,184** comparative source-score evaluations:
+  all passed and finite. This verifies the scoped arithmetic,
+  **not** full game-stage simulation or all other skill multipliers.
+
+Remaining high-priority skill dependencies: the two Contract skills,
+Terrifying Pact's conditional activation/mana, per-slot pet boosts,
+supported nonmultiplicative skill-class boosters, spell uptime,
+Hero damage source reductions, and HP/stage calibration. The release
+gate remains closed.

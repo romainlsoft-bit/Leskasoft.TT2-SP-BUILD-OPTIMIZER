@@ -14,7 +14,7 @@
  * Do not add another fixedAccountScore here, nor multiply these values by
  * account Gemstone levels. Both would double-count existing contributions.
  */
-import {petScenarioScore,availablePets} from "./pet-scenarios.js?v=20261117-per-set-counts";
+import {petScenarioScore,availablePets} from "./pet-scenarios.js?v=20261117-skill-sp-sets";
 
 function finite(value,label){
  if(typeof value!=="number"||!Number.isFinite(value))
@@ -66,6 +66,8 @@ export function modeledScenarioCoverage(result,settings,gearSelection={}){
  if(uncertainOwnedSetCounts)gaps.push("unverified-set-ownership-counts");
  if(conflictingCraftingPower)gaps.push("conflicting-crafting-power-input");
  if(invalidDamagePet||invalidGoldPet)gaps.push("invalid-selected-pet");
+ if(result?.accountIntegration?.skillTreeSetPower?.completedSetRosterPresent===false)
+  gaps.push("unknown-skill-tree-set-ownership");
  if(unresolvedAccountEffects||unknownCatalogIds)gaps.push("incomplete-account-formulas");
  // A structurally complete export is not a calibrated game simulation.
  gaps.push("unverified-stage-HP-and-cross-skill-interactions");
