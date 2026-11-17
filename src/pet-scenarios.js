@@ -8,26 +8,12 @@ import {PETS} from "../vendor/pets.js";
 import {TRANSCENDENT_PETS} from "../vendor/transcendent-pets.js";
 
 export const ALL_PETS=Object.freeze({...PETS,...TRANSCENDENT_PETS});
-const PET_LOOKUP=Object.freeze(Object.fromEntries(Object.values(ALL_PETS).map(p=>[p.name.toLowerCase(),p])));
 import {skillInfo} from "../vendor/skills.js";
 import {petTier,petArtifactAmplifiers,logPassivePetMultiplier} from "./pet-amplifiers.js";
+import {petLevelEvidence} from "./account-pet-levels.js";
 export {petTier,petArtifactAmplifiers,logPassivePetMultiplier} from "./pet-amplifiers.js";
 const finite=v=>{const n=Number(v);return Number.isFinite(n)?n:0;};
-const levelsCache=new WeakMap();
-function petLevels(profile){
- if(profile&&typeof profile==="object"&&levelsCache.has(profile))
-  return levelsCache.get(profile);
- const result=Object.create(null);
- const records=profile?.sections?.petLevels?.records;
- if(!Array.isArray(records)){if(profile&&typeof profile==="object")levelsCache.set(profile,result);return result;}
- for(const row of records){
-  const pet=ALL_PETS[row.id]||PET_LOOKUP[String(row.id).toLowerCase()];
-  const level=finite(row.level);
-  if(pet&&level>0)result[pet.id]=Math.min(100000,level);
- }
- if(profile&&typeof profile==="object")levelsCache.set(profile,result);
- return result;
-}
+const petLevels=profile=>petLevelEvidence(profile).levels;
 export function availablePets(profile){
  const levels=petLevels(profile);
  return Object.values(ALL_PETS).filter(pet=>levels[pet.id]>0).map(pet=>({
@@ -176,8 +162,11 @@ export function petPassiveEvidence(profile){
    appliedToScore:modeled&&DIRECT_PASSIVE.has(pet.type),
    petAttackDamageModeled:false});
  }
+ const evidence=petLevelEvidence(profile);
  return {entries,byType,imported:entries.length,
   scored:entries.filter(x=>x.appliedToScore).length,
+  rejectedLevels:evidence.rejected,
+  duplicateMirrors:evidence.duplicateMirrors,
   unknownAmplifiers:boosts.unknown,unmodeled,
   complete:false};
 }

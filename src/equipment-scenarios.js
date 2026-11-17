@@ -7,8 +7,9 @@
  */
 import {ARTIFACT_CATALOG} from "../vendor/account-catalog.js";
 import {calculatePermanentArtifactEffects} from "./account-artifacts.js";
-import {petPassiveEvidence,logPassivePetMultiplier} from "./pet-scenarios.js";
-import {extractFixedAccountPower} from "./account-power.js";
+import {petPassiveEvidence,logPassivePetMultiplier} from "./pet-scenarios.js?v=20261117-pet-integrity";
+import {petLevelEvidence} from "./account-pet-levels.js";
+import {extractFixedAccountPower} from "./account-power.js?v=20261117-pet-integrity";
 const CATEGORIES=["Sword","Helmet","Armor","Aura","Slash"];
 const GUNBLADE_BUILDS=new Set(["Dagger","Heavenly Strike","Gold Gun","Shadow Clone"]);
 const officialSlots={...Object.fromEntries(CATEGORIES.map(x=>[x.toLowerCase(),x])),
@@ -208,8 +209,13 @@ export function gearSelectionEffects(profile,settings,selection={}){
  return {selected,independentScore,
   petEquipmentSlotWeights:petWeights,
   petEquipmentPassiveWeights:passiveWeights,
-  petEquipmentCoverageComplete:profile?.sections?.petLevels?.present===true&&
+  // A present pet section is not necessarily a complete Exotic roster.
+  // Unknown levels must not permit the solver to discard existing CT SP.
+  petEquipmentCoverageComplete:petLevelEvidence(profile).trustworthy&&
+   ["Pet26","Pet27","Pet28","Pet29","Pet30"].every(id=>
+    Object.hasOwn(petLevelEvidence(profile).levels,id))&&
    profile?.sections?.equipmentInventory?.present===true&&
+   profile?.sections?.equipmentInventory?.truncated!==true&&
    CATEGORIES.every(slot=>selected[slot]?.primaryModeled===true)};
 }
 export const EQUIPMENT_CATEGORIES=CATEGORIES;

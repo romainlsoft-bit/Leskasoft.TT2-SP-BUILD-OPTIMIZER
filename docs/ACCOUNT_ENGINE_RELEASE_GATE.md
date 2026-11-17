@@ -151,3 +151,14 @@ However, fixed multipliers can change the ranking **across damage and gold sourc
 - Source terminology / keywords and references are recorded in `docs/SEO_KEYWORDS.md`.
 
 **The public release gate remains closed. Keep PR #17 draft; do not merge or deploy.**
+
+## Pet-level import integrity and Combat Techniques gate — 17 Nov 2026
+
+- All 45 catalog pets (30 permanent, 15 seasonal) now share one canonical level ledger. Pet names and IDs are normalized to the same key, and equal mirrors are counted once. Contradictory, fractional, negative, missing or over-100,000 levels are excluded instead of silently overwriting a previous row; zero-level seasonal pets remain known but cannot be equipped or ranked.
+- A truncated pet export cannot safely be scored, because omitted rows might contradict already seen levels. Such a section contributes no pet levels and appears as unresolved account evidence.
+- The fixed-power report now carries rejected pet-level evidence and mirrored count; the web import summary displays a translated warning (EN/FR/UK/RU) when records are excluded. No rejected pet is given an invented passive, selected-pet bonus, or Exotic gear amplification.
+- `Combat Techniques` is marked fully covered only if all five Exotic equipment-pet level IDs (Pet26–Pet30) are explicitly represented without import conflicts, and all five selected equipment primaries have modeled values. A merely present or partial `petLevels` section is not enough to permit destructive reallocation of existing SP.
+- The browser/worker module versions were updated to keep the pet level ledger, UI, score and equipment gate on the same code revision.
+- Added dedicated regression cases for canonical alias mirrors, contradictions, invalid values, seasonal reset, section truncation, two-slot recommendations and Combat Techniques coverage, in `tests/pet-level-evidence.test.js`. Ten focused tests of the staged canonical importer against the real vendor pet catalogs passed in a V8 sandbox. The full Node suite and browser/real-stage comparisons remain pending.
+
+**Release gate remains closed; PR #17 stays in draft.**
