@@ -7,6 +7,7 @@ import {rawDamageLog10,additiveDamageEvidence,log10Sum} from "../src/account-dam
 import {monumentDerivedPower} from "../src/account-monument-derived.js";
 import {extractFixedAccountPower,fixedAccountScore} from "../src/account-power.js";
 import {optimizeBuild,DAMAGE_TYPES,GOLD_TYPES} from "../src/engine.js";
+import {resolvePermanentSetPower} from "../src/account-permanent-sets.js";
 
 const NOW=new Date("2026-11-17T00:00:00Z");
 const close=(a,b)=>Number.isFinite(a)&&Number.isFinite(b)&&
@@ -228,7 +229,15 @@ test("all 18 damage/gold combinations route ONE additive Monument Damage score",
    skillPoints:30,qol:"none",sets:{},minimums:{},currentLevels:{},
    craftingPower:1,maxStage:0,timeToKill:8,sClone:30};
   const optimized=optimizeBuild(settings);
-  const expected=fixedAccountScore(base,settings);
+  const baseline=fixedAccountScore(base,settings);
+  const permanent=resolvePermanentSetPower(profile,settings);
+  const sets=fixedAccountScore({available:permanent.appliedDirect>0,
+   byType:permanent.byType},settings);
+  const expected={
+   damageLog10:baseline.damageLog10+sets.damageLog10,
+   goldLog10:baseline.goldLog10+sets.goldLog10,
+   weightedLog10:baseline.weightedLog10+sets.weightedLog10
+  };
   assert.ok(close(optimized.fixedAccount.damageLog10,expected.damageLog10),
    damage+"/"+gold+" damage");
   assert.ok(close(optimized.fixedAccount.goldLog10,expected.goldLog10),

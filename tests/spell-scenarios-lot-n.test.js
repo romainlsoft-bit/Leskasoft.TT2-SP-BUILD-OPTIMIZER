@@ -129,7 +129,7 @@ test("contract mana growth and multicast are not promoted to sustained uptime",(
  const m=resolveManaEvidence(base,{},null,{
   assumptions:{maximumRampReached:true},baseDrain:{combined:0.55}});
  assert.equal(m.initialContractDrainPerSecond,0.55);
- assert.equal(m.spellManaCostOneCast,null);
+ assert.equal(m.spellManaCostOneCastEach,null);
  assert.equal(m.simulatedCastTimeline,false);
  assert.equal(m.notes.includes("contract-mana-drain-grows-over-time"),true);
 });

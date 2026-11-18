@@ -188,7 +188,9 @@ test("max spell caps: 30 base, +5 set, +5 tier five, A39 is level 40",()=>{
  assert.equal(full.spells.BurstDamage.tabulatedLevel,40);
  assert.equal(full.spells.BurstDamage.unmodeledLevels,0);
  assert.equal(full.spells.ShadowClone.cap,35);
- assert.equal(full.complete,true);
+ assert.equal(full.complete,false);
+ assert.equal(full.activeStateVerified,false);
+ assert.equal(full.equippedSlotsVerified,false);
  assert.equal(resolveSpellCaps({maxStage:12000},{}).assumeAllActive,false);
 });
 
@@ -419,7 +421,8 @@ test("conflicting monument entries, mismatched seasons and invalid levels are ex
  const over=parseAccountProfile({monuments:{SeasonalArtifact8:41}});
  assert.equal(resolveMonumentEvidence(over).entries[0].formulaStatus,"ignored-missing-or-invalid-level");
  const noAge=parseAccountProfile({monuments:{SeasonalArtifact8:3}});
- assert.equal(resolveMonumentEvidence(noAge).entries[0].formulaStatus,"ignored-missing-transcendence-age");
+ assert.equal(resolveMonumentEvidence(noAge).entries[0].formulaStatus,"unknown-season-category");
+ assert.equal(resolveMonumentEvidence(noAge).seasonVerified,false);
 });
 test("uncapped monuments preserve scientific levels and inactive monuments do not score",()=>{
  const p=parseAccountProfile({monuments:{
@@ -614,7 +617,10 @@ test("inconsistent mirror research and same-section duplicates are excluded",()=
  const merged=mergeTitanResearch(p);
  assert.deepEqual(merged.records.map(x=>x.id),["17"]);
  assert.equal(merged.unknown.length,2);
- assert.equal(resourceResearchEvidence(p).titanSouls.bonusPerDay,20);
+ const resources=resourceResearchEvidence(p);
+ assert.equal(resources.titanSouls.bonusPerDay,null);
+ assert.equal(resources.titanSouls.totalsVerifiable,false);
+ assert.ok(resources.entries.some(row=>row.id==="17"&&row.amount===20));
  assert.equal(extractFixedAccountPower(p).entries.filter(x=>x.system==="titanResearch"&&x.id==="2").length,0);
 });
 test("invalid research purchases never grant power or resource income",()=>{
@@ -622,9 +628,11 @@ test("invalid research purchases never grant power or resource income",()=>{
   {id:"0",level:31},{id:"2",level:10},{id:"2",level:10}
  ],titanResearch:{"1":{level:4},"6":{level:-2}}});
  const e=resourceResearchEvidence(p);
- assert.equal(e.gemstones.extraLevelsFromResearch,0);
- assert.equal(e.titanSouls.bonusPerDay,0);
- assert.equal(e.titanSouls.rawChanceBonusFraction,0);
+ assert.equal(e.gemstones.extraLevelsFromResearch,null);
+ assert.equal(e.titanSouls.bonusPerDay,null);
+ assert.equal(e.titanSouls.rawChanceBonusFraction,null);
+ assert.equal(e.gemstones.totalsVerifiable,false);
+ assert.equal(e.titanSouls.totalsVerifiable,false);
  assert.ok(e.unknown.length>=4);
  assert.equal(e.complete,false);
 });

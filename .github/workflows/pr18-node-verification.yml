@@ -27,3 +27,11 @@ jobs:
         if: always()
         timeout-minutes: 20
         run: npm run bench:22k -- --sp 22600
+      - name: 50000 SP 18-route benchmark
+        if: always()
+        timeout-minutes: 20
+        run: npm run bench:22k -- --sp 50000
+      - name: Pair-search smoke at 22600 SP
+        if: always()
+        timeout-minutes: 20
+        run: npm run bench:22k -- --sp 22600 --pair-search

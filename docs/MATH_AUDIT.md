@@ -848,3 +848,33 @@ n'est estimé. Tests Node déclarés sur le piège de maximum local, 3×3,
 Auras, intrants invalides, 18 routes. Le workflow de vérification
 Node/check:data/22 600 SP ne vaut preuve que si ses jobs réussissent.
 La PR demeure DRAFT et le benchmark in-game Pet/Fairy est obligatoire.
+
+
+## R — Native assertions aligned with conservative 8.4 source semantics
+
+The previously executed native Q workflow had 16 failures remaining
+among 363 tests. This lot resolves a genuine numerical omission:
+`Artifact29` / Drunken Hammer `TapDamage` is now admitted to the
+fixed artifact type ledger. Its own main effect is separately calculated
+from additive Artifact Damage, and receives its TapDmg build
+reduction in `fixedAccountScore` exactly once. It cannot turn
+into unconditional AllDamage or double-count the pet passive.
+
+Other fixed model semantics are *intentionally not relaxed* for
+tests: contradictory/truncated research yields unknown resource totals
+rather than zero or a partial favorable total; cap data alone
+does not verify active six-spell loadout or mana sustain; an active
+pet at level 100 has no incremental base-stat bonus above its full
+passive unless the equipped level is amplified. Permanent set bonuses
+belong in the engine's fixed score but not in the monument-only
+account baseline. Their per-rarity counts are now visible as
+read-only audit metadata.
+
+Static HTML tests now accept source-versioned JS/CSS, eight genuine
+canonical sitemap entries, and locale-preserving Leskasoft URLs
+rather than stale revisions. The pair-search benchmark is
+reconciled with the production worker: candidate gear envelope,
+complete shortlist of up to 3×3 and gear/SP recomputation per pair.
+**Neither native tests nor synthetic bench success certifies a
+predicted stage gain.** The Pet/Fairy regression and empirical
+crit/proc/mana/HP mechanics remain release gates.

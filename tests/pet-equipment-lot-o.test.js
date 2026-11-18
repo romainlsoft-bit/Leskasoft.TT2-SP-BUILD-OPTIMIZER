@@ -49,7 +49,11 @@ test("Active Hero pets and fractional Gold Gun Tap candidates are eligible, unow
  assert.ok(petCandidateEnvelope(s,"Pet13","damage"));
  assert.ok(petCandidateEnvelope(s,"SeasonalPet3","damage"));
  assert.equal(petCandidateEnvelope(s,"Pet14","damage"),null);
- assert.ok(petSlotScore({...s,selectedDamagePet:"Pet2"},"Pet2","damage")>0);
+ // Level 100 has a complete passive bonus (official Game Hive FAQ).
+ assert.equal(petSlotScore({...s,selectedDamagePet:"Pet2"},"Pet2","damage"),0);
+ const partial=parseAccountProfile({petLevels:{Pet2:20}});
+ assert.ok(petSlotScore({...cfg(partial,"Gold Gun"),selectedDamagePet:"Pet2"},
+  "Pet2","damage")>0);
  assert.equal(petCandidateEnvelope(cfg(p,"Clan Ship"),"Pet13","damage"),null);
  assert.ok(petCandidateEnvelope(cfg(p,"Clan Ship"),"Pet2","damage"));
 });

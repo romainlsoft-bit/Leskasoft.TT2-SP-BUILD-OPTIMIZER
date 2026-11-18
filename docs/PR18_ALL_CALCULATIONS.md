@@ -1024,3 +1024,75 @@ Sources : `vendor/reductions.js`, `vendor/pets.js`,
 (TT2 8.4), https://www.tt2-compendium.com/en/builds/build/cs-hog ,
 https://tap-titans-2.fandom.com/wiki/Equipment et
 https://gamehive.com/blog/devlog-239-version-840-patch-notes/ .
+
+
+## Lot R — 18 novembre 2026 : correction réelle TapDamage et validation native des anciens lots
+
+Le lot Q a permis une première exécution native des tests du dépôt :
+**347/363 tests réussis, 16 échecs** sur le SHA Q final, malgré la
+réussite de `check:data` et du benchmark synthétique à 22 600 SP (18 routes).
+Le lot R est la remise en cohérence du modèle et de ses tests historiques.
+
+### Effets réellement corrigés
+- **Drunken Hammer `Artifact29`** est un artefact permanent dont
+  `bonusType=TapDamage` en TT2 8.4. Son effet principal vérifié
+  (`1 + EffectPerLevel × Level^GrowthExpo`, enchantement explicitement
+  attesté et amplificateurs source le cas échéant) est désormais routé
+  dans `extractFixedAccountPower` comme **TapDamage**, puis réduit
+  **une seule fois** via `vendor/reductions.js:TapDmg` pour chaque
+  famille de dégâts. Ce n'est ni AllDamage ni un deuxième bonus de
+  la somme additive Artifact Damage ; les données conflictuelles
+  et tronquées ne sont pas artificiellement scorées.
+- **Sets permanents :** `optimizeBuild.accountIntegration.permanentSetPower`
+  expose les décomptes source par rareté, la quantité des cinq
+  effets « × par nombre de sets » et la complétude de la collection.
+  C'est un diagnostic sur un calcul existant, **pas un deuxième score**.
+- **Benchmark Pet × Gear × SP :** le mode `--pair-search` suit la
+  recherche du vrai worker (jusqu'à 9 paires shortlistées, équipement
+  reclassé pour chaque paire, poids convertis selon la source et
+  recomputation de l'optimisation SP et du registre). L'ancienne
+  recherche par alternance n'est plus utilisée dans ce benchmark.
+
+### Tests historiques réconciliés avec les invariants actuels
+
+- Une collection de ressources contradictoire ou partielle a
+  un total **inconnu (`null`)**, pas un total 0 ni la somme
+  favorable des seules lignes saines ; les lignes restent inspectables.
+- Un cap de sort 40 dans le CSV n'atteste pas les 6 slots actifs :
+  `complete=false` reste correct. Un pet au niveau 100 a
+  déjà 100 % de son bonus passif, donc sans amélioration du niveau
+  actif le bonus supplémentaire de sa sélection est **zéro**.
+- Le ledger d'optimisation inclut les bonus permanents de sets
+  en plus du ledger des artefacts/monuments ; la comparaison des
+  18 routes monumentaires tient désormais compte de **cette**
+  séparation, sans attribuer le set au Monument Damage.
+- L'export comporte 18 sections facultatives (dont `heroLevels`).
+  Les URLs d'import JS/CSS comportent volontairement une révision
+  cache-busting, le sitemap contient 4 racines et 4 guides SEO ;
+  les liens Leskasoft pointent vers `www.leskasoft.fr/{lang}`.
+  Les tests n'exigent plus d'anciens chemins obsolètes.
+- L'intitulé UI existant du contrôle de protection des skills dispose
+  de ses traductions FR/UK/RU ; **aucun nouvel avertissement technique**
+  n'est ajouté au parcours utilisateur.
+
+`tests/native-regressions-lot-r.test.js` couvre en plus la vraie
+route TapDamage, la prudence sur les recherches de ressources, le
+report des sets et l'absence de certitude sur les sorts. Le workflow
+CI Node 22 exécute `npm test`, `check:data`, benchmarks 22 600 et
+50 000 SP, plus `--pair-search`; seule l'exécution CI effective
+confirmera leur réussite.
+
+### Limites
+Le score log10 ne prédit toujours pas les stages. Les taux critiques,
+Jackpot, Multi Titan et dégâts d'attaque active des pets, mana/uptime,
+HP/stage et l'ancienne régression Pet/Fairy d'environ −2 000 stages
+restent à vérifier avec des sources TT2 8.4 et des parties réelles.
+Les benchmarks sans `--profile` sont synthétiques et ne représentent
+pas le vrai compte à 22 600 SP. Pas de fusion, de Ready for Review ni
+de déploiement Pages : la PR #18 reste DRAFT.
+
+Sources : `vendor/account-catalog.js`, `vendor/reductions.js` TT2 8.4 ;
+Game Hive Pets FAQ
+https://gamehive.helpshift.com/hc/en/3-tap-titans-2/faq/88-what-are-pets-and-how-do-i-level-them-up/ ;
+Drunken Hammer https://tap-titans-2.fandom.com/wiki/Drunken_Hammer ;
+Transcendence saison 13 https://www.reddit.com/r/TapTitans2/comments/1vlh4fk/ .
