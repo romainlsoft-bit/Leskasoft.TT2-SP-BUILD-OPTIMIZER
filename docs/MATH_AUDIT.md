@@ -1048,3 +1048,23 @@ budget swaps, skill floor preservation, HS-only CritDamage
 activation and all 18 damage/gold routes. This work is
 for **build ordering and SP allocation accuracy**, not
 a stage prediction engine. PR #18 stays DRAFT and unmerged.
+
+
+## W — final consistency pass: CT-sensitive gear must be recomputed
+
+The source-backed Pet/Equipment effect can depend on the optimized
+Combat Techniques level even when all five equipment IDs are unchanged.
+Previously the coordinate search considered *unchanged gear IDs*
+sufficient for convergence and could return CT=0 gear amplification
+against CT=40 skills. The loop now uses a compound state
+`[gearSignature,ctUsed]` and converges only when BOTH gear and CT
+remain unchanged. Cycle detection is equally CT-aware.
+
+Full owned gear enumeration also used to evaluate every fixed item
+combination at CT=0 only. Every enumerated assignment now undergoes
+its own CT-aware iterative skill optimization, with the best feasible
+score retained, and diagnostics distinguishing stable and cycling
+assignments. This fixes a real candidate ordering inconsistency,
+rather than extrapolating stage gains. Tests cover stable same-gear
+CT changes, all fixed assignments, nonconverged cycles and 9999
+log10 comparison bounds. No new multipliers, no deployment, PR DRAFT.

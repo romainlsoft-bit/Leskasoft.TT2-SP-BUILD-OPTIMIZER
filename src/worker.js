@@ -1,13 +1,13 @@
-import {optimizeBuild} from "./engine.js?v=20261118-final-v";
-import {petSearchPlan} from "./pet-scenarios.js?v=20261118-final-v";
-import {calculateModeledScenario} from "./calculation-ledger.js?v=20261118-final-v";
-import {selectPetPair} from "./pet-pair-search.js?v=20261118-final-v";
+import {optimizeBuild} from "./engine.js?v=20261118-final-w";
+import {petSearchPlan} from "./pet-scenarios.js?v=20261118-final-w";
+import {calculateModeledScenario} from "./calculation-ledger.js?v=20261118-final-w";
+import {selectPetPair} from "./pet-pair-search.js?v=20261118-final-w";
 import {bestEquipmentByCategory,gearSelectionEffects,petCandidateGearWeightEnvelope,
  enumerateOwnedGearAssignments}
- from "./equipment-scenarios.js?v=20261118-final-v";
+ from "./equipment-scenarios.js?v=20261118-final-w";
 import {refineCoupledGearAndSkills,enumerateJointGearAndSkills}
- from "./joint-candidate-search.js?v=20261118-final-v";
-import {modeledCandidateUpperBound} from "./model-score-bounds.js?v=20261118-final-v";
+ from "./joint-candidate-search.js?v=20261118-final-w";
+import {modeledCandidateUpperBound} from "./model-score-bounds.js?v=20261118-final-w";
 
 // Per-request cache: branch DP signatures must distinguish changes in pet,
 // equipment and the resulting Combat Techniques contribution.
