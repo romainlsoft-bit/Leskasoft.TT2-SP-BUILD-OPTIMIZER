@@ -62,6 +62,7 @@ export function modeledScenarioCoverage(result,settings,gearSelection={}){
  const activePetEvidence=petScenarioEvidence(settings);
  const hero=result?.accountIntegration?.heroProgression;
  const scroll=result?.accountIntegration?.clanScrollPower;
+ const conditionalSkills=result?.conditionalSkills;
  const spellScenario=result?.spellScenario;
  const manaEvidence=result?.manaEvidence;
  const conditionalProcs=resolveConditionalProbabilityEvidence(settings?.accountProfile,
@@ -72,6 +73,8 @@ export function modeledScenarioCoverage(result,settings,gearSelection={}){
  const heroHelmetUnverified=specializedHelmet&&!heroHelmetClassKnown;
  const gaps=[];
  if(!spellScenario?.selection?.valid)gaps.push("unverified-equipped-six-spell-loadout");
+ if(conditionalSkills?.unverified>0)
+  gaps.push("unverified-conditional-skill-multipliers");
  if(spellScenario?.appliedToScenario)
   gaps.push("unverified-spell-uptime-mana-and-cooldowns");
  if(manaEvidence?.sustainedContractManaVerified===false&&
@@ -180,6 +183,7 @@ export function modeledScenarioCoverage(result,settings,gearSelection={}){
   gearSearch:gearSelection.gearSearch??null,
   procChanceTalentProjectionIsUncalibrated:true,
   petAttackRateNotKnown:true,
+  conditionalSkillsUnverified:conditionalSkills?.unverified||0,
   unresolvedAccountEffects,unknownCatalogIds,
   safeForAutomaticGearRecommendation:inventoryPresent&&!inventoryTruncated&&
    !missingExplicitSelections&&!unknownGearPrimaries&&

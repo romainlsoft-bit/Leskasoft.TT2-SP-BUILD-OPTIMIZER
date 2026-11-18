@@ -13,6 +13,7 @@ import {extractTimedSetPower} from "./account-set-bonuses.js";
 import {resolvePermanentSetPower} from "./account-permanent-sets.js";
 import {skillTreeSetAllocationEvidence} from "./skill-tree-set-effects.js";
 import {resolveContractScenario} from "./contract-scenarios.js";
+import {conditionalSkillEvidence} from "./conditional-skill-evidence.js";
 
 export const GAME_VERSION = "8.4.0";
 export const DATASET_REVISION = "2026-09-18"; // SkillTreeInfo2.0.csv comparison
@@ -105,7 +106,8 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
   const combatContext={...settings,astralActivations,
     assumeHaystActive:settings.assumeHaystActive===true,
     assumeSnapActive:settings.assumeSnapActive===true,
-    assumeContractsAtMax:settings.assumeContractsAtMax===true};
+    assumeContractsAtMax:settings.assumeContractsAtMax===true,
+    assumeBossStunned:settings.assumeBossStunned===true};
   const current=levelsFrom(settings.currentLevels||{});
   const min=Object.fromEntries(SKILL_IDS.map(id=>[id,settings.preserveCurrent?current[id]:0]));
   // Protect current investments that the proxy deliberately scores as zero
@@ -123,7 +125,9 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
     ...(combatContext.assumeHaystActive?[]:["QuickFortune"]),
     ...(combatContext.assumeSnapActive?[]:["PhilosophersFlux"]),
     ...(astralActivations>0?[]:["HelperDmgQTE"]),
-    ...(combatContext.equipmentPetCoverageComplete===true?[]:["CombatTechniques"])
+    ...(combatContext.equipmentPetCoverageComplete===true?[]:["CombatTechniques"]),
+    ...(combatContext.assumeBossStunned?[]:["ClanShipStun"]),
+    "BossTimer","PoisonedBlade","KratosSummon"
   ];
   if(settings.protectUnmodeledSkills!==false&&!settings.preserveCurrent){
     for(const id of uncertainSkills){
@@ -233,13 +237,14 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
   const remainingUnmodeledEffects=Math.max(0,
    dependencyReport.unmodeledEffects-newlyResolvedSetEffects);
   const contractScenario=resolveContractScenario(result.levels,scoreContext);
+  const conditionalSkills=conditionalSkillEvidence(result.levels,scoreContext);
   const spellCaps=resolveSpellCaps(scoreContext,result.levels);
   const spellScenario=resolveSpellScenario(scoreContext,result.levels,spellCaps);
   const manaEvidence=resolveManaEvidence(scoreContext,result.levels,spellScenario,contractScenario);
   return {...result,prior:current,spent:points,remaining:SP-points,changes,branchTotals,protectedSkills,
     selectedSpellUnlocks,spellBaselineInvariantUnderSkillOptimization:
      spellSelection.valid&&!spellCapEvidenceIsIncomplete,
-    spellCaps,spellScenario,manaEvidence,contractScenario,
+    spellCaps,spellScenario,manaEvidence,contractScenario,conditionalSkills,
     accountIntegration:{
       skillTreeSetPower:{
        applied:skillTreeSetPower.applied,recognized:skillTreeSetPower.recognized,

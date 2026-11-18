@@ -93,6 +93,17 @@ function sourceSkillScoreAtLevel(id,level,settings){
     case "MPCapacityBoost":
     case "ManaStealSkillBoost":
       return 0;
+    // The native TT2 BonusInfo catalog marks these effects as conditional
+    // (stunned target, Shadow Clone active, applied dagger poison, Sprout
+    // stacks). A community reduction is not proof of 100% availability.
+    case "ClanShipStun":
+      return settings.assumeBossStunned===true?r*lr(logA):0;
+    case "BossTimer":
+    case "PoisonedBlade":
+    case "KratosSummon":
+      // The active-uptime, stack, or additive-percentage conversion has not
+      // been verified; never score a fabricated permanent multiplier.
+      return 0;
     case "ForbiddenContract":
     case "RoyalContract":
       // Damage, gold and mana assumptions are source-specific. Never treat
@@ -106,16 +117,12 @@ function sourceSkillScoreAtLevel(id,level,settings){
       // A = gold under Forbidden, B = damage under Royal. The solver may
       // award only those pieces whose corresponding contract is guaranteed.
       return contractSkillScore(id,level,settings);
-    case "PoisonedBlade":
-      return r*lr(n=>Math.log10(1+10*A(n)));
     case "HandOfMidasMultiCastSkillBoost": {
       const otherGold=settings.gold==="Chesterson"?0:1;
       const idx=n=>Math.max(0,Math.min(5,B(n)?B(n)+mc:0));
       return r*lr(n=>lg(mcA[idx(n)])+idx(n)*logA(n))
         +otherGold*goldWeight*lr(n=>lg(mcB[idx(n)]));
     }
-    case "KratosSummon":
-      return r*lr(n=>B(n)*logA(n));
     default: {
       const spells=spellMap[id];
       if(!spells)return r*lr(logA);
