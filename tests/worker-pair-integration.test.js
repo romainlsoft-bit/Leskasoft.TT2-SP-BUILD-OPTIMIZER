@@ -59,3 +59,24 @@ test("worker does not automatically invent an equipped item from truncated inven
  assert.equal(result.result.modeledScenario.coverage.inventoryTruncated,true);
  assert.equal(result.result.modeledScenario.selectedGearCount,0);
 });
+
+test("S: six owned pets trigger nine genuine gear/SP pair evaluations",async()=>{
+ const execute=await workerHarness();
+ const profile=parseAccountProfile({petLevels:{Pet1:130,Pet7:120,Pet13:110,Pet6:125,Pet12:115,Pet20:140},equipmentInventory:[
+ {id:"SwordAll",slot:"Sword",bonusType:"AllDamage",bonusAmount:"1e90"},
+ {id:"SwordTap",slot:"Sword",bonusType:"TapDamage",bonusAmount:"1e130"},
+ {id:"ArmorAll",slot:"Armor",bonusType:"GoldAll",bonusAmount:"1e60"},
+ {id:"ArmorFairy",slot:"Armor",bonusType:"FairyGold",bonusAmount:"1e80"}]});
+ const {result,responses}=execute("optimize-pet-scenarios",makeSettings(profile));
+ assert.equal(result?.ok,true,result?.error);
+ assert.deepEqual(result.petSearch.candidateCount,{damage:3,gold:3});
+ assert.equal(result.petSearch.uniqueEvaluations,9);
+ const updates=responses.filter(x=>x.progress?.phase==="pet-scenarios");
+ assert.deepEqual(updates.map(x=>x.progress.completed),[1,2,3,4,5,6,7,8,9]);
+ assert.ok(updates.every(x=>x.progress.total===9));
+ assert.equal(result.selectedPets.damage,result.result.modeledScenario.selectedDamagePet);
+ assert.equal(result.selectedPets.gold,result.result.modeledScenario.selectedGoldPet);
+ assert.ok(Number.isFinite(result.result.modeledScenario.totalLog10));
+ assert.ok(result.result.spent<=100);
+ assert.equal(result.result.modeledScenario.coverage.realStagePredictionValidated,false);
+});

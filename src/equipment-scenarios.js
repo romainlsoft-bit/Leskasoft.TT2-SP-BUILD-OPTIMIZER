@@ -334,7 +334,7 @@ export function gearSelectionEffects(profile,settings,selection={}){
  const inventoryTruncated=profile?.sections?.equipmentInventory?.truncated===true;
  const missingExplicitSelections=[];
  // A strong Aura can make a slightly weaker standalone Sword/Helmet/Slash
- // the better *combined* choice. Enumerate the bounded two-per-slot shortlist
+ // the better *combined* choice. Enumerate every bounded two-per-slot shortlist
  // instead of choosing every primary independently; honor manual selections.
  // This is NOT a global optimum proof over unexamined inventory candidates.
  const autoChoices={...Object.fromEntries(CATEGORIES.map(slot=>[
@@ -348,13 +348,12 @@ export function gearSelectionEffects(profile,settings,selection={}){
    return shortlist[slot]?.length?shortlist[slot]:[null];
   };
   let winning=-Infinity;
-  const armor=selection.Armor?
-   items.find(it=>it.uid===selection.Armor&&it.slot==="Armor")??null:
-   autoChoices.Armor;
-  const armorScore=armor?equipmentEffectScore(armor,settings,profile).score??0:0;
+  // Include up to two eligible armor alternatives in the bounded joint search.
+ for(const armor of options("Armor"))
   for(const sword of options("Sword"))
    for(const helmet of options("Helmet"))
     for(const slash of options("Slash")){
+     const armorScore=armor?equipmentEffectScore(armor,settings,profile).score??0:0;
      const gear={Sword:sword,Helmet:helmet,Slash:slash};
      const base=[sword,helmet,slash].reduce((sum,item)=>
       sum+(item?equipmentEffectScore(item,settings,profile).score??0:0),armorScore);

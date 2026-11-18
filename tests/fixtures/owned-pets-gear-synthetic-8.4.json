@@ -1,0 +1,54 @@
+{
+  "Version": "8.4.0",
+  "Skills": {},
+  "petLevels": {
+    "Pet1": 160,
+    "Pet7": 165,
+    "Pet13": 150,
+    "Pet6": 150,
+    "Pet12": 155,
+    "Pet20": 145
+  },
+  "equipmentInventory": [
+    {
+      "id": "Sword-All",
+      "slot": "Sword",
+      "bonusType": "AllDamage",
+      "bonusAmount": "1e70"
+    },
+    {
+      "id": "Sword-Tap",
+      "slot": "Sword",
+      "bonusType": "TapDamage",
+      "bonusAmount": "1e105"
+    },
+    {
+      "id": "Armor-All",
+      "slot": "Armor",
+      "bonusType": "GoldAll",
+      "bonusAmount": "1e50"
+    },
+    {
+      "id": "Armor-Fairy",
+      "slot": "Armor",
+      "bonusType": "FairyGold",
+      "bonusAmount": "1e60"
+    },
+    {
+      "id": "Slash-Pet",
+      "slot": "Slash",
+      "bonusType": "PetDamage",
+      "bonusAmount": "1e40"
+    },
+    {
+      "id": "Aura-Sword",
+      "slot": "Aura",
+      "bonusType": "SwordBoost",
+      "bonusAmount": "1e25"
+    }
+  ],
+  "playerStats": {
+    "Skill Points Owned": 120,
+    "Max Prestige Stage": 10000
+  }
+}

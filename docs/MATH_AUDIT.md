@@ -878,3 +878,15 @@ complete shortlist of up to 3×3 and gear/SP recomputation per pair.
 **Neither native tests nor synthetic bench success certifies a
 predicted stage gain.** The Pet/Fairy regression and empirical
 crit/proc/mana/HP mechanics remain release gates.
+
+
+## S — real shortlist integration coverage
+
+Native worker integration now tests six owned pets and competing gear primaries, asserting nine distinct pair evaluations and final ledger consistency. The benchmark reports `realPairEvaluations` and `realPairSearchValidated`; its no-profile smoke explicitly cannot prove pair coupling. Strict `--require-real-pairs` rejects absent profiles or insufficient candidates. This is not an in-game stage calibration and adds no speculative proc rates.
+
+
+### Lot S — Source-confirmed guaranteed crit, all gear slots, real shortlist fixture
+
+Angelic Radiance guarantees a Heavenly Strike critical hit (https://e9wiki.com/tt2/en/skill-tree). Only HS receives `CritDamage`/`CriticalDamage` conversion weight 1, enabling previously omitted verified main effect of artifact #59, Soot passive and equipped gear primary/secondary contributions. Non-HS crit rates remain unknown: no chance, proc or source reduction is invented. Crit Chance does not multiply HS again. One fixed account byType CritDamage lane and one equipped-gear lane prevent source duplication.
+
+The gear candidate search now enumerates both Armor candidates alongside Sword, Helmet, Slash and linked Aura, respecting explicit owned selections and the two-per-slot shortlist, at most 32 gear combinations per chosen pet pair. The ledger still includes each pet's active incremental gain only once. New no-PII synthetic export fixture drives a strict pair-search CI benchmark, distinct from no-profile smoke and from an observed player-stage result. No global optimum or stage prediction is claimed.
