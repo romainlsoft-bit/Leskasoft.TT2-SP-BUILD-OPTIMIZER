@@ -9,6 +9,8 @@
  * Cartesian 3 x 3 candidate product, and reuses evaluated pairs.
  *
  * A three-per-slot SHORTLIST is not proof of the globally optimal pet pair.
+ * The opt-in exhaustiveShortlist mode removes coordinate-descent traps
+ * within the shortlist, but not outside candidates excluded by screening.
  * If a fixed point has not been reached within the pass cap, report it as
  * unresolved instead of claiming convergence.
  */
@@ -45,13 +47,36 @@ export function selectPetPair(damageCandidates=[],goldCandidates=[],evaluate,opt
    adjustedScore:result.adjustedScore};
   visited.set(key,entry);
   attempts.push({damagePet:d,goldPet:g,score:entry.adjustedScore});
-  progress?.({completed:visited.size,total:maxPasses*(damage.length+gold.length),
+  progress?.({completed:visited.size,total:options.exhaustiveShortlist===true?
+    Math.max(1,damage.length)*Math.max(1,gold.length):
+    maxPasses*(damage.length+gold.length),
    phase:"pet-scenarios"});
   return entry;
  }
  if(!damage.length&&!gold.length)
   return {best:null,damageResults:[],goldResults:[],converged:true,
    passes:0,uniqueEvaluations:0,attempts:[]};
+ // Enumerate the small, already screened Cartesian shortlist. Every pair
+ // carries its own gear reranking, SP optimization and scenario ledger.
+ // Not a global optimum over all owned pets, gear or real stages.
+ if(options.exhaustiveShortlist===true){
+  let winner=null;
+  for(const d of damage.length?damage.map(ID):[null])
+   for(const g of gold.length?gold.map(ID):[null]){
+    const row=evaluatePair(d,g);
+    if(!winner||row.adjustedScore>winner.adjustedScore+1e-10)winner=row;
+   }
+  const finalDamage=damage.map(p=>({
+   ...evaluatePair(ID(p),winner.goldPet),petId:ID(p),slot:"damage"
+  }));
+  const finalGold=gold.map(p=>({
+   ...evaluatePair(winner.damagePet,ID(p)),petId:ID(p),slot:"gold"
+  }));
+  return {best:winner,damageResults:finalDamage,goldResults:finalGold,
+   converged:true,passes:1,uniqueEvaluations:visited.size,attempts,
+   candidateCount:{damage:damage.length,gold:gold.length},
+   shortlistOnly:true,exhaustiveWithinShortlist:true};
+ }
  for(let pass=0;pass<maxPasses;pass++){
   passes++;
   const priorDamage=damagePet,priorGold=goldPet;

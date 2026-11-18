@@ -1,8 +1,8 @@
 import {optimizeBuild} from "./engine.js?v=20261118-pet-coupling-p";
 import {recommendPets} from "./pet-scenarios.js?v=20261118-pet-coupling-p";
 import {calculateModeledScenario} from "./calculation-ledger.js?v=20261118-pet-coupling-p";
-import {selectPetPair} from "./pet-pair-search.js";
-import {bestEquipmentByCategory,gearSelectionEffects} from "./equipment-scenarios.js?v=20261118-pet-coupling-p";
+import {selectPetPair} from "./pet-pair-search.js?v=20261118-pet-search-q";
+import {bestEquipmentByCategory,gearSelectionEffects,petCandidateGearWeightEnvelope} from "./equipment-scenarios.js?v=20261118-pet-search-q";
 
 // One worker, one cache. The solver checks per-branch score and constraint
 // signatures: changing a pet can change Summoner/Combat Techniques, while
@@ -21,8 +21,12 @@ self.onmessage=event=>{
   const initialSelection=selectionFor(settings);
   const initialContext=contextFor(settings,initialSelection);
   if(type==="optimize-pet-scenarios"){
-   const damage= recommendPets(settings.accountProfile,initialContext,"damage",3);
-   const gold= recommendPets(settings.accountProfile,initialContext,"gold",3);
+   const envelope=petCandidateGearWeightEnvelope(settings.accountProfile,settings);
+   const screeningContext={...initialContext,
+    equipmentPetSlotWeights:envelope.slotWeights,
+    equipmentPetPassiveWeights:envelope.passiveWeights};
+   const damage= recommendPets(settings.accountProfile,screeningContext,"damage",3);
+   const gold= recommendPets(settings.accountProfile,screeningContext,"gold",3);
    if(damage.length||gold.length){
     // Search one pet slot at a time, but re-evaluate against the winning
     // opposite slot. A scenario scored with an old partner cannot be the
@@ -40,12 +44,14 @@ self.onmessage=event=>{
       damageName:damage.find(p=>p.id===damagePet)?.name||"",
       goldName:gold.find(p=>p.id===goldPet)?.name||"",
       gearSelection:pairGear,result:{...result,modeledScenario}};
-    },{maxPasses:3,onProgress:progress=>self.postMessage({progress})});
+    },{maxPasses:3,exhaustiveShortlist:true,
+     onProgress:progress=>self.postMessage({progress})});
     if(!choose.best)throw new Error("No pet scenario available");
     const result={...choose.best.result,
      petSearch:{converged:choose.converged,passes:choose.passes,
       uniqueEvaluations:choose.uniqueEvaluations,
-      shortlistOnly:true,candidateCount:choose.candidateCount}};
+      shortlistOnly:true,exhaustiveWithinShortlist:choose.exhaustiveWithinShortlist===true,
+      candidateCount:choose.candidateCount}};
     const winningSettings={...settings,selectedDamagePet:choose.best.damagePet,
      selectedGoldPet:choose.best.goldPet};
     const equipment=bestEquipmentByCategory(settings.accountProfile,winningSettings,2);

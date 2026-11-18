@@ -1,0 +1,29 @@
+name: TT2 PR18 verification
+on:
+  push:
+    branches:
+      - feat/complete-account-calculation-engine
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: tt2-pr18-node-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  node:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Full native tests
+        run: npm test
+      - name: Source catalog checks
+        if: always()
+        run: npm run check:data
+      - name: Benchmark 22600 SP
+        if: always()
+        timeout-minutes: 20
+        run: npm run bench:22k -- --sp 22600

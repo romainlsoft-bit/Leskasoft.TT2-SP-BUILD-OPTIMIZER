@@ -215,7 +215,7 @@ export function extractFixedAccountPower(profile){
    additiveDamageLog10:monumentDerived.poolLog10,
    additiveComponents:monumentDerived.eligibleComponents,
    additiveExcludedComponents:monumentDerived.excludedComponents,
-   additiveUnrepresentable:monumentDerived.rejected.length,
+   additiveUnrepresentable:monumentDerived.rejected?.length??0,
    enchantmentMultIncluded:false,
    unresolvedEnchantments:monumentDerived.unresolvedEnchantments,
    omittedEnchantmentBoosts:monumentDerived.omittedEnchantmentBoosts,

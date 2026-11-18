@@ -262,6 +262,49 @@ export function ownedEquipment(profile){
    displayName:record.name||record.id,helmetKind:slot==="Helmet"?helmetKind(record):null};
  }).filter(Boolean);
 }
+/**
+ * Screening envelope: source-verified maximum equipment conversion weight
+ * for each active equipment pet. Do not use the gear selected before a pet
+ * was chosen; that can suppress a better pet+gear combination.
+ * Envelope weights are for shortlist construction ONLY, not final scoring.
+ */
+export function petCandidateGearWeightEnvelope(profile,settings={}){
+ const inventory=profile?.sections?.equipmentInventory;
+ const slotWeights={},passiveWeights={},eligiblePrimaries={};
+ if(inventory?.present!==true||inventory.truncated===true)
+  return {slotWeights,passiveWeights,eligiblePrimaries,
+   screeningOnly:true,source:"unverified-or-truncated-inventory"};
+ const items=ownedEquipment(profile);
+ const passives=petPassiveEvidence(profile).entries;
+ for(const slot of CATEGORIES){
+  let best=0,verified=0;
+  for(const item of items){
+   if(item.slot!==slot||!equipmentFit(item,settings,profile)||
+      finiteLog(item.bonusAmount)===null)continue;
+   const linked=linkedAuraTarget(item);
+   if(slot==="Aura"&&!linked)continue;
+   const targets=linked?items.filter(target=>target.slot===linked&&
+    equipmentFit(target,settings,profile)):[item];
+   for(const target of targets){
+    if(firstEffectScore(target,settings)===null)continue;
+    const reduction=equipmentEffectReduction(target.bonusType,settings);
+    if(reduction.weight!==null&&Number.isFinite(reduction.weight)&&
+       reduction.weight>0){
+     verified++;
+     best=Math.max(best,reduction.weight);
+    }
+   }
+  }
+  eligiblePrimaries[slot]=verified;
+  if(best>0){
+   slotWeights[slot]=best;
+   if(passives.some(p=>p.bonusType===BOOST_BY_SLOT[slot]&&p.passiveFraction>0))
+    passiveWeights[slot]=best;
+  }
+ }
+ return {slotWeights,passiveWeights,eligiblePrimaries,
+  screeningOnly:true,source:"verified-owned-gear-primary-envelope"};
+}
 export function bestEquipmentByCategory(profile,settings,limit=2){
  const incomplete=profile?.sections?.equipmentInventory?.truncated===true;
  const list=incomplete?[]:ownedEquipment(profile);
