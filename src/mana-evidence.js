@@ -36,10 +36,55 @@ export function resolveManaEvidence(settings={},levels={},spellScenario=null,con
  const drain=contractScenario?.baseDrain?.combined??null;
  const sixSpellsAffordableAtOnce=manaPool!==null&&costs!==null?
   manaPool>=costs:null;
+ // Final exported pool/regeneration are snapshots; treating them as a
+ // perpetual skill-invariant resource would double-count skill bonuses.
+ const selectedSpellRows=spellScenario?.selection?.valid===true&&
+  Array.isArray(spellScenario.rows)?spellScenario.rows:null;
+ const spellAffordability=selectedSpellRows===null?[]:selectedSpellRows.map(row=>{
+  const cost=finiteNonnegative(row.finalManaCost);
+  const available=row.available===true;
+  return {id:row.id,sourceCost:cost,available,
+   affordableAtExportedFullPool:!available||manaPool===null||cost===null?
+    null:manaPool>=cost,
+   missingManaFromFullPool:!available||manaPool===null||cost===null?
+    null:Math.max(0,cost-manaPool),
+   sourceDurationSeconds:finiteNonnegative(row.sourceDurationSeconds),
+   source:"8.4 ActiveSkillInfo final level; one cast, no multicast"};
+ });
+ const fullRotationRemainingMana=manaPool===null||costs===null?null:manaPool-costs;
+ const fullRotationShortfall=fullRotationRemainingMana===null?null:
+  Math.max(0,-fullRotationRemainingMana);
+ const perMinute=manaRegen===null?null:60*manaRegen;
+ const passiveRegenOnlyPerMinute=Number.isFinite(perMinute)?perMinute:null;
+ const regenRotation=manaRegen===null||costs===null||
+  !(manaRegen>0)?null:costs/manaRegen;
+ const passiveRegenOnlyRotationSeconds=Number.isFinite(regenRotation)?regenRotation:null;
+ // Source-table nominal loop: one cast per base spell Duration. Actual
+ // duration, multi-cast, triggers and skill-dependent reductions may change
+ // every term. It is only a transparent arithmetic reference.
+ const nominalRows=spellAffordability.filter(row=>row.available&&
+  row.sourceCost!==null&&row.sourceDurationSeconds>0);
+ const nominalLoop=selectedSpellRows!==null&&selectedSpellRows.length>0&&
+  nominalRows.length===selectedSpellRows.length?
+   nominalRows.reduce((sum,row)=>sum+row.sourceCost/row.sourceDurationSeconds,0):null;
+ const sourceTableNominalManaPerSecond=Number.isFinite(nominalLoop)?nominalLoop:null;
+ const passiveRegenMinusNominalSpellLoop=manaRegen===null||
+  sourceTableNominalManaPerSecond===null?null:
+  manaRegen-sourceTableNominalManaPerSecond;
+ // Contracts may drain increasingly fast. Only the initial instantaneous
+ // comparison is sourced. No forecast of exhaustion or actual uptime:
+ // siphon events and Manni Mana opportunities are not exported.
+ const initialRegenMinusContractDrain=manaRegen===null||drain===null?
+  null:manaRegen-drain;
+ const initialContractDrainCoveredByPassiveRegen=
+  initialRegenMinusContractDrain===null?null:initialRegenMinusContractDrain>=0;
  const notes=[];
  if(manaPool===null)notes.push("exported-final-mana-pool-missing");
  if(manaRegen===null)notes.push("exported-final-mana-regen-missing");
  if(costs===null)notes.push("spell-rotation-mana-cost-unverified");
+ if(sixSpellsAffordableAtOnce===false)notes.push("one-cast-loadout-exceeds-exported-full-mana");
+ if(initialContractDrainCoveredByPassiveRegen===false)
+  notes.push("contract-initial-drain-exceeds-passive-regen");
  if(contractScenario?.assumptions?.maximumRampReached)
   notes.push("contract-mana-drain-grows-over-time");
  notes.push("mana-siphon-taps-per-second-not-exported");
@@ -49,7 +94,13 @@ export function resolveManaEvidence(settings={},levels={},spellScenario=null,con
   exportedFinalManaPool:manaPool,exportedFinalManaRegenPerSecond:manaRegen,
   spellManaCostOneCastEach:costs,
   initialContractDrainPerSecond:drain,
-  sixSpellsAffordableAtOnce,
+  sixSpellsAffordableAtOnce,spellAffordability,
+  fullRotationRemainingMana,fullRotationShortfall,
+  passiveRegenOnlyPerMinute,passiveRegenOnlyRotationSeconds,
+  sourceTableNominalManaPerSecond,passiveRegenMinusNominalSpellLoop,
+  initialRegenMinusContractDrain,initialContractDrainCoveredByPassiveRegen,
+  resourceArithmeticMode:"known-one-cast-full-pool-and-initial-drain-only",
+  addedToSkillScore:false,
   // The above comparison is a single simultaneous cast budget, NOT the
   // actual sustainable number of spells; regeneration and recasts differ.
   independentManaSourceEffectsNotAddedToExportedStats:true,

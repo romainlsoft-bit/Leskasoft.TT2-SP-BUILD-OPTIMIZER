@@ -49,6 +49,11 @@
   ],
   "playerStats": {
     "Skill Points Owned": 120,
-    "Max Prestige Stage": 10000
+    "Max Prestige Stage": 10000,
+    "Critical Chance": "32.5%",
+    "Jackpot Gold Chance": "14%",
+    "Multiple Titan Chance": "11%",
+    "Mana Pool": "1000",
+    "Mana Regen per Second": "12.5"
   }
 }

@@ -15,6 +15,7 @@
  * account Gemstone levels. Both would double-count existing contributions.
  */
 import {petScenarioScore,petScenarioEvidence,availablePets} from "./pet-scenarios.js?v=20261118-pet-coupling-p";
+import {resolveConditionalProbabilityEvidence} from "./conditional-probabilities.js?v=20261118-conditional-t";
 
 function finite(value,label){
  if(typeof value!=="number"||!Number.isFinite(value))
@@ -63,6 +64,8 @@ export function modeledScenarioCoverage(result,settings,gearSelection={}){
  const scroll=result?.accountIntegration?.clanScrollPower;
  const spellScenario=result?.spellScenario;
  const manaEvidence=result?.manaEvidence;
+ const conditionalProcs=resolveConditionalProbabilityEvidence(settings?.accountProfile,
+  settings,gearSelection);
  const specializedHelmet=["Ranged hero","Spell hero","Melee hero"].includes(selected.Helmet?.kind);
  const dominant=settings?.accountProfile?.dominantHero??null;
  const heroHelmetClassKnown=specializedHelmet&&dominant?.verified===true;
@@ -76,6 +79,12 @@ export function modeledScenarioCoverage(result,settings,gearSelection={}){
   gaps.push("unverified-sustained-contract-mana");
  if(spellScenario?.unsupported?.length)
   gaps.push("unverified-spell-source-activation-or-cap");
+ if(manaEvidence?.sixSpellsAffordableAtOnce===false)
+  gaps.push("selected-spell-rotation-unaffordable-at-exported-mana");
+ if(manaEvidence?.initialContractDrainCoveredByPassiveRegen===false)
+  gaps.push("initial-contract-drain-above-exported-passive-regen");
+ if(conditionalProcs.recordedChances>0)
+  gaps.push("proc-distributions-and-context-unverified");
  if(heroHelmetUnverified)gaps.push("unverified-dominant-hero-helmet");
  if(heroHelmetClassKnown)gaps.push("hero-helmet-effect-unmodeled");
  if(hero?.unresolved?.length)gaps.push("unverified-hero-progression-interactions");
@@ -143,7 +152,8 @@ export function modeledScenarioCoverage(result,settings,gearSelection={}){
  // A structurally complete export is not a calibrated game simulation.
  gaps.push("unverified-stage-HP-and-cross-skill-interactions");
  return {gaps,
-  complete:false,inventoryPresent,inventoryTruncated,missingGearSlots,
+  complete:false,conditionalProcEvidence:conditionalProcs,
+  inventoryPresent,inventoryTruncated,missingGearSlots,
   missingExplicitSelections,linkedAuraCount,unresolvedAuraLinks,
   heroHelmetUnverified,heroHelmetClassKnown,
   heroRosterVerified:hero?.rosterVerified===true,
@@ -195,12 +205,14 @@ export function calculateModeledScenario(result,settings,gearSelection){
   throw new Error("Fixed account baseline differs from engine accountAdjustedScore");
  const fixed=result.fixedAccount;
  const coverage=modeledScenarioCoverage(result,settings,gearSelection);
+ const conditionalProcs=coverage.conditionalProcEvidence;
  return {
   schema:"tt2-modeled-scenario-v1",
   totalLog10,skillLog10,fixedAccountLog10,equippedGearLog10,
   activePetsAbovePassivesLog10,selectedSpellBaselineLog10,
   spellScenario:result.spellScenario??null,
   manaEvidence:result.manaEvidence??null,
+  conditionalProcs,
   damageLog10:finite(fixed.damageLog10,"damage"),
   goldLog10:finite(fixed.goldLog10,"gold"),
   goldWeight:Number(settings.goldWeight),

@@ -89,6 +89,11 @@ for(const {damage,gold} of compare){
   const evaluated=selection?.best||evaluate(
    damageCandidates[0]?.id||null,goldCandidates[0]?.id||null);
   const {result,modeled}=evaluated;
+  // Evidence is computed by the same ledger as the browser worker.
+  // Chance rates never create an additional damage/gold score.
+  assert.equal(modeled.conditionalProcs.probabilitiesAppliedToScore,false);
+  assert.equal(modeled.conditionalProcs.expectedGoldOrStageBonusLog10,null);
+  assert.equal(modeled.manaEvidence?.actualUptimeVerified,false);
   const elapsedMs=performance.now()-start;
   assert.equal(result.spent,spentPoints(result.levels));
   assert.ok(result.spent<=sp);

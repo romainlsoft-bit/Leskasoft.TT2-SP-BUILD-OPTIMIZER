@@ -1110,3 +1110,72 @@ En TT2 8.4, Angelic Radiance garantit que **Heavenly Strike** est un coup critiq
 La recherche liée `Pet × Gear × SP` parcourt les deux alternatives d'armure en plus des autres slots ; elle compare au plus 32 combinaisons de cinq slots par couple de familiers shortlistés, selon les bonus source connus, les Auras liées et les éventuelles sélections explicites. Les armures ne sont jamais fabriquées depuis un inventaire absent ou tronqué. Ce parcours borné ne prouve pas l'optimum mondial.
 
 Une fixture 8.4 **entièrement synthétique** avec six familiers, six équipements et aucun compte réel valide la recherche de couples dans la CI, avec `--pair-search --require-real-pairs`. Elle complète les tests 3×3 du worker et ne doit pas être confondue avec la régression de −2 000 stages du joueur Pet/Fairy à 22 600 SP, non encore reproduite in-game. Critiques autres que HS, Jackpot, MultiTitan, mana/uptime et HP des stages restent hors score sans formules vérifiées.
+
+
+## Lot T — Observations de probabilités et budget de mana sourcés (18 novembre 2026)
+
+### Probabilités critiques, Jackpot et plusieurs titans
+`src/conditional-probabilities.js` extrait trois **observations finales** lorsque
+l'export contient explicitement une valeur de probabilité **en pourcentage**
+(`42.5%`, `Critical Chance %` ou `CritChancePercent` et équivalents).
+`0.5` sans unité reste ambigu et **n'est jamais interprété en 0,5 % ou 50 %**.
+Une valeur invalide, hors de 0–100 %, ou des miroirs contradictoires
+neutralisent toute la famille de probabilité, sans choisir la ligne la plus
+favorable. Les sources et raisons sont retenues sans données identifiantes.
+
+Pour chaque famille, la valeur `100 × p` donne le nombre moyen d'événements
+sur 100 occasions **de même probabilité**. C'est une espérance
+mathématique élémentaire, **pas** un effet Gold, un multiplicateur DPS,
+un taux de rencontre garanti ni un gain d'étages. Dans
+`damage = Heavenly Strike`, le critique est garanti par Angelic
+Radiance, distinctement du taux de critique observé dans l'export ;
+pour les cinq autres types de dégâts, aucune chance intrinsèque n'est
+inventée. Les chances Jackpot et Multiple Titan restent non scorées
+car leur traduction en dégâts/gold de boss et leur distribution réelle
+sont insuffisamment établies. **Aucun score de compétence n'est modifié.**
+
+Les preuves sont connectées à `parseAccountProfile`, au
+`calculateModeledScenario` définitif, au worker et à sa couverture
+interne. L'interface destinée au joueur n'ajoute aucun avertissement technique.
+
+### Mana — faisabilité prouvable, pas de temps d'activation inventé
+`src/mana-evidence.js` calcule à partir de la réserve et régénération
+**finales explicitement importées** et des coûts tabulés des sorts choisis :
+- coût d'un lancement par sort et faisabilité à réserve pleine ;
+- manque éventuel pour un lancement complet des six slots ;
+- régénération passive par minute, durée purement théorique de
+  reconstitution du budget initial à régénération passive seule ;
+- consommation nominale `Σ coût_source / durée_source` pour un lancement
+  à chaque durée **de table 8.4** (ni extension, ni multicast) et écart
+  avec la régénération passive observée ;
+- solde initial `regen_finale − drain_initial_contrats` lorsque ces
+  deux nombres sont connus.
+
+Ce sont des **instantanés arithmétiques conditionnels**, pas une
+simulation de rotations effectives : Mana Siphon demande la fréquence
+des attaques/tentatives spéciales, Manni Mana une distribution de rencontres,
+les durées réelles incluent les prolongations, les multicasts ont leurs
+coûts et le drain des contrats croît au cours du temps. Les coefficients
+de talents ne sont pas ajoutés de nouveau aux stats finales importées.
+Le moteur ne retire pas automatiquement de compétences à partir de cette
+observation. Les résultats restent internes à la couverture et au ledger,
+sans nouveau bruit pour les joueurs.
+
+### Vérification
+`tests/conditional-probabilities-lot-t.test.js` couvre le format des
+percentages, les miroirs conflictuels, les taux non inventés, HS garanti,
+les coûts de mana et un tour **6 dégâts × 3 Gold** comparant des comptes
+identiques avec/sans chances : les totaux log10 doivent rester égaux.
+Le benchmark de profils fictifs inclut ces données finales explicites,
+et les tests gardent la comparaison Pet/Fairy observée (environ 750 stages
+entre deux arbres à ~22,6k SP) comme **preuve de test en jeu, pas formule
+de conversion**. Le cas historique à −2 000 stages reste à reproduire
+avec ses vraies statistiques avant fusion.
+
+Sources vérifiées : TT2 8.4 `vendor/spells.js`,
+`vendor/active-spell-caps.js`, `vendor/skills.js` ; Mana Siphon du
+Compendium https://www.tt2-compendium.com/en/wiki/skills/manasiphon ;
+Angelic Radiance et chances de plusieurs titans
+https://e9wiki.com/tt2/en/skill-tree ; source Game Hive Special Titans
+https://gamehive.helpshift.com/hc/en/3-tap-titans-2/faq/83-what-do-the-special-titans-do/ .
+Aucune publication de donnée de joueur ni de promesse de stage.

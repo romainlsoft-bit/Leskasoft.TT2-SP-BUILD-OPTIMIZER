@@ -890,3 +890,38 @@ Native worker integration now tests six owned pets and competing gear primaries,
 Angelic Radiance guarantees a Heavenly Strike critical hit (https://e9wiki.com/tt2/en/skill-tree). Only HS receives `CritDamage`/`CriticalDamage` conversion weight 1, enabling previously omitted verified main effect of artifact #59, Soot passive and equipped gear primary/secondary contributions. Non-HS crit rates remain unknown: no chance, proc or source reduction is invented. Crit Chance does not multiply HS again. One fixed account byType CritDamage lane and one equipped-gear lane prevent source duplication.
 
 The gear candidate search now enumerates both Armor candidates alongside Sword, Helmet, Slash and linked Aura, respecting explicit owned selections and the two-per-slot shortlist, at most 32 gear combinations per chosen pet pair. The ledger still includes each pet's active incremental gain only once. New no-PII synthetic export fixture drives a strict pair-search CI benchmark, distinct from no-profile smoke and from an observed player-stage result. No global optimum or stage prediction is claimed.
+
+
+## Lot T: Observed final proc percentages and one-cast mana arithmetic
+
+`parseFinalChanceEvidence` accepts only percent-labelled export fields
+or explicit percentage aliases for Critical, Jackpot Gold and Multiple
+Titan Chance. Ambiguous unitless numbers, malformed/out-of-range values,
+and contradictory mirrors are **not** normalized into a favorable
+rate. `resolveConditionalProbabilityEvidence` records the expected
+event count per 100 identical eligible trials as `100 × p`,
+but intentionally does not turn this into expected gold, damage,
+rate of boss encounters or an optimizer coefficient. HS critical
+is independently guaranteed by Angelic Radiance; other damage
+builds require the actual critical mechanics and reductions.
+
+`resolveManaEvidence` provides a sourced numeric one-cast mana
+snapshot, cast-by-cast affordability, shortage, final passive regen/min,
+hypothetical passive-regeneration-only recoup time, nominal source-table
+spell recast drain `Σ M_level/Duration_base` and initial
+passive regen minus base contract drain. These are not valid
+full-uptime predictions: multicast, duration extensions, spell cast
+timing, the frequency of Mana Siphon attempts, Manni Mana and
+increasing contract drainage are unverified. It never adds mana
+skill coefficients to already-final exported mana stats.
+
+The chance/mana audit is attached to the real `calculateModeledScenario`
+ledger and its internal coverage on all 18 damage/gold routes, without
+altering optimized scores or adding intrusive player-facing diagnostics.
+The observed Pet/Fairy player-tree fixture remains an empirical
+regression gate, not a way to convert log10 points to stages.
+
+Source: TT2 8.4 pinned `vendor/spells.js` and `vendor/skills.js`,
+https://www.tt2-compendium.com/en/wiki/skills/manasiphon ,
+https://e9wiki.com/tt2/en/skill-tree ,
+https://gamehive.helpshift.com/hc/en/3-tap-titans-2/faq/83-what-do-the-special-titans-do/ .
