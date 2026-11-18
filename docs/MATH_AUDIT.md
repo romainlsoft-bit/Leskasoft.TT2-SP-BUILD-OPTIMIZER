@@ -825,3 +825,26 @@ https://www.reddit.com/r/TapTitans2/comments/oohl85/ .
 **Conditional secondaries:** CriticalDamage/CritChance, JackpotGold/JackpotGoldChance, MultiMonstersGold, chance/probability families are tagged `conditional-chance-crit-or-nonboss-gold` and remain out of boss damage/gold, pending precise proc rates and final gold-source conversion. This is source-audited exclusion, not a new numeric multiplier. Tap/Hero and explicitly matched direct equipment secondary types keep their existing source reductions; gear primary boosts never spill onto secondaries.
 
 **Tests/gates:** Nine new Node tests declared, including 18 route scenarios and actual worker pair execution. Separate targeted V8 checks may compile/evaluate isolated modules but do not imply the native ESM suite is green. Execute `npm test`, `npm run check:data`, `npm run bench:22k -- --all --sp 22600`, pair-search and verify the Pet/Fairy −2000 stage regression against actual TT2 8.4 before any merge. Mathematical score remains log10 proxy, not a stage estimator or verified optimal damage strategy.
+
+
+## Lot Q : deux défauts de recherche corrigés sans inventer de formules
+
+Le coordinate descent n'est pas garanti exact même au sein de ses 3×3
+familiers présélectionnés. Le worker évalue maintenant les neuf couples
+possibles au plus, avec leurs véritables gear/SP/ledger, en mémorisant
+chaque paire. L'ancienne stratégie reste disponible si demandée mais
+n'est plus celle de l'optimisation standard. Le screening des familiers
+utilise la borne de **réduction** source des équipements compatibles et
+achetés, au lieu d'une sélection préalable biaisée par l'absence de
+pet actif. Une Aura n'apporte une borne que si son primaire lié existe.
+Aucune valeur de cette borne ne passe dans le ledger final.
+
+Une recherche exacte sur une shortlist de trois par slot n'est pas une
+preuve d'optimum global : présélection, deux équipements par slot et
+séparation des branches SP restent heuristiques. Les taux de proc
+critique/Jackpot/Multiple Titan, dégâts de pet et HP par stage n'ont
+pas de calibration complète 8.4; restent non scorés. Aucun gain d'étages
+n'est estimé. Tests Node déclarés sur le piège de maximum local, 3×3,
+Auras, intrants invalides, 18 routes. Le workflow de vérification
+Node/check:data/22 600 SP ne vaut preuve que si ses jobs réussissent.
+La PR demeure DRAFT et le benchmark in-game Pet/Fairy est obligatoire.

@@ -975,3 +975,52 @@ https://www.reddit.com/r/TapTitans2/comments/oohl85/ .
 - Les sorts au cap et l'uptime ne prédisent pas le déroulement du boss ; les chances critique/Jackpot, la fréquence Multiple Titan Gold, le dégât d'attaque des familiers et le jeu au réel nécessitent des sources de déclenchement et des captures. On ne peut pas obtenir une estimation fiable de stages à partir du score proxy. **La régression Pet/Fairy observée reste non corrigée par preuve.**
 - Sources : `vendor/pets.js`, `vendor/transcendent-pets.js`, `vendor/reductions.js`, `vendor/skills.js` version 8.4 ; [TT2 Compendium Combat Techniques](https://www.tt2-compendium.com/pl/wiki/skills/combattechniques) (désigne nommément Annabelle, Cosmos, Effie, Percy et Taffy) ; [Game Hive Pets FAQ](https://gamehive.helpshift.com/hc/en/3-tap-titans-2/faq/88-what-are-pets-and-how-do-i-level-them-up/); [TT2 Wiki équipement](https://tap-titans-2.fandom.com/wiki/Equipment) (secondaires de Chance/Jackpot/Multiple Titan Gold) ; [DevLog 8.4 #239](https://gamehive.com/blog/devlog-239-version-840-patch-notes/).
 - **Prochain lot Q :** calculs dépendants d'activation des pets et secondaires seulement avec distributions sourcées et données exportées, conversion DPS réel → stage HP et calibration Pet/Fairy via véritables mesures ; suite de tests Node/native et benchmarks 22 600 SP exigés comme gate. Conserver PR #18 ouverte **DRAFT**, ne pas fusionner, pas de Ready, pas de Pages.
+
+
+## Lot Q — 18 novembre 2026 : couples familiers complets dans la shortlist et screening des équipements
+
+**Correction fonctionnelle 1 :** l'ancien coordinate descent pouvait s'arrêter
+sur D1/G1 supérieur à D2/G1 et D1/G2 alors que D2/G2 était meilleur.
+Le worker utilise désormais `selectPetPair(...,{exhaustiveShortlist:true})`
+pour évaluer tous les couples de sa shortlist 3×3 (au plus neuf).
+Chaque couple recalcule son équipement, ses poids de primaires, l'allocation
+SP puis son ledger; les mêmes couples ne sont pas évalués deux fois.
+Les anciennes recherches par alternance restent disponibles pour les
+appelants qui n'activent pas le mode exhaustif.
+
+**Correction fonctionnelle 2 :** la présélection des pets ne dépend plus
+uniquement de l'équipement sélectionné avant que le pet actif soit connu.
+`petCandidateGearWeightEnvelope` examine chaque primaire d'équipement
+possédé, compatible et numériquement reconnu dans un inventaire non tronqué.
+Il conserve la meilleure **réduction de source** réalisable par slot pour
+comparer les candidats ; les Auras requièrent un primaire compatible réel.
+Cette borne sert seulement à classer les candidats et **n'est jamais ajoutée
+au score final**. Après sélection, le worker recalcule les vrais équipements
+et l'optimiseur pour chaque couple. La meilleure réduction par slot n'est
+ni une multiplication supplémentaire ni une garantie d'un ensemble
+simultanément réalisable.
+
+Aucun avertissement technique supplémentaire en interface : le flux joueur
+reste simple. Les effets secondaires critiques, Jackpot Gold, Multiple
+Titan Gold, probabilités et dégâts d'attaque active des pets restent exclus
+en l'absence de distribution source complète et d'équivalence 8.4 vérifiée.
+La méthode cherche exactement les 3×3 **présélectionnés**, pas l'optimum
+global sur toutes les combinaisons pets × gear × SP. Le proxy log10 ne
+prévoit toujours aucun nombre d'étages. Les anciens résultats Pet/Fairy
+(-2000 étapes environ) restent des vérifications in-game non résolues.
+
+Les tests nouveaux couvrent un piège de maximum local, 9 évaluations
+uniques et les messages de progression, recherche à un slot, Auras
+liées, inventaire absent/tronqué, secondaires non réinterprétées,
+18 Damage×Gold via moteur/ledger et intégration worker. Le workflow
+GitHub Actions du lot Q permet l'exécution native Node 22 du test,
+de `check:data` et du benchmark 22 600 SP sur la branche existante.
+Il ne publie PAS GitHub Pages. Les résultats CI effectifs doivent être
+lus après le push; l'existence du workflow n'est pas un test réussi.
+Les comparaisons Pet/Fairy réelles restent nécessaires avant tout merge.
+
+Sources : `vendor/reductions.js`, `vendor/pets.js`,
+`vendor/transcendent-pets.js`, `src/equipment-reductions.js`
+(TT2 8.4), https://www.tt2-compendium.com/en/builds/build/cs-hog ,
+https://tap-titans-2.fandom.com/wiki/Equipment et
+https://gamehive.com/blog/devlog-239-version-840-patch-notes/ .

@@ -31,6 +31,10 @@ test("worker returns a final skill build scored for the actual selected pet pair
  assert.ok(result.petSearch);
  assert.ok(result.petSearch.uniqueEvaluations>0);
  assert.ok(result.petSearch.uniqueEvaluations<=9);
+ assert.equal(result.petSearch.exhaustiveWithinShortlist,true);
+ assert.equal(result.petSearch.uniqueEvaluations,
+  Math.max(1,result.petSearch.candidateCount.damage)*
+  Math.max(1,result.petSearch.candidateCount.gold));
  assert.equal(result.selectedPets.damage,result.result.modeledScenario.selectedDamagePet);
  assert.equal(result.selectedPets.gold,result.result.modeledScenario.selectedGoldPet);
  assert.ok(Math.abs(result.result.modeledScenario.totalLog10-

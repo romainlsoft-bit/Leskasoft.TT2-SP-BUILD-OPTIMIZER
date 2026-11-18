@@ -12,7 +12,9 @@ export function monumentDerivedPower(profile,monuments){
   sections.seasonArtifacts?.present===true;
  if(!anySource)return {entries:[],sourcePresent:false,seasonVerified:false,
   eligibleComponents:0,excludedComponents:0,unresolvedEnchantments:0,
-  poolLog10:null,complete:false,unmodeled:["missing-monument-collection"]};
+  poolLog10:null,complete:false,unmodeled:["missing-monument-collection"],
+  rejected:[],omittedEnchantmentBoosts:0,truncated:false,
+  conservative:false,enchantmentMultIncluded:false,season:null};
  const seasonVerified=monuments?.seasonVerified===true;
  const truncated=monuments?.truncatedSections?.length>0;
  // Never let a CSV IsActive flag claim membership in the current season.

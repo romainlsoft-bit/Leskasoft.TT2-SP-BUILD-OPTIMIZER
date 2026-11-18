@@ -70,3 +70,44 @@ test("invalid evaluator results, duplicate pets, or unsafe pass counts are rejec
  assert.throws(()=>selectPetPair([...damage,{id:"D3"},{id:"D4"}],gold,score),/three/);
  assert.throws(()=>selectPetPair(damage,gold,score,{maxPasses:0}),/1–6/);
 });
+
+test("Q: exhaustive shortlist solves a 2x2 coordinate-descent trap",()=>{
+ const grid={"D1/G1":9,"D2/G1":8,"D1/G2":7,"D2/G2":20};
+ const evalPair=(d,g)=>({adjustedScore:grid[d+"/"+g],result:{gearFor:d+"/"+g}});
+ const coord=selectPetPair(damage,gold,evalPair);
+ assert.equal(coord.best.adjustedScore,9);
+ const exact=selectPetPair(damage,gold,evalPair,{exhaustiveShortlist:true});
+ assert.deepEqual([exact.best.damagePet,exact.best.goldPet],["D2","G2"]);
+ assert.equal(exact.best.adjustedScore,20);
+ assert.equal(exact.best.result.gearFor,"D2/G2");
+ assert.equal(exact.exhaustiveWithinShortlist,true);
+ assert.equal(exact.shortlistOnly,true);
+ assert.equal(exact.uniqueEvaluations,4);
+ assert.deepEqual(exact.damageResults.map(r=>r.adjustedScore),[7,20]);
+ assert.deepEqual(exact.goldResults.map(r=>r.adjustedScore),[8,20]);
+});
+test("Q: exactly nine distinct evaluations for a 3x3 shortlist",()=>{
+ const a=[{id:"A"},{id:"B"},{id:"C"}],b=[{id:"X"},{id:"Y"},{id:"Z"}];
+ const seen=new Map(),progress=[];
+ const result=selectPetPair(a,b,(d,g)=>{
+  const id=d+"/"+g; seen.set(id,(seen.get(id)||0)+1);
+  return {adjustedScore:d==="C"&&g==="Z"?100:0};
+ },{exhaustiveShortlist:true,onProgress:p=>progress.push(p)});
+ assert.equal(result.uniqueEvaluations,9);
+ assert.ok([...seen.values()].every(n=>n===1));
+ assert.equal(progress.at(-1).completed,9);
+ assert.equal(progress.at(-1).total,9);
+ assert.deepEqual([result.best.damagePet,result.best.goldPet],["C","Z"]);
+});
+test("Q: one-slot search and ties stay deterministic",()=>{
+ const single=selectPetPair(damage,[],d=>({adjustedScore:d==="D2"?9:2}),
+  {exhaustiveShortlist:true});
+ assert.equal(single.best.goldPet,null);
+ assert.equal(single.best.damagePet,"D2");
+ assert.equal(single.uniqueEvaluations,2);
+ const ties=selectPetPair(damage,gold,()=>({adjustedScore:7}),
+  {exhaustiveShortlist:true});
+ assert.deepEqual([ties.best.damagePet,ties.best.goldPet],["D1","G1"]);
+ assert.equal(ties.uniqueEvaluations,4);
+ assert.equal(ties.converged,true);
+});
