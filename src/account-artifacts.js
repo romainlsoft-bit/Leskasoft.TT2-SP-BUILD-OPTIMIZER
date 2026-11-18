@@ -26,7 +26,7 @@ export function log10OnePlusPower(exponent){
   Math.pow(10,exponent)/Math.LN10:
   Math.log10(1+Math.pow(10,exponent));
 }
-export function computeArtifactEffect(catalog,level,enchanted=false){
+export function computeArtifactEffect(catalog,level,enchanted=false,coefficientFactor=1){
  const lv=positiveLog10(level),per=positiveLog10(catalog?.perLevel??catalog?.effectPerLevel);
  const growth=Number(catalog?.growthExpo),max=Number(catalog?.maxLevel);
  if(lv===null||per===null||!Number.isFinite(growth)||growth<0||
@@ -39,9 +39,13 @@ export function computeArtifactEffect(catalog,level,enchanted=false){
  }
  const enchantMagnitude=enchanted?positiveLog10(catalog.enchantedMagnitude??catalog.enchantmentMagnitude):0;
  if(enchantMagnitude===null)return {status:"unknown-enchantment-magnitude",log10:null};
- const exponent=per+growth*lv+enchantMagnitude;
+ if(typeof coefficientFactor!=="number"||!Number.isFinite(coefficientFactor)||
+    coefficientFactor<=0)return {status:"invalid-main-effect-amplifier",log10:null};
+ // Multiplying EffectPerLevel occurs INSIDE 1 + c * Level^g. It does not
+ // exponentiate the full resulting bonus (F^k was the old erroneous route).
+ const exponent=per+growth*lv+enchantMagnitude+Math.log10(coefficientFactor);
  const log10=log10OnePlusPower(exponent);
- const rawLog10=log10OnePlusPower(per+growth*lv);
+ const rawLog10=log10OnePlusPower(per+growth*lv+Math.log10(coefficientFactor));
  return {status:log10===null?"unrepresentable-scaling":"computed-main-effect",
   log10,rawLog10,
   enchantmentDeltaLog10:log10===null||rawLog10===null?null:log10-rawLog10,
@@ -49,7 +53,7 @@ export function computeArtifactEffect(catalog,level,enchanted=false){
   formula:"1 + (EffectPerLevel * EnchantmentMagnitude_if_enchanted) * Level^GrowthExpo",
   includesArtifactOrMonumentDamage:false};
 }
-const DIRECT_DAMAGE=new Set(["AllDamage","TapDamage","CritDamage","PetDamage","ClanShipDamage",
+const DIRECT_DAMAGE=new Set(["AllDamage","AllHelperDamage","BossDamage","TapDamage","CritDamage","PetDamage","ClanShipDamage",
  "GoldGunDamage","UltraDaggerDamage","BurstDamageSkillAmount",
  "ShadowCloneSkillAmount"]);
 const DIRECT_GOLD=new Set(["GoldAll","FairyGold","GoldBoss","GoldChesterson","ChestAmount"]);
@@ -122,8 +126,10 @@ export function calculatePermanentArtifactEffects(profile,catalog){
   const incompleteBoost=(boostDamage&&magnifier.factor===null)||
    (boostGold&&treasure.factor===null);
   const factor=(boostDamage?magnifier.factor:1)*(boostGold?treasure.factor:1);
-  const amplifiedLog10=effect.log10===null||incompleteBoost?
-   null:effect.log10*factor;
+  const amplifiedEffect=effect.log10===null||incompleteBoost||
+   !Number.isFinite(factor)||factor<=0?null:
+   computeArtifactEffect(data,levels[0],enchanted===true,factor);
+  const amplifiedLog10=amplifiedEffect?.log10??null;
   // A truncated export is not a reliable account snapshot. Keep the
   // calculations for audit but do not score a potentially partial roster.
   const scoreable=!truncated&&amplifiedLog10!==null&&
@@ -136,8 +142,7 @@ export function calculatePermanentArtifactEffects(profile,catalog){
    magnifierApplied:boostDamage&&magnifier.factor!==1,
    treasureApplied:boostGold&&treasure.factor!==1,
    amplificationFactor:incompleteBoost?null:factor,
-   enchantmentDeltaLog10:effect.enchantmentDeltaLog10===null||
-    incompleteBoost?null:effect.enchantmentDeltaLog10*factor,
+   enchantmentDeltaLog10:amplifiedEffect?.enchantmentDeltaLog10??null,
    appliedToScore:scoreable,status:truncated?
     "truncated-artifact-collection":incompleteBoost?
     "unknown-artifact-amplifier":conflict?"conflicting-source-records":

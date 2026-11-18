@@ -247,3 +247,13 @@ hr{border:0;border-top:1px solid #384158;margin:27px 0}.playstyles{display:grid;
 @media(max-width:380px){
  .header-right>a.guide-nav-link{display:inline-block;max-width:116px;font-size:10px}
 }
+
+/* Plain HTML language anchors are crawlable and usable without JavaScript.
+   Retain the select for keyboard/screen-reader locale switching. */
+.language-links{display:inline-flex;flex-wrap:wrap;align-items:center;gap:5px;
+ color:var(--muted);font-size:10px;line-height:1.5}
+.language-links a{color:var(--sub);white-space:nowrap;text-decoration:underline;
+ text-decoration-color:#8e9cbb66;text-underline-offset:3px}
+.language-links a[aria-current="page"]{color:var(--text);font-weight:750}
+@media(max-width:700px){.header-right{column-gap:12px;row-gap:8px}
+ .language-links{order:4;max-width:100%;justify-content:flex-end}}

@@ -1,12 +1,12 @@
-import {SKILLS,SKILL_IDS,BRANCH_NAMES,PRESETS,DAMAGE_TYPES,GOLD_TYPES,GAME_VERSION,parseExport,exportBuild,spentPoints,ownedSetFlags} from "./engine.js?v=20261118-final-w";
-import { t, localizeDocument, SUPPORTED_LANGUAGES } from "./i18n.js?v=20261118-final-w";
+import {SKILLS,SKILL_IDS,BRANCH_NAMES,PRESETS,DAMAGE_TYPES,GOLD_TYPES,GAME_VERSION,parseExport,exportBuild,spentPoints,ownedSetFlags} from "./engine.js?v=20261118-work-review-r1";
+import { t, localizeDocument, SUPPORTED_LANGUAGES } from "./i18n.js?v=20261118-work-review-r1";
 import { readClipboardText } from "./clipboard.js";
-import { profileCoverage } from "./account-profile.js?v=20261118-final-w";
+import { profileCoverage } from "./account-profile.js?v=20261118-work-review-r1";
 import {petLevelEvidence} from "./account-pet-levels.js";
 import {resolveGemstoneEvidence} from "./account-gemstones.js?v=20261118-final-w";
-import {formatLogMultiplier} from "./account-power.js?v=20261118-final-w";
-import {availablePets,recommendPets} from "./pet-scenarios.js?v=20261118-final-w";
-import {bestEquipmentByCategory,EQUIPMENT_CATEGORIES} from "./equipment-scenarios.js?v=20261118-final-w";
+import {formatLogMultiplier} from "./account-power.js?v=20261118-work-review-r1";
+import {availablePets,recommendPets} from "./pet-scenarios.js?v=20261118-work-review-r1";
+import {bestEquipmentByCategory,EQUIPMENT_CATEGORIES} from "./equipment-scenarios.js?v=20261118-work-review-r1";
 const $=id=>document.getElementById(id);
 let locale="en";
 let lastStatus={message:"Import your account or enter your skill points to begin.",type:"",params:{}};
@@ -61,7 +61,9 @@ function engineError(message){
 const iconMap={"Clan Ship":"⛵","Pet":"🐾","Shadow Clone":"◈","Heavenly Strike":"⚡","Dagger":"🗡","Gold Gun":"✦"};
 const branchColors={Knight:"#d77879",Summoner:"#edab66",Warlord:"#e7ca75",Sorcerer:"#86adf7",Rogue:"#7ad0a0",Alchemist:"#b595ed"};
 const fresh=()=>({damage:"Clan Ship",gold:"Fairy",skillPoints:0,maxStage:0,playstyle:"balanced",qol:"recommended",goldWeight:.7,craftingPower:1,timeToKill:8,sClone:30,sets:{},currentLevels:{},minimums:{},excluded:[],preserveCurrent:false,assumeHaystActive:false,assumeSnapActive:false,assumeContractsAtMax:false,astralActivations:0,mode:"power",accountProfile:null,selectedDamagePet:null,selectedGoldPet:null,comparePetScenarios:true,selectedEquipment:{},protectUnmodeledSkills:true});
-let state=fresh(),lastResult=null,lastScenarios=[],lastEquipment={},worker=null;
+let state=fresh(),lastResult=null,lastScenarios=[],lastEquipment={},
+ lastGearSelection=null,lastResolvedPets=null,lastRunContext=null,
+ worker=null,calculationRevision=0;
 // Fixed-position notifications are shared by errors and successful actions.
 // Errors stay visible until dismissed; successes auto-dismiss after six seconds.
 let toastDismissTimer=null;
@@ -180,11 +182,11 @@ function renderPetControls(){
     '<option value="'+safe(p.id)+'" '+(selected===p.id?"selected":"")+'>'+
     safe(p.name)+' · '+safe(tr(p.tier))+' · '+safe(p.type)+' · '+numberText(p.level)+' '+safe(tr("levels"))+'</option>').join("");
   };
-  html+='<p class="hint">'+safe(tr("A Damage pet and a Gold pet are equipped together. The tool evaluates the three best candidates in each slot independently."))+'</p>'
+  html+='<p class="hint">'+safe(tr("A damage pet and a gold pet are selected together. Automatic slots search eligible owned pets; named choices stay fixed."))+'</p>'
    +'<div class="field-grid"><label>'+safe(tr("Damage pet"))+'<select id="pet-damage-select">'+renderOptions("damage",state.selectedDamagePet)+'</select></label>'
    +'<label>'+safe(tr("Gold pet"))+'<select id="pet-gold-select">'+renderOptions("gold",state.selectedGoldPet)+'</select></label></div>'
    +'<label class="toggle"><input id="pet-compare" type="checkbox" '+(state.comparePetScenarios?"checked":"")+'>'+
-     safe(tr("Automatically compare three Damage pets and three Gold pets"))+'</label>';
+     safe(tr("Compare automatic pet choices"))+'</label>';
  }
  if(hasGear){
   html+='<h3>'+safe(tr("Equipment candidates"))+'</h3>'
@@ -222,6 +224,8 @@ function renderPetComparisons(){
    const selected=lastScenarios[Number(button.dataset.scenarioIndex)];
    if(!selected)return;
    state.selectedDamagePet=selected.damagePet;state.selectedGoldPet=selected.goldPet;
+   lastGearSelection=selected.gearSelection??null;
+   lastResolvedPets={damage:selected.damagePet,gold:selected.goldPet};
    lastResult=selected.result;fillInputs();persist();renderResults(selected.result,false);
   });
  }
@@ -248,17 +252,35 @@ function renderPetComparisons(){
 function renderEquipmentRecommendations(){
  let el=$("equipment-comparison-results");
  if(!el){
-  el=document.createElement("div");el.id="equipment-comparison-results";el.className="result-detail";
+  el=document.createElement("div");el.id="equipment-comparison-results";
+  el.className="result-detail";
   $("branch-chart").insertAdjacentElement("afterend",el);
  }
+ const selected=lastGearSelection?.selected||{};
+ const hasWinner=Object.keys(selected).length>0;
  const available=EQUIPMENT_CATEGORIES.filter(slot=>(lastEquipment[slot]||[]).length>0);
- if(!available.length){el.hidden=true;return;}
+ if(!available.length&&!hasWinner){el.hidden=true;return;}
  el.hidden=false;
- el.innerHTML='<h3>'+safe(tr("Equipment shortlist"))+'</h3>'+
-  '<p class="hint">'+safe(tr("The strongest two supported items are displayed in each slot, when the export includes equipment inventory. Constant equipment multipliers do not require rerunning the SP optimizer."))+'</p>'+
+ const pets=lastResolvedPets;
+ const petName=id=>availablePets(state.accountProfile).find(p=>p.id===id)?.name||id||"—";
+ const heading='<h3>'+safe(tr("Selected optimized equipment"))+'</h3>';
+ const petLine=pets?'<p><strong>'+safe(tr("Damage pet"))+':</strong> '+
+  safe(petName(pets.damage))+' · <strong>'+safe(tr("Gold pet"))+
+  ':</strong> '+safe(petName(pets.gold))+'</p>':"";
+ const winner=EQUIPMENT_CATEGORIES.map(slot=>{
+  const row=selected[slot];
+  return '<p><strong>'+safe(tr(slot))+':</strong> '+
+   safe(row?.name||"—")+
+   (row?.linkedPrimaryTarget?' · '+safe(row.linkedPrimaryTarget):"")+'</p>';
+ }).join("");
+ const alternatives=available.length?
+  '<h4>'+safe(tr("Equipment alternatives"))+'</h4>'+
   available.map(slot=>'<p><strong>'+safe(tr(slot))+':</strong> '+
-   lastEquipment[slot].map(item=>safe(item.displayName)+(item.estimatedScore===null?' (?)':'')).join(' · ')+'</p>').join('');
+   lastEquipment[slot].map(item=>safe(item.displayName)+
+    (item.estimatedScore===null?' (?)':'')).join(' · ')+'</p>').join(""):"";
+ el.innerHTML=heading+petLine+winner+alternatives;
 }
+
 function fillInputs(){
  renderAccountProfile();renderPetControls();
  $("skill-points").value=state.skillPoints||"";
@@ -276,7 +298,14 @@ function fillInputs(){
  $("astral-activations").value=state.astralActivations??0;
  renderChoices();renderEditor($("skill-search").value);
 }
-function remember(){persist();lastScenarios=[];lastEquipment={};lastResult=null;$("actual-results").hidden=true;$("empty-results").hidden=false;$("result-mode").textContent=tr("Settings changed");}
+function remember(){
+ calculationRevision++;
+ if(worker){worker.terminate();worker=null;resetOptimizeButton();}
+ persist();lastScenarios=[];lastEquipment={};lastGearSelection=null;
+ lastResolvedPets=null;lastRunContext=null;lastResult=null;
+ $("actual-results").hidden=true;$("empty-results").hidden=false;
+ $("result-mode").textContent=tr("Settings changed");
+}
 function applyPreset(id){
  const preset=PRESETS[id];state.playstyle=id;state.goldWeight=preset.goldWeight;state.qol=preset.qol;
  fillInputs();remember();
@@ -352,6 +381,7 @@ function readInputs(){
 function optimize(){
  const button=$("optimize-button");
  if(worker){
+   calculationRevision++;
    worker.terminate();worker=null;
    resetOptimizeButton();
    status("Optimization cancelled. Your settings are unchanged.");return;
@@ -360,8 +390,12 @@ function optimize(){
  if(!$("skill-points").value){status("Enter your total Skill Points or import a player export.","error");return;}
  button.disabled=false;button.textContent=tr("Cancel optimization");
  status("Checking prerequisites and calculating the best allocation for the chosen scoring model…");
- worker=new Worker(new URL("./worker.js?v=20261118-final-w",import.meta.url),{type:"module"});
- worker.onmessage=event=>{
+ const revision=++calculationRevision;
+ const requestContext=structuredClone(state);
+ const running=new Worker(new URL("./worker.js?v=20261118-work-review-r1",import.meta.url),{type:"module"});
+ worker=running;
+ running.onmessage=event=>{
+   if(revision!==calculationRevision||worker!==running)return;
    const data=event.data;
    if(data.progress){
      const phase=data.progress.phase==="pet-scenarios"?"Comparing pet setups":data.progress.phase==="skills"?"Building skill-tree options":"Combining skill trees";
@@ -369,18 +403,34 @@ function optimize(){
      return;
    }
    resetOptimizeButton();
-   if(data.ok){lastScenarios=[...(data.petComparisons?.damage||[]),...(data.petComparisons?.gold||[])];lastEquipment=data.equipment||{};state.selectedDamagePet=data.selectedPets?.damage||null;state.selectedGoldPet=data.selectedPets?.gold||null;fillInputs();lastResult=data.result;renderResults(data.result);persist();if(data.petSearch?.converged===false)
+   if(data.ok){
+    lastScenarios=[...(data.petComparisons?.damage||[]),
+     ...(data.petComparisons?.gold||[])];
+    lastEquipment=data.equipment||{};
+    lastGearSelection=data.gearSelection??null;
+    lastResolvedPets=data.selectedPets??null;
+    lastRunContext=requestContext;
+    lastResult=data.result;renderResults(data.result);persist();
+    if(data.petSearch?.converged===false)
     status("Pet comparison has not converged: the selected pair is provisional. Current SP investments remain protected.","");
    else if(data.result.modeledScenario?.coverage?.inventoryTruncated)
     status("Equipment inventory is truncated: automatic gear ranking was disabled. Scores are incomplete.","");
    else
     status(data.result.optimality?.mode==="bounded-power"?"Build ready with a certified upper bound on the score gap. See accuracy details below.":"Build optimized. Copy the result to import it into TT2.","success");}
    else{status(data.error||"Optimization failed.","error");$("result-mode").textContent="Could not optimize";}
-   worker.terminate();worker=null;
+   running.terminate();if(worker===running)worker=null;
  };
- worker.onerror=event=>{resetOptimizeButton();status("Optimizer worker failed: {detail}","error",{detail:event.message||"unknown error"});worker?.terminate();worker=null;};
- const compare=state.comparePetScenarios&&availablePets(state.accountProfile).length>0;
- worker.postMessage({type:compare?"optimize-pet-scenarios":"optimize",settings:structuredClone(state)});
+ running.onerror=event=>{
+  if(revision!==calculationRevision||worker!==running)return;
+  resetOptimizeButton();
+  status("Optimizer worker failed: {detail}","error",
+   {detail:event.message||"unknown error"});
+  running.terminate();worker=null;
+ };
+ const compare=requestContext.comparePetScenarios&&
+  availablePets(requestContext.accountProfile).length>0;
+ running.postMessage({type:compare?"optimize-pet-scenarios":"optimize",
+  settings:requestContext});
 }
 function renderAccountIntegration(result){
  let panel=$("account-integration-diagnostic");
@@ -587,7 +637,7 @@ function renderAccountIntegration(result){
  }
  if(result.petSearch?.shortlistOnly)
   panel.textContent+=" "+tr(
-   "Pet comparison checks at most three candidates per slot and is not a globally verified optimal choice.");
+   "Pet comparison may omit candidates in large owned rosters; compare only the evaluated setups.");
  const coupled=result.modeledScenario?.coverage;
  if(coupled?.petGearCoupledScreening)
   panel.textContent+=" "+tr("Coupled pet/gear search: equipment primaries are reconsidered for each active pet pair; {sources} equipment-pet passive sources, {excluded} seasonal rune interactions excluded. This is a bounded proxy, not a stage prediction.",{
@@ -616,8 +666,10 @@ function renderResults(result,scroll=true){
  $("empty-results").hidden=true;$("actual-results").hidden=false;if(scroll)$("results").scrollIntoView({behavior:"smooth",block:"start"});
  const bounded=result.optimality?.mode==="bounded-power";
  $("result-mode").textContent=tr(bounded?"Optimized · bounded grid":"Optimized · exact DP");
- $("build-title").textContent=tr(state.damage)+" · "+tr(state.gold==="HoG"?"Heart of Gold":state.gold);
- $("build-subtitle").textContent=tr(PRESETS[state.playstyle]?.label||"Balanced")+" · "+tr("Weighted log-damage/gold model");
+ const scenario=lastRunContext??state;
+ $("build-title").textContent=tr(scenario.damage)+" · "+
+  tr(scenario.gold==="HoG"?"Heart of Gold":scenario.gold);
+ $("build-subtitle").textContent=tr(PRESETS[scenario.playstyle]?.label||"Balanced")+" · "+tr("Weighted log-damage/gold model");
  const assumptions=result.combatAssumptions||{};
  $("combat-assumptions-summary").textContent=tr(
    "Modeled at the limit-stage boss: Hayst {hayst}, Snap {snap}, Astral Awakening {stacks}/5 taps.",
@@ -677,7 +729,8 @@ function initialize(){
  const queryLang=new URL(location.href).searchParams.get("lang");
  const pathLang=document.documentElement.lang;
  let savedLang="en";try{savedLang=localStorage.getItem("tt2_site_language")||"en"}catch{}
- const desired=SUPPORTED_LANGUAGES.includes(queryLang)?queryLang:(pathLang==="en"&&SUPPORTED_LANGUAGES.includes(savedLang)?savedLang:pathLang);
+ // An explicitly visited localized URL always wins over a stored preference.
+ const desired=SUPPORTED_LANGUAGES.includes(queryLang)?queryLang:pathLang;
  if(desired!==pathLang || queryLang){
    location.replace(localizedUrl(desired)); return;
  }
@@ -703,7 +756,22 @@ function initialize(){
   remember();
  });
  $("clear-minimums").addEventListener("click",()=>{state.minimums={};fillInputs();remember();});
- for(const id of ["skill-points","max-stage","gold-weight","crafting-power","time-to-kill","clone-level","qol-mode","preserve-current","hayst-active","snap-active","contracts-at-max","astral-activations"])$(id).addEventListener("change",()=>{readInputs();remember();});
+ for(const id of ["skill-points","max-stage","gold-weight","crafting-power","time-to-kill","clone-level","qol-mode","preserve-current","protect-unmodeled-skills","hayst-active","snap-active","contracts-at-max","astral-activations"])$(id).addEventListener("change",()=>{readInputs();remember();});
+ // Text fields emit "input" before their "change" event (on blur).
+ // Cancel a running optimization immediately while the user edits; never
+ // accept an old worker result against a half-edited budget or setting.
+ for(const id of ["skill-points","max-stage","gold-weight",
+  "crafting-power","time-to-kill","clone-level","astral-activations"]){
+   $(id).addEventListener("input",()=>{if(worker){readInputs();remember();}});
+ }
+ $("skill-editor").addEventListener("input",e=>{
+  if(!worker)return;
+  const input=e.target,id=input.dataset.level||input.dataset.minimum;
+  if(!id)return;
+  if(input.dataset.level)state.currentLevels[id]=Number(input.value);
+  else state.minimums[id]=Number(input.value);
+  remember();
+ });
  $("paste-button").addEventListener("click",pasteClipboard);
  $("upload-button").addEventListener("click",()=>$("upload-file").click());
  $("upload-file").addEventListener("change",async e=>{const f=e.target.files?.[0];if(!f)return;try{if(f.size>2_000_000)throw new Error(tr("File exceeds 2 MB."));importRaw(await f.text());}catch(err){status(err.message,"error");}e.target.value="";});

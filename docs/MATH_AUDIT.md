@@ -1068,3 +1068,56 @@ assignments. This fixes a real candidate ordering inconsistency,
 rather than extrapolating stage gains. Tests cover stable same-gear
 CT changes, all fixed assignments, nonconverged cycles and 9999
 log10 comparison bounds. No new multipliers, no deployment, PR DRAFT.
+
+
+## Work review 18 Nov 2026 — P1/P2 mathematical and functional corrections
+
+The requested objective is **correct build recommendations**, not stage
+projection or a game-stage emulator.
+
+1. **Critical artifact booster bug:** Magnifier/Fergus used to turn a
+   source main effect `F=1+cL^g` into `F^k`. Multiplying the effect's
+   logarithm by k yields orders-of-magnitude fictitious power, with
+   downstream pet/artifact/CT changes. Use coefficient amplification:
+   `F_boosted = 1 + (c × k) × L^g`, including enchantment magnitude
+   where known. Preserve +1 with `log10OnePlusPower`, support
+   astronomical level exponents, and leave additive damage pool
+   independent. Independent TT2 8.4 numeric reference:
+   Divine Retribution L=1e100, Magnifier level 40 ×5.5 =>
+   132.740362689 log10; Book of Prophecy L=1e100, Fergus level 40 ×10
+   => 145.875061263 log10. White Dwarf itself uses the corrected
+   main effect, then the verified count of owned artifacts.
+2. **Nonconstant post-solver spell baseline:** the candidate skill DP
+   formerly removed a selected spell's prerequisite talent, causing
+   the final ledger to optimize a different objective and breaking
+   `modeledCandidateUpperBound` for complete scenarios. Require
+   `ACTIVE_SPELL_CAPS[id].required` at level ≥1 whenever a
+   verified explicitly selected spell loadout is assumed active;
+   propagate these minimums to the existing cap-skill scoring.
+   The spell baseline is then constant over the feasible skill
+   search domain; count it *once* in the scenario ledger. The
+   already-modeled incremental cap effects remain marginal SP score.
+3. **Direct artifact bonuses:** permit real Artifact35/Artifact56
+   `AllHelperDamage`/`BossDamage` in source routing, with no
+   duplicate additive account component.
+4. **Stale worker results:** terminate active worker on changed
+   inputs, version requests, reject mismatched replies, and render
+   heading using the request snapshot instead of mutable state.
+5. **Winning setup UI:** show the actual chosen equipment and active
+   pets, with item shortlists separated as alternatives; scenario
+   switching updates gear and pets from the selected scenario.
+6. **Manual pet choices:** constrain one or both pet axes to selected
+   owned IDs when explicitly chosen; search only Automatic axes.
+7. **Set ownership flags:** case-insensitive strict bool parsing for
+   map values and detailed set records; preserve list-of-ID exports.
+8. **White Dwarf owned count:** zero or invalid artifact levels
+   cannot prove an acquired artifact; reject exact count (and
+   exponent bonus) when ambiguous, do not award speculative damage.
+9. **SEO:** crawlable language links, explicit requested locale wins;
+   distinct guide use-case explanations and import steps in four
+   languages. The visible FAQ remains useful, schema.org FAQPage
+   rich results are not an optimization priority.
+
+The PR remains open DRAFT. No GitHub Actions credit is assumed:
+a staged GitHub commit is NOT a verified CI pass and must not be
+presented as one. No merge, no Pages deployment.

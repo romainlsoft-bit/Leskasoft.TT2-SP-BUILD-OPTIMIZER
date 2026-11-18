@@ -10,6 +10,11 @@ import {optimizeBuild,DAMAGE_TYPES,GOLD_TYPES} from "../src/engine.js";
 const near=(a,b,tolerance=1e-9)=>Math.abs(a-b)<=
  tolerance*Math.max(1,Math.abs(a),Math.abs(b));
 const entry=(report,id)=>report.entries.find(x=>x.id===id);
+const independentMain=(id,level,factor=1)=>{
+ const row=ARTIFACT_CATALOG[id];
+ return Math.log10(1+Number(row.perLevel)*factor*
+  Math.pow(level,Number(row.growthExpo)));
+};
 const evaluate=artifacts=>{
  const profile=parseAccountProfile({Version:"8.4.0",artifacts});
  const effects=calculatePermanentArtifactEffects(profile,ARTIFACT_CATALOG);
@@ -32,14 +37,14 @@ test("8.4 artifact catalog contains all official v5.10 extended amplifier target
  assert.ok(near(r.treasure.factor,10));
  for(const id of damage){
   const x=entry(r,id);
-  assert.ok(near(x.log10,x.unamplifiedLog10*5.5*
-   (gold.includes(id)?10:1)),id);
+  assert.ok(near(x.log10,independentMain(id,100,
+   5.5*(gold.includes(id)?10:1))),id);
   assert.equal(x.magnifierApplied,true,id);
  }
  for(const id of gold){
   const x=entry(r,id);
-  assert.ok(near(x.log10,x.unamplifiedLog10*10*
-   (damage.includes(id)?5.5:1)),id);
+  assert.ok(near(x.log10,independentMain(id,100,
+   10*(damage.includes(id)?5.5:1))),id);
   assert.equal(x.treasureApplied,true,id);
  }
  assert.equal(entry(r,"Artifact77").appliedToScore,false,
@@ -51,12 +56,12 @@ test("The Magnifier and Fergus also affect their base uncapped icon categories",
   Artifact38:{level:100,e:false},Artifact44:{level:100,e:false}}).effects;
  for(const id of ["Artifact31","Artifact38"]){
   const x=entry(r,id);
-  assert.ok(near(x.log10,x.unamplifiedLog10*5.5),id);
+  assert.ok(near(x.log10,independentMain(id,100,5.5)),id);
   assert.equal(x.treasureApplied,false);
  }
  for(const id of ["Artifact20","Artifact44"]){
   const x=entry(r,id);
-  assert.ok(near(x.log10,x.unamplifiedLog10*10),id);
+  assert.ok(near(x.log10,independentMain(id,100,10)),id);
   assert.equal(x.magnifierApplied,false);
  }
 });
@@ -201,4 +206,63 @@ test("all 18 damage/gold combinations integrate derived artifacts once",()=>{
   assert.equal(optimized.accountIntegration.artifacts.treasure.owned,true);
   assert.equal(optimized.accountIntegration.releaseReady,false);
  }
+});
+
+test("review P1: real 8.4 Divine Retribution and Book of Prophecy amplify coefficients",()=>{
+ const {effects}=evaluate({
+  Artifact80:{level:40,enchanted:false},Artifact81:{level:40,enchanted:false},
+  Artifact31:{level:"1e100",enchanted:false},
+  Artifact20:{level:"1e100",enchanted:false}
+ });
+ const damage=entry(effects,"Artifact31");
+ const gold=entry(effects,"Artifact20");
+ assert.ok(near(damage.log10,132.74036268949424,1e-12));
+ assert.ok(near(gold.log10,145.8750612633917,1e-12));
+ assert.ok(damage.log10<140,"The Magnifier must not raise F to F^5.5");
+ assert.ok(gold.log10<150,"Fergus must not raise F to F^10");
+ assert.ok(near(damage.unamplifiedLog10,Math.log10(.1)+133));
+ assert.ok(near(gold.unamplifiedLog10,Math.log10(.75)+145));
+});
+test("review P2: unenchanted Hero Blade and Helheim Skull score once in fixed 18 routes",()=>{
+ const {profile,effects}=evaluate({
+  Artifact35:{level:"1e100",enchanted:false},
+  Artifact56:{level:"1e100",enchanted:false}
+ });
+ const a=entry(effects,"Artifact35"),b=entry(effects,"Artifact56");
+ assert.equal(a.appliedToScore,true);
+ assert.equal(b.appliedToScore,true);
+ assert.ok(near(a.log10,139.65321251377534,1e-9));
+ assert.ok(near(b.log10,129.07918124604762,1e-9));
+ const power=extractFixedAccountPower(profile);
+ assert.equal(power.entries.filter(x=>x.system==="artifacts"&&
+  x.bonusType==="AllHelperDamage").length,1);
+ assert.equal(power.entries.filter(x=>x.system==="artifacts"&&
+  x.bonusType==="BossDamage").length,1);
+ for(const damage of DAMAGE_TYPES)for(const gold of GOLD_TYPES){
+  const x=fixedAccountScore(power,{damage,gold,goldWeight:.7});
+  assert.ok(Number.isFinite(x.weightedLog10),damage+"/"+gold);
+ }
+});
+test("review P2: a zero-level artifact is not verified White Dwarf ownership",()=>{
+ const {effects,derived}=evaluate({
+  Artifact85:{level:40,enchanted:false},
+  Artifact31:{level:0,enchanted:false}
+ });
+ assert.equal(effects.entries.length,2);
+ assert.equal(derived.ownedArtifactCount,null);
+ assert.equal(derived.ownedCountVerifiable,false);
+ assert.equal(derived.whiteDwarfApplied,false);
+});
+
+test("review P2: full artifact catalog with zero levels cannot fabricate White Dwarf count",()=>{
+ const artifacts=Object.fromEntries(Object.keys(ARTIFACT_CATALOG).map(id=>[
+  id,{level:id==="Artifact85"?40:0,enchanted:false}
+ ]));
+ const {profile,effects,derived}=evaluate(artifacts);
+ assert.equal(profile.sections.artifacts.truncated,false);
+ assert.equal(effects.recognized,Object.keys(ARTIFACT_CATALOG).length);
+ assert.equal(derived.ownedCountVerifiable,false);
+ assert.equal(derived.ownedArtifactCount,null);
+ assert.equal(derived.whiteDwarfApplied,false);
+ assert.ok(derived.unmodeled.includes("white-dwarf-ownership-count-unverifiable"));
 });

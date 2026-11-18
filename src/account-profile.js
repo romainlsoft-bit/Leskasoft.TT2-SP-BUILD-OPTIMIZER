@@ -182,17 +182,28 @@ function extractRecord(rawId,item){
  if(ownedFlag===false)record.owned=false;
  return record;
 }
-function explicitlyUnlocked(value){
- // Completed-set collections may be boolean maps, not only arrays of IDs.
- // Never count false/zero or explicitly unfinished collections as acquired.
- if(value===false||value===0||value==="false"||value==="FALSE"||value==="0")return false;
- if(!isObject(value))return true;
+function explicitlyUnlocked(value,fromArray=false){
+ // A set name may appear as a naked collection key, while a boolean map
+ // must be interpreted case-insensitively. Unknown strings are not proof.
+ const flag=value=>{
+  if(value===true||value===1)return true;
+  if(value===false||value===0)return false;
+  if(typeof value==="string"){
+   const s=value.trim().toLowerCase();
+   if(s==="true"||s==="1")return true;
+   if(s==="false"||s==="0")return false;
+  }
+  return null;
+ };
+ const direct=flag(value);
+ if(direct!==null)return direct;
+ if(!isObject(value))
+  return fromArray&&typeof value==="string"&&value.trim()!=="";
  const flags=["owned","Owned","isOwned","IsOwned","unlocked","Unlocked",
   "completed","Completed","isCompleted","IsCompleted","collected","Collected"];
  const found=flags.filter(key=>Object.prototype.hasOwnProperty.call(value,key));
  if(!found.length)return true; // A set listed without a negative flag is owned.
- return found.every(key=>value[key]===true||value[key]===1||
-  value[key]==="true"||value[key]==="TRUE"||value[key]==="1");
+ return found.every(key=>flag(value[key])===true);
 }
 function extractEntries(value,maxEntries=MAX_ENTRIES,isEquipment=false,isCompletedSetCollection=false){
  let rows;
@@ -202,7 +213,7 @@ function extractEntries(value,maxEntries=MAX_ENTRIES,isEquipment=false,isComplet
  else return {count:0,records:[],truncated:false};
  const records=[];
  for(const [id,item] of rows.slice(0,maxEntries)){
-  if(isCompletedSetCollection&&!explicitlyUnlocked(item))continue;
+  if(isCompletedSetCollection&&!explicitlyUnlocked(item,Array.isArray(value)))continue;
   // A slot-keyed equipped export must retain the actual item ID and the slot.
   const slotKey=isEquipment&&/^(?:Weapon|Sword|Hat|Helmet|Suit|Armor|Aura|Slash)$/i.test(String(id));
   const nested=slotKey&&isObject(item)?field(item,["id","Id","ID","equipmentId","EquipmentId","EquipmentID","itemId","ItemId"]):{present:false};

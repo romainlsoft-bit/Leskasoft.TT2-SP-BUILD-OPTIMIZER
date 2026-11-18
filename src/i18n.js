@@ -5,6 +5,11 @@ export const SUPPORTED_LANGUAGES = ["en","fr","uk","ru"];
 export const NATIVE_LANGUAGE_NAMES = {en:"English",fr:"Français",uk:"Українська",ru:"Русский"};
 export const translations = {
 fr:{
+ "A damage pet and a gold pet are selected together. Automatic slots search eligible owned pets; named choices stay fixed.":"Un familier de dégâts et un familier d’or sont choisis ensemble. Les emplacements automatiques comparent les familiers possédés compatibles ; un choix nommé reste fixe.",
+ "Compare automatic pet choices":"Comparer les familiers en mode automatique",
+ "Selected optimized equipment":"Équipement réellement retenu par l’optimiseur",
+ "Equipment alternatives":"Autres équipements possibles",
+ "Pet comparison may omit candidates in large owned rosters; compare only the evaluated setups.":"Les grands inventaires de familiers peuvent dépasser la limite de recherche ; seuls les scénarios évalués sont comparés.",
  "Keep existing conditional skills when their effects cannot be modeled (recommended)":"Conserver les compétences conditionnelles existantes lorsque leurs effets ne sont pas modélisés (recommandé)",
  "Coupled pet/gear search: equipment primaries are reconsidered for each active pet pair; {sources} equipment-pet passive sources, {excluded} seasonal rune interactions excluded. This is a bounded proxy, not a stage prediction.":"Recherche couplée familiers/équipement : les bonus primaires sont réévalués pour chaque paire de familiers actifs ; {sources} sources passives d’équipement et {excluded} interactions avec les runes saisonnières exclues. Modèle approché borné, sans prévision fiable des stages.",
  "Pet audit: {imported} pets, {direct} fixed passive bonuses ({seasonal} Transcendent), {gear} seasonal equipment-pet primaries and {unscored} conditional pet effects not included in fixed damage. Tap/Hero damage is build-reduced, not universal. No stages predicted.":"Audit des familiers : {imported} familiers, {direct} bonus passifs fixes (dont {seasonal} transcendants), {gear} bonus primaires d’équipement issus de familiers transcendants et {unscored} effets conditionnels exclus des dégâts fixes. Les dégâts de tapotement/héros sont réduits selon le build, pas universels. Aucune estimation de stages.",
@@ -254,6 +259,11 @@ fr:{
  "Free Tap Titans 2 skill tree optimizer for TT2 8.4. Optimize skill points for Clan Ship, Pet, Shadow Clone, Heavenly Strike, Dagger or Gold Gun. Import game data or configure manually.":"Optimiseur gratuit de compétences Tap Titans 2 version 8.4. Import des données ou configuration manuelle pour tous les types de builds."
 },
 uk:{
+ "A damage pet and a gold pet are selected together. Automatic slots search eligible owned pets; named choices stay fixed.":"Улюбленець для шкоди та улюбленець для золота вибираються разом. Автоматичні слоти порівнюють доступних улюбленців; ручний вибір залишається фіксованим.",
+ "Compare automatic pet choices":"Порівняти автоматичний вибір улюбленців",
+ "Selected optimized equipment":"Спорядження, вибране оптимізатором",
+ "Equipment alternatives":"Інші варіанти спорядження",
+ "Pet comparison may omit candidates in large owned rosters; compare only the evaluated setups.":"Якщо улюбленців багато, деякі кандидати можуть бути виключені з пошуку; порівнюються лише перевірені варіанти.",
  "Keep existing conditional skills when their effects cannot be modeled (recommended)":"Зберігати наявні умовні навички, якщо їхню дію не враховано в моделі (рекомендовано)",
  "Coupled pet/gear search: equipment primaries are reconsidered for each active pet pair; {sources} equipment-pet passive sources, {excluded} seasonal rune interactions excluded. This is a bounded proxy, not a stage prediction.":"Спільний пошук улюбленців і спорядження: основні ефекти спорядження перераховуються для кожної пари активних улюбленців; {sources} пасивних джерел бонусів спорядження та {excluded} непідтверджених взаємодій сезонних рун виключено. Це обмежена модель, не прогноз етапів.",
  "Pet audit: {imported} pets, {direct} fixed passive bonuses ({seasonal} Transcendent), {gear} seasonal equipment-pet primaries and {unscored} conditional pet effects not included in fixed damage. Tap/Hero damage is build-reduced, not universal. No stages predicted.":"Аудит улюбленців: {imported} улюбленців, {direct} постійних пасивних бонусів (із них {seasonal} трансцендентних), {gear} бонусів основного ефекту спорядження від трансцендентних улюбленців і {unscored} умовних ефектів, не включених до постійної шкоди. Шкода від натискань/героїв залежить від типу білда. Це не прогноз рівнів.",
@@ -454,6 +464,11 @@ uk:{
  "Free Tap Titans 2 skill tree optimizer for TT2 8.4. Optimize skill points for Clan Ship, Pet, Shadow Clone, Heavenly Strike, Dagger or Gold Gun. Import game data or configure manually.":"Безкоштовний оптимізатор дерева навичок Tap Titans 2 версії 8.4. Імпорт даних або ручне налаштування для всіх збірок."
 },
 ru:{
+ "A damage pet and a gold pet are selected together. Automatic slots search eligible owned pets; named choices stay fixed.":"Питомцы для урона и золота выбираются вместе. Автоматические слоты сравнивают доступных питомцев; ручной выбор остаётся фиксированным.",
+ "Compare automatic pet choices":"Сравнивать питомцев в автоматическом режиме",
+ "Selected optimized equipment":"Экипировка, выбранная оптимизатором",
+ "Equipment alternatives":"Другие варианты экипировки",
+ "Pet comparison may omit candidates in large owned rosters; compare only the evaluated setups.":"При большом количестве питомцев часть кандидатов может быть исключена из поиска; сравниваются только проверенные варианты.",
  "Keep existing conditional skills when their effects cannot be modeled (recommended)":"Сохранять имеющиеся условные навыки, если модель не учитывает их эффект (рекомендуется)",
  "Coupled pet/gear search: equipment primaries are reconsidered for each active pet pair; {sources} equipment-pet passive sources, {excluded} seasonal rune interactions excluded. This is a bounded proxy, not a stage prediction.":"Совместный подбор питомцев и снаряжения: основные эффекты пересчитываются для каждой пары активных питомцев; {sources} пассивных источников усиления снаряжения, {excluded} неподтверждённых взаимодействий сезонных рун исключено. Это ограниченная модель, не прогноз этапов.",
  "Pet audit: {imported} pets, {direct} fixed passive bonuses ({seasonal} Transcendent), {gear} seasonal equipment-pet primaries and {unscored} conditional pet effects not included in fixed damage. Tap/Hero damage is build-reduced, not universal. No stages predicted.":"Аудит питомцев: {imported} питомцев, {direct} постоянных пассивных бонусов (из них {seasonal} трансцендентных), {gear} усилений основного эффекта снаряжения от трансцендентных питомцев и {unscored} условных эффектов вне постоянного урона. Урон от нажатий/героев уменьшается по типу билда, а не действует на все билды одинаково. Это не прогноз этапов.",
