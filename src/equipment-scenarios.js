@@ -7,10 +7,10 @@
  */
 import {ARTIFACT_CATALOG} from "../vendor/account-catalog.js";
 import {equipmentEffectReduction,EQUIPMENT_AURA_TARGETS} from "./equipment-reductions.js";
-import {calculatePermanentArtifactEffects} from "./account-artifacts.js";
-import {petPassiveEvidence,logPassivePetMultiplier,petScenarioScore,ALL_PETS,verifiedEquipmentPetAmplifierTarget} from "./pet-scenarios.js?v=20261118-final-v";
+import {calculatePermanentArtifactEffects} from "./account-artifacts.js?v=20261118-work-review-r1";
+import {petPassiveEvidence,logPassivePetMultiplier,petScenarioScore,ALL_PETS,verifiedEquipmentPetAmplifierTarget} from "./pet-scenarios.js?v=20261118-work-review-r1";
 import {petLevelEvidence} from "./account-pet-levels.js";
-import {extractFixedAccountPower} from "./account-power.js?v=20261118-final-v";
+import {extractFixedAccountPower} from "./account-power.js?v=20261118-work-review-r1";
 import {resolveGemstoneEvidence} from "./account-gemstones.js?v=20261118-final-v";
 import {resolvePermanentSetPower,resolveCraftingPower} from "./account-permanent-sets.js";
 const CATEGORIES=["Sword","Helmet","Armor","Aura","Slash"];

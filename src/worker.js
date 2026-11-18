@@ -1,10 +1,10 @@
-import {optimizeBuild} from "./engine.js?v=20261118-final-w";
-import {petSearchPlan} from "./pet-scenarios.js?v=20261118-final-w";
-import {calculateModeledScenario} from "./calculation-ledger.js?v=20261118-final-w";
+import {optimizeBuild} from "./engine.js?v=20261118-work-review-r1";
+import {petSearchPlan,availablePets} from "./pet-scenarios.js?v=20261118-work-review-r1";
+import {calculateModeledScenario} from "./calculation-ledger.js?v=20261118-work-review-r1";
 import {selectPetPair} from "./pet-pair-search.js?v=20261118-final-w";
 import {bestEquipmentByCategory,gearSelectionEffects,petCandidateGearWeightEnvelope,
  enumerateOwnedGearAssignments}
- from "./equipment-scenarios.js?v=20261118-final-w";
+ from "./equipment-scenarios.js?v=20261118-work-review-r1";
 import {refineCoupledGearAndSkills,enumerateJointGearAndSkills}
  from "./joint-candidate-search.js?v=20261118-final-w";
 import {modeledCandidateUpperBound} from "./model-score-bounds.js?v=20261118-final-w";
@@ -60,7 +60,21 @@ self.onmessage=event=>{
     equipmentPetPassiveWeights:envelope.passiveWeights,
     equipmentPetCoverageComplete:initialGear.petEquipmentCoverageComplete};
    const plan=petSearchPlan(settings.accountProfile,screening);
-   const {damage,gold}=plan;
+   const ownedPets=availablePets(settings.accountProfile);
+   const explicitFor=(id,slot,fallback)=>{
+    if(!id)return fallback;
+    const found=ownedPets.find(p=>p.id===id&&p.equipType===
+     (slot==="damage"?"Damage":"Support"));
+    if(!found)throw new Error("Selected "+slot+" pet is not owned or incompatible");
+    return [found];
+   };
+   // Named selections are hard constraints; only Automatic slots search.
+   const damage=explicitFor(settings.selectedDamagePet,"damage",plan.damage);
+   const gold=explicitFor(settings.selectedGoldPet,"gold",plan.gold);
+   const manualSlots={damage:Boolean(settings.selectedDamagePet),
+    gold:Boolean(settings.selectedGoldPet)};
+   const fullySearched=(manualSlots.damage||plan.omittedCandidates.damage===0)&&
+    (manualSlots.gold||plan.omittedCandidates.gold===0);
    const pairCount=Math.max(1,damage.length)*Math.max(1,gold.length);
    useFullGearEnumeration=useFullGearEnumeration&&
     gearEnumeration.assignments.length*pairCount<=fullJointBudget;
@@ -72,7 +86,7 @@ self.onmessage=event=>{
       damageName:damage.find(x=>x.id===damagePet)?.name||"",
       goldName:gold.find(x=>x.id===goldPet)?.name||""};
     },{maxPasses:3,exhaustiveShortlist:true,maxCandidatesPerSlot:6,
-     entireEligibleRoster:plan.exhaustiveEligible,
+     entireEligibleRoster:fullySearched,
      onProgress:progress=>self.postMessage({progress})});
     if(!chosen.best)throw new Error("No pet scenario available");
     const result={...chosen.best.result,
@@ -83,14 +97,18 @@ self.onmessage=event=>{
       exhaustiveWithinShortlist:chosen.exhaustiveWithinShortlist===true,
       exhaustiveAmongEligiblePetPairs:chosen.exhaustiveAmongEligiblePetPairs===true,
       eligibleCount:plan.eligibleCount,
-      omittedCandidates:plan.omittedCandidates,
+      omittedCandidates:{
+       damage:manualSlots.damage?0:plan.omittedCandidates.damage,
+       gold:manualSlots.gold?0:plan.omittedCandidates.gold
+      },
+      manualSlots,
       candidateCount:chosen.candidateCount,
       pairBudget:plan.pairBudget,
       jointSearch:chosen.best.jointSearch,
       comparisonBounds:chosen.comparisonBounds,
       fullOwnedGearCartesianPerPair:useFullGearEnumeration,
       completeOwnedPetAndGearCartesian:useFullGearEnumeration&&
-       plan.exhaustiveEligible,
+       fullySearched,
       globallyOptimalAcrossPetGearSP:false
      }};
     const winningSettings={...settings,

@@ -645,7 +645,9 @@ test("Magnifier boosts damage and exotic pet artifacts without buffing gold",()=
  assert.ok(Math.abs(r.magnifier.factor-5.5)<1e-10);
  for(const id of ["Artifact31","Artifact96"]){
   const x=r.entries.find(x=>x.id===id);
-  assert.ok(Math.abs(x.log10-x.unamplifiedLog10*5.5)<1e-10);
+  assert.ok(Math.abs(x.log10-Math.log10(1+
+   Number(ARTIFACT_CATALOG[id].perLevel)*5.5*
+   Math.pow(100,Number(ARTIFACT_CATALOG[id].growthExpo))))<1e-10);
  }
  const gold=r.entries.find(x=>x.id==="Artifact20");
  assert.ok(Math.abs(gold.log10-gold.unamplifiedLog10)<1e-10);
@@ -658,7 +660,9 @@ test("Treasure boosts gold and Exotic pet gold, but not damage effects",()=>{
  assert.ok(Math.abs(r.treasure.factor-10)<1e-10);
  for(const id of ["Artifact20","Artifact97"]){
   const x=r.entries.find(x=>x.id===id);
-  assert.ok(Math.abs(x.log10-x.unamplifiedLog10*10)<1e-10);
+  assert.ok(Math.abs(x.log10-Math.log10(1+
+   Number(ARTIFACT_CATALOG[id].perLevel)*10*
+   Math.pow(100,Number(ARTIFACT_CATALOG[id].growthExpo))))<1e-10);
  }
  assert.equal(r.entries.find(x=>x.id==="Artifact31").treasureApplied,false);
 });
@@ -666,7 +670,9 @@ test("White Dwarf receives Magnifier in post-5.19 rules",()=>{
  const p=parseAccountProfile({artifacts:{Artifact80:{level:40},Artifact85:{level:50}}});
  const r=calculatePermanentArtifactEffects(p,ARTIFACT_CATALOG);
  const x=r.entries.find(x=>x.id==="Artifact85");
- assert.ok(Math.abs(x.log10-x.unamplifiedLog10*5.5)<1e-10);
+ assert.ok(Math.abs(x.log10-Math.log10(1+
+  Number(ARTIFACT_CATALOG.Artifact85.perLevel)*5.5*
+  Math.pow(50,Number(ARTIFACT_CATALOG.Artifact85.growthExpo))))<1e-10);
 });
 
 test("Artifact Damage adds unenchanted components before Heavenly Sword multiplier",()=>{

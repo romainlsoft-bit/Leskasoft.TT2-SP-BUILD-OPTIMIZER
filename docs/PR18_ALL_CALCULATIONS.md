@@ -1363,3 +1363,77 @@ configurations possédées, cycles CT et borne numérique à 9999 log10.
 Cache-busting du worker et des quatre pages localisées. Aucun
 nouveau coefficient inventé, aucune conversion en étages, aucun
 changement d'objectif. **PR #18 DRAFT, sans fusion ni déploiement.**
+
+
+## Revue Work du 18 novembre 2026 — lot de corrections R1 (P1/P2 et SEO)
+
+Revue reçue sur le SHA `bcb1ad202618f18abdd5a46934fddf21e9104b33`.
+Priorité **justesse des builds et restitution au joueur**, sans aucune
+prévision d'étages. L'absence de crédits GitHub Actions impose de
+regrouper les modifications en un seul push, sans multiplication de runs.
+
+**P1 / Artefacts Magnifier et Treasure of Fergus.** Ancien calcul erroné
+`log10(F_amplifié) = k × log10(F)` (donc `F^k`).
+Nouveau calcul **exact en log10** :
+`log10(1 + (EffectPerLevel × k) × EnchantmentMagnitude × Level^GrowthExpo)`.
+Le `+1` est préservé, sans overflow pour niveaux `1e9999`.
+Divine Retribution `1e100` ×5,5 : **132,740363 log10** (non 726).
+Book of Prophecy `1e100` ×10 : **145,875061 log10**
+(non 1 448,750613). Artefacts composites : les deux coefficients se
+multiplient **sur c** avant l'évaluation ; White Dwarf conserve une
+seule contribution par artefact **réellement possédé**. L'Artifact
+Damage additif demeure indépendant.
+
+**P1 / Solveur vs ledger des sorts.** Un loadout explicite de sorts
+considéré actif au cap exige leurs **talents de déblocage** (source
+`ACTIVE_SPELL_CAPS[spell].required`), qui deviennent des minimums
+obligatoires `>=1` dans le solveur. La baseline des sorts actifs
+sélectionnés devient ainsi **constante** entre allocations SP du domaine
+admissible : elle reste dans le ledger, **une seule fois**, et les
+bornes upper/lower du modèle additif redeviennent comparables.
+Le coefficient marginal des caps SP n'est pas recompté. Un minimum
+inaccessible doit déclencher une erreur cohérente plutôt qu'un build
+qui prétend porter un sort pourtant supprimé.
+
+**P2 / Six autres anomalies :**
+- Effets principaux `AllHelperDamage` (Hero's Blade) et
+  `BossDamage` (Helheim Skull) désormais passés à la conversion
+  source `fixedAccountScore` une seule fois.
+- Invalidation et interruption du worker sur **tous changements de
+  réglages** ; chaque réponse est gardée par révision et identité du
+  worker. Le titre du résultat vient du **snapshot de requête**.
+- Affichage des **deux familiers et cinq pièces réellement retenus**
+  avant les alternatives ; sélection d'un autre scénario recharge
+  `gearSelection` associée (pas seulement la shortlist).
+- Un familier nommé dans un slot est une **contrainte ferme** même
+  lorsque le mode de comparaison automatique est actif. Un slot
+  « Automatic » est le seul à être exploré.
+- Drapeaux de possession des sets normalisés pour les formes
+  numériques et booléennes `"True"/"False"`, casse et espaces compris,
+  dans les cartes et objets détaillés ; un booléen inconnu ne prouve
+  pas l'acquisition.
+- White Dwarf : artefacts au niveau 0 / niveau invalide ne prouvent
+  pas une acquisition. Le compteur **exact reste inconnu** sans
+  preuve positive de niveau : aucun bonus White Dwarf artificiel.
+
+**SEO S1/S2/S3 :** vrais liens HTML de langue EN/FR/UK/RU
+sur les quatre calculateurs ; URL explicitement visitée prioritaire
+sur la langue précédemment mémorisée ; guides enrichis d'une
+comparaison concrète Pet/Fairy ↔ Clan Ship/Fairy et des étapes
+d'import. Les guides existants gardent leur FAQ visible, mais
+`FAQPage` n'est pas une priorité SEO (fin des rich results Google).
+Les guides restent distincts de l'outil.
+
+**Régressions :** références numériques calculées indépendamment
+des fonctions optimisées ; six cas de sorts avec prérequis, possession
+des sets, roster complet avec niveaux zéro, choix manuels et UI,
+routes 18 Damage×Gold, langues et navigation HTML.
+Tests ajoutés / corrigés : `tests/permanent-artifact-interactions.test.js`,
+`tests/account-power.test.js`, `tests/spell-scenarios-lot-n.test.js`,
+`tests/account-profile.test.js`,
+`tests/worker-pair-integration.test.js`,
+`tests/review-ui-seo.test.js`.
+
+**Gates** : conserver DRAFT. Pas de fusion ni Pages. Les tests locaux
+doivent être distingués de la CI GitHub Actions **non relancée faute de
+crédits**, sans annoncer un résultat CI vert sur le nouveau SHA.

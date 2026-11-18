@@ -6,7 +6,7 @@
  * are separate mechanics, never replaced by these four artifacts.
  */
 import {ARTIFACT_CATALOG} from "../vendor/account-catalog.js";
-import {calculatePermanentArtifactEffects} from "./account-artifacts.js";
+import {calculatePermanentArtifactEffects} from "./account-artifacts.js?v=20261118-work-review-r1";
 import {resolveGemstoneEvidence} from "./account-gemstones.js?v=20261118-pet-coupling-p";
 const TYPES=Object.freeze({
  Legacy:Object.freeze({damage:"LegacyPetDamageEffect",gold:"LegacyPetGoldEffect"}),

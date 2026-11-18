@@ -127,3 +127,23 @@ test("equipment secondary type amount pairs survive sanitized import without ali
   {bonusType:"FairyGold",bonusAmount:"2e50"}
  ]);
 });
+
+test("review P2: set ownership normalizes case and whitespace, both map and object forms",()=>{
+ const p=parseAccountProfile({equipmentSets:{
+  FairyKnight:" False ",DarkAngel:"FALSE",
+  MultiCast:" TRUE ",StainGlass:true,
+  Samurai:{completed:" True "},
+  AlphaHeart:{owned:"True"},
+  Eyeball:{unlocked:" false "},
+  Tortoise:{isOwned:" FALSE "},
+  Orca:0,
+  GhostSet:"unexpected flag"
+ }});
+ assert.deepEqual(p.ownedSetIds,["MultiCast","StainGlass","Samurai","AlphaHeart"]);
+ assert.equal(p.sections.equipmentSets.count,4);
+ const q=parseAccountProfile({equipmentSets:{
+  FairyKnight:{owned:"false"},DarkAngel:{owned:"TRUE"},
+  MultiCast:{completed:"False"}
+ }});
+ assert.deepEqual(q.ownedSetIds,["DarkAngel"]);
+});

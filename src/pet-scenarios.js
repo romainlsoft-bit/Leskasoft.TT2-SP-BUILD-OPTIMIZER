@@ -11,9 +11,9 @@ export const ALL_PETS=Object.freeze({...PETS,...TRANSCENDENT_PETS});
 import {skillInfo} from "../vendor/skills.js";
 import {equipmentEffectReduction} from "./equipment-reductions.js";
 import {EQUIPMENT_SET_CATALOG} from "../vendor/account-catalog.js";
-import {petTier,petArtifactAmplifiers,logPassivePetMultiplier,verifiedEquipmentPetAmplifierTarget} from "./pet-amplifiers.js?v=20261118-pet-coupling-p";
+import {petTier,petArtifactAmplifiers,logPassivePetMultiplier,verifiedEquipmentPetAmplifierTarget} from "./pet-amplifiers.js?v=20261118-work-review-r1";
 import {petLevelEvidence} from "./account-pet-levels.js";
-export {petTier,petArtifactAmplifiers,logPassivePetMultiplier,verifiedEquipmentPetAmplifierTarget} from "./pet-amplifiers.js?v=20261118-pet-coupling-p";
+export {petTier,petArtifactAmplifiers,logPassivePetMultiplier,verifiedEquipmentPetAmplifierTarget} from "./pet-amplifiers.js?v=20261118-work-review-r1";
 const finite=v=>{const n=Number(v);return Number.isFinite(n)?n:0;};
 const petLevels=profile=>petLevelEvidence(profile).levels;
 export function availablePets(profile){

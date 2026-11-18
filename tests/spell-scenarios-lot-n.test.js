@@ -216,3 +216,53 @@ test("cross-branch unlocked later is diagnosed, not counted as free SP cap gain"
   {DualPetBoost:1,SummonerAutoTap:5});
  assert.equal(proof.rows[0].capMarginalAlreadyInSkillScore,true);
 });
+
+test("review P1: each selected equipped spell unlock stays in optimized SP objective",()=>{
+ const cases=[
+  {damage:"Clan Ship",sp:60,unlock:"ClanShipVoltage",spell:"ThunderVolley"},
+  {damage:"Pet",sp:60,unlock:"DualPetBoost",spell:"DualPet"},
+  {damage:"Shadow Clone",sp:100,unlock:"TwilightGathering",spell:"TwilightFairy"},
+  {damage:"Heavenly Strike",sp:100,unlock:"TwilightGathering",spell:"TwilightFairy"},
+  {damage:"Dagger",sp:60,unlock:"CriticalHit",spell:"StreamOfBlades"},
+  {damage:"Gold Gun",sp:200,unlock:"ExplosivesExpert",spell:"GoldenMissile"}
+ ];
+ for(const {damage,sp,unlock,spell} of cases){
+  const ctx={...base,damage,gold:"Fairy",maxStage:15000,
+   assumeMaxSpells:true,skillPoints:sp,selectedSpells:[spell],
+   qol:"none",minimums:{},currentLevels:{}};
+  const prior=optimizeBuild({...ctx,minimums:{[unlock]:1}});
+  const automatic=optimizeBuild({...ctx,currentLevels:prior.levels});
+  const competitor=optimizeBuild({...ctx,currentLevels:prior.levels,
+   minimums:{[unlock]:1}});
+  const total=result=>calculateModeledScenario(result,ctx,
+   {independentScore:0}).totalLog10;
+  assert.ok(automatic.levels[unlock]>=1,damage+" kept "+unlock);
+  assert.ok(automatic.selectedSpellUnlocks.includes(unlock));
+  assert.equal(automatic.spellScenario.bySpell[spell].available,true);
+  assert.ok(total(automatic)+1e-8>=total(competitor),
+   damage+" automatic ledger must not be worse than forced unlock");
+  assert.equal(automatic.spellBaselineInvariantUnderSkillOptimization,true);
+  assert.ok(automatic.optimality.upperBound+1e-8>=automatic.score);
+ }
+});
+
+test("review P1 Gold Gun six-spell counterexample compares the SAME final ledger objective",()=>{
+ const settings={skillPoints:200,damage:"Gold Gun",gold:"Fairy",goldWeight:.7,
+  qol:"none",maxStage:15000,sets:{},assumeMaxSpells:true,
+  selectedSpells:["GoldenMissile","TapBoost","CritBoost",
+   "HandOfMidas","HelperBoost","ShadowClone"]};
+ const prior=optimizeBuild({...settings,minimums:{ExplosivesExpert:1}});
+ const context={...settings,currentLevels:prior.levels};
+ const automatic=optimizeBuild(context);
+ const competitor=optimizeBuild({...context,
+  minimums:{ExplosivesExpert:1}});
+ const total=result=>calculateModeledScenario(result,context,
+  {independentScore:0}).totalLog10;
+ assert.ok(automatic.levels.ExplosivesExpert>0);
+ assert.ok(automatic.selectedSpellUnlocks.includes("ExplosivesExpert"));
+ assert.ok(automatic.spellScenario.bySpell.GoldenMissile.available);
+ assert.ok(total(automatic)>=total(competitor)-1e-8);
+ // Unlike the reviewed W code, no unmodeled selected-spell baseline is
+ // lost after the solver optimizes the marginal SP score.
+ assert.equal(automatic.spellBaselineInvariantUnderSkillOptimization,true);
+});

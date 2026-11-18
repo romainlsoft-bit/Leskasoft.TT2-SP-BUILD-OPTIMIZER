@@ -9,18 +9,27 @@
  * pool. Missing/enchantment-ambiguous records are not silently completed.
  */
 import {ARTIFACT_CATALOG,SEASON_ARTIFACT_CATALOG} from "../vendor/account-catalog.js";
-import {additiveDamageEvidence} from "./account-damage-pools.js";
+import {additiveDamageEvidence} from "./account-damage-pools.js?v=20261118-work-review-r1";
+import {positiveLog10} from "./account-artifacts.js?v=20261118-work-review-r1";
 export function artifactDerivedPower(profile,artifactEffects){
  if(!profile?.sections?.artifacts?.present)
   return {entries:[],ownedArtifactCount:null,ownedCountVerifiable:false,
    unmodeled:["missing-artifact-collection"],complete:false};
  const source=artifactEffects||{entries:[],unknown:[]};
  const truncated=profile.sections.artifacts.truncated===true;
- const exactCount=!truncated&&!source.unknown?.length;
- // Every canonical owned artifact contributes to White Dwarf's exponent,
- // even when its MAIN effect cannot be evaluated. Identical aliases do not
- // create additional owned artifacts.
- const count=exactCount?source.entries.length:null;
+ // A catalog row at level 0 does NOT establish ownership. Incomplete or
+ // invalid levels without independent collection evidence make the EXACT
+ // count unknowable, not an additional permanent White Dwarf exponent.
+ const validOwned=source.entries.filter(x=>{
+  if(x.level==null)return false;
+  // A valid, positive source level is independent acquisition evidence.
+  // Reuse the scientific parser; Number("1e9999") would overflow.
+  const magnitude=positiveLog10(x.level);
+  return magnitude!==null&&magnitude>=0;
+ });
+ const uncertainOwned=validOwned.length!==source.entries.length;
+ const exactCount=!truncated&&!source.unknown?.length&&!uncertainOwned;
+ const count=exactCount?validOwned.length:null;
  const entries=[],unmodeled=[];
  const dwarf=source.entries.find(x=>x.id==="Artifact85");
  if(dwarf&&Number.isFinite(dwarf.log10)&&count!==null&&count>0){

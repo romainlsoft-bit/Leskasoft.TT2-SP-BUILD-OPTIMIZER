@@ -18,11 +18,11 @@ import {clanScrollEvidence} from "./account-scrolls.js?v=20261117-hero-scroll-m"
 import {heroProgressionEvidence} from "./hero-progression.js?v=20261117-hero-scroll-m";
 import {equipmentEffectReduction} from "./equipment-reductions.js";
 import {ARTIFACT_CATALOG} from "../vendor/account-catalog.js";
-import {calculatePermanentArtifactEffects} from "./account-artifacts.js";
+import {calculatePermanentArtifactEffects} from "./account-artifacts.js?v=20261118-work-review-r1";
 import {resolveMonumentEvidence} from "./account-monuments.js?v=20261117-monument-pools";
 import {monumentDerivedPower} from "./account-monument-derived.js?v=20261117-monument-pools";
-import {petPassiveEvidence} from "./pet-scenarios.js?v=20261118-final-v";
-import {artifactDerivedPower} from "./account-artifact-derived.js";
+import {petPassiveEvidence} from "./pet-scenarios.js?v=20261118-work-review-r1";
+import {artifactDerivedPower} from "./account-artifact-derived.js?v=20261118-work-review-r1";
 import {mergeTitanResearch,resourceResearchEvidence} from "./account-research-resources.js?v=20261117-resource-integrity";
 import {resolveGemstoneEvidence} from "./account-gemstones.js?v=20261118-final-v";
 

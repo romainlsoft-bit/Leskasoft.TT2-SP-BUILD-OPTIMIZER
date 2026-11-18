@@ -2,11 +2,12 @@ import { skillInfo } from "../vendor/skills.js";
 import { baseline } from "../vendor/qol-baseline.js";
 import { optimizeExact } from "./solver-core.js?v=20261118-final-v";
 import { scoreAtLevel } from "./effects.js?v=20261118-final-v";
-import { parseAccountProfile } from "./account-profile.js?v=20261118-final-v";
-import {extractFixedAccountPower,fixedAccountScore} from "./account-power.js?v=20261118-final-v";
-import {accountDependencyGraph} from "./account-dependencies.js?v=20261117-monument-pools";
+import { parseAccountProfile } from "./account-profile.js?v=20261118-work-review-r1";
+import {extractFixedAccountPower,fixedAccountScore} from "./account-power.js?v=20261118-work-review-r1";
+import {accountDependencyGraph} from "./account-dependencies.js?v=20261118-work-review-r1";
 import {resolveSpellCaps} from "./spell-caps.js?v=20261118-final-v";
 import {resolveSpellScenario,spellSelectionEvidence,SPELL_CAP_SKILLS} from "./spell-scenarios.js?v=20261118-final-v";
+import {ACTIVE_SPELL_CAPS} from "../vendor/active-spell-caps.js";
 import {resolveManaEvidence} from "./mana-evidence.js?v=20261118-final-v";
 import {extractTimedSetPower} from "./account-set-bonuses.js";
 import {resolvePermanentSetPower} from "./account-permanent-sets.js";
@@ -142,6 +143,21 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
     if(!Number.isInteger(lvl)||lvl<0||lvl>skillInfo[id].MaxLevel)throw new Error("Invalid minimum for "+skillInfo[id].Name);
     min[id]=Math.max(min[id],lvl);
   }
+  // A selected and modeled spell is a HARD loadout constraint. Its
+  // unlock must not disappear while DP optimizes only marginal skill gains;
+  // otherwise the final ledger loses a nonconstant baseline and DP bounds
+  // do not apply to the final score.
+  const selectedSpellUnlocks=[];
+  if(spellSelection.valid&&!spellCapEvidenceIsIncomplete){
+    for(const id of spellSelection.ids){
+      const requirement=ACTIVE_SPELL_CAPS[id]?.required;
+      if(!requirement||requirement==="None")continue;
+      if(!Object.hasOwn(skillInfo,requirement))
+       throw new Error("Unknown selected spell unlock requirement: "+id);
+      min[requirement]=Math.max(min[requirement],1);
+      selectedSpellUnlocks.push(requirement);
+    }
+  }
   if(combatContext.assumeContractsAtMax){
     // Opt-in means both contracts exist and reach full bonus at the boss.
     // Minimums also make the conditional Terrifying Pact score consistent.
@@ -221,6 +237,8 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
   const spellScenario=resolveSpellScenario(scoreContext,result.levels,spellCaps);
   const manaEvidence=resolveManaEvidence(scoreContext,result.levels,spellScenario,contractScenario);
   return {...result,prior:current,spent:points,remaining:SP-points,changes,branchTotals,protectedSkills,
+    selectedSpellUnlocks,spellBaselineInvariantUnderSkillOptimization:
+     spellSelection.valid&&!spellCapEvidenceIsIncomplete,
     spellCaps,spellScenario,manaEvidence,contractScenario,
     accountIntegration:{
       skillTreeSetPower:{

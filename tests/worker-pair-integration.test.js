@@ -129,3 +129,32 @@ test("U: worker reruns real SP for every owned gear choice when pet×gear space 
  assert.ok(result.result.spent<=120);
  assert.equal(result.result.modeledScenario.coverage.realStagePredictionValidated,false);
 });
+
+test("review P2: explicit owned pet choices remain hard constraints during comparison",async()=>{
+ const execute=await workerHarness();
+ const profile=parseAccountProfile({petLevels:{
+  Pet1:120,Pet7:120,Pet6:120
+ }});
+ const input={...makeSettings(profile),skillPoints:60,
+  selectedDamagePet:"Pet7",selectedGoldPet:"Pet6"};
+ const {result}=execute("optimize-pet-scenarios",input);
+ assert.equal(result?.ok,true,result?.error);
+ assert.deepEqual(result.selectedPets,{damage:"Pet7",gold:"Pet6"});
+ assert.deepEqual(result.petSearch.manualSlots,{damage:true,gold:true});
+ assert.equal(result.petSearch.uniqueEvaluations,1);
+ assert.equal(result.result.modeledScenario.selectedDamagePet,"Pet7");
+ assert.equal(result.result.modeledScenario.selectedGoldPet,"Pet6");
+});
+test("review P2: automatic gold pet search does not alter fixed damage pet",async()=>{
+ const execute=await workerHarness();
+ const profile=parseAccountProfile({petLevels:{
+  Pet1:120,Pet7:120,Pet6:120,Pet12:120
+ }});
+ const {result}=execute("optimize-pet-scenarios",{
+  ...makeSettings(profile),skillPoints:60,selectedDamagePet:"Pet7"});
+ assert.equal(result?.ok,true,result?.error);
+ assert.equal(result.selectedPets.damage,"Pet7");
+ assert.equal(result.petSearch.manualSlots.damage,true);
+ assert.equal(result.petSearch.manualSlots.gold,false);
+ assert.equal(result.petSearch.candidateCount.damage,1);
+});
