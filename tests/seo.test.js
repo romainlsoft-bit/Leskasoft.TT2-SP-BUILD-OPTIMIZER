@@ -37,8 +37,8 @@ test("French / Ukrainian / Russian text is indexable without JavaScript",()=>{
  assert.match(pages.ru,/<h1>Оптимизатор дерева навыков Tap Titans 2<\/h1>/);
  for(const lang of ["fr","uk","ru"]){
   assert.ok(!pages[lang].includes("<h1>Tap Titans 2 Skill Tree Optimizer</h1>"));
-  assert.ok(pages[lang].includes('src="../src/app.js"'));
-  assert.ok(pages[lang].includes('href="../styles.css"'));
+  assert.match(pages[lang],/src="\.\.\/src\/app\.js\?v=20\d{6}-[a-z0-9-]+"/);
+  assert.match(pages[lang],/href="\.\.\/styles\.css\?v=20\d{6}-[a-z0-9-]+"/);
   assert.ok(pages[lang].includes('href="../assets/favicon.svg"'));
   assert.ok(pages[lang].includes('data-static-localized="true"'));
  }
@@ -53,7 +53,14 @@ test("All pages provide reciprocal hreflang with x-default",()=>{
 });
 test("Google sitemap lists only canonical URLs and robots references it",()=>{
  for(const url of Object.values(routes))assert.ok(sitemap.includes("<loc>"+url+"</loc>"));
- assert.equal((sitemap.match(/<url>/g)||[]).length,4);
+ const urls=[...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map(match=>match[1]);
+ assert.equal(urls.length,8,"4 localized root pages + 4 SEO guide pages");
+ assert.equal(new Set(urls).size,8,"no duplicate canonical URLs");
+ for(const url of urls)assert.ok(url.startsWith(SITE+"/"));
+ for(const suffix of ["/skill-tree-optimizer/",
+  "/fr/optimiseur-arbre-de-competences/",
+  "/uk/skill-tree-optimizer/","/ru/skill-tree-optimizer/"])
+  assert.ok(urls.includes(SITE+suffix));
  assert.ok(robots.includes("Sitemap: "+SITE+"/sitemap.xml"));
  assert.ok(!pages.en.includes('name="robots" content="noindex'));
 });

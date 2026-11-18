@@ -33,7 +33,8 @@ test("result import help and Leskasoft link are present in all localized HTML",(
   assert.ok(html.includes("Saves"),p);
   assert.ok(html.includes("Import"),p);
   assert.ok(html.includes("Load to Tree"),p);
-  assert.ok(html.includes('href="https://leskasoft.com"'),p);
+  const lang=p==="index.html"?"en":p.split("/")[0];
+  assert.ok(html.includes('href="https://www.leskasoft.fr/'+lang+'"'),p);
  }
  assert.match(app,/importHelp\.showModal\(\)/);
  assert.match(app,/import-help-close","import-help-done/);

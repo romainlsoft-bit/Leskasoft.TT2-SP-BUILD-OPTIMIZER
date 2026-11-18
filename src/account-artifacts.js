@@ -49,7 +49,7 @@ export function computeArtifactEffect(catalog,level,enchanted=false){
   formula:"1 + (EffectPerLevel * EnchantmentMagnitude_if_enchanted) * Level^GrowthExpo",
   includesArtifactOrMonumentDamage:false};
 }
-const DIRECT_DAMAGE=new Set(["AllDamage","PetDamage","ClanShipDamage",
+const DIRECT_DAMAGE=new Set(["AllDamage","TapDamage","PetDamage","ClanShipDamage",
  "GoldGunDamage","UltraDaggerDamage","BurstDamageSkillAmount",
  "ShadowCloneSkillAmount"]);
 const DIRECT_GOLD=new Set(["GoldAll","FairyGold","GoldBoss","GoldChesterson","ChestAmount"]);

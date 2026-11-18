@@ -6,7 +6,7 @@
  * --profile PATH    optional LOCAL, sanitized full TT2 JSON export; the
  *                   contents are never printed or transmitted
  * --sp N            explicit SP budget, default 22,500
- * --pair-search     run the iterative two-pet search used by the worker; costly
+ * --pair-search     exhaustively evaluate shortlisted pairs; costly
  *
  * Test results are modeled scores, NOT projected stages.
  * This does not automatically choose a globally strongest damage build:
@@ -16,7 +16,7 @@ import {performance} from "node:perf_hooks";
 import {readFileSync} from "node:fs";
 import assert from "node:assert/strict";
 import {optimizeBuild,spentPoints,parseExport,DAMAGE_TYPES,GOLD_TYPES} from "../src/engine.js";
-import {gearSelectionEffects} from "../src/equipment-scenarios.js";
+import {gearSelectionEffects,petCandidateGearWeightEnvelope} from "../src/equipment-scenarios.js";
 import {recommendPets} from "../src/pet-scenarios.js";
 import {calculateModeledScenario} from "../src/calculation-ledger.js";
 import {selectPetPair} from "../src/pet-pair-search.js";
@@ -53,21 +53,31 @@ for(const {damage,gold} of compare){
  const gearContext={...initial,equipmentPetSlotWeights:gear.petEquipmentSlotWeights,
   equipmentPetPassiveWeights:gear.petEquipmentPassiveWeights,
   equipmentPetCoverageComplete:gear.petEquipmentCoverageComplete};
- const damageCandidates=recommendPets(gearContext.accountProfile,gearContext,
+ const envelope=petCandidateGearWeightEnvelope(initial.accountProfile,initial);
+ const screeningContext={...gearContext,
+  equipmentPetSlotWeights:envelope.slotWeights,
+  equipmentPetPassiveWeights:envelope.passiveWeights};
+ const damageCandidates=recommendPets(screeningContext.accountProfile,screeningContext,
   "damage",pairSearch?3:1);
- const goldCandidates=recommendPets(gearContext.accountProfile,gearContext,
+ const goldCandidates=recommendPets(screeningContext.accountProfile,screeningContext,
   "gold",pairSearch?3:1);
  const start=performance.now();
  const progress=[];
  try{
   const evaluate=(damagePet,goldPet)=>{
-   const input={...gearContext,selectedDamagePet:damagePet,selectedGoldPet:goldPet};
-   const result=optimizeBuild(input,event=>progress.push(event.phase));
-   const modeled=calculateModeledScenario(result,input,gear);
-   return {result,modeled,adjustedScore:modeled.totalLog10};
+   const input={...initial,selectedDamagePet:damagePet,selectedGoldPet:goldPet};
+   const selectedGear=gearSelectionEffects(input.accountProfile,input);
+   const pairContext={...input,
+    equipmentPetSlotWeights:selectedGear.petEquipmentSlotWeights,
+    equipmentPetPassiveWeights:selectedGear.petEquipmentPassiveWeights,
+    equipmentPetCoverageComplete:selectedGear.petEquipmentCoverageComplete};
+   const result=optimizeBuild(pairContext,event=>progress.push(event.phase));
+   const modeled=calculateModeledScenario(result,pairContext,selectedGear);
+   return {result,modeled,gearSelection:selectedGear,
+    adjustedScore:modeled.totalLog10};
   };
   const selection=pairSearch&&(damageCandidates.length||goldCandidates.length)?
-   selectPetPair(damageCandidates,goldCandidates,evaluate,{maxPasses:3}):null;
+   selectPetPair(damageCandidates,goldCandidates,evaluate,{maxPasses:3,exhaustiveShortlist:true}):null;
   const evaluated=selection?.best||evaluate(
    damageCandidates[0]?.id||null,goldCandidates[0]?.id||null);
   const {result,modeled}=evaluated;
@@ -85,6 +95,7 @@ for(const {damage,gold} of compare){
    unresolvedEffects:result.accountIntegration.unmodeledEffects,
    importedAccount:Boolean(localExport),progressEvents:progress.length,
    petSelection:selection?{converged:selection.converged,
+    exhaustiveWithinShortlist:selection.exhaustiveWithinShortlist===true,
     passes:selection.passes,uniqueEvaluations:selection.uniqueEvaluations}:
     {mode:"static-top1"},
    memoryHeapUsedMiB:Math.round(process.memoryUsage().heapUsed/1048576)}));

@@ -10,7 +10,8 @@ test("all static locales expose the same conditional-skill safety control",()=>{
  for(const file of locales){
   const html=read(file);
   assert.match(html,/id="protect-unmodeled-skills" checked/);
-  assert.match(html,/src\/app\.js\?v=20261117-conditional-guard/);
+  assert.match(html,/src\/app\.js\?v=20\d{6}-[a-z0-9-]+/);
+  assert.ok(!html.includes("20261117-conditional-guard"));
   assert.match(html,/styles\.css\?v=20261117-locale-layout/);
   assert.match(html,/id="preserve-current"/);
  }
