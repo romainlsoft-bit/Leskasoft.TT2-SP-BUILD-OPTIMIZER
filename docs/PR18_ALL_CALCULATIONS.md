@@ -1329,3 +1329,37 @@ Références mécaniques :
 - https://www.tt2-compendium.com/fr/wiki/skills/combattechniques
 - `vendor/pets.js`, `vendor/transcendent-pets.js`,
   `vendor/skills.js`, `vendor/reductions.js` (données 8.4).
+
+
+## Lot W — cohérence numérique finale Combat Techniques × équipements × SP
+
+Une incohérence de calcul persistait après le lot V : la boucle
+`refineCoupledGearAndSkills` déclarait la convergence dès que **les ID
+des équipements** étaient identiques. Or, le même équipement peut
+recevoir une amplification différente des familiers lorsque le niveau
+optimisé de **Combat Techniques** évolue. Cela pouvait laisser une
+configuration évaluée à CT=0 alors que l'arbre final était à CT=40.
+
+La convergence est désormais déterminée par **la combinaison des
+équipements ET le niveau CT effectivement utilisé** ; une variation
+de CT déclenche une nouvelle optimisation même si aucun équipement
+ne change. Les cycles sont suivis par la paire
+`[signatureEquipement, niveauCT]`, non par l'équipement seul.
+
+L'autre défaut touchait l'énumération dite « exhaustive » des petits
+inventaires : chaque configuration était optimisée **une seule fois**
+avec l'amplification d'équipement CT=0, ce qui rendait le score final
+Pet × Gear × SP incohérent. Chaque configuration d'équipement possédée
+est maintenant **raffinée jusqu'à stabilité de CT ou limite de
+recherche**, en relançant le solveur SP sur la vraie amplification
+à chaque passe. Le meilleur score réellement évalué est conservé ;
+`refinementEvaluations`, `unconvergedAssignments`,
+`everyFixedGearCTConverged` et `ctConsistent` rendent les limites
+observables, sans prétendre qu'une oscillation est convergente.
+
+Tests `tests/ct-gear-consistency-lot-w.test.js` : CT qui évolue
+avec équipement inchangé, réoptimisation pour chacune des
+configurations possédées, cycles CT et borne numérique à 9999 log10.
+Cache-busting du worker et des quatre pages localisées. Aucun
+nouveau coefficient inventé, aucune conversion en étages, aucun
+changement d'objectif. **PR #18 DRAFT, sans fusion ni déploiement.**

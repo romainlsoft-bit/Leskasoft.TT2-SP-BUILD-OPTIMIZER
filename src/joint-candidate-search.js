@@ -25,8 +25,12 @@ export function refineCoupledGearAndSkills(settings,{gearFor,solve,score,upperBo
   const requested={...settings,petCombatTechniquesLevel:ct};
   const gear=gearFor(requested);
   const signature=gearSignature(gear);
-  if(visited.has(signature)){cycleDetected=true;break;}
-  visited.add(signature);
+  // CT changes the Pet Equipment amplification even when the selected
+  // item IDs stay identical. A gear-only cycle key silently lost that
+  // effect and could certify a stale score.
+  const stateKey=JSON.stringify([signature,ct]);
+  if(visited.has(stateKey)){cycleDetected=true;break;}
+  visited.add(stateKey);
   const context={...requested,
    equipmentPetSlotWeights:gear.petEquipmentSlotWeights||{},
    equipmentPetPassiveWeights:gear.petEquipmentPassiveWeights||{},
@@ -52,7 +56,7 @@ export function refineCoupledGearAndSkills(settings,{gearFor,solve,score,upperBo
   // resulting CT, rather than treating a previous gear choice as optimal.
   const next=gearFor({...settings,petCombatTechniquesLevel:optimizedCT});
   const nextKey=gearSignature(next);
-  if(signature===nextKey){converged=true;break;}
+  if(signature===nextKey&&ct===optimizedCT){converged=true;break;}
   ct=optimizedCT;
  }
  return {best,search:{
@@ -82,23 +86,30 @@ export function enumerateJointGearAndSkills(settings,{
   throw new TypeError("Missing full gear/SP enumeration function");
  let best=null,bestRow=null;
  const trace=[],seen=new Set();
+ let refinements=0,unconverged=0;
  for(const assignment of assignments){
-  const requested={...settings,selectedEquipment:assignment,
-   petCombatTechniquesLevel:0};
-  const gear=gearFor(requested),signature=gearSignature(gear);
-  if(seen.has(signature))continue; // duplicated equivalent empty slot
+  // Fixed owned gear is an input to the solver, but its Pet/Equipment
+  // multiplier still depends on the resulting Combat Techniques level.
+  // Re-evaluate at that level; never keep the CT=0 proxy as a final score.
+  const fixed={...settings,selectedEquipment:assignment};
+  const refined=refineCoupledGearAndSkills(fixed,{
+   gearFor:ctx=>gearFor({...ctx,selectedEquipment:assignment}),
+   solve,score,upperBoundOf,maxRounds:5
+  });
+  if(!refined.best)throw new Error("Empty fixed-gear refinement");
+  const {gearSelection:gear,result,context,adjustedScore,scoreUpperBound}=
+   refined.best;
+  const signature=gearSignature(gear);
+  if(seen.has(signature))continue;
   seen.add(signature);
-  const context={...requested,
-   equipmentPetSlotWeights:gear.petEquipmentSlotWeights||{},
-   equipmentPetPassiveWeights:gear.petEquipmentPassiveWeights||{},
-   equipmentPetCoverageComplete:gear.petEquipmentCoverageComplete};
-  const result=solve(context),adjustedScore=score(result,context,gear);
-  if(typeof adjustedScore!=="number"||!Number.isFinite(adjustedScore))
-   throw new Error("Non-finite full gear/SP score");
-  const scoreUpperBound=upperBoundOf?
-   upperBoundOf(result,adjustedScore):adjustedScore;
+  refinements+=refined.search.evaluations;
+  if(!refined.search.converged)unconverged++;
   const row={signature,adjustedScore,scoreUpperBound,
-   ctForGear:0,optimizedCT:result?.levels?.CombatTechniques??null,
+   ctForGear:gear.gearSearch?.optimizedWithPetCombatTechniquesLevel??null,
+   optimizedCT:result?.levels?.CombatTechniques??null,
+   ctConsistent:gear.gearSearch?.optimizedWithPetCombatTechniquesLevel===
+    result?.levels?.CombatTechniques,
+   refinementConverged:refined.search.converged,
    exactSP:result?.optimality?.mode==="exact"};
   trace.push(row);
   if(!best||adjustedScore>best.adjustedScore+1e-10){
@@ -109,10 +120,12 @@ export function enumerateJointGearAndSkills(settings,{
  return {best,search:{
   method:"full-owned-gear-cartesian-with-SP-reoptimization",
   evaluations:trace.length,assignmentsRequested:assignments.length,
-  trace,converged:true,cycleDetected:false,
+  refinementEvaluations:refinements,unconvergedAssignments:unconverged,
+  trace,converged:unconverged===0,cycleDetected:false,
   comparisonBounds:rankVisitedCandidateBounds(trace,bestRow),
   allExaminedGearSpacesComplete:true,
   exhaustiveOwnedGearPerPetPair:true,
+  everyFixedGearCTConverged:unconverged===0,
   exactSkillOptimizationForWinner:best?.result?.optimality?.mode==="exact",
   globallyOptimalAcrossPetGearSP:false,
   bestSeenNotLastAssumed:true,stoppedAtMaxRounds:false
