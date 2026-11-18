@@ -41,7 +41,8 @@ test("worker returns a final skill build scored for the actual selected pet pair
   (result.result.accountAdjustedScore+
    result.result.modeledScenario.equippedGearLog10+
    result.result.modeledScenario.activePetsAbovePassivesLog10))<1e-8);
- assert.equal(result.result.petSearch.shortlistOnly,true);
+ assert.equal(result.result.petSearch.shortlistOnly,false);
+ assert.equal(result.result.petSearch.exhaustiveAmongEligiblePetPairs,true);
  assert.ok(responses.some(x=>x.progress?.phase==="pet-scenarios"));
 });
 
@@ -78,5 +79,47 @@ test("S: six owned pets trigger nine genuine gear/SP pair evaluations",async()=>
  assert.equal(result.selectedPets.gold,result.result.modeledScenario.selectedGoldPet);
  assert.ok(Number.isFinite(result.result.modeledScenario.totalLog10));
  assert.ok(result.result.spent<=100);
+ assert.equal(result.result.modeledScenario.coverage.realStagePredictionValidated,false);
+});
+
+test("U: worker fully searches a 4x3 eligible owned pet roster, not 3x3",async()=>{
+ const execute=await workerHarness();
+ const profile=parseAccountProfile({petLevels:{
+  Pet1:120,Pet7:100,Pet13:130,Pet14:150,
+  Pet6:120,Pet12:120,Pet20:120}});
+ const settings={...makeSettings(profile),skillPoints:90};
+ const {result,responses}=execute("optimize-pet-scenarios",settings);
+ assert.equal(result?.ok,true,result?.error);
+ assert.deepEqual(result.petSearch.eligibleCount,{damage:4,gold:3});
+ assert.deepEqual(result.petSearch.candidateCount,{damage:4,gold:3});
+ assert.equal(result.petSearch.uniqueEvaluations,12);
+ assert.equal(result.petSearch.shortlistOnly,false);
+ assert.equal(result.petSearch.exhaustiveAmongEligiblePetPairs,true);
+ assert.equal(result.petSearch.completeOwnedPetAndGearCartesian,false);
+ assert.equal(result.petSearch.globallyOptimalAcrossPetGearSP,false);
+ assert.equal(responses.filter(x=>x.progress?.phase==="pet-scenarios").length,12);
+ assert.equal(result.selectedPets.damage,result.result.modeledScenario.selectedDamagePet);
+ assert.equal(result.selectedPets.gold,result.result.modeledScenario.selectedGoldPet);
+});
+test("U: worker reruns real SP for every owned gear choice when pet×gear space is small",async()=>{
+ const execute=await workerHarness();
+ const p=parseAccountProfile({petLevels:{
+  Pet1:150,Pet7:150,Pet6:140,Pet12:150},
+  equipmentInventory:[
+   {id:"SwordAll",slot:"Sword",bonusType:"AllDamage",bonusAmount:"1e40"},
+   {id:"SwordPet",slot:"Sword",bonusType:"TapDamage",bonusAmount:"1e70"},
+   {id:"ArmorAll",slot:"Armor",bonusType:"GoldAll",bonusAmount:"1e40"},
+   {id:"ArmorFairy",slot:"Armor",bonusType:"FairyGold",bonusAmount:"1e50"}
+  ]});
+ const {result}=execute("optimize-pet-scenarios",{
+  ...makeSettings(p),skillPoints:120});
+ assert.equal(result?.ok,true,result?.error);
+ assert.deepEqual(result.petSearch.candidateCount,{damage:2,gold:2});
+ assert.equal(result.petSearch.uniqueEvaluations,4);
+ assert.equal(result.petSearch.fullOwnedGearCartesianPerPair,true);
+ assert.equal(result.petSearch.completeOwnedPetAndGearCartesian,true);
+ assert.equal(result.petSearch.jointSearch.evaluations,4);
+ assert.equal(result.petSearch.jointSearch.exhaustiveOwnedGearPerPetPair,true);
+ assert.ok(result.result.spent<=120);
  assert.equal(result.result.modeledScenario.coverage.realStagePredictionValidated,false);
 });

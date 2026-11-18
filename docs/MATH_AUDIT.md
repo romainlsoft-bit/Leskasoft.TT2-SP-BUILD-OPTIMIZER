@@ -925,3 +925,60 @@ Source: TT2 8.4 pinned `vendor/spells.js` and `vendor/skills.js`,
 https://www.tt2-compendium.com/en/wiki/skills/manasiphon ,
 https://e9wiki.com/tt2/en/skill-tree ,
 https://gamehive.helpshift.com/hc/en/3-tap-titans-2/faq/83-what-do-the-special-titans-do/ .
+
+
+## U — verified chance deltas and bounded genuine joint optimization
+
+Source-backed percentage TALENT deltas are strictly separated from
+the CURRENT account's final chance observation. TT2 8.4
+`SkillTreeInfo2.0.csv` B-row: `HeavyStrikes` -> CritChance,
+`Transmutation` -> JackpotGoldChance, `LovePotion` -> MultiMonsters
+chance; **`MultiMonsters` Ambush B is `MultiMonstersMaxCount`,
+not a percent**. If old and new talent levels are explicitly supplied,
+`B_new - B_old` is an exact skill-table delta. Adding it to the
+current observed chance is conditional on uncapped additive stacking.
+This projection is **not** verified for the candidate's final chance.
+The binary chance expectation `log10(1-p+pM)` from an explicit
+exported Jackpot Multiplier and chance is numerically robust but only
+hypothetical *per eligible event*. Jackpot gold-source weighting,
+critical reduction for non-Heavenly Strike, multi-spawn gold, proc
+frequencies and the 8.4 Pet Attack per-hit DPS remain unresolved and
+outside the optimizer score. Pet Evolution's sourced B lowers
+taps per pet attack from 20 to 5; it does not independently establish
+attacks per second or damage.
+
+Source references:
+- https://e9wiki.com/tt2/en/skill-tree
+- https://www.tt2-compendium.com/en/wiki/skills/transmutation
+- https://www.tt2-compendium.com/en/wiki/skills/petevolution
+- https://tap-titans-2.fandom.com/wiki/Pet_Evolution
+- https://gamehive.helpshift.com/hc/en/3-tap-titans-2/faq/88-what-are-pets-and-how-do-i-level-them-up/
+- `vendor/skills.js` and `vendor/reductions.js` version-pinned 8.4.
+
+Global search improvement:
+1. Dynamic exhaustive owned/source-eligible Pet×Gold rosters for small
+   cardinalities up to 6 per slot, with pair budget adapting to SP
+   (16 / 25 / 36), explicit omitted-candidate metadata and no
+   certified upper bound for pruned candidates.
+2. Entire eligible five-slot owned gear product when ≤256, including
+   aura target links and Armor alternatives. Larger inventories use
+   three-per-slot shortlist and declare the truncation.
+3. Real CT↔gear↔SP re-evaluation instead of selecting gear
+   once at CT=0. Max 3 rounds; cycle and nonconvergence reported,
+   best evaluated model score retained.
+4. For ≤16 gear combinations with constrained total
+   `petPairs × gearCombinations` (max 16 high-SP, 36 medium,
+   72 low), evaluate each owned gear combination with its own
+   SP solver and ledger. This is an exhaustive *enumeration*
+   only of its finite modeled candidates. The solver itself may be
+   bounded/approximate and every unresolved game effect remains
+   out of objective. **Never** claim a globally optimal in-game build
+   or a stage gain.
+5. Production worker and benchmark share these strategies and
+   cache guard context via actual equipment-pet weights. Regression
+   tests cover chance deltas, scientific 1e9999, fourth-pet
+   shortlist trap, full owned gear, cycles, per-gear SP scoring
+   and all 18 damage/gold routes.
+
+No release / DRAFT stays. Pet/Fairy stage discrepancy is still
+not calibrated against full real owner exports and in-game results.

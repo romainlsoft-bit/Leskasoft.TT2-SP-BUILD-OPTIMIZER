@@ -67,7 +67,10 @@ test("invalid evaluator results, duplicate pets, or unsafe pass counts are rejec
  assert.throws(()=>selectPetPair(damage,gold,()=>({adjustedScore:Infinity})),/Non-finite/);
  assert.throws(()=>selectPetPair(damage,gold,()=>null),/Non-finite/);
  assert.throws(()=>selectPetPair([damage[0],damage[0]],gold,score),/Duplicated/);
- assert.throws(()=>selectPetPair([...damage,{id:"D3"},{id:"D4"}],gold,score),/three/);
+ assert.throws(()=>selectPetPair([...damage,{id:"D3"},{id:"D4"}],gold,score),/At most 3/);
+ assert.throws(()=>selectPetPair([...damage,{id:"D3"},{id:"D4"},
+  {id:"D5"},{id:"D6"},{id:"D7"}],gold,score,{maxCandidatesPerSlot:6}),
+  /At most 6/);
  assert.throws(()=>selectPetPair(damage,gold,score,{maxPasses:0}),/1–6/);
 });
 
