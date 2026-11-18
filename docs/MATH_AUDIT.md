@@ -982,3 +982,69 @@ Global search improvement:
 
 No release / DRAFT stays. Pet/Fairy stage discrepancy is still
 not calibrated against full real owner exports and in-game results.
+
+
+## V — Final numerical precision and source-backed Pet / skill solver refinement
+
+### Confirmed HS active Crit Damage
+The 8.4 source confirms Heavenly Strike critically hits on every cast
+(https://www.tt2-compendium.com/en/wiki/skills/angelicradiance).
+HS's verified `CritDamage` conversion applies to the *incremental
+active-pet benefit above the already-scored passive* of Soot (Pet17)
+and Lemon (SeasonalPet8). Previously they were excluded from
+`recommendPets` for every build, even HS. The same source effect
+now passes through `petWeight`, `petSlotScore`, the candidate
+envelope, the pair search and the final ledger, exactly once.
+For non-HS builds the critical chance/reduction is still unknown:
+no multiplier gets invented.
+
+### Source-complete CT search (within the screened proxy)
+Every level 0..50 of Combat Techniques is evaluated for active-pet
+screening, instead of sampling five arbitrary levels. This removes
+a discrete candidate-ordering blind spot. It does *not* certify
+global bounds across all possible equipment and unresolved
+effects.
+
+### True integer refinement of coarse-grid SP solution
+`src/solver-core.js` now performs a local monotone refinement
+after its >12k coarse grid combination, using the exact per-branch
+budget-value arrays it already computed. It greedily tests:
+- allocation of remaining available budget to one branch;
+- all pairwise integer SP exchanges within ±4 grid quanta;
+- at most eight improving moves.
+
+Both endpoints of every proposed exchange must satisfy the
+branch's source minimum and maximum. No mutation of saved input,
+no score decrease, no extra multiplier and no change to the
+branch optimizer's prerequisite checks. The new *feasible*
+solution is reconstructed from the same exact per-branch frontiers.
+The coarse-grid upper bound is retained, so the reported DP gap
+is smaller/equal. A suboptimal local exchange never receives
+an `exact` label.
+
+### Quantified candidate ranking confidence
+`src/model-score-bounds.js` lifts the DP *skill* upper bound
+to the total modeled Pet+Gear+SP ledger without double counting:
+`candidateUpper = candidateTotal + (SP_upper - SP_score)`.
+`selectPetPair`, `refineCoupledGearAndSkills` and
+`enumerateJointGearAndSkills` now expose whether the winner's
+feasible modeled score exceeds all OTHER evaluated candidates'
+upper bounds. When confidence is insufficient, the unresolved
+challengers and maximal potential score difference are reported.
+This certification is **only over visited candidates and the
+current additive score model**; truncation and non-additive
+mechanics remain explicit.
+
+### Unsourced numerical cap eliminated
+A Lightning Strike source chance that reaches 1 no longer
+returns an invented +300 log10 score. The solver instead
+requires a re-derivation if patched data ever introduce this
+domain; current 8.4 `CritSkillBoost` values stay inside
+the supported range.
+
+Verification: new unit tests stress score domination,
+separate upper and lower bounds, overflow, exact integer SP
+budget swaps, skill floor preservation, HS-only CritDamage
+activation and all 18 damage/gold routes. This work is
+for **build ordering and SP allocation accuracy**, not
+a stage prediction engine. PR #18 stays DRAFT and unmerged.

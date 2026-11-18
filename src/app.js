@@ -1,12 +1,12 @@
-import {SKILLS,SKILL_IDS,BRANCH_NAMES,PRESETS,DAMAGE_TYPES,GOLD_TYPES,GAME_VERSION,parseExport,exportBuild,spentPoints,ownedSetFlags} from "./engine.js?v=20261118-joint-u";
-import { t, localizeDocument, SUPPORTED_LANGUAGES } from "./i18n.js?v=20261118-pet-coupling-p";
+import {SKILLS,SKILL_IDS,BRANCH_NAMES,PRESETS,DAMAGE_TYPES,GOLD_TYPES,GAME_VERSION,parseExport,exportBuild,spentPoints,ownedSetFlags} from "./engine.js?v=20261118-final-v";
+import { t, localizeDocument, SUPPORTED_LANGUAGES } from "./i18n.js?v=20261118-final-v";
 import { readClipboardText } from "./clipboard.js";
-import { profileCoverage } from "./account-profile.js?v=20261118-joint-u";
+import { profileCoverage } from "./account-profile.js?v=20261118-final-v";
 import {petLevelEvidence} from "./account-pet-levels.js";
-import {resolveGemstoneEvidence} from "./account-gemstones.js?v=20261118-pet-coupling-p";
-import {formatLogMultiplier} from "./account-power.js?v=20261118-pet-coupling-p";
-import {availablePets,recommendPets} from "./pet-scenarios.js?v=20261118-joint-u";
-import {bestEquipmentByCategory,EQUIPMENT_CATEGORIES} from "./equipment-scenarios.js?v=20261118-joint-u";
+import {resolveGemstoneEvidence} from "./account-gemstones.js?v=20261118-final-v";
+import {formatLogMultiplier} from "./account-power.js?v=20261118-final-v";
+import {availablePets,recommendPets} from "./pet-scenarios.js?v=20261118-final-v";
+import {bestEquipmentByCategory,EQUIPMENT_CATEGORIES} from "./equipment-scenarios.js?v=20261118-final-v";
 const $=id=>document.getElementById(id);
 let locale="en";
 let lastStatus={message:"Import your account or enter your skill points to begin.",type:"",params:{}};
@@ -360,7 +360,7 @@ function optimize(){
  if(!$("skill-points").value){status("Enter your total Skill Points or import a player export.","error");return;}
  button.disabled=false;button.textContent=tr("Cancel optimization");
  status("Checking prerequisites and calculating the best allocation for the chosen scoring model…");
- worker=new Worker(new URL("./worker.js?v=20261118-joint-u",import.meta.url),{type:"module"});
+ worker=new Worker(new URL("./worker.js?v=20261118-final-v",import.meta.url),{type:"module"});
  worker.onmessage=event=>{
    const data=event.data;
    if(data.progress){

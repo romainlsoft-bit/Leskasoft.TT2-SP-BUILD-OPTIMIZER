@@ -20,6 +20,7 @@ import {gearSelectionEffects,petCandidateGearWeightEnvelope,
  enumerateOwnedGearAssignments} from "../src/equipment-scenarios.js";
 import {petSearchPlan} from "../src/pet-scenarios.js";
 import {refineCoupledGearAndSkills,enumerateJointGearAndSkills} from "../src/joint-candidate-search.js";
+import {modeledCandidateUpperBound} from "../src/model-score-bounds.js";
 import {calculateModeledScenario} from "../src/calculation-ledger.js";
 import {selectPetPair} from "../src/pet-pair-search.js";
 
@@ -85,7 +86,8 @@ for(const {damage,gold} of compare){
     solve:context=>optimizeBuild(context,
      event=>progress.push(event.phase),branchCache),
     score:(result,context,gearSelection)=>
-     calculateModeledScenario(result,context,gearSelection).totalLog10
+     calculateModeledScenario(result,context,gearSelection).totalLog10,
+    upperBoundOf:modeledCandidateUpperBound
    };
    const joint=useFullGear?
     enumerateJointGearAndSkills(input,{...control,assignments:ownGear.assignments}):
@@ -93,7 +95,7 @@ for(const {damage,gold} of compare){
    const {result,context,gearSelection,adjustedScore}=joint.best;
    const modeled=calculateModeledScenario(result,context,gearSelection);
    return {result,modeled,gearSelection,jointSearch:joint.search,
-    adjustedScore};
+    adjustedScore,scoreUpperBound:modeledCandidateUpperBound(result,adjustedScore)};
   };
   const selection=pairSearch&&(damageCandidates.length||goldCandidates.length)?
    selectPetPair(damageCandidates,goldCandidates,evaluate,{maxPasses:3,
@@ -129,6 +131,7 @@ for(const {damage,gold} of compare){
     exhaustiveAmongEligiblePetPairs:selection.exhaustiveAmongEligiblePetPairs,
     eligibleCount:searchPlan.eligibleCount,
     omittedCandidates:searchPlan.omittedCandidates,
+    comparisonBounds:selection.comparisonBounds,
     jointSearch:evaluated.jointSearch,
     fullOwnedGearCartesianPerPair:useFullGear}:
     {mode:"static-top1"},

@@ -6,10 +6,10 @@
 import { skillInfo } from "../vendor/skills.js";
 import { reductions } from "../vendor/reductions.js";
 import { spellInfo, spell_reductions } from "../vendor/spells.js";
-import {spellTableIndex} from "./spell-caps.js?v=20261118-pet-coupling-p";
-import {spellCapGainEligible} from "./spell-scenarios.js?v=20261118-pet-coupling-p";
+import {spellTableIndex} from "./spell-caps.js?v=20261118-final-v";
+import {spellCapGainEligible} from "./spell-scenarios.js?v=20261118-final-v";
 import { clone } from "../vendor/clone.js";
-import {petCombatTechniquesIncrement,petEquipmentCombatTechniquesIncrement} from "./pet-scenarios.js?v=20261118-pet-coupling-p";
+import {petCombatTechniquesIncrement,petEquipmentCombatTechniquesIncrement} from "./pet-scenarios.js?v=20261118-final-v";
 import {skillTreeSetScore} from "./skill-tree-set-effects.js";
 import {contractSkillScore} from "./contract-scenarios.js";
 
@@ -30,7 +30,10 @@ function lightningStrike(info,level,settings) {
     const a=num(info["A"+n]),b=num(info["B"+n]);
     for(let i=0;i<attempts;i++){
       const p=a*power;
-      if(p>=1)return 300; // probability limit requires separate real-game verification
+      // The 8.4 data satisfy 0 <= A < 1 and 0 <= B <= 1.
+      // A future catalog outside this domain requires re-deriving the
+      // model; a magic +300 log10 award would bias SP by 300 orders.
+      if(p>=1)throw new RangeError("Lightning Strike source chance saturates; model must be reverified");
       if(p>0)score-=Math.log10(1-p);
       power*=b;
     }

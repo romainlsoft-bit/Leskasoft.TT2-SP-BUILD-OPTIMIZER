@@ -1,12 +1,13 @@
-import {optimizeBuild} from "./engine.js?v=20261118-joint-u";
-import {petSearchPlan} from "./pet-scenarios.js?v=20261118-joint-u";
-import {calculateModeledScenario} from "./calculation-ledger.js?v=20261118-joint-u";
-import {selectPetPair} from "./pet-pair-search.js?v=20261118-joint-u";
+import {optimizeBuild} from "./engine.js?v=20261118-final-v";
+import {petSearchPlan} from "./pet-scenarios.js?v=20261118-final-v";
+import {calculateModeledScenario} from "./calculation-ledger.js?v=20261118-final-v";
+import {selectPetPair} from "./pet-pair-search.js?v=20261118-final-v";
 import {bestEquipmentByCategory,gearSelectionEffects,petCandidateGearWeightEnvelope,
  enumerateOwnedGearAssignments}
- from "./equipment-scenarios.js?v=20261118-joint-u";
+ from "./equipment-scenarios.js?v=20261118-final-v";
 import {refineCoupledGearAndSkills,enumerateJointGearAndSkills}
- from "./joint-candidate-search.js?v=20261118-joint-u";
+ from "./joint-candidate-search.js?v=20261118-final-v";
+import {modeledCandidateUpperBound} from "./model-score-bounds.js?v=20261118-final-v";
 
 // Per-request cache: branch DP signatures must distinguish changes in pet,
 // equipment and the resulting Combat Techniques contribution.
@@ -30,7 +31,8 @@ self.onmessage=event=>{
      solve:context=>optimizeBuild(context,sendSolverProgress?
       p=>self.postMessage({progress:p}):undefined,cache),
      score:(result,context,gear)=>
-      calculateModeledScenario(result,context,gear).totalLog10
+      calculateModeledScenario(result,context,gear).totalLog10,
+     upperBoundOf:modeledCandidateUpperBound
     }):
     refineCoupledGearAndSkills(chosen,{
     gearFor,
@@ -38,6 +40,7 @@ self.onmessage=event=>{
      p=>self.postMessage({progress:p}):undefined,cache),
     score:(result,context,gear)=>
      calculateModeledScenario(result,context,gear).totalLog10,
+    upperBoundOf:modeledCandidateUpperBound,
     maxRounds:3
    });
    if(!refined.best)throw new Error("Joint pet/gear/SP search found no candidate");
@@ -45,6 +48,7 @@ self.onmessage=event=>{
    const modeledScenario=calculateModeledScenario(
     winning.result,winning.context,winning.gearSelection);
    return {adjustedScore:modeledScenario.totalLog10,
+    scoreUpperBound:modeledCandidateUpperBound(winning.result,modeledScenario.totalLog10),
     result:{...winning.result,modeledScenario},
     gearSelection:winning.gearSelection,jointSearch:refined.search};
   };
@@ -83,6 +87,7 @@ self.onmessage=event=>{
       candidateCount:chosen.candidateCount,
       pairBudget:plan.pairBudget,
       jointSearch:chosen.best.jointSearch,
+      comparisonBounds:chosen.comparisonBounds,
       fullOwnedGearCartesianPerPair:useFullGearEnumeration,
       completeOwnedPetAndGearCartesian:useFullGearEnumeration&&
        plan.exhaustiveEligible,

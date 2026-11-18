@@ -118,6 +118,13 @@ export function petWeight(pet,slot,settings){
   if(EQUIPMENT_PET_SLOTS[pet.type])
    return Math.max(0,Number(settings.equipmentPetSlotWeights?.[EQUIPMENT_PET_SLOTS[pet.type]])||0);
   if(["AllDamage","BossDamage"].includes(pet.type))return 1;
+  // Angelic Radiance guarantees Heavenly Strike critical hits. The same
+  // verified CritDamage conversion already applies to The Retaliator,
+  // Soot's passive, and equipped gear. It must also apply to an ACTIVE
+  // Soot or Lemon, otherwise the optimizer silently omits a real choice.
+  // Outside HS, crit averaging remains unverified and is not guessed.
+  if(pet.type==="CritDamage")
+   return Math.max(0,equipmentEffectReduction("CritDamage",settings).weight??0);
   // Use the pinned build conversion for Tap and All Hero pet bonuses.
  if(pet.type==="TapDamage"||pet.type==="AllHelperDamage")
   return Math.max(0,equipmentEffectReduction(pet.type,settings).weight??0);
@@ -218,22 +225,25 @@ export function petCombatTechniquesIncrement(settings,level){
  return petScenarioScore(settings,level)-petScenarioScore(settings,0);
 }
 /**
- * Source-based upper screening for candidates when the optimal Combat
- * Techniques level is unknown before running the SP solver. A single level
- * (formerly hard-coded at 30) can discard the actually best pet at 0 or 50.
+ * Source-based ranking of active pets when the final Combat Techniques
+ * level is unknown before running the SP solver. Screen all 51 possible
+ * source levels 0..50, not merely five evenly spaced examples: the
+ * combined selected-pet + equipment-pet gain can change discontinuously
+ * when a pet's own passive share or equipment primary changes.
  *
  * In addition to the selected pet's active value above passive, an Exotic
  * Equipment Pet may replace an inactive partial passive in the CT A
  * calculation. Include only that *difference* when estimating a candidate.
  *
- * The maximum of these sampled scores is a SCREENING heuristic, not a
- * certified upper bound or proof that the globally best pet is shortlisted.
+ * The maximum across EVERY source CT level is still a SCREENING heuristic:
+ * it is not a certified upper bound across untested equipment layouts,
+ * nonlinear talents or unknown future source mechanics.
  */
 export function petCandidateEnvelope(settings,petId,slot){
  const pet=ALL_PETS[petId];
  if(!pet||!(petLevels(settings.accountProfile)[petId]>0)||petWeight(pet,slot,settings)<=0)return null;
  const max=Math.max(0,Number(skillInfo.CombatTechniques?.MaxLevel)||0);
- const levels=[0,Math.floor(max/4),Math.floor(max/2),Math.floor(3*max/4),max];
+ const levels=Array.from({length:max+1},(_,level)=>level);
  const selection=slot==="damage"?"selectedDamagePet":"selectedGoldPet";
  const chosen={...settings,[selection]:petId};
  const baseline={...chosen,[selection]:null};
@@ -244,7 +254,9 @@ export function petCandidateEnvelope(settings,petId,slot){
   return {combatTechniquesLevel:level,score:active+ctDelta};
  });
  return {petId,estimatedGain:Math.max(...samples.map(x=>x.score)),
-  samples,screeningOnly:true};
+  samples,screeningOnly:true,
+  testedAllSourceCombatTechniquesLevels:samples.length===max+1,
+  equipmentScreeningNotAProvenGlobalBound:true};
 }
 export function recommendPets(profile,settings,slot,count=3){
  const source={...settings,accountProfile:profile};
