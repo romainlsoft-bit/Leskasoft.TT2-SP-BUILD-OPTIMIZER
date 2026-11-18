@@ -1096,3 +1096,17 @@ Game Hive Pets FAQ
 https://gamehive.helpshift.com/hc/en/3-tap-titans-2/faq/88-what-are-pets-and-how-do-i-level-them-up/ ;
 Drunken Hammer https://tap-titans-2.fandom.com/wiki/Drunken_Hammer ;
 Transcendence saison 13 https://www.reddit.com/r/TapTitans2/comments/1vlh4fk/ .
+
+
+## Lot S — validation 3×3 réelle dans le worker
+
+Un test natif utilise six familiers possédés dans un profil synthétique, deux épées et deux armures alternatives. Il vérifie neuf couples, neuf événements de progression, le budget SP et la cohérence du ledger final. Le benchmark distingue maintenant les paires effectivement évaluées du smoke sans profil : `realPairEvaluations` et `realPairSearchValidated`. Le mode `--require-real-pairs` échoue sans export local et sans au moins deux familiers éligibles par slot. Aucun export joueur n'est enregistré ni publié. Les probabilités critiques, Jackpot, MultiTitan, mana et HP/stage restent non calculées sans source vérifiée.
+
+
+### Lot S complet — critique garanti Heavenly Strike, couplage des armures et validation CI
+
+En TT2 8.4, Angelic Radiance garantit que **Heavenly Strike** est un coup critique (https://e9wiki.com/tt2/en/skill-tree). Les bonus `CritDamage` et `CriticalDamage` disposent donc d'une activation certaine **dans le build Heavenly Strike uniquement**. Les effets sources de l'artefact 59 (The Retaliator), du passif Soot et des équipements équipés peuvent désormais contribuer au moteur et au score final : artefact/pet dans le compte fixe ; équipement dans les cinq slots. Aucun double comptage, aucun effet ajouté à `AllDamage`. Pour les cinq autres builds, le taux critique réel est inconnu et ces bonus restent non scorés. `CritChance` n'est pas appliqué séparément à Heavenly Strike.
+
+La recherche liée `Pet × Gear × SP` parcourt les deux alternatives d'armure en plus des autres slots ; elle compare au plus 32 combinaisons de cinq slots par couple de familiers shortlistés, selon les bonus source connus, les Auras liées et les éventuelles sélections explicites. Les armures ne sont jamais fabriquées depuis un inventaire absent ou tronqué. Ce parcours borné ne prouve pas l'optimum mondial.
+
+Une fixture 8.4 **entièrement synthétique** avec six familiers, six équipements et aucun compte réel valide la recherche de couples dans la CI, avec `--pair-search --require-real-pairs`. Elle complète les tests 3×3 du worker et ne doit pas être confondue avec la régression de −2 000 stages du joueur Pet/Fairy à 22 600 SP, non encore reproduite in-game. Critiques autres que HS, Jackpot, MultiTitan, mana/uptime et HP des stages restent hors score sans formules vérifiées.

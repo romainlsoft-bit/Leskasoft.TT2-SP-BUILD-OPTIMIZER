@@ -243,13 +243,17 @@ export function fixedAccountScore(power,settings){
  const tapReduction=equipmentEffectReduction("TapDamage",settings).weight;
  const tapLog10=Number.isFinite(tapReduction)?
   (power.byType.TapDamage||0)*tapReduction:0;
+ // Crit Damage applies only to the guaranteed Heavenly Strike critical hit.
+ const critWeight=equipmentEffectReduction("CritDamage",settings).weight;
+ const criticalLog10=Number.isFinite(critWeight)?
+  (power.byType.CritDamage||0)*critWeight:0;
  const damageLog10=types.reduce((a,t)=>a+(power.byType[t]||0),
-  heroLog10+baseHeroLog10+tapLog10);
+  heroLog10+baseHeroLog10+tapLog10+criticalLog10);
  const goldLog10=goldTypes.reduce((a,t)=>a+(power.byType[t]||0),0);
  const weight=Number(settings.goldWeight);
  return {damageLog10,goldLog10,
   weightedLog10:damageLog10+(Number.isFinite(weight)?weight:0)*goldLog10,
-  types:[...types,"BaseHeroDamage","TapDamage",...heroTypes,...goldTypes]};
+  types:[...types,"BaseHeroDamage","TapDamage",...(settings.damage==="Heavenly Strike"?["CritDamage"]:[]),...heroTypes,...goldTypes]};
 }
 export function formatLogMultiplier(log10){
  if(!Number.isFinite(log10))return "unknown";

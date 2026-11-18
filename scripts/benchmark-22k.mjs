@@ -25,6 +25,7 @@ const args=process.argv.slice(2);
 const option=(flag)=>{const i=args.indexOf(flag);return i>=0?args[i+1]:undefined};
 const all=args.includes("--all");
 const pairSearch=args.includes("--pair-search");
+const requireRealPairs=args.includes("--require-real-pairs");
 const profilePath=option("--profile");
 const positional=args.find(value=>/^\d+$/.test(value));
 const sp=Number(option("--sp")??positional??22500);
@@ -42,7 +43,11 @@ if(!Number.isSafeInteger(sp)||sp<0||sp>50000){
  console.error("Usage: node scripts/benchmark-22k.mjs [SP=22500] [--all] [--profile local-export.json] [--sp N] [--pair-search]");
  process.exit(2);
 }
-let failed=0;
+if(requireRealPairs&&(!pairSearch||!localExport)){
+ console.error("--require-real-pairs requires --pair-search and --profile");
+ process.exit(2);
+}
+let failed=0,realPairEvaluations=0;
 for(const {damage,gold} of compare){
  const initial={skillPoints:sp,damage,gold,goldWeight:.7,
   qol:"none",sets:localExport?.sets||{},currentLevels:localExport?.levels||{},
@@ -78,6 +83,9 @@ for(const {damage,gold} of compare){
   };
   const selection=pairSearch&&(damageCandidates.length||goldCandidates.length)?
    selectPetPair(damageCandidates,goldCandidates,evaluate,{maxPasses:3,exhaustiveShortlist:true}):null;
+  if(selection?.uniqueEvaluations)realPairEvaluations+=selection.uniqueEvaluations;
+  if(requireRealPairs&&(!selection||selection.candidateCount.damage<2||selection.candidateCount.gold<2))
+   throw new Error("Insufficient owned eligible pets for multi-pair validation");
   const evaluated=selection?.best||evaluate(
    damageCandidates[0]?.id||null,goldCandidates[0]?.id||null);
   const {result,modeled}=evaluated;
@@ -105,6 +113,7 @@ for(const {damage,gold} of compare){
  }
 }
 console.log(JSON.stringify({buildsChecked:compare.length,failed,
+ realPairEvaluations,realPairSearchValidated:realPairEvaluations>1,
  success:failed===0,accountImported:Boolean(localExport),
  disclaimer:"Modeled score only; in-game stage progression not measured."}));
 if(failed)process.exitCode=1;

@@ -260,10 +260,10 @@ export function recommendPets(profile,settings,slot,count=3){
  * boosts, mana, stage skip and hero reductions require additional mechanics.
  */
 // All Hero and Tap enter the corresponding source-reduced fixed lanes.
-const DIRECT_PASSIVE=new Set(["AllDamage","BossDamage","AllHelperDamage",
+const DIRECT_PASSIVE=new Set(["AllDamage","BossDamage","CritDamage","AllHelperDamage",
  "TapDamage","GoldAll","FairyGold","GoldBoss"]);
 const MULTIPLICATIVE_PASSIVE=new Set([
- "AllDamage","BossDamage","TitanDamage","TapDamage","AllHelperDamage",
+ "AllDamage","BossDamage","TitanDamage","TapDamage","CritDamage","AllHelperDamage",
  "MeleeHelperDamage","RangedHelperDamage","SpellHelperDamage",
  "GroundHelperDamage","FlyingHelperDamage","GoldAll","FairyGold",
  "GoldBoss","JackpotGold","MultiMonstersGold",

@@ -51,6 +51,12 @@ export function equipmentEffectReduction(type,settings={}){
     source:"vendor/reductions.js:"+key};
   return {weight:null,status:"unknown-reduction",source:"vendor/reductions.js:"+key};
  }
+ // Angelic Radiance guarantees a Heavenly Strike critical hit. Other
+ // damage sources cannot apply Crit Damage unconditionally.
+ if(type==="CritDamage"||type==="CriticalDamage")
+  return damage==="Heavenly Strike"?
+   {weight:1,status:"converted",source:"guaranteed-heavenly-strike-critical-hit"}:
+   {weight:null,status:"unverified-dependency",source:"crit-chance-not-verified"};
  if(type==="NonBossDamage")return {weight:0,status:"inapplicable",source:"boss-push-scenario"};
  return {weight:null,status:"unverified-dependency",source:null};
 }
