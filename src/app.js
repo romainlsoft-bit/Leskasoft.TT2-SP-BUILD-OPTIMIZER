@@ -1,12 +1,12 @@
-import {SKILLS,SKILL_IDS,BRANCH_NAMES,PRESETS,DAMAGE_TYPES,GOLD_TYPES,GAME_VERSION,parseExport,exportBuild,spentPoints,ownedSetFlags} from "./engine.js?v=20261118-pet-equipment-o";
-import { t, localizeDocument, SUPPORTED_LANGUAGES } from "./i18n.js?v=20261118-pet-equipment-o";
+import {SKILLS,SKILL_IDS,BRANCH_NAMES,PRESETS,DAMAGE_TYPES,GOLD_TYPES,GAME_VERSION,parseExport,exportBuild,spentPoints,ownedSetFlags} from "./engine.js?v=20261118-pet-coupling-p";
+import { t, localizeDocument, SUPPORTED_LANGUAGES } from "./i18n.js?v=20261118-pet-coupling-p";
 import { readClipboardText } from "./clipboard.js";
-import { profileCoverage } from "./account-profile.js?v=20261118-pet-equipment-o";
+import { profileCoverage } from "./account-profile.js?v=20261118-pet-coupling-p";
 import {petLevelEvidence} from "./account-pet-levels.js";
-import {resolveGemstoneEvidence} from "./account-gemstones.js?v=20261118-pet-equipment-o";
-import {formatLogMultiplier} from "./account-power.js?v=20261118-pet-equipment-o";
-import {availablePets,recommendPets} from "./pet-scenarios.js?v=20261118-pet-equipment-o";
-import {bestEquipmentByCategory,EQUIPMENT_CATEGORIES} from "./equipment-scenarios.js?v=20261118-pet-equipment-o";
+import {resolveGemstoneEvidence} from "./account-gemstones.js?v=20261118-pet-coupling-p";
+import {formatLogMultiplier} from "./account-power.js?v=20261118-pet-coupling-p";
+import {availablePets,recommendPets} from "./pet-scenarios.js?v=20261118-pet-coupling-p";
+import {bestEquipmentByCategory,EQUIPMENT_CATEGORIES} from "./equipment-scenarios.js?v=20261118-pet-coupling-p";
 const $=id=>document.getElementById(id);
 let locale="en";
 let lastStatus={message:"Import your account or enter your skill points to begin.",type:"",params:{}};
@@ -360,7 +360,7 @@ function optimize(){
  if(!$("skill-points").value){status("Enter your total Skill Points or import a player export.","error");return;}
  button.disabled=false;button.textContent=tr("Cancel optimization");
  status("Checking prerequisites and calculating the best allocation for the chosen scoring model…");
- worker=new Worker(new URL("./worker.js?v=20261118-pet-equipment-o",import.meta.url),{type:"module"});
+ worker=new Worker(new URL("./worker.js?v=20261118-pet-coupling-p",import.meta.url),{type:"module"});
  worker.onmessage=event=>{
    const data=event.data;
    if(data.progress){
@@ -588,6 +588,12 @@ function renderAccountIntegration(result){
  if(result.petSearch?.shortlistOnly)
   panel.textContent+=" "+tr(
    "Pet comparison checks at most three candidates per slot and is not a globally verified optimal choice.");
+ const coupled=result.modeledScenario?.coverage;
+ if(coupled?.petGearCoupledScreening)
+  panel.textContent+=" "+tr("Coupled pet/gear search: equipment primaries are reconsidered for each active pet pair; {sources} equipment-pet passive sources, {excluded} seasonal rune interactions excluded. This is a bounded proxy, not a stage prediction.",{
+   sources:numberText(coupled.petPrimarySourcesCount||0),
+   excluded:numberText(coupled.excludedActiveSeasonalRune?.length||0)
+  });
  const resources=coverage.researchResources;
  if(resources?.gemstones?.present||resources?.titanSouls?.present){
   const notKnown=tr("not verifiable from this export");

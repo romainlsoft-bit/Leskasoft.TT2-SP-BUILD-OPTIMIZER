@@ -7,12 +7,21 @@
  */
 import {ARTIFACT_CATALOG} from "../vendor/account-catalog.js";
 import {calculatePermanentArtifactEffects} from "./account-artifacts.js";
-import {resolveGemstoneEvidence} from "./account-gemstones.js?v=20261117-pet-gemstone-chain";
+import {resolveGemstoneEvidence} from "./account-gemstones.js?v=20261118-pet-coupling-p";
 const TYPES=Object.freeze({
  Legacy:Object.freeze({damage:"LegacyPetDamageEffect",gold:"LegacyPetGoldEffect"}),
  Exotic:Object.freeze({damage:"ExoticPetDamageEffect",gold:"ExoticPetGoldEffect"})
 });
 const cache=new WeakMap();
+const EXOTIC_EQUIPMENT_PETS=new Set(["Pet26","Pet27","Pet28","Pet29","Pet30"]);
+/** Rune Heart/EquipmentPetEffect target IDs are narrower than the shared
+ * SwordBoost/HelmetBoost/etc type: no TT2 8.4 evidence verifies seasonal
+ * pet cross-amplification. Reuse the same predicate in active and passive
+ * paths to prevent contradictory scoring.
+ */
+export function verifiedEquipmentPetAmplifierTarget(pet){
+ return Boolean(pet&&EXOTIC_EQUIPMENT_PETS.has(pet.id));
+}
 export function petTier(pet){
  if(!pet)return null;
  if(pet.tier==="Transcendent"||String(pet.id).startsWith("SeasonalPet"))return "Transcendent";

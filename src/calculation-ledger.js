@@ -14,7 +14,7 @@
  * Do not add another fixedAccountScore here, nor multiply these values by
  * account Gemstone levels. Both would double-count existing contributions.
  */
-import {petScenarioScore,availablePets} from "./pet-scenarios.js?v=20261118-pet-equipment-o";
+import {petScenarioScore,petScenarioEvidence,availablePets} from "./pet-scenarios.js?v=20261118-pet-coupling-p";
 
 function finite(value,label){
  if(typeof value!=="number"||!Number.isFinite(value))
@@ -37,6 +37,7 @@ export function modeledScenarioCoverage(result,settings,gearSelection={}){
  const conflictingCraftingPower=permanentSetPower?.craftingPower?.conflictingSettings===true;
  const unknownGearPrimaries=gearSelection.primaryUnknownCount??
   Object.values(selected).filter(x=>x.primaryModeled===false).length;
+ const conditionalGearSecondaries=gearSelection.secondaryConditionalCount||0;
  const unknownGearSecondaries=gearSelection.secondaryUnknownCount??
   Object.values(selected).reduce((n,x)=>n+(Number(x.secondaryUnknown)||0),0);
  const unknownGearAmplifiers=gearSelection.unresolvedAmplifiersCount??
@@ -57,6 +58,7 @@ export function modeledScenarioCoverage(result,settings,gearSelection={}){
   !available.some(x=>x.id===goldPet&&x.equipType==="Support");
  const missingGearSlots=Math.max(0,5-Object.keys(selected).length);
  const petEvidence=result?.accountIntegration?.petPassives||{};
+ const activePetEvidence=petScenarioEvidence(settings);
  const hero=result?.accountIntegration?.heroProgression;
  const scroll=result?.accountIntegration?.clanScrollPower;
  const spellScenario=result?.spellScenario;
@@ -93,10 +95,14 @@ export function modeledScenarioCoverage(result,settings,gearSelection={}){
  if(unknownGearPrimaries)gaps.push("unmodeled-equipment-primaries");
  if(unresolvedAuraLinks)gaps.push("unresolved-aura-primary-target");
  if(unknownGearSecondaries)gaps.push("unmodeled-equipment-secondaries");
+ if(conditionalGearSecondaries)
+  gaps.push("unverified-conditional-equipment-secondaries");
  if(unknownGearAmplifiers)gaps.push("unverified-equipment-amplifiers");
  if(unknownGemstoneBonuses)gaps.push("unmodeled-gemstone-bonuses");
  if(petEvidence.unscoredDependent>0)gaps.push("unmodeled-conditional-pet-passives");
  if(petEvidence.unknownAmplifiers>0)gaps.push("unverified-pet-amplifiers");
+ if(activePetEvidence.unverifiedCrossStack)
+  gaps.push("unverified-seasonal-active-pet-rune-cross-stack");
  if(gearSelection.petPrimarySourcesCount>0&&unknownGearAmplifiers>0)
   gaps.push("unverified-pet-equipment-cross-stack");
  if(artifactPower?.truncated)gaps.push("truncated-artifact-collection");
@@ -141,7 +147,7 @@ export function modeledScenarioCoverage(result,settings,gearSelection={}){
   missingExplicitSelections,linkedAuraCount,unresolvedAuraLinks,
   heroHelmetUnverified,heroHelmetClassKnown,
   heroRosterVerified:hero?.rosterVerified===true,
-  unknownGearPrimaries,unknownGearSecondaries,
+  unknownGearPrimaries,unknownGearSecondaries,conditionalGearSecondaries,
   unknownGearAmplifiers,unknownGemstoneBonuses,
   researchUnresolvedNodes:researchAudit?.excludedOrConflictingNodes||0,
   researchTruncatedSections:researchAudit?.truncatedSections||[],
@@ -159,6 +165,8 @@ export function modeledScenarioCoverage(result,settings,gearSelection={}){
   petPrimarySourcesCount:gearSelection.petPrimarySourcesCount||0,
   unscoredPetPassives:petEvidence.unscoredDependent||0,
   seasonalPetEffects:petEvidence.seasonalImported||0,
+  excludedActiveSeasonalRune:activePetEvidence.excludedSeasonalEquipmentRune,
+  petGearCoupledScreening:gearSelection.petGearCoupledScreening===true,
   unresolvedAccountEffects,unknownCatalogIds,
   safeForAutomaticGearRecommendation:inventoryPresent&&!inventoryTruncated&&
    !missingExplicitSelections&&!unknownGearPrimaries&&

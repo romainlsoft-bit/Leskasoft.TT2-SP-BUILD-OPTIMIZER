@@ -11,9 +11,9 @@ export const ALL_PETS=Object.freeze({...PETS,...TRANSCENDENT_PETS});
 import {skillInfo} from "../vendor/skills.js";
 import {equipmentEffectReduction} from "./equipment-reductions.js";
 import {EQUIPMENT_SET_CATALOG} from "../vendor/account-catalog.js";
-import {petTier,petArtifactAmplifiers,logPassivePetMultiplier} from "./pet-amplifiers.js?v=20261117-pet-gemstone-chain";
+import {petTier,petArtifactAmplifiers,logPassivePetMultiplier,verifiedEquipmentPetAmplifierTarget} from "./pet-amplifiers.js?v=20261118-pet-coupling-p";
 import {petLevelEvidence} from "./account-pet-levels.js";
-export {petTier,petArtifactAmplifiers,logPassivePetMultiplier} from "./pet-amplifiers.js?v=20261117-pet-gemstone-chain";
+export {petTier,petArtifactAmplifiers,logPassivePetMultiplier,verifiedEquipmentPetAmplifierTarget} from "./pet-amplifiers.js?v=20261118-pet-coupling-p";
 const finite=v=>{const n=Number(v);return Number.isFinite(n)?n:0;};
 const petLevels=profile=>petLevelEvidence(profile).levels;
 export function availablePets(profile){
@@ -141,8 +141,11 @@ export function petWeight(pet,slot,settings){
  * equipped items. Inactive pet level/passive percent remains unchanged.
  */
 export function activePetSetLevelBonus(settings={}){
- const owned=new Set(settings.accountProfile?.ownedSetIds||[]);
- if(settings.sets?.Samurai)owned.add("Samurai");
+ // No manual/form fallback: completed sets persist after sale but must be
+ // present in the canonical, untruncated unlocked-set export.
+ const owned=new Set(settings.accountProfile?.sections?.equipmentSets?.present===true&&
+  settings.accountProfile?.sections?.equipmentSets?.truncated!==true?
+  settings.accountProfile.ownedSetIds||[]:[]);
  const entries=[];let bonusPct=0;
  for(const id of owned){
   const set=EQUIPMENT_SET_CATALOG[id];
@@ -182,11 +185,30 @@ export function petSlotScore(settings,petId,slot,combatTechniques=0){
  const tier=petTier(pet),kind=slot==="gold"?"gold":"damage";
  const artifactBoosts=petArtifactAmplifiers(settings.accountProfile);
  const amplifier=artifactBoosts.byTier[tier]?.[kind]??0;
- const runeBoost=EQUIPMENT_PET_SLOTS[pet.type]&&
+ // A seasonal equipment-type pet shares the bonus family but is not a
+ // verified Rune Heart or EquipmentPetEffect gemstone target. In lot O
+ // only the passive gear path had this guard; applying a rune to the
+ // seasonal ACTIVE path would fabricate score and bias pet ranking.
+ const runeBoost=verifiedEquipmentPetAmplifierTarget(pet)&&
   Number.isFinite(artifactBoosts.equipmentPetEffectLog10)?
   artifactBoosts.equipmentPetEffectLog10:0;
  return petWeight(pet,slot,settings)*activePetGain(
   pet,level,pct+setBonus,amplifier+runeBoost);
+}
+/** Conditional pet interactions excluded from numeric ranking. The source
+ * core bonus remains modeled but the unverified seasonal rune stack is not.
+ */
+export function petScenarioEvidence(settings={}){
+ const boosts=petArtifactAmplifiers(settings.accountProfile);
+ const selected=[settings.selectedDamagePet,settings.selectedGoldPet].filter(Boolean);
+ const excludedSeasonalEquipmentRune=Array.from(new Set(selected)).filter(id=>{
+  const pet=ALL_PETS[id];
+  return pet&&petTier(pet)==="Transcendent"&&EQUIPMENT_PET_SLOTS[pet.type]&&
+   Number.isFinite(boosts.equipmentPetEffectLog10)&&
+   boosts.equipmentPetEffectLog10>0&&petLevels(settings.accountProfile)[id]>0;
+ });
+ return {excludedSeasonalEquipmentRune,unverifiedCrossStack:
+  excludedSeasonalEquipmentRune.length>0,complete:false};
 }
 export function petScenarioScore(settings,combatTechniques=0){
  return petSlotScore(settings,settings.selectedDamagePet,"damage",combatTechniques)
