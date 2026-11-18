@@ -1,3 +1,4 @@
+import {rankVisitedCandidateBounds} from "./model-score-bounds.js";
 /**
  * Coordinate-wise search over the two actual active pet slots.
  *
@@ -49,7 +50,8 @@ export function selectPetPair(damageCandidates=[],goldCandidates=[],evaluate,opt
   const entry={...result,damagePet:d,goldPet:g,
    adjustedScore:result.adjustedScore};
   visited.set(key,entry);
-  attempts.push({damagePet:d,goldPet:g,score:entry.adjustedScore});
+  attempts.push({damagePet:d,goldPet:g,score:entry.adjustedScore,
+   upperBound:entry.scoreUpperBound??entry.adjustedScore});
   progress?.({completed:visited.size,total:options.exhaustiveShortlist===true?
     Math.max(1,damage.length)*Math.max(1,gold.length):
     maxPasses*(damage.length+gold.length),
@@ -80,7 +82,8 @@ export function selectPetPair(damageCandidates=[],goldCandidates=[],evaluate,opt
    candidateCount:{damage:damage.length,gold:gold.length},
    shortlistOnly:options.entireEligibleRoster!==true,
    exhaustiveWithinShortlist:true,
-   exhaustiveAmongEligiblePetPairs:options.entireEligibleRoster===true};
+   exhaustiveAmongEligiblePetPairs:options.entireEligibleRoster===true,
+   comparisonBounds:rankVisitedCandidateBounds([...visited.values()],winner)};
  }
  for(let pass=0;pass<maxPasses;pass++){
   passes++;
@@ -112,5 +115,6 @@ export function selectPetPair(damageCandidates=[],goldCandidates=[],evaluate,opt
   converged,passes,uniqueEvaluations:visited.size,attempts,
   candidateCount:{damage:damage.length,gold:gold.length},
   shortlistOnly:options.entireEligibleRoster!==true,
-  exhaustiveAmongEligiblePetPairs:false};
+  exhaustiveAmongEligiblePetPairs:false,
+  comparisonBounds:rankVisitedCandidateBounds([...visited.values()],best)};
 }

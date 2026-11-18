@@ -11,13 +11,16 @@ const input=accountProfile=>({
  equipmentPetSlotWeights:{},equipmentPetPassiveWeights:{}
 });
 
-test("pet screening samples Combat Techniques from 0 to the current game cap",()=>{
+test("pet screening evaluates every 8.4 Combat Techniques level without gaps",()=>{
  const profile=parseAccountProfile({petLevels:{Pet1:300,Pet20:200}});
  const e=petCandidateEnvelope(input(profile),"Pet1","damage");
  const max=Number(skillInfo.CombatTechniques.MaxLevel);
  assert.ok(max>=30);
  assert.deepEqual(e.samples.map(x=>x.combatTechniquesLevel),
-  [0,Math.floor(max/4),Math.floor(max/2),Math.floor(3*max/4),max]);
+  Array.from({length:max+1},(_,level)=>level));
+ assert.equal(e.samples.length,max+1);
+ assert.equal(e.testedAllSourceCombatTechniquesLevels,true);
+ assert.equal(e.equipmentScreeningNotAProvenGlobalBound,true);
  assert.equal(e.screeningOnly,true);
  assert.ok(e.samples.every(x=>Number.isFinite(x.score)));
  assert.equal(e.estimatedGain,Math.max(...e.samples.map(x=>x.score)));

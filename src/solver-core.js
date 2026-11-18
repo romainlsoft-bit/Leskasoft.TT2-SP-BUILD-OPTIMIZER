@@ -239,6 +239,85 @@ export function gridConvolutionExact(a,b,targetBudget) {
   return {values,split};
 }
 
+/**
+ * Improve a FEASIBLE coarse-grid solution by moving exact integer SP budgets
+ * between already solved branch frontiers. Branch-level DPs are exact;
+ * changing their allowed budgets needs no skill re-evaluation or invented
+ * coefficient. This monotone local exchange never decreases the candidate
+ * score, never exceeds the total budget and never claims global optimality.
+ *
+ * The rigorous coarse convolution upper bound is retained unchanged.
+ */
+export function refineBranchCapacities(frontiers,initialCaps,budget,minima=[],{
+ radius=40,maxPasses=8
+}={}){
+ if(!Array.isArray(frontiers)||!Array.isArray(initialCaps)||
+    frontiers.length!==initialCaps.length||frontiers.length<1||
+    !Number.isSafeInteger(budget)||budget<0||
+    !Number.isSafeInteger(radius)||radius<1||radius>512||
+    !Number.isSafeInteger(maxPasses)||maxPasses<1||maxPasses>30)
+  throw new RangeError("Invalid branch capacity refinement inputs");
+ const caps=[...initialCaps],floors=frontiers.map((arr,i)=>
+  Number(minima[i]??0));
+ let total=0,score=0;
+ for(let i=0;i<frontiers.length;i++){
+  if(!Number.isSafeInteger(floors[i])||floors[i]<0||
+     !Number.isSafeInteger(caps[i])||caps[i]<floors[i]||
+     caps[i]>=frontiers[i].length||
+     !Number.isFinite(frontiers[i][caps[i]]))
+   throw new RangeError("Invalid initial branch capacity");
+  total+=caps[i];score+=frontiers[i][caps[i]];
+ }
+ if(total>budget||!Number.isFinite(score))
+  throw new RangeError("Branch capacities exceed SP budget");
+ const startScore=score;
+ let steps=0,passes=0;
+ for(let pass=0;pass<maxPasses;pass++){
+  passes++;
+  let gain=1e-10,bestMove=null;
+  const available=budget-total;
+  // A branch's at-most frontier never decreases: test adding all
+  // currently unused capacity (or reaching its max) in one step.
+  if(available>0)for(let i=0;i<caps.length;i++){
+   const next=Math.min(frontiers[i].length-1,caps[i]+available);
+   if(next<=caps[i])continue;
+   const improvement=frontiers[i][next]-frontiers[i][caps[i]];
+   if(Number.isFinite(improvement)&&improvement>gain){
+    gain=improvement;bestMove={i,capI:next};
+   }
+  }
+  // Exact per-branch budget exchanges within a bounded neighborhood.
+  // A transfer is valid only if BOTH branch states are within their
+  // verified frontiers and neither falls below mandatory minimum SP.
+  for(let i=0;i<caps.length;i++)for(let j=i+1;j<caps.length;j++)
+   for(let shift=-radius;shift<=radius;shift++){
+    if(shift===0)continue;
+    const ai=caps[i]+shift,bj=caps[j]-shift;
+    if(ai<floors[i]||ai>=frontiers[i].length||
+       bj<floors[j]||bj>=frontiers[j].length)continue;
+    const a=frontiers[i][ai],b=frontiers[j][bj];
+    if(!Number.isFinite(a)||!Number.isFinite(b))continue;
+    const improvement=a+b-frontiers[i][caps[i]]-frontiers[j][caps[j]];
+    if(improvement>gain){
+     gain=improvement;bestMove={i,j,capI:ai,capJ:bj};
+    }
+   }
+  if(!bestMove)break;
+  const {i,j,capI,capJ}=bestMove;
+  total+=capI-caps[i];caps[i]=capI;
+  if(j!==undefined){total+=capJ-caps[j];caps[j]=capJ;}
+  score+=gain;steps++;
+ }
+ // Recompute from exact frontiers, never rely on accumulated float drift.
+ const recomputed=caps.reduce((sum,cap,i)=>sum+frontiers[i][cap],0);
+ if(total>budget||recomputed+1e-7*Math.max(1,Math.abs(startScore))<startScore)
+  throw new Error("Branch refinement lost a feasible modeled score");
+ return {capacities:caps,score:recomputed,initialScore:startScore,
+  gain:Math.max(0,recomputed-startScore),steps,passes,
+  totalAllocatedCapacity:total,localExchangeRadius:radius,
+  globallyExact:false};
+}
+
 export function optimizeExact(skills, budget, scoreFor, _retiredMode="power", onProgress=()=>{}, {gridThreshold=12000,gridTarget=2500,branchCache=null}={}) {
   if (!Number.isInteger(budget)||budget<0||budget>50000) throw new Error("SP budget must be from 0 to 50,000.");
   const groups=[];
@@ -307,24 +386,37 @@ export function optimizeExact(skills, budget, scoreFor, _retiredMode="power", on
   const boundAt=Math.min(highGridBudget,global.length-1);
   const upperBound=global[boundAt];
   if(!Number.isFinite(global[selectedBudget]))throw new Error("No valid allocation fits these settings. Check QoL and minimums.");
-  const levels={};
+  const capacities=new Array(branchSolutions.length);
   let b=selectedBudget;
   for(let i=branchSolutions.length-1;i>=0;i--) {
     const branchBudget=b-steps[i].split[b];
     const physicalBudget=gridded?floorCosts[i]+branchBudget*quantum:branchBudget;
-    Object.assign(levels,branchSolutions[i].reconstruct(Math.min(physicalBudget,branchSolutions[i].values.length-1)));
+    capacities[i]=Math.min(physicalBudget,branchSolutions[i].values.length-1);
     b=steps[i].split[b];
   }
-  const score=global[selectedBudget];
+  const refined=gridded?refineBranchCapacities(
+   branchSolutions.map(x=>x.values),capacities,budget,floorCosts,
+   {radius:Math.min(512,Math.max(4,quantum*4)),maxPasses:8}):
+   null;
+  const chosenCapacities=refined?.capacities??capacities;
+  const levels={};
+  for(let i=0;i<branchSolutions.length;i++)
+   Object.assign(levels,branchSolutions[i].reconstruct(chosenCapacities[i]));
+  const score=refined?.score??global[selectedBudget];
+  if(score>upperBound+1e-8)
+   throw new Error("Refined score exceeds the certified coarse-grid upper bound");
   return {
     levels,score,
     solver:gridded?"bounded-grid-dp":"exact-dp",
-    capacity:gridded?floorTotal+selectedBudget*quantum:selectedBudget,
+    capacity:gridded?refined.totalAllocatedCapacity:selectedBudget,
     optimality:gridded?{
       mode:"bounded-power",
-      quantum,lowerBound:scoreAtFullBudget,upperBound,
-      gap:Math.max(0,upperBound-scoreAtFullBudget),
-      certifiedExact:Math.abs(upperBound-scoreAtFullBudget)<1e-8
+      quantum,lowerBound:score,upperBound,
+      initialLowerBound:scoreAtFullBudget,
+      localRefinement:{gain:refined.gain,steps:refined.steps,
+       passes:refined.passes,radius:refined.localExchangeRadius},
+      gap:Math.max(0,upperBound-score),
+      certifiedExact:Math.abs(upperBound-score)<1e-8
     }:{mode:"exact",certifiedExact:true,quantum:1,lowerBound:score,upperBound:score,gap:0}
   };
 }

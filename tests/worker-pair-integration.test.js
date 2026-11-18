@@ -32,6 +32,12 @@ test("worker returns a final skill build scored for the actual selected pet pair
  assert.ok(result.petSearch.uniqueEvaluations>0);
  assert.ok(result.petSearch.uniqueEvaluations<=9);
  assert.equal(result.petSearch.exhaustiveWithinShortlist,true);
+ assert.equal(typeof result.petSearch.comparisonBounds.certifiedWithinVisited,"boolean");
+ assert.ok(Number.isFinite(result.petSearch.comparisonBounds.winningFeasibleScore));
+ assert.ok(result.petSearch.comparisonBounds.winningUpperBound>=
+  result.petSearch.comparisonBounds.winningFeasibleScore-1e-8);
+ assert.equal(result.petSearch.comparisonBounds.noClaimAboutUnexploredConfigurations,true);
+ assert.equal(typeof result.petSearch.jointSearch.comparisonBounds.certifiedWithinVisited,"boolean");
  assert.equal(result.petSearch.uniqueEvaluations,
   Math.max(1,result.petSearch.candidateCount.damage)*
   Math.max(1,result.petSearch.candidateCount.gold));

@@ -1253,3 +1253,79 @@ Les résultats de CI et le SHA final doivent être vérifiés avant
 toute annonce de réussite. PR #18 demeure **DRAFT**, sans fusion
 ni GitHub Pages avant essais réels et disparition des régressions
 Pet/Fairy.
+
+
+## Lot V — Affinage final des calculs et du choix SP (18 novembre 2026)
+
+La cible de ce lot est **le meilleur score de répartition SP selon les
+formules applicables**, sans convertir les scores en progression de stages.
+
+**Critique Heavenly Strike — actifs oubliés.** Le critique garanti par
+Angelic Radiance s'applique également à l'**incrément actif** du familier
+Exotic **Soot (Pet17)** et du familier Transcendent **Lemon
+(SeasonalPet8)** lorsque leur effet est `CritDamage`. La réduction
+`equipmentEffectReduction("CritDamage")` est réutilisée telle quelle :
+1 pour Heavenly Strike, inconnue et non scorée pour les cinq autres
+familles. Le passif de Soot était déjà compté dans le compte fixe ;
+seul `activeLog - passiveLog` est ajouté pour son activation. Les
+types de pet non vérifiés (Jackpot, MultiMonsters, hero-family) ne sont
+toujours pas promus en damage ou gold universels.
+
+**Présélection Pet × CT.** Les 51 niveaux entiers possibles de
+`CombatTechniques` (0 à 50) sont maintenant tous parcourus lorsque
+le score d'une sélection active est estimé, au lieu des seules valeurs
+0, 12, 25, 37 et 50. Cela évite de rejeter arbitrairement des familiers
+dont la combinaison incrément actif / équipement est meilleure à un
+niveau intermédiaire. Cela reste un *screening* fondé sur les
+équipements candidats et effets connus, pas une preuve de borne
+supérieure sur l'ensemble du jeu.
+
+**Meilleure exploitation des SP à partir de 12 000+.** `optimizeExact`
+conserve la DP exacte **par branche** et la convolution rapide avec
+borne supérieure rigoureuse. Le nouveau
+`refineBranchCapacities` travaille sur les frontiers exacts, échange
+des budgets **SP entiers** entre branches (rayon = 4 quanta, au plus
+8 améliorations), teste la réaffectation du reliquat et reconstruit
+les niveaux. Chaque échange accepté améliore strictement le **score
+calculé**, sans changer les prérequis ni les minimums et sans
+augmenter les SP disponibles. La borne supérieure initiale reste
+intacte ; `optimality.lowerBound` et `optimality.gap` sont mis à jour
+avec l'allocation améliorée. Aucun optimum global n'est annoncé
+quand la borne reste ouverte.
+
+**Comparaison de configurations avec incertitude du solveur.** Pour
+chaque configuration Pet×Gear évaluée, le score obtenu est une borne
+inférieure réalisable et
+`scoreUpperBound = modeledTotal + (SP_upper - SP_lower)` donne sa
+borne supérieure *pour le modèle additif existant*. Les comparaisons
+Pet-pair et Gear×SP exposent
+`comparisonBounds.certifiedWithinVisited`,
+`unresolvedCompetitors` et `largestPossibleChallengerGain`.
+Ce contrôle distingue l'évaluation exhaustive d'un petit domaine
+d'une victoire **certifiée malgré l'incertitude du DP** ; il ne
+présume jamais que les configurations exclues par présélection
+sont inférieures.
+
+**Sécurité numérique.** Le reliquat historique
+`if(p >= 1) return 300` de Lightning Strike est supprimé :
+une probabilité source saturée devient une erreur explicite à
+réexaminer et ne peut plus attribuer un bonus fictif de 300 ordres
+de grandeur. La table 8.4 (A de 0.10 à 0.931, B de 0.936 à 0.980)
+reste dans le domaine calculable.
+
+Tests : `tests/final-calculation-refinement-lot-v.test.js`,
+`tests/pet-selection-envelope.test.js`,
+`tests/worker-pair-integration.test.js` ; 18 routes,
+grandes puissances, sourçage du critique, absence de double
+comptage, recherche CT complète, qualité de bornes et
+optimisation sous budget avec minimums.
+Les seuils de livraison dépendent de la CI effectivement
+exécutée et du test d'un **vrai export** avant fusion ; la
+PR reste DRAFT et aucun déploiement Pages n'est fait.
+
+Références mécaniques :
+- https://e9wiki.com/tt2/en/skill-tree — Angelic Radiance, critique garanti
+- https://www.tt2-compendium.com/en/wiki/skills/angelicradiance
+- https://www.tt2-compendium.com/fr/wiki/skills/combattechniques
+- `vendor/pets.js`, `vendor/transcendent-pets.js`,
+  `vendor/skills.js`, `vendor/reductions.js` (données 8.4).
