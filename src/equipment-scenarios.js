@@ -8,10 +8,10 @@
 import {ARTIFACT_CATALOG} from "../vendor/account-catalog.js";
 import {equipmentEffectReduction,EQUIPMENT_AURA_TARGETS} from "./equipment-reductions.js";
 import {calculatePermanentArtifactEffects} from "./account-artifacts.js";
-import {petPassiveEvidence,logPassivePetMultiplier} from "./pet-scenarios.js?v=20261118-pet-equipment-o";
+import {petPassiveEvidence,logPassivePetMultiplier,petScenarioScore,ALL_PETS,verifiedEquipmentPetAmplifierTarget} from "./pet-scenarios.js?v=20261118-pet-coupling-p";
 import {petLevelEvidence} from "./account-pet-levels.js";
-import {extractFixedAccountPower} from "./account-power.js?v=20261117-hero-classes";
-import {resolveGemstoneEvidence} from "./account-gemstones.js?v=20261118-pet-equipment-o";
+import {extractFixedAccountPower} from "./account-power.js?v=20261118-pet-coupling-p";
+import {resolveGemstoneEvidence} from "./account-gemstones.js?v=20261118-pet-coupling-p";
 import {resolvePermanentSetPower,resolveCraftingPower} from "./account-permanent-sets.js";
 const CATEGORIES=["Sword","Helmet","Armor","Aura","Slash"];
 const GUNBLADE_BUILDS=new Set(["Dagger","Heavenly Strike","Gold Gun","Shadow Clone"]);
@@ -59,22 +59,57 @@ function firstEffectScore(item,settings){
 function linkedAuraTarget(item){
  return item?.slot==="Aura"?EQUIPMENT_AURA_TARGETS[item.bonusType]??null:null;
 }
+/** These secondary rolls are source-known, but cannot be converted to a
+ * permanent boss damage/gold multiplier without hit/proc/uptime rates.
+ * Keep them separate from unknown bonus identifiers (and from 0-weight
+ * but genuinely inapplicable damage families).
+ */
+const CONDITIONAL_SECONDARIES=new Set([
+ "CritDamage","CriticalDamage","CritChance","CriticalChance",
+ "JackpotGold","JackpotGoldChance","MultiMonstersGold",
+ "ChestChance","ChestersonChance","AllProbabilityBoost"
+]);
 export function equipmentSecondaryEvidence(item,settings){
- const known=[],unknown=[],inapplicable=[],effects=item.secondaryEffects||[];
+ const known=[],unknown=[],inapplicable=[],conditional=[],effects=item.secondaryEffects||[];
  for(const effect of effects){
   const reduction=equipmentEffectReduction(effect.bonusType,settings);
   const score=directEffectScore(effect.bonusType,effect.bonusAmount,settings);
-  if(score===null)unknown.push({...effect,status:reduction.status});
+  if(score===null){
+   const reason=CONDITIONAL_SECONDARIES.has(effect.bonusType)||
+    /(?:Chance|Probability|Crit|Jackpot|MultiMonsters)/.test(effect.bonusType)?
+     "conditional-chance-crit-or-nonboss-gold":"unverified-secondary-formula";
+   const record={...effect,status:reduction.status,reason};
+   unknown.push(record);
+   if(reason==="conditional-chance-crit-or-nonboss-gold")conditional.push(record);
+  }
   else if(reduction.status==="inapplicable")
    inapplicable.push({...effect,score:0,source:reduction.source});
   else known.push({...effect,score,source:reduction.source,reduction:reduction.weight});
  }
- return {recorded:effects.length,known,unknown,inapplicable,
+ return {recorded:effects.length,known,unknown,inapplicable,conditional,
   score:known.reduce((n,x)=>n+x.score,0),complete:unknown.length===0};
 }
 const BOOST_BY_SLOT={Sword:"SwordBoost",Helmet:"HelmetBoost",Armor:"ArmorBoost",
  Aura:"AuraBoost",Slash:"SlashBoost"};
 const equipmentBoostCache=new WeakMap();
+/** Gear's direct primary and linked-Aura primary determine the real
+ * conversion weight of an active equipment pet. The active pet's increment
+ * has already been separated from its passive by petScenarioScore; this
+ * function is used ONLY to choose gear, never added to independentScore.
+ */
+function activePetAwareGearScore(profile,settings,gear){
+ const weights={};
+ for(const slot of CATEGORIES){
+  const item=gear[slot];
+  if(!item)continue;
+  const modeled=equipmentEffectScore(item,settings,profile,gear);
+  if(modeled.first===null)continue;
+  const weight=modeled.primarySourceWeight;
+  if(Number.isFinite(weight)&&weight>0)weights[slot]=weight;
+ }
+ return petScenarioScore({...settings,accountProfile:profile,
+  equipmentPetSlotWeights:weights},0);
+}
 /** Equipment pet bonus chain: five Exotic pet passives -> Restored Rune
  * Heart -> equipment primary; alongside Ring of Calisto and slot-specific
  * artifacts/research. No secondary roll is amplified by this chain.
@@ -118,7 +153,7 @@ export function equipmentPrimaryAmplifiers(profile,settings={}){
    }
    // Rune Heart / gemstone EquipmentPetEffect are proven for the five
    // Exotic equipment pets; the seasonal cross-stack is unverified.
-   const exoticEquipment=/^Pet(26|27|28|29|30)$/.test(pet.id);
+   const exoticEquipment=verifiedEquipmentPetAmplifierTarget(pet);
    let runeLog10=0;
    if(exoticEquipment&&rune){
     if(Number.isFinite(rune.log10))runeLog10=rune.log10;
@@ -201,9 +236,16 @@ function equipmentEffectScore(item,settings,profile,selectedGear={}){
    null:(first??0)+amp+secondaries.score};
 }
 function rankEquipment(items,settings,profile,limit,selected={}){
- const ranked=items.map(item=>({...item,
-  estimatedScore:equipmentEffectScore(item,settings,profile,selected).score}))
-  .sort((a,b)=>(b.estimatedScore??-Infinity)-(a.estimatedScore??-Infinity)
+ const ranked=items.map(item=>{
+  const estimatedScore=equipmentEffectScore(item,settings,profile,selected).score;
+  // Ranking must include the selected pet when the slot's damage-source
+  // conversion differs (e.g. Tap primary versus All Damage). This is only
+  // a shortlist heuristic; full pet×gear×SP global optimality is unproven.
+  const gear={...selected,[item.slot]:item};
+  const petAwareScore=estimatedScore===null?null:
+   estimatedScore+activePetAwareGearScore(profile,settings,gear);
+  return {...item,estimatedScore,petAwareScore};
+ }).sort((a,b)=>(b.petAwareScore??-Infinity)-(a.petAwareScore??-Infinity)
    ||a.displayName.localeCompare(b.displayName));
  const verified=ranked.filter(x=>x.estimatedScore!==null);
  const unknown=ranked.filter(x=>x.estimatedScore===null);
@@ -278,8 +320,12 @@ export function gearSelectionEffects(profile,settings,selection={}){
       rankEquipment(items.filter(it=>it.slot==="Aura"),settings,profile,2,gear);
      if(!auraOptions.length)auraOptions.push(null);
      for(const aura of auraOptions){
-      const total=base+(aura?
-       equipmentEffectScore(aura,settings,profile,gear).score??0:0);
+      const candidateGear={...gear,Armor:armor,Aura:aura};
+     // Use the same active pet IDs as the final scenario. The pet-active
+     // gain is a ranking term only; the ledger later adds it exactly once.
+     const total=base+(aura?
+       equipmentEffectScore(aura,settings,profile,gear).score??0:0)+
+       activePetAwareGearScore(profile,settings,candidateGear);
       if(total>winning){
        winning=total;
        Object.assign(autoChoices,{Sword:sword,Helmet:helmet,Slash:slash,
@@ -318,6 +364,7 @@ export function gearSelectionEffects(profile,settings,selection={}){
    secondaryKnown:effect.secondaries.known.length,
    secondaryInapplicable:effect.secondaries.inapplicable.length,
    secondaryUnknown:effect.secondaries.unknown.length,
+   secondaryConditional:effect.secondaries.conditional.length,
    secondaryEffects:effect.secondaries.known.map(x=>({
     type:x.bonusType,score:x.score,reduction:x.reduction,source:x.source})),
    unmodeledSecondaryTypes:effect.secondaries.unknown.map(x=>x.bonusType)};
@@ -338,9 +385,12 @@ export function gearSelectionEffects(profile,settings,selection={}){
   missingExplicitSelections,linkedAuraCount,unresolvedAuraLinks,
   primaryUnknownCount:Object.values(selected).filter(x=>!x.primaryModeled).length,
   secondaryUnknownCount:Object.values(selected).reduce((n,x)=>n+x.secondaryUnknown,0),
+  secondaryConditionalCount:Object.values(selected).reduce(
+   (n,x)=>n+x.secondaryConditional,0),
   unresolvedAmplifiersCount:Object.values(selected).reduce(
    (n,x)=>n+x.primaryAmplifierUnresolved.length,0),
   selectedSlotCount:Object.keys(selected).length,
+  petGearCoupledScreening:true,
   petPrimarySourcesCount:Object.values(selected).reduce(
    (sum,row)=>sum+(row.equipmentPetSources?.length||0),0),
   petEquipmentSlotWeights:petWeights,

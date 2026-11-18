@@ -21,10 +21,10 @@ import {ARTIFACT_CATALOG} from "../vendor/account-catalog.js";
 import {calculatePermanentArtifactEffects} from "./account-artifacts.js";
 import {resolveMonumentEvidence} from "./account-monuments.js?v=20261117-monument-pools";
 import {monumentDerivedPower} from "./account-monument-derived.js?v=20261117-monument-pools";
-import {petPassiveEvidence} from "./pet-scenarios.js?v=20261118-pet-equipment-o";
+import {petPassiveEvidence} from "./pet-scenarios.js?v=20261118-pet-coupling-p";
 import {artifactDerivedPower} from "./account-artifact-derived.js";
 import {mergeTitanResearch,resourceResearchEvidence} from "./account-research-resources.js?v=20261117-resource-integrity";
-import {resolveGemstoneEvidence} from "./account-gemstones.js?v=20261118-pet-equipment-o";
+import {resolveGemstoneEvidence} from "./account-gemstones.js?v=20261118-pet-coupling-p";
 
 const MAX_LEVEL=100000;
 const DIRECT_DAMAGE_TYPES=Object.freeze({
