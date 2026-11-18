@@ -15,7 +15,7 @@
  * account Gemstone levels. Both would double-count existing contributions.
  */
 import {petScenarioScore,petScenarioEvidence,availablePets} from "./pet-scenarios.js?v=20261118-pet-coupling-p";
-import {resolveConditionalProbabilityEvidence} from "./conditional-probabilities.js?v=20261118-conditional-t";
+import {resolveConditionalProbabilityEvidence} from "./conditional-probabilities.js?v=20261118-joint-u";
 
 function finite(value,label){
  if(typeof value!=="number"||!Number.isFinite(value))
@@ -65,7 +65,7 @@ export function modeledScenarioCoverage(result,settings,gearSelection={}){
  const spellScenario=result?.spellScenario;
  const manaEvidence=result?.manaEvidence;
  const conditionalProcs=resolveConditionalProbabilityEvidence(settings?.accountProfile,
-  settings,gearSelection);
+  settings,gearSelection,result?.levels);
  const specializedHelmet=["Ranged hero","Spell hero","Melee hero"].includes(selected.Helmet?.kind);
  const dominant=settings?.accountProfile?.dominantHero??null;
  const heroHelmetClassKnown=specializedHelmet&&dominant?.verified===true;
@@ -177,6 +177,9 @@ export function modeledScenarioCoverage(result,settings,gearSelection={}){
   seasonalPetEffects:petEvidence.seasonalImported||0,
   excludedActiveSeasonalRune:activePetEvidence.excludedSeasonalEquipmentRune,
   petGearCoupledScreening:gearSelection.petGearCoupledScreening===true,
+  gearSearch:gearSelection.gearSearch??null,
+  procChanceTalentProjectionIsUncalibrated:true,
+  petAttackRateNotKnown:true,
   unresolvedAccountEffects,unknownCatalogIds,
   safeForAutomaticGearRecommendation:inventoryPresent&&!inventoryTruncated&&
    !missingExplicitSelections&&!unknownGearPrimaries&&

@@ -16,8 +16,10 @@ import {performance} from "node:perf_hooks";
 import {readFileSync} from "node:fs";
 import assert from "node:assert/strict";
 import {optimizeBuild,spentPoints,parseExport,DAMAGE_TYPES,GOLD_TYPES} from "../src/engine.js";
-import {gearSelectionEffects,petCandidateGearWeightEnvelope} from "../src/equipment-scenarios.js";
-import {recommendPets} from "../src/pet-scenarios.js";
+import {gearSelectionEffects,petCandidateGearWeightEnvelope,
+ enumerateOwnedGearAssignments} from "../src/equipment-scenarios.js";
+import {petSearchPlan} from "../src/pet-scenarios.js";
+import {refineCoupledGearAndSkills,enumerateJointGearAndSkills} from "../src/joint-candidate-search.js";
 import {calculateModeledScenario} from "../src/calculation-ledger.js";
 import {selectPetPair} from "../src/pet-pair-search.js";
 
@@ -62,27 +64,41 @@ for(const {damage,gold} of compare){
  const screeningContext={...gearContext,
   equipmentPetSlotWeights:envelope.slotWeights,
   equipmentPetPassiveWeights:envelope.passiveWeights};
- const damageCandidates=recommendPets(screeningContext.accountProfile,screeningContext,
-  "damage",pairSearch?3:1);
- const goldCandidates=recommendPets(screeningContext.accountProfile,screeningContext,
-  "gold",pairSearch?3:1);
+ const searchPlan=petSearchPlan(screeningContext.accountProfile,screeningContext);
+ const damageCandidates=pairSearch?searchPlan.damage:searchPlan.damage.slice(0,1);
+ const goldCandidates=pairSearch?searchPlan.gold:searchPlan.gold.slice(0,1);
  const start=performance.now();
  const progress=[];
  try{
+  const branchCache=new Map();
+  const ownGear=enumerateOwnedGearAssignments(initial.accountProfile,initial,16);
+  const pairCount=pairSearch?
+   Math.max(1,damageCandidates.length)*Math.max(1,goldCandidates.length):1;
+  const maxCross=sp<=1000?72:sp<=5000?36:16;
+  const useFullGear=ownGear.exhaustive&&
+   ownGear.assignments.length*pairCount<=maxCross;
   const evaluate=(damagePet,goldPet)=>{
    const input={...initial,selectedDamagePet:damagePet,selectedGoldPet:goldPet};
-   const selectedGear=gearSelectionEffects(input.accountProfile,input);
-   const pairContext={...input,
-    equipmentPetSlotWeights:selectedGear.petEquipmentSlotWeights,
-    equipmentPetPassiveWeights:selectedGear.petEquipmentPassiveWeights,
-    equipmentPetCoverageComplete:selectedGear.petEquipmentCoverageComplete};
-   const result=optimizeBuild(pairContext,event=>progress.push(event.phase));
-   const modeled=calculateModeledScenario(result,pairContext,selectedGear);
-   return {result,modeled,gearSelection:selectedGear,
-    adjustedScore:modeled.totalLog10};
+   const control={
+    gearFor:context=>gearSelectionEffects(context.accountProfile,context,
+     context.selectedEquipment||{}),
+    solve:context=>optimizeBuild(context,
+     event=>progress.push(event.phase),branchCache),
+    score:(result,context,gearSelection)=>
+     calculateModeledScenario(result,context,gearSelection).totalLog10
+   };
+   const joint=useFullGear?
+    enumerateJointGearAndSkills(input,{...control,assignments:ownGear.assignments}):
+    refineCoupledGearAndSkills(input,{...control,maxRounds:3});
+   const {result,context,gearSelection,adjustedScore}=joint.best;
+   const modeled=calculateModeledScenario(result,context,gearSelection);
+   return {result,modeled,gearSelection,jointSearch:joint.search,
+    adjustedScore};
   };
   const selection=pairSearch&&(damageCandidates.length||goldCandidates.length)?
-   selectPetPair(damageCandidates,goldCandidates,evaluate,{maxPasses:3,exhaustiveShortlist:true}):null;
+   selectPetPair(damageCandidates,goldCandidates,evaluate,{maxPasses:3,
+    exhaustiveShortlist:true,maxCandidatesPerSlot:6,
+    entireEligibleRoster:searchPlan.exhaustiveEligible}):null;
   if(selection?.uniqueEvaluations)realPairEvaluations+=selection.uniqueEvaluations;
   if(requireRealPairs&&(!selection||selection.candidateCount.damage<2||selection.candidateCount.gold<2))
    throw new Error("Insufficient owned eligible pets for multi-pair validation");
@@ -109,7 +125,12 @@ for(const {damage,gold} of compare){
    importedAccount:Boolean(localExport),progressEvents:progress.length,
    petSelection:selection?{converged:selection.converged,
     exhaustiveWithinShortlist:selection.exhaustiveWithinShortlist===true,
-    passes:selection.passes,uniqueEvaluations:selection.uniqueEvaluations}:
+    passes:selection.passes,uniqueEvaluations:selection.uniqueEvaluations,
+    exhaustiveAmongEligiblePetPairs:selection.exhaustiveAmongEligiblePetPairs,
+    eligibleCount:searchPlan.eligibleCount,
+    omittedCandidates:searchPlan.omittedCandidates,
+    jointSearch:evaluated.jointSearch,
+    fullOwnedGearCartesianPerPair:useFullGear}:
     {mode:"static-top1"},
    memoryHeapUsedMiB:Math.round(process.memoryUsage().heapUsed/1048576)}));
  }catch(error){

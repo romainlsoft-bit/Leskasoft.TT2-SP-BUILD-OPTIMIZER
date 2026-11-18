@@ -1,74 +1,111 @@
-import {optimizeBuild} from "./engine.js?v=20261118-conditional-t";
-import {recommendPets} from "./pet-scenarios.js?v=20261118-pet-coupling-p";
-import {calculateModeledScenario} from "./calculation-ledger.js?v=20261118-conditional-t";
-import {selectPetPair} from "./pet-pair-search.js?v=20261118-pet-search-q";
-import {bestEquipmentByCategory,gearSelectionEffects,petCandidateGearWeightEnvelope} from "./equipment-scenarios.js?v=20261118-pet-search-q";
+import {optimizeBuild} from "./engine.js?v=20261118-joint-u";
+import {petSearchPlan} from "./pet-scenarios.js?v=20261118-joint-u";
+import {calculateModeledScenario} from "./calculation-ledger.js?v=20261118-joint-u";
+import {selectPetPair} from "./pet-pair-search.js?v=20261118-joint-u";
+import {bestEquipmentByCategory,gearSelectionEffects,petCandidateGearWeightEnvelope,
+ enumerateOwnedGearAssignments}
+ from "./equipment-scenarios.js?v=20261118-joint-u";
+import {refineCoupledGearAndSkills,enumerateJointGearAndSkills}
+ from "./joint-candidate-search.js?v=20261118-joint-u";
 
-// One worker, one cache. The solver checks per-branch score and constraint
-// signatures: changing a pet can change Summoner/Combat Techniques, while
-// independent branches reuse their previously calculated DP frontiers.
+// Per-request cache: branch DP signatures must distinguish changes in pet,
+// equipment and the resulting Combat Techniques contribution.
 self.onmessage=event=>{
  const {type,settings}=event.data||{};
  if(!["optimize","optimize-pet-scenarios"].includes(type))return;
  const cache=new Map();
  try{
-  const selectionFor=context=>
+  const gearEnumeration=enumerateOwnedGearAssignments(settings.accountProfile,
+   settings,16);
+  const sp=Number(settings.skillPoints??0);
+  const fullJointBudget=sp<=1000?72:sp<=5000?36:16;
+  let useFullGearEnumeration=gearEnumeration.exhaustive&&
+   gearEnumeration.assignments.length<=fullJointBudget;
+  const gearFor=context=>
    gearSelectionEffects(context.accountProfile,context,context.selectedEquipment||{});
-  const contextFor=(context,gear)=>({...context,
-   equipmentPetSlotWeights:gear.petEquipmentSlotWeights,
-   equipmentPetPassiveWeights:gear.petEquipmentPassiveWeights,
-   equipmentPetCoverageComplete:gear.petEquipmentCoverageComplete});
-  const initialSelection=selectionFor(settings);
-  const initialContext=contextFor(settings,initialSelection);
+  const evaluateJoint=(chosen,sendSolverProgress=false)=>{
+   const refined=useFullGearEnumeration?
+    enumerateJointGearAndSkills(chosen,{
+     assignments:gearEnumeration.assignments,gearFor,
+     solve:context=>optimizeBuild(context,sendSolverProgress?
+      p=>self.postMessage({progress:p}):undefined,cache),
+     score:(result,context,gear)=>
+      calculateModeledScenario(result,context,gear).totalLog10
+    }):
+    refineCoupledGearAndSkills(chosen,{
+    gearFor,
+    solve:context=>optimizeBuild(context,sendSolverProgress?
+     p=>self.postMessage({progress:p}):undefined,cache),
+    score:(result,context,gear)=>
+     calculateModeledScenario(result,context,gear).totalLog10,
+    maxRounds:3
+   });
+   if(!refined.best)throw new Error("Joint pet/gear/SP search found no candidate");
+   const winning=refined.best;
+   const modeledScenario=calculateModeledScenario(
+    winning.result,winning.context,winning.gearSelection);
+   return {adjustedScore:modeledScenario.totalLog10,
+    result:{...winning.result,modeledScenario},
+    gearSelection:winning.gearSelection,jointSearch:refined.search};
+  };
   if(type==="optimize-pet-scenarios"){
+   const initialGear=gearFor(settings);
    const envelope=petCandidateGearWeightEnvelope(settings.accountProfile,settings);
-   const screeningContext={...initialContext,
+   const screening={...settings,
     equipmentPetSlotWeights:envelope.slotWeights,
-    equipmentPetPassiveWeights:envelope.passiveWeights};
-   const damage= recommendPets(settings.accountProfile,screeningContext,"damage",3);
-   const gold= recommendPets(settings.accountProfile,screeningContext,"gold",3);
+    equipmentPetPassiveWeights:envelope.passiveWeights,
+    equipmentPetCoverageComplete:initialGear.petEquipmentCoverageComplete};
+   const plan=petSearchPlan(settings.accountProfile,screening);
+   const {damage,gold}=plan;
+   const pairCount=Math.max(1,damage.length)*Math.max(1,gold.length);
+   useFullGearEnumeration=useFullGearEnumeration&&
+    gearEnumeration.assignments.length*pairCount<=fullJointBudget;
    if(damage.length||gold.length){
-    // Search one pet slot at a time, but re-evaluate against the winning
-    // opposite slot. A scenario scored with an old partner cannot be the
-    // result of a combined optimization.
-    const choose=selectPetPair(damage,gold,(damagePet,goldPet)=>{
-     const pairSettings={...settings,selectedDamagePet:damagePet,
+    const chosen=selectPetPair(damage,gold,(damagePet,goldPet)=>{
+     const context={...settings,selectedDamagePet:damagePet,
       selectedGoldPet:goldPet};
-     // Each evaluated pair chooses its gear before the SP optimizer,
-     // rather than inheriting the original pair's stale item weights.
-     const pairGear=selectionFor(pairSettings);
-     const context=contextFor(pairSettings,pairGear);
-     const result=optimizeBuild(context,undefined,cache);
-     const modeledScenario=calculateModeledScenario(result,context,pairGear);
-     return {damagePet,goldPet,adjustedScore:modeledScenario.totalLog10,
-      damageName:damage.find(p=>p.id===damagePet)?.name||"",
-      goldName:gold.find(p=>p.id===goldPet)?.name||"",
-      gearSelection:pairGear,result:{...result,modeledScenario}};
-    },{maxPasses:3,exhaustiveShortlist:true,
+     return {damagePet,goldPet,...evaluateJoint(context),
+      damageName:damage.find(x=>x.id===damagePet)?.name||"",
+      goldName:gold.find(x=>x.id===goldPet)?.name||""};
+    },{maxPasses:3,exhaustiveShortlist:true,maxCandidatesPerSlot:6,
+     entireEligibleRoster:plan.exhaustiveEligible,
      onProgress:progress=>self.postMessage({progress})});
-    if(!choose.best)throw new Error("No pet scenario available");
-    const result={...choose.best.result,
-     petSearch:{converged:choose.converged,passes:choose.passes,
-      uniqueEvaluations:choose.uniqueEvaluations,
-      shortlistOnly:true,exhaustiveWithinShortlist:choose.exhaustiveWithinShortlist===true,
-      candidateCount:choose.candidateCount}};
-    const winningSettings={...settings,selectedDamagePet:choose.best.damagePet,
-     selectedGoldPet:choose.best.goldPet};
-    const equipment=bestEquipmentByCategory(settings.accountProfile,winningSettings,2);
+    if(!chosen.best)throw new Error("No pet scenario available");
+    const result={...chosen.best.result,
+     petSearch:{
+      converged:chosen.converged,passes:chosen.passes,
+      uniqueEvaluations:chosen.uniqueEvaluations,
+      shortlistOnly:chosen.shortlistOnly,
+      exhaustiveWithinShortlist:chosen.exhaustiveWithinShortlist===true,
+      exhaustiveAmongEligiblePetPairs:chosen.exhaustiveAmongEligiblePetPairs===true,
+      eligibleCount:plan.eligibleCount,
+      omittedCandidates:plan.omittedCandidates,
+      candidateCount:chosen.candidateCount,
+      pairBudget:plan.pairBudget,
+      jointSearch:chosen.best.jointSearch,
+      fullOwnedGearCartesianPerPair:useFullGearEnumeration,
+      completeOwnedPetAndGearCartesian:useFullGearEnumeration&&
+       plan.exhaustiveEligible,
+      globallyOptimalAcrossPetGearSP:false
+     }};
+    const winningSettings={...settings,
+     selectedDamagePet:chosen.best.damagePet,
+     selectedGoldPet:chosen.best.goldPet};
+    const equipment=bestEquipmentByCategory(settings.accountProfile,winningSettings,3);
     self.postMessage({ok:true,result,
-     selectedPets:{damage:choose.best.damagePet,gold:choose.best.goldPet},
-     petComparisons:{damage:choose.damageResults,gold:choose.goldResults},
-     petSearch:result.petSearch,
-     equipment,gearSelection:choose.best.gearSelection});
+     selectedPets:{damage:chosen.best.damagePet,gold:chosen.best.goldPet},
+     petComparisons:{damage:chosen.damageResults,gold:chosen.goldResults},
+     petSearch:result.petSearch,equipment,gearSelection:chosen.best.gearSelection});
     return;
    }
   }
-  const result=optimizeBuild(initialContext,progress=>self.postMessage({progress}),cache);
-  const modeledScenario=calculateModeledScenario(result,initialContext,initialSelection);
-  const equipment=bestEquipmentByCategory(settings.accountProfile,settings,2);
-  self.postMessage({ok:true,result:{...result,modeledScenario},selectedPets:{
-    damage:settings.selectedDamagePet||null,gold:settings.selectedGoldPet||null
-   },petComparisons:{damage:[],gold:[]},equipment,gearSelection:initialSelection});
+  const chosen=evaluateJoint(settings,true);
+  const equipment=bestEquipmentByCategory(settings.accountProfile,settings,3);
+  self.postMessage({ok:true,result:{...chosen.result,
+   jointSearch:chosen.jointSearch},
+   selectedPets:{damage:settings.selectedDamagePet||null,
+    gold:settings.selectedGoldPet||null},
+   petComparisons:{damage:[],gold:[]},equipment,gearSelection:chosen.gearSelection});
  }catch(error){
   self.postMessage({ok:false,error:error instanceof Error?error.message:String(error)});
  }

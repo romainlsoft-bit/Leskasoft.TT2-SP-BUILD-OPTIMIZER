@@ -225,6 +225,7 @@ const STATS=Object.freeze({
  craftingPower:["Crafting Power","CraftingPower","CP"],
  manaPool:["Mana Pool","ManaPool","Max Mana","MaxMana"],
  manaRegen:["Mana Regen per Second","ManaRegenPerSecond","ManaRegen","Mana Regen"],
+ jackpotGoldMultiplier:["Jackpot Gold Multiplier","JackpotGoldMultiplier"],
  heroWeaponUpgrades:["Hero Weapon Upgrades","HeroWeaponUpgrades"],
  clanScrollUpgrades:["Clan Scroll Upgrades","ClanScrollUpgrades"],
  totalPetLevels:["Total Pet Levels","TotalPetLevels"],

@@ -108,7 +108,10 @@ function activePetAwareGearScore(profile,settings,gear){
   if(Number.isFinite(weight)&&weight>0)weights[slot]=weight;
  }
  return petScenarioScore({...settings,accountProfile:profile,
-  equipmentPetSlotWeights:weights},0);
+  equipmentPetSlotWeights:weights},
+  Number.isSafeInteger(settings?.petCombatTechniquesLevel)&&
+   settings.petCombatTechniquesLevel>=0?
+   settings.petCombatTechniquesLevel:0);
 }
 /** Equipment pet bonus chain: five Exotic pet passives -> Restored Rune
  * Heart -> equipment primary; alongside Ring of Calisto and slot-specific
@@ -327,12 +330,69 @@ export function bestEquipmentByCategory(profile,settings,limit=2){
  }
  return output;
 }
+/**
+ * Complete owned gear Cartesian assignments for a SMALL imported inventory.
+ * The return is exhaustive only over eligible known item IDs/slots, not
+ * over uncertain source effects, unimported inventory or actual stage DPS.
+ * A manual selection narrows the corresponding slot without creating items.
+ */
+export function enumerateOwnedGearAssignments(profile,settings={},limit=16){
+ if(!Number.isSafeInteger(limit)||limit<1||limit>256)
+  throw new RangeError("Gear enumeration limit must be 1–256");
+ const inventory=profile?.sections?.equipmentInventory;
+ if(inventory?.present!==true||inventory.truncated===true)
+  return {exhaustive:false,assignments:[],combinations:null,
+   reason:"inventory-missing-or-truncated"};
+ const owned=ownedEquipment(profile),manual=settings.selectedEquipment||{};
+ const eligible=CATEGORIES.map(slot=>{
+  const candidates=owned.filter(item=>item.slot===slot&&
+   equipmentFit(item,settings,profile));
+  if(manual[slot]){
+   const chosen=candidates.find(x=>x.uid===manual[slot]);
+   return chosen?[chosen]:[];
+  }
+  return candidates.length?candidates:[null];
+ });
+ if(eligible.some(x=>x.length===0))
+  return {exhaustive:false,assignments:[],combinations:null,
+   reason:"explicit-selected-item-not-available"};
+ const combinations=eligible.reduce((n,choices)=>n*choices.length,1);
+ if(combinations>limit)
+  return {exhaustive:false,assignments:[],combinations,
+   reason:"full-owned-gear-product-exceeds-limit"};
+ let assignments=[{}];
+ for(let i=0;i<CATEGORIES.length;i++){
+  const next=[];
+  for(const base of assignments)for(const candidate of eligible[i]){
+   next.push(candidate?{...base,[CATEGORIES[i]]:candidate.uid}:{...base});
+  }
+  assignments=next;
+ }
+ return {exhaustive:true,assignments,combinations,reason:null,
+  inspectedAllOwnedEligibleGear:true};
+}
+
 export function gearSelectionEffects(profile,settings,selection={}){
  const items=ownedEquipment(profile);
- const shortlist=bestEquipmentByCategory(profile,settings,2);
+ const shortlist=bestEquipmentByCategory(profile,settings,3);
  const selected={},selectedGear={},petWeights={},passiveWeights={};
  const inventoryTruncated=profile?.sections?.equipmentInventory?.truncated===true;
  const missingExplicitSelections=[];
+ // When the complete owned inventory has a small enough Cartesian space,
+ // search EVERY eligible five-slot setup (not just top two primaries).
+ // "Exhaustive" is relative to the sourced equipment proxy, never all
+ // actual gold/damage proc effects or cross-skill interactions.
+ const eligibleBySlot=Object.fromEntries(CATEGORIES.map(slot=>[slot,
+  items.filter(item=>item.slot===slot&&equipmentFit(item,settings,profile))]));
+ const eligibleCount=Object.fromEntries(CATEGORIES.map(slot=>[slot,
+  eligibleBySlot[slot].length]));
+ const gearSearchSpace=CATEGORIES.reduce((n,slot)=>
+  n*Math.max(1,selection[slot]?1:eligibleCount[slot]),1);
+ const MAX_COMPLETE_GEAR_COMBINATIONS=256;
+ const exhaustiveWithinOwnedInventory=!inventoryTruncated&&
+  profile?.sections?.equipmentInventory?.present===true&&
+  gearSearchSpace<=MAX_COMPLETE_GEAR_COMBINATIONS;
+ let gearEvaluations=0;
  // A strong Aura can make a slightly weaker standalone Sword/Helmet/Slash
  // the better *combined* choice. Enumerate every bounded two-per-slot shortlist
  // instead of choosing every primary independently; honor manual selections.
@@ -345,10 +405,13 @@ export function gearSelectionEffects(profile,settings,selection={}){
     return [items.find(it=>it.uid===selection[slot]&&
      it.slot===slot&&equipmentFit(it,settings,profile))??null];
    }
+   if(exhaustiveWithinOwnedInventory)
+    return eligibleBySlot[slot].length?eligibleBySlot[slot]:[null];
    return shortlist[slot]?.length?shortlist[slot]:[null];
   };
   let winning=-Infinity;
-  // Include up to two eligible armor alternatives in the bounded joint search.
+  // Evaluate full owned combinations when feasible; otherwise a sourced,
+  // bounded three-per-slot shortlist. Count *actual* evaluated setups.
  for(const armor of options("Armor"))
   for(const sword of options("Sword"))
    for(const helmet of options("Helmet"))
@@ -359,10 +422,12 @@ export function gearSelectionEffects(profile,settings,selection={}){
       sum+(item?equipmentEffectScore(item,settings,profile).score??0:0),armorScore);
      const auraOptions=selection.Aura?
       [items.find(it=>it.uid===selection.Aura&&it.slot==="Aura")??null]:
-      rankEquipment(items.filter(it=>it.slot==="Aura"),settings,profile,2,gear);
+      exhaustiveWithinOwnedInventory?options("Aura"):
+       rankEquipment(eligibleBySlot.Aura,settings,profile,3,gear);
      if(!auraOptions.length)auraOptions.push(null);
      for(const aura of auraOptions){
       const candidateGear={...gear,Armor:armor,Aura:aura};
+     gearEvaluations++;
      // Use the same active pet IDs as the final scenario. The pet-active
      // gain is a ranking term only; the ledger later adds it exactly once.
      const total=base+(aura?
@@ -432,6 +497,16 @@ export function gearSelectionEffects(profile,settings,selection={}){
   unresolvedAmplifiersCount:Object.values(selected).reduce(
    (n,x)=>n+x.primaryAmplifierUnresolved.length,0),
   selectedSlotCount:Object.keys(selected).length,
+  gearSearch:{examinedConfigurations:gearEvaluations,
+   ownedInventoryConfigurations:gearSearchSpace,
+   ownedInventoryEligibleBySlot:eligibleCount,
+   exhaustiveWithinOwnedInventory:exhaustiveWithinOwnedInventory&&
+    missingExplicitSelections.length===0,
+   shortlisted:!exhaustiveWithinOwnedInventory,
+   maxCompleteConfigurations:MAX_COMPLETE_GEAR_COMBINATIONS,
+   optimizedWithPetCombatTechniquesLevel:Number.isSafeInteger(
+    settings?.petCombatTechniquesLevel)?settings.petCombatTechniquesLevel:0,
+   exactAcrossSP:false},
   petGearCoupledScreening:true,
   petPrimarySourcesCount:Object.values(selected).reduce(
    (sum,row)=>sum+(row.equipmentPetSources?.length||0),0),

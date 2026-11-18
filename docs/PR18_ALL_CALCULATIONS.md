@@ -1179,3 +1179,77 @@ Angelic Radiance et chances de plusieurs titans
 https://e9wiki.com/tt2/en/skill-tree ; source Game Hive Special Titans
 https://gamehive.helpshift.com/hc/en/3-tap-titans-2/faq/83-what-do-the-special-titans-do/ .
 Aucune publication de donnée de joueur ni de promesse de stage.
+
+
+## Lot U — conversions probabilistes source et recherche Pet × Gear × SP réellement couplée
+
+### Probabilités : seules les identités vérifiées sont utilisées
+`src/conditional-probabilities.js` fournit désormais
+`sourceChanceDelta` pour les bonus de chance `B` de **HeavyStrikes**
+(CritChance), **Transmutation** (JackpotGoldChance) et **LovePotion**
+(MultiMonsters chance). Les niveaux avant/après doivent être explicitement
+présents ; une absence n'est pas un niveau 0 supposé. Le moteur restitue,
+si un pourcentage final de l'arbre importé est disponible, un scénario
+`chance_finale_importée + (B_nouveau - B_ancien)`, uniquement **à
+titre conditionnel** : la chance du jeu peut déjà être plafonnée, son
+ordre de composition et les changements d'autres effets ne sont pas
+vérifiés. Ni ces projections ni un taux de l'arbre actuel ne sont des
+coefficients constants d'optimisation.
+
+Un hypothétique **Jackpot binaire** est chiffré si les deux statistiques
+**finales** de l'arbre importé sont fournies explicitement : pour un
+événement éligible, `E[M] = (1-p)+p×M`, calculé sans overflow en log10
+jusqu'à `1e9999`. Il ne prédit **pas** l'or moyen des fairies,
+Chesterson et Heart of Gold ; le multiplicateur change aussi après
+redistribution des SP. Aucun bonus Jackpot, MultiTitan, critique non-HS
+ni taux de proc non vérifié n'est injecté au score.
+
+Pour les **attaques du familier**, la table 8.4 donne la réduction
+de taps par `PetDmg` (Pet Evolution). Le calcul explicite
+`tapsParAttaque = 20 - B_niveau` est vérifié et exposé (20 au niveau 0 ;
+5 au maximum). La cadence d'attaques automatiques, le débit de vrais
+taps et le DPS par frappe sont inconnus : aucune cadence ni conversion
+en DPS fictive. `MultiMonsters` (Ambush) `B` est un **nombre maximal**
+de titans supplémentaires, et surtout **pas** une probabilité :
+aucune confusion avec `LovePotion` `B` (+chance).
+
+### Optimisation conjointe et bornes vérifiables
+- **Pet candidats :** `petSearchPlan` retire la limite fixe 3×3. Tous
+  les familiers possédés et compatibles avec les conversions
+  *actuellement modélisées* sont classés, et un rectangle dynamique
+  jusqu'à **6×6** est évalué, avec budget de 16 paires à 22 600+ SP,
+  25 au milieu et 36 pour petits budgets. Un compte 4×3 éligible peut
+  donc être évalué sur ses **12 vraies paires** : auparavant la quatrième
+  option était ignorée. `eligibleCount`, `omittedCandidates`,
+  `pairBudget` et `exhaustiveAmongEligiblePetPairs` indiquent
+  précisément la borne ; le classement de présélection ne garantit
+  aucun upper bound sur les choix exclus.
+- **Équipement :** `gearSelectionEffects` parcourt **toutes** les
+  combinaisons éligibles de l'inventaire quand leur produit est ≤256.
+  Sinon il se limite aux 3 meilleurs candidats par slot (contre 2),
+  avec un indicateur non-exhaustif. Tous les cinq slots incluent
+  l'armure et l'Aura liée. Les items manuels invalides ou inventaires
+  tronqués ne créent pas de pièces fictives.
+- **Dépendance CT × équipement :** `refineCoupledGearAndSkills`
+  réoptimise l'équipement au **niveau réel de Combat Techniques choisi
+  par le solveur**, puis les SP si le matériel change ; meilleur
+  scénario visité conservé, convergence et cycles détectés.
+- **Preuve de petite taille :** si l'inventaire possède au plus 16
+  combinaisons d'équipements et si `paires×combinaisons` reste ≤72
+  (≤1 000 SP), ≤36 (≤5 000 SP) ou ≤16 (au-delà), l'algorithme
+  `enumerateJointGearAndSkills` optimise les SP pour **chaque**
+  combinaison d'équipement de **chaque** paire explorée. Si les
+  candidats pets sont eux aussi exhaustifs, cela vérifie le maximum
+  **du proxy calculable** sur ce domaine possédé. Ce n'est pas un
+  optimum du jeu : les effets non scorés, les choix et temps de
+  combat, et l'éventuel DP approximatif demeurent hors preuve.
+
+Le worker réel et le benchmark `--pair-search` utilisent le
+**même** plan dynamique et le même couplage. Tests du lot :
+`tests/global-search-and-procs-lot-u.test.js`, compléments
+`tests/worker-pair-integration.test.js`, y compris un 4×3,
+cartésien petit inventaire, cycle d'équipements, et 18 routes.
+Les résultats de CI et le SHA final doivent être vérifiés avant
+toute annonce de réussite. PR #18 demeure **DRAFT**, sans fusion
+ni GitHub Pages avant essais réels et disparition des régressions
+Pet/Fairy.

@@ -178,6 +178,7 @@ test("Worker evaluates the selected pair with its own re-ranked equipment and co
   "returned gear is from winning pair");
  close(response.result.modeledScenario.equippedGearLog10,
   response.gearSelection.independentScore,"ledger gear");
- assert.equal(response.result.petSearch.shortlistOnly,true);
+ assert.equal(response.result.petSearch.shortlistOnly,false);
+ assert.equal(response.result.petSearch.exhaustiveAmongEligiblePetPairs,true);
  assert.equal(response.result.modeledScenario.optimizedForActualStages,false);
 });

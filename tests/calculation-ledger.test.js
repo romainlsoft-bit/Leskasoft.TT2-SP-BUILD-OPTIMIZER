@@ -91,8 +91,10 @@ test("A corrupted component or mismatched baseline is rejected",()=>{
 });
 test("The worker uses the same ledger for manual and both pet recommendation paths",()=>{
  const worker=readFileSync(new URL("../src/worker.js",import.meta.url),"utf8");
- assert.match(worker,/calculateModeledScenario\(result,context,pairGear\)/);
- assert.match(worker,/calculateModeledScenario\(result,initialContext,initialSelection\)/);
+ assert.match(worker,/calculateModeledScenario\(result,context,gear\)/);
+ assert.match(worker,/calculateModeledScenario\(\s*winning\.result,winning\.context,winning\.gearSelection\)/);
+ assert.match(worker,/refineCoupledGearAndSkills/);
+ assert.match(worker,/enumerateJointGearAndSkills/);
  assert.match(worker,/exhaustiveShortlist:true/);
  assert.match(worker,/adjustedScore:modeledScenario.totalLog10/);
  assert.ok(!worker.includes("result.accountAdjustedScore+petScenarioScore"));

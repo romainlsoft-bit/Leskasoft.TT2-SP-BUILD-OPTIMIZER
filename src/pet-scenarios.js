@@ -251,7 +251,40 @@ export function recommendPets(profile,settings,slot,count=3){
  const candidates=availablePets(profile).filter(p=>petWeight(ALL_PETS[p.id],slot,source)>0);
  return candidates.map(p=>({...p,...petCandidateEnvelope(source,p.id,slot)}))
   .sort((a,b)=>b.estimatedGain-a.estimatedGain||a.id.localeCompare(b.id))
-  .slice(0,Math.max(0,Math.min(3,Math.floor(count))));
+  .slice(0,Math.max(0,Math.min(45,Math.floor(count))));
+}
+
+/**
+ * Dynamic, explicitly bounded product over all SOURCE-SCORABLE owned pets.
+ * A small owner roster is searched fully, rather than accidentally losing
+ * its 4th-ranked pet to the old hard-coded 3×3 screening.
+ * Large rosters remain bounded for runtime; no unexamined score is claimed.
+ */
+export function petSearchPlan(profile,settings={}){
+ const completeDamage=recommendPets(profile,settings,"damage",45);
+ const completeGold=recommendPets(profile,settings,"gold",45);
+ const sp=Number(settings.skillPoints??0);
+ const pairBudget=sp<=1000?36:sp<=5000?25:16;
+ const maxPerSlot=6;
+ let d=Math.min(maxPerSlot,completeDamage.length);
+ let g=Math.min(maxPerSlot,completeGold.length);
+ // Product-only budget: keep a balanced rectangle; one-empty-slot
+ // scenarios may evaluate all remaining candidates up to the slot cap.
+ while(Math.max(1,d)*Math.max(1,g)>pairBudget){
+  if(d>=g&&d>1)d--;
+  else if(g>1)g--;
+  else break;
+ }
+ const damage=completeDamage.slice(0,d),gold=completeGold.slice(0,g);
+ const exhaustiveEligible=
+  d===completeDamage.length&&g===completeGold.length;
+ return {damage,gold,eligibleCount:{
+  damage:completeDamage.length,gold:completeGold.length},
+  candidateCount:{damage:d,gold:g},pairBudget,
+  exhaustiveEligible,screeningIsCertifiedUpperBound:false,
+  omittedCandidates:{damage:completeDamage.length-d,
+   gold:completeGold.length-g},
+  interpretation:"eligible means source-modeled petWeight > 0; conditional unscored pet effects remain outside ranking"};
 }
 
 /** Account-wide passive multipliers. A pet that is not selected still

@@ -32,8 +32,11 @@ export function selectPetPair(damageCandidates=[],goldCandidates=[],evaluate,opt
  const gold=goldCandidates.filter(x=>typeof ID(x)==="string"&&ID(x));
  if(new Set(damage.map(ID)).size!==damage.length||new Set(gold.map(ID)).size!==gold.length)
   throw new Error("Duplicated pet candidate IDs");
- if(damage.length>3||gold.length>3)
-  throw new RangeError("At most three candidate pets per slot");
+ const perSlot=options.maxCandidatesPerSlot??3;
+ if(!Number.isSafeInteger(perSlot)||perSlot<1||perSlot>6)
+  throw new RangeError("At most six candidate pets per slot");
+ if(damage.length>perSlot||gold.length>perSlot)
+  throw new RangeError("At most "+perSlot+" candidate pets per slot");
  const visited=new Map(),attempts=[],progress=options.onProgress;
  let damagePet=ID(damage[0]),goldPet=ID(gold[0]),passes=0,
   damageResults=[],goldResults=[],converged=false;
@@ -75,7 +78,9 @@ export function selectPetPair(damageCandidates=[],goldCandidates=[],evaluate,opt
   return {best:winner,damageResults:finalDamage,goldResults:finalGold,
    converged:true,passes:1,uniqueEvaluations:visited.size,attempts,
    candidateCount:{damage:damage.length,gold:gold.length},
-   shortlistOnly:true,exhaustiveWithinShortlist:true};
+   shortlistOnly:options.entireEligibleRoster!==true,
+   exhaustiveWithinShortlist:true,
+   exhaustiveAmongEligiblePetPairs:options.entireEligibleRoster===true};
  }
  for(let pass=0;pass<maxPasses;pass++){
   passes++;
@@ -106,5 +111,6 @@ export function selectPetPair(damageCandidates=[],goldCandidates=[],evaluate,opt
  return {best,damageResults:consistentDamageResults,goldResults,
   converged,passes,uniqueEvaluations:visited.size,attempts,
   candidateCount:{damage:damage.length,gold:gold.length},
-  shortlistOnly:true};
+  shortlistOnly:options.entireEligibleRoster!==true,
+  exhaustiveAmongEligiblePetPairs:false};
 }
