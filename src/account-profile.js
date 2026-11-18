@@ -5,6 +5,7 @@
  */
 import {HERO_CLASS_BY_ID} from "../vendor/hero-classes.js";
 import {canonicalEquipmentSetId} from "./equipment-set-aliases.js";
+import {parseFinalChanceEvidence} from "./conditional-probabilities.js?v=20261118-conditional-t";
 const SOURCE_SECTIONS=Object.freeze({
  artifacts:["artifacts","Artifacts","artifactLevels","ArtifactLevels"],
  gemstones:["gemstones","Gemstones","mysticGemstones","MysticGemstones"],
@@ -284,6 +285,7 @@ export function parseAccountProfile(data){
  return {schema:"tt2-account-profile-v1",
   dates:transcendenceStartedAt?{transcendenceStartedAt}:{},
    dominantHero,spellLoadout,
+  chanceEvidence:parseFinalChanceEvidence(data),
   gameVersion:safeName(data.Version??data.version)??null,
   sections,stats:selectedStats,
   fixedSystemKeys:fixedSystems,

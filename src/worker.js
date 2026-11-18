@@ -1,6 +1,6 @@
-import {optimizeBuild} from "./engine.js?v=20261118-pet-coupling-p";
+import {optimizeBuild} from "./engine.js?v=20261118-conditional-t";
 import {recommendPets} from "./pet-scenarios.js?v=20261118-pet-coupling-p";
-import {calculateModeledScenario} from "./calculation-ledger.js?v=20261118-pet-coupling-p";
+import {calculateModeledScenario} from "./calculation-ledger.js?v=20261118-conditional-t";
 import {selectPetPair} from "./pet-pair-search.js?v=20261118-pet-search-q";
 import {bestEquipmentByCategory,gearSelectionEffects,petCandidateGearWeightEnvelope} from "./equipment-scenarios.js?v=20261118-pet-search-q";
 
