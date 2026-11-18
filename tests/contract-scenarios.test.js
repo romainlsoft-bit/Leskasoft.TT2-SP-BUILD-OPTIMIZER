@@ -124,3 +124,23 @@ test("optimizer forces exactly the two prerequisite contracts only on explicit o
  assert.equal(without.contractScenario.weightedLog10,0);
  assert.equal(without.contractScenario.appliedInsideSkills,false);
 });
+
+test("native tick references stay out of all 18 build scores",()=>{
+ for(const damage of DAMAGE_TYPES)for(const gold of GOLD_TYPES){
+  const ctx=settings(damage,gold,false);
+  const out=resolveContractScenario(levels,ctx);
+  assert.equal(out.weightedLog10,0);
+  for(const id of ["ForbiddenContract","RoyalContract"]){
+   const trace=out.nativeTickEvidence[id];
+   assert.equal(trace.status,"source-only-illustration");
+   assert.equal(trace.addedToSkillScore,false);
+   assert.equal(trace.actualUptimeVerified,false);
+   assert.equal(trace.freeTicksKnown,false);
+   assert.equal(trace.sourceTimeUntilMaxFromBonusModelSeconds,
+    Number(skillInfo[id].BonusAmountD));
+   assert.equal(trace.sourceBaseManaCostPerChargedTick,
+    Number(skillInfo[id]["B"+levels[id]]));
+   assert.equal(trace.samples[0].manaSpentIfKnownFreeTicks,null);
+  }
+ }
+});

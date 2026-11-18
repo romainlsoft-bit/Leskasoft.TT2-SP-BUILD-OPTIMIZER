@@ -8,7 +8,7 @@ import { reductions } from "../vendor/reductions.js";
 import { spellInfo, spell_reductions } from "../vendor/spells.js";
 import {spellTableIndex} from "./spell-caps.js?v=20261118-final-v";
 import {spellCapGainEligible} from "./spell-scenarios.js?v=20261118-final-v";
-import { clone } from "../vendor/clone.js";
+import {lightningStrikeSkillScore} from "./lightning-strike-evidence.js";
 import {petCombatTechniquesIncrement,petEquipmentCombatTechniquesIncrement} from "./pet-scenarios.js?v=20261118-final-v";
 import {skillTreeSetScore} from "./skill-tree-set-effects.js";
 import {contractSkillScore} from "./contract-scenarios.js";
@@ -20,27 +20,6 @@ const spellMap={TwilightBell:["BurstDamage","TwilightFairy"],SummonerAutoTap:["D
 const mcA=[1,100,10000,1000000,100000000,1000000000];
 const mcB=[1,10,100,1000,10000,50000];
 
-function lightningStrike(info,level,settings) {
-  const CC=Boolean(settings.CC);
-  const CP=Math.max(1,num(settings.craftingPower,1));
-  const SC=String(settings.sClone||(settings.sets?.tFA?35:30));
-  const attempts=Math.min(2000,Math.max(0,Math.floor(0.022*num(clone[SC],100)*(CC?1.5*Math.pow(1.005,Math.pow(CP-1,0.8)):1)*num(settings.timeToKill,8))));
-  const one=n=>{
-    let power=1,score=0;
-    const a=num(info["A"+n]),b=num(info["B"+n]);
-    for(let i=0;i<attempts;i++){
-      const p=a*power;
-      // The 8.4 data satisfy 0 <= A < 1 and 0 <= B <= 1.
-      // A future catalog outside this domain requires re-deriving the
-      // model; a magic +300 log10 award would bias SP by 300 orders.
-      if(p>=1)throw new RangeError("Lightning Strike source chance saturates; model must be reverified");
-      if(p>0)score-=Math.log10(1-p);
-      power*=b;
-    }
-    return score;
-  };
-  return one(level)-one(0);
-}
 function sourceSkillScoreAtLevel(id,level,settings){
   if(level===0)return 0;
   const info=skillInfo[id];
@@ -85,6 +64,25 @@ function sourceSkillScoreAtLevel(id,level,settings){
     case "LoadedDice":
       // Unlike Quick Fortune, B is unconditionally AllGold.
       return r*lr(logA)+goldWeight*lr(logB);
+    // Native BonusInfo declares these as mana capacity / regeneration
+    // resources, not direct damage or gold. Historical 0.05 reduction
+    // factors were QoL proxies without a verified damage conversion.
+    // Keep their skill-tree-set SP benefit (scoreAtLevel wrapper) and
+    // any explicit QoL minimums, but never award fabricated damage.
+    case "MPCapacityBoost":
+    case "ManaStealSkillBoost":
+      return 0;
+    // The native TT2 BonusInfo catalog marks these effects as conditional
+    // (stunned target, Shadow Clone active, applied dagger poison, Sprout
+    // stacks). A community reduction is not proof of 100% availability.
+    case "ClanShipStun":
+      return settings.assumeBossStunned===true?r*lr(logA):0;
+    case "BossTimer":
+    case "PoisonedBlade":
+    case "KratosSummon":
+      // The active-uptime, stack, or additive-percentage conversion has not
+      // been verified; never score a fabricated permanent multiplier.
+      return 0;
     case "ForbiddenContract":
     case "RoyalContract":
       // Damage, gold and mana assumptions are source-specific. Never treat
@@ -93,21 +91,17 @@ function sourceSkillScoreAtLevel(id,level,settings){
     case "CloneDmg":
       return r*lr(n=>logA(n)+Math.log10((4+B(n))/4));
     case "CritSkillBoost":
-      return r*lightningStrike(info,level,settings);
+      return r*lightningStrikeSkillScore(level,settings);
     case "TerrifyingPact":
       // A = gold under Forbidden, B = damage under Royal. The solver may
       // award only those pieces whose corresponding contract is guaranteed.
       return contractSkillScore(id,level,settings);
-    case "PoisonedBlade":
-      return r*lr(n=>Math.log10(1+10*A(n)));
     case "HandOfMidasMultiCastSkillBoost": {
       const otherGold=settings.gold==="Chesterson"?0:1;
       const idx=n=>Math.max(0,Math.min(5,B(n)?B(n)+mc:0));
       return r*lr(n=>lg(mcA[idx(n)])+idx(n)*logA(n))
         +otherGold*goldWeight*lr(n=>lg(mcB[idx(n)]));
     }
-    case "KratosSummon":
-      return r*lr(n=>B(n)*logA(n));
     default: {
       const spells=spellMap[id];
       if(!spells)return r*lr(logA);

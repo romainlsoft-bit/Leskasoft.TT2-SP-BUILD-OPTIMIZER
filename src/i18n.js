@@ -5,6 +5,9 @@ export const SUPPORTED_LANGUAGES = ["en","fr","uk","ru"];
 export const NATIVE_LANGUAGE_NAMES = {en:"English",fr:"Français",uk:"Українська",ru:"Русский"};
 export const translations = {
 fr:{
+ "Some conditional skills have unverified activation or stacking; their damage was not guessed.":"Certaines compétences conditionnelles ont une activation ou un cumul non vérifiés ; aucun dégât n'a été inventé.",
+ "Lightning Strike hits per boss are unknown; current SP levels are protected, but no speculative damage is scored.":"Le nombre de frappes Lightning Strike par boss est inconnu ; les SP déjà investis sont conservés, sans dégâts supposés.",
+ "Lightning Strike source-only estimate uses an explicitly supplied hit count; actual proc rate remains unverified.":"L'estimation Lightning Strike utilise un nombre de frappes fourni explicitement ; la fréquence réelle n'est pas vérifiée.",
  "A damage pet and a gold pet are selected together. Automatic slots search eligible owned pets; named choices stay fixed.":"Un familier de dégâts et un familier d’or sont choisis ensemble. Les emplacements automatiques comparent les familiers possédés compatibles ; un choix nommé reste fixe.",
  "Compare automatic pet choices":"Comparer les familiers en mode automatique",
  "Selected optimized equipment":"Équipement réellement retenu par l’optimiseur",
@@ -259,6 +262,9 @@ fr:{
  "Free Tap Titans 2 skill tree optimizer for TT2 8.4. Optimize skill points for Clan Ship, Pet, Shadow Clone, Heavenly Strike, Dagger or Gold Gun. Import game data or configure manually.":"Optimiseur gratuit de compétences Tap Titans 2 version 8.4. Import des données ou configuration manuelle pour tous les types de builds."
 },
 uk:{
+ "Some conditional skills have unverified activation or stacking; their damage was not guessed.":"Умови активації або накопичення деяких навичок не перевірені; вигадане значення шкоди не додається.",
+ "Lightning Strike hits per boss are unknown; current SP levels are protected, but no speculative damage is scored.":"Кількість ударів Lightning Strike на боса невідома; поточні SP збережено, але припущену шкоду не додано.",
+ "Lightning Strike source-only estimate uses an explicitly supplied hit count; actual proc rate remains unverified.":"Оцінка Lightning Strike використовує явно задану кількість ударів; фактичну частоту спрацювання не підтверджено.",
  "A damage pet and a gold pet are selected together. Automatic slots search eligible owned pets; named choices stay fixed.":"Улюбленець для шкоди та улюбленець для золота вибираються разом. Автоматичні слоти порівнюють доступних улюбленців; ручний вибір залишається фіксованим.",
  "Compare automatic pet choices":"Порівняти автоматичний вибір улюбленців",
  "Selected optimized equipment":"Спорядження, вибране оптимізатором",
@@ -464,6 +470,9 @@ uk:{
  "Free Tap Titans 2 skill tree optimizer for TT2 8.4. Optimize skill points for Clan Ship, Pet, Shadow Clone, Heavenly Strike, Dagger or Gold Gun. Import game data or configure manually.":"Безкоштовний оптимізатор дерева навичок Tap Titans 2 версії 8.4. Імпорт даних або ручне налаштування для всіх збірок."
 },
 ru:{
+ "Some conditional skills have unverified activation or stacking; their damage was not guessed.":"Условия активации или накопления некоторых навыков не проверены; вымышленный урон не учитывается.",
+ "Lightning Strike hits per boss are unknown; current SP levels are protected, but no speculative damage is scored.":"Число ударов Lightning Strike по боссу неизвестно; уже вложенные SP сохраняются, но предполагаемый урон не начисляется.",
+ "Lightning Strike source-only estimate uses an explicitly supplied hit count; actual proc rate remains unverified.":"Оценка Lightning Strike использует явно заданное число ударов; фактическая частота срабатываний не подтверждена.",
  "A damage pet and a gold pet are selected together. Automatic slots search eligible owned pets; named choices stay fixed.":"Питомцы для урона и золота выбираются вместе. Автоматические слоты сравнивают доступных питомцев; ручной выбор остаётся фиксированным.",
  "Compare automatic pet choices":"Сравнивать питомцев в автоматическом режиме",
  "Selected optimized equipment":"Экипировка, выбранная оптимизатором",
