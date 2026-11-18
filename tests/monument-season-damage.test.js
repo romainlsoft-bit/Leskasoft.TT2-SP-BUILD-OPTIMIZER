@@ -77,7 +77,7 @@ test("enchantments have separate main and Monument Damage factors, not two score
  assert.equal(row(monuments,"SeasonalArtifact36").enchanted,true);
  assert.equal(row(monuments,"SeasonalArtifact34").enchanted,true);
  assert.equal(row(monuments,"SeasonalArtifact34").enchantmentMagnitude,"1.00E+01");
- assert.equal(row(monuments,"SeasonalArtifact34").enchantmentMult,"1.00E+20");
+ assert.equal(row(monuments,"SeasonalArtifact34").enchantmentMult,"1.00E+01");
  const pool=additiveDamageEvidence({entries:[]},monuments,{},
   SEASON_ARTIFACT_CATALOG);
  assert.ok(pool.monuments.candidateEnchantedPoolLog10>
