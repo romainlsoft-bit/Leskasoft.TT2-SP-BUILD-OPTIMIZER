@@ -85,6 +85,14 @@ function sourceSkillScoreAtLevel(id,level,settings){
     case "LoadedDice":
       // Unlike Quick Fortune, B is unconditionally AllGold.
       return r*lr(logA)+goldWeight*lr(logB);
+    // Native BonusInfo declares these as mana capacity / regeneration
+    // resources, not direct damage or gold. Historical 0.05 reduction
+    // factors were QoL proxies without a verified damage conversion.
+    // Keep their skill-tree-set SP benefit (scoreAtLevel wrapper) and
+    // any explicit QoL minimums, but never award fabricated damage.
+    case "MPCapacityBoost":
+    case "ManaStealSkillBoost":
+      return 0;
     case "ForbiddenContract":
     case "RoyalContract":
       // Damage, gold and mana assumptions are source-specific. Never treat
