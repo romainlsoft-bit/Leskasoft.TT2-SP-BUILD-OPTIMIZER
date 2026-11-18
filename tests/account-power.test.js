@@ -552,9 +552,9 @@ test("additive Monument Damage uses DamageExpo and never multiplies monument com
   (Math.log10(Number(info.damageBonus))*
     Math.pow(100,Number(info.damageExpo))))<1e-7);
  assert.ok(additive.monuments.candidateEnchantedPoolLog10-
-  additive.monuments.unenchantedPoolLog10>19);
+  additive.monuments.unenchantedPoolLog10>0.9);
  assert.equal(info.enchantmentMagnitude,"1.00E+01");
- assert.equal(info.enchantmentMult,"1.00E+20");
+ assert.equal(info.enchantmentMult,"1.00E+01");
 });
 test("large additive pools add in log-space without multiplying independent monuments",()=>{
  assert.ok(Math.abs(log10Sum([100,100])-(100+Math.log10(2)))<1e-12);

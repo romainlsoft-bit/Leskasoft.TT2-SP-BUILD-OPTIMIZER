@@ -1,12 +1,12 @@
-import {SKILLS,SKILL_IDS,BRANCH_NAMES,PRESETS,DAMAGE_TYPES,GOLD_TYPES,GAME_VERSION,parseExport,exportBuild,spentPoints,ownedSetFlags} from "./engine.js?v=20261118-work-review-r1";
-import { t, localizeDocument, SUPPORTED_LANGUAGES } from "./i18n.js?v=20261118-work-review-r1";
+import {SKILLS,SKILL_IDS,BRANCH_NAMES,PRESETS,DAMAGE_TYPES,GOLD_TYPES,GAME_VERSION,parseExport,exportBuild,spentPoints,ownedSetFlags} from "./engine.js?v=20261118-unity84-engine-r1";
+import { t, localizeDocument, SUPPORTED_LANGUAGES } from "./i18n.js?v=20261118-unity84-engine-r1";
 import { readClipboardText } from "./clipboard.js";
-import { profileCoverage } from "./account-profile.js?v=20261118-work-review-r1";
+import { profileCoverage } from "./account-profile.js?v=20261118-unity84-engine-r1";
 import {petLevelEvidence} from "./account-pet-levels.js";
 import {resolveGemstoneEvidence} from "./account-gemstones.js?v=20261118-final-w";
-import {formatLogMultiplier} from "./account-power.js?v=20261118-work-review-r1";
-import {availablePets,recommendPets} from "./pet-scenarios.js?v=20261118-work-review-r1";
-import {bestEquipmentByCategory,EQUIPMENT_CATEGORIES} from "./equipment-scenarios.js?v=20261118-work-review-r1";
+import {formatLogMultiplier} from "./account-power.js?v=20261118-unity84-engine-r1";
+import {availablePets,recommendPets} from "./pet-scenarios.js?v=20261118-unity84-engine-r1";
+import {bestEquipmentByCategory,EQUIPMENT_CATEGORIES} from "./equipment-scenarios.js?v=20261118-unity84-engine-r1";
 const $=id=>document.getElementById(id);
 let locale="en";
 let lastStatus={message:"Import your account or enter your skill points to begin.",type:"",params:{}};
@@ -392,7 +392,7 @@ function optimize(){
  status("Checking prerequisites and calculating the best allocation for the chosen scoring model…");
  const revision=++calculationRevision;
  const requestContext=structuredClone(state);
- const running=new Worker(new URL("./worker.js?v=20261118-work-review-r1",import.meta.url),{type:"module"});
+ const running=new Worker(new URL("./worker.js?v=20261118-unity84-engine-r1",import.meta.url),{type:"module"});
  worker=running;
  running.onmessage=event=>{
    if(revision!==calculationRevision||worker!==running)return;
@@ -634,6 +634,12 @@ function renderAccountIntegration(result){
   if(limitations.missingExplicitSelections>0)
    panel.textContent+=" "+tr("{count} requested equipment choices could not be verified and were not scored.",
     {count:numberText(limitations.missingExplicitSelections)});
+  if(limitations.conditionalSkillsUnverified>0)
+   panel.textContent+=" "+tr("Some conditional skills have unverified activation or stacking; their damage was not guessed.");
+  if(limitations.lightningStrikeCountUnverified)
+   panel.textContent+=" "+tr("Lightning Strike hits per boss are unknown; current SP levels are protected, but no speculative damage is scored.");
+  else if(limitations.lightningStrikeSourceOnly)
+   panel.textContent+=" "+tr("Lightning Strike source-only estimate uses an explicitly supplied hit count; actual proc rate remains unverified.");
  }
  if(result.petSearch?.shortlistOnly)
   panel.textContent+=" "+tr(

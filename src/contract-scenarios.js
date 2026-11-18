@@ -13,6 +13,7 @@
  * No invented mana regen, proc rate, uptime or ramp duration.
  */
 import {skillInfo} from "../vendor/skills.js";
+import {contractNativeTickSchedule} from "./contract-native-ticks.js";
 
 const CONTRACTS=Object.freeze(["ForbiddenContract","RoyalContract"]);
 const CONTRACT_SKILLS=Object.freeze([...CONTRACTS,"TerrifyingPact"]);
@@ -81,6 +82,15 @@ export function resolveContractScenario(levels={},settings={}){
  const baseRoyalDrain=r?numberAt("RoyalContract","B",level.RoyalContract):0;
  const baseDrain=baseForbiddenDrain===null||baseRoyalDrain===null?
   null:baseForbiddenDrain+baseRoyalDrain;
+ // Native tick arithmetic is independent of whether the hypothetical
+ // maximum-contract scoring option is enabled. No guessed free activation.
+ const nativeTickEvidence=Object.fromEntries(CONTRACTS.map(id=>[
+  id,level[id]===0?null:contractNativeTickSchedule({
+   maximum:skillInfo[id]["A"+level[id]],
+   baseManaCost:skillInfo[id]["B"+level[id]],
+   timeUntilMax:skillInfo[id].BonusAmountD
+  })
+ ]));
  const titanReduction=(f||r)&&pact?
   numberAt("TerrifyingPact","C",level.TerrifyingPact):0;
  return {
@@ -90,6 +100,7 @@ export function resolveContractScenario(levels={},settings={}){
   activeIfAssumptionsHold:{forbidden:f,royal:r,pact,
    pactGold:f&&pact,pactDamage:r&&pact},
   damageLog10,goldLog10,weightedLog10:damageLog10+goldWeight*goldLog10,
+  nativeTickEvidence,
   baseDrain:{forbidden:baseForbiddenDrain,royal:baseRoyalDrain,
    combined:baseDrain,unit:"exported-base-mana-cost-per-second"},
   titanReduction: {duringContracts:titanReduction,addedToDamageScore:false},
