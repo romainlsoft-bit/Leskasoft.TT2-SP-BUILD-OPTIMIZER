@@ -107,7 +107,9 @@ export function resolveManaEvidence(settings={},levels={},spellScenario=null,con
   // The above comparison is a single simultaneous cast budget, NOT the
   // actual sustainable number of spells; regeneration and recasts differ.
   independentManaSourceEffectsNotAddedToExportedStats:true,
-  contractTimeline,simulatedCastTimeline:contractTimeline.status==="simulated",
+  contractTimeline,
+  simulatedContractTimeline:contractTimeline.status==="simulated",
+  simulatedCastTimeline:false, // Contract ticks do not simulate spell casts.
   actualUptimeVerified:false,
   sustainedContractManaVerified:false,notes,complete:false};
 }
