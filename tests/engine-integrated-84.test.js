@@ -47,7 +47,8 @@ test("qualification: each of the 18 fixed damage/gold routes produces a bounded,
 test("qualification: Unity season-13 Celestial is active; Pirate is not",()=>{
  const profile=createProfile();
  const e=resolveMonumentEvidence(profile);
- assert.equal(e.season,13);
+ // Imported season identifiers are normalized to strings by account parsing.
+ assert.equal(e.season,"13");
  assert.equal(e.seasonVerified,true);
  assert.equal(SEASON_ARTIFACT_CATALOG.SeasonalArtifact45.isActive,true);
  assert.equal(SEASON_ARTIFACT_CATALOG.SeasonalArtifact1.isActive,false);
