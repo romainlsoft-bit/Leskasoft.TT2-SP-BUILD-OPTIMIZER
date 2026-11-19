@@ -1,7 +1,7 @@
 import { skillInfo } from "../vendor/skills.js";
 import { baseline } from "../vendor/qol-baseline.js";
 import { optimizeExact } from "./solver-core.js?v=20261118-final-v";
-import { scoreAtLevel } from "./effects.js?v=20261118-unity84-engine-r1";
+import { scoreAtLevel } from "./effects.js?v=20261118-investment-audit-r1";
 import { parseAccountProfile } from "./account-profile.js?v=20261118-work-review-r1";
 import {extractFixedAccountPower,fixedAccountScore} from "./account-power.js?v=20261118-work-review-r1";
 import {accountDependencyGraph} from "./account-dependencies.js?v=20261118-work-review-r1";
@@ -12,9 +12,10 @@ import {resolveManaEvidence} from "./mana-evidence.js?v=20261118-final-v";
 import {extractTimedSetPower} from "./account-set-bonuses.js";
 import {resolvePermanentSetPower} from "./account-permanent-sets.js";
 import {skillTreeSetAllocationEvidence} from "./skill-tree-set-effects.js";
-import {resolveContractScenario} from "./contract-scenarios.js?v=20261118-unity84-engine-r1";
+import {resolveContractScenario} from "./contract-scenarios.js?v=20261118-investment-audit-r1";
 import {conditionalSkillEvidence} from "./conditional-skill-evidence.js";
 import {lightningStrikeEvidence} from "./lightning-strike-evidence.js";
+import {buildInvestmentAudit} from "./investment-audit.js";
 
 export const GAME_VERSION = "8.4.0";
 export const DATASET_REVISION = "2026-09-18"; // SkillTreeInfo2.0.csv comparison
@@ -244,10 +245,11 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
   const contractScenario=resolveContractScenario(result.levels,scoreContext);
   const conditionalSkills=conditionalSkillEvidence(result.levels,scoreContext);
   const lightningStrike=lightningStrikeEvidence(result.levels,scoreContext);
+  const investmentAudit=buildInvestmentAudit(result.levels,scoreContext,protectedSkills);
   const spellCaps=resolveSpellCaps(scoreContext,result.levels);
   const spellScenario=resolveSpellScenario(scoreContext,result.levels,spellCaps);
   const manaEvidence=resolveManaEvidence(scoreContext,result.levels,spellScenario,contractScenario);
-  return {...result,prior:current,spent:points,remaining:SP-points,changes,branchTotals,protectedSkills,
+  return {...result,prior:current,spent:points,remaining:SP-points,changes,branchTotals,protectedSkills,investmentAudit,
     selectedSpellUnlocks,spellBaselineInvariantUnderSkillOptimization:
      spellSelection.valid&&!spellCapEvidenceIsIncomplete,
     spellCaps,spellScenario,manaEvidence,contractScenario,conditionalSkills,lightningStrike,
