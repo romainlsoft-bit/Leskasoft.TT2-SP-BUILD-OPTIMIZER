@@ -1,5 +1,7 @@
 name: TT2 pull request Node verification
 on:
+  push:
+    branches: ['fix/**', 'feat/**']
   pull_request:
     branches: [main]
 permissions:
