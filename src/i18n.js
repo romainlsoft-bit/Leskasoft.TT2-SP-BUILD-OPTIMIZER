@@ -5,6 +5,8 @@ export const SUPPORTED_LANGUAGES = ["en","fr","uk","ru"];
 export const NATIVE_LANGUAGE_NAMES = {en:"English",fr:"Français",uk:"Українська",ru:"Русский"};
 export const translations = {
 fr:{
+ "Protected imported skills reserve {sp} SP ({percent}%): {skills}. Those SP were not freely re-optimized.":"Les compétences importées conservées immobilisent {sp} SP ({percent} %) : {skills}. Ces points n'ont pas été réoptimisés librement.",
+ "Tactical Insight uses unverified hero-skill reduction weights. Warlord allocation should be checked against in-game Stats.":"Tactical Insight utilise des pondérations de compétences de héros non vérifiées. L'allocation Warlord doit être comparée aux statistiques du jeu.",
  "Some conditional skills have unverified activation or stacking; their damage was not guessed.":"Certaines compétences conditionnelles ont une activation ou un cumul non vérifiés ; aucun dégât n'a été inventé.",
  "Lightning Strike hits per boss are unknown; current SP levels are protected, but no speculative damage is scored.":"Le nombre de frappes Lightning Strike par boss est inconnu ; les SP déjà investis sont conservés, sans dégâts supposés.",
  "Lightning Strike source-only estimate uses an explicitly supplied hit count; actual proc rate remains unverified.":"L'estimation Lightning Strike utilise un nombre de frappes fourni explicitement ; la fréquence réelle n'est pas vérifiée.",
@@ -262,6 +264,8 @@ fr:{
  "Free Tap Titans 2 skill tree optimizer for TT2 8.4. Optimize skill points for Clan Ship, Pet, Shadow Clone, Heavenly Strike, Dagger or Gold Gun. Import game data or configure manually.":"Optimiseur gratuit de compétences Tap Titans 2 version 8.4. Import des données ou configuration manuelle pour tous les types de builds."
 },
 uk:{
+ "Protected imported skills reserve {sp} SP ({percent}%): {skills}. Those SP were not freely re-optimized.":"Збережені навички з імпорту утримують {sp} SP ({percent}%): {skills}. Ці очки не були вільно перерозподілені.",
+ "Tactical Insight uses unverified hero-skill reduction weights. Warlord allocation should be checked against in-game Stats.":"Tactical Insight використовує неперевірені вагові коефіцієнти навичок героїв. Розподіл у Warlord слід порівняти зі статистикою гри.",
  "Some conditional skills have unverified activation or stacking; their damage was not guessed.":"Умови активації або накопичення деяких навичок не перевірені; вигадане значення шкоди не додається.",
  "Lightning Strike hits per boss are unknown; current SP levels are protected, but no speculative damage is scored.":"Кількість ударів Lightning Strike на боса невідома; поточні SP збережено, але припущену шкоду не додано.",
  "Lightning Strike source-only estimate uses an explicitly supplied hit count; actual proc rate remains unverified.":"Оцінка Lightning Strike використовує явно задану кількість ударів; фактичну частоту спрацювання не підтверджено.",
@@ -470,6 +474,8 @@ uk:{
  "Free Tap Titans 2 skill tree optimizer for TT2 8.4. Optimize skill points for Clan Ship, Pet, Shadow Clone, Heavenly Strike, Dagger or Gold Gun. Import game data or configure manually.":"Безкоштовний оптимізатор дерева навичок Tap Titans 2 версії 8.4. Імпорт даних або ручне налаштування для всіх збірок."
 },
 ru:{
+ "Protected imported skills reserve {sp} SP ({percent}%): {skills}. Those SP were not freely re-optimized.":"Сохранённые импортированные навыки удерживают {sp} SP ({percent}%): {skills}. Эти очки не были свободно перераспределены.",
+ "Tactical Insight uses unverified hero-skill reduction weights. Warlord allocation should be checked against in-game Stats.":"Tactical Insight использует непроверенные весовые коэффициенты навыков героев. Распределение Warlord нужно сравнить со статистикой игры.",
  "Some conditional skills have unverified activation or stacking; their damage was not guessed.":"Условия активации или накопления некоторых навыков не проверены; вымышленный урон не учитывается.",
  "Lightning Strike hits per boss are unknown; current SP levels are protected, but no speculative damage is scored.":"Число ударов Lightning Strike по боссу неизвестно; уже вложенные SP сохраняются, но предполагаемый урон не начисляется.",
  "Lightning Strike source-only estimate uses an explicitly supplied hit count; actual proc rate remains unverified.":"Оценка Lightning Strike использует явно заданное число ударов; фактическая частота срабатываний не подтверждена.",
