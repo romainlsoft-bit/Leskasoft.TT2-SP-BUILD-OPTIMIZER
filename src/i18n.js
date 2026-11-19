@@ -5,6 +5,15 @@ export const SUPPORTED_LANGUAGES = ["en","fr","uk","ru"];
 export const NATIVE_LANGUAGE_NAMES = {en:"English",fr:"Français",uk:"Українська",ru:"Русский"};
 export const translations = {
 fr:{
+ "Contract mana what-if (diagnostic only)":"Simulation du mana des contrats (diagnostic uniquement)",
+ "Optional one-second tick simulation. Explicitly assume no other spell costs, mana taps or proc events. This does not affect Skill Point allocation.":"Simulation facultative par ticks d’une seconde. Elle suppose explicitement l’absence d’autres coûts de sorts ou gains de mana. Elle ne modifie pas les SP attribués.",
+ "Enable contract mana what-if":"Activer la simulation de mana",
+ "Mana available at activation":"Mana disponible à l’activation",
+ "Mana pool capacity":"Capacité de mana",
+ "Passive mana per second":"Régénération passive par seconde",
+ "Seconds to simulate (1–3600)":"Durée à simuler en secondes (1–3600)",
+ "Forbidden Contract free ticks":"Ticks gratuits Forbidden Contract",
+ "Royal Contract free ticks":"Ticks gratuits Royal Contract",
  "Contract mana what-if: {ticks} funded ticks within {window}s (first unfunded: {failed}). Only entered passive regeneration and free ticks were used. This is NOT measured uptime and does not affect the build score.":"Scénario mana des contrats : {ticks} ticks financés sur {window} s (premier tick non finançable : {failed}). Seules la régénération passive et les ticks gratuits saisis ont été pris en compte. Ce n'est PAS une durée réelle mesurée et le score est inchangé.",
  "none within simulated window":"aucun pendant la durée simulée",
  "Contract mana what-if was not run: provide valid mana, regeneration, duration and explicit free-tick counts for enabled contracts.":"Scénario mana non calculé : indiquez des valeurs valides pour le mana, la régénération, la durée et les ticks gratuits explicites des contrats actifs.",
@@ -266,6 +275,15 @@ fr:{
  "Free Tap Titans 2 skill tree optimizer for TT2 8.4. Optimize skill points for Clan Ship, Pet, Shadow Clone, Heavenly Strike, Dagger or Gold Gun. Import game data or configure manually.":"Optimiseur gratuit de compétences Tap Titans 2 version 8.4. Import des données ou configuration manuelle pour tous les types de builds."
 },
 uk:{
+ "Contract mana what-if (diagnostic only)":"Моделювання мани контрактів (лише діагностика)",
+ "Optional one-second tick simulation. Explicitly assume no other spell costs, mana taps or proc events. This does not affect Skill Point allocation.":"Необов’язкова симуляція з кроком одна секунда. Явно припускається відсутність інших витрат заклять або джерел мани. Розподіл SP не змінюється.",
+ "Enable contract mana what-if":"Увімкнути модель мани контрактів",
+ "Mana available at activation":"Мана на момент активації",
+ "Mana pool capacity":"Максимальний запас мани",
+ "Passive mana per second":"Пасивне відновлення за секунду",
+ "Seconds to simulate (1–3600)":"Тривалість у секундах (1–3600)",
+ "Forbidden Contract free ticks":"Безкоштовні такти Forbidden Contract",
+ "Royal Contract free ticks":"Безкоштовні такти Royal Contract",
  "Contract mana what-if: {ticks} funded ticks within {window}s (first unfunded: {failed}). Only entered passive regeneration and free ticks were used. This is NOT measured uptime and does not affect the build score.":"Гіпотетичний розрахунок мани контрактів: {ticks} оплачених тактів за {window} с (перший неоплачений: {failed}). Враховано лише введені пасивне відновлення мани та безкоштовні такти. Це НЕ виміряна тривалість дії та не змінює оцінку білду.",
  "none within simulated window":"немає в межах змодельованого часу",
  "Contract mana what-if was not run: provide valid mana, regeneration, duration and explicit free-tick counts for enabled contracts.":"Гіпотетичний розрахунок мани не виконано: введіть коректні значення мани, відновлення, тривалості та кількості безкоштовних тактів активних контрактів.",
@@ -478,6 +496,15 @@ uk:{
  "Free Tap Titans 2 skill tree optimizer for TT2 8.4. Optimize skill points for Clan Ship, Pet, Shadow Clone, Heavenly Strike, Dagger or Gold Gun. Import game data or configure manually.":"Безкоштовний оптимізатор дерева навичок Tap Titans 2 версії 8.4. Імпорт даних або ручне налаштування для всіх збірок."
 },
 ru:{
+ "Contract mana what-if (diagnostic only)":"Модель маны контрактов (только диагностика)",
+ "Optional one-second tick simulation. Explicitly assume no other spell costs, mana taps or proc events. This does not affect Skill Point allocation.":"Необязательная симуляция с шагом одна секунда. Явно предполагается отсутствие других расходов заклинаний и источников маны. Распределение SP не меняется.",
+ "Enable contract mana what-if":"Включить моделирование маны контрактов",
+ "Mana available at activation":"Мана в момент активации",
+ "Mana pool capacity":"Максимальный запас маны",
+ "Passive mana per second":"Пассивная регенерация за секунду",
+ "Seconds to simulate (1–3600)":"Время моделирования в секундах (1–3600)",
+ "Forbidden Contract free ticks":"Бесплатные тики Forbidden Contract",
+ "Royal Contract free ticks":"Бесплатные тики Royal Contract",
  "Contract mana what-if: {ticks} funded ticks within {window}s (first unfunded: {failed}). Only entered passive regeneration and free ticks were used. This is NOT measured uptime and does not affect the build score.":"Гипотетический расчёт маны контрактов: {ticks} оплаченных тиков за {window} с (первый неоплаченный: {failed}). Учтены только указанные пассивная регенерация маны и бесплатные тики. Это НЕ измеренная продолжительность действия и не влияет на оценку билда.",
  "none within simulated window":"нет за время моделирования",
  "Contract mana what-if was not run: provide valid mana, regeneration, duration and explicit free-tick counts for enabled contracts.":"Гипотетический расчёт маны не выполнен: укажите корректные значения маны, регенерации, длительности и бесплатных тиков действующих контрактов.",
