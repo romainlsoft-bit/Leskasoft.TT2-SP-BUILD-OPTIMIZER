@@ -60,7 +60,7 @@ function engineError(message){
 }
 const iconMap={"Clan Ship":"⛵","Pet":"🐾","Shadow Clone":"◈","Heavenly Strike":"⚡","Dagger":"🗡","Gold Gun":"✦"};
 const branchColors={Knight:"#d77879",Summoner:"#edab66",Warlord:"#e7ca75",Sorcerer:"#86adf7",Rogue:"#7ad0a0",Alchemist:"#b595ed"};
-const fresh=()=>({damage:"Clan Ship",gold:"Fairy",skillPoints:0,maxStage:0,playstyle:"balanced",qol:"recommended",goldWeight:.7,craftingPower:1,timeToKill:8,sClone:30,sets:{},currentLevels:{},minimums:{},excluded:[],preserveCurrent:false,assumeHaystActive:false,assumeSnapActive:false,assumeContractsAtMax:false,astralActivations:0,mode:"power",accountProfile:null,selectedDamagePet:null,selectedGoldPet:null,comparePetScenarios:true,selectedEquipment:{},protectUnmodeledSkills:true});
+const fresh=()=>({damage:"Clan Ship",gold:"Fairy",skillPoints:0,maxStage:0,playstyle:"balanced",qol:"recommended",goldWeight:.7,craftingPower:1,timeToKill:8,sClone:30,sets:{},currentLevels:{},minimums:{},excluded:[],preserveCurrent:false,assumeHaystActive:false,assumeSnapActive:false,assumeContractsAtMax:false,astralActivations:0,mode:"power",accountProfile:null,selectedDamagePet:null,selectedGoldPet:null,comparePetScenarios:true,selectedEquipment:{},protectUnmodeledSkills:true,contractTimeline:null});
 let state=fresh(),lastResult=null,lastScenarios=[],lastEquipment={},
  lastGearSelection=null,lastResolvedPets=null,lastRunContext=null,
  worker=null,calculationRevision=0;
@@ -295,6 +295,12 @@ function fillInputs(){
  $("hayst-active").checked=state.assumeHaystActive===true;
  $("snap-active").checked=state.assumeSnapActive===true;
  $("contracts-at-max").checked=state.assumeContractsAtMax===true;
+ const simulation=state.contractTimeline;
+ $("timeline-enabled").checked=simulation?.enabled===true;
+ for(const [key,id] of [["startingMana","timeline-starting-mana"],["manaCapacity","timeline-mana-capacity"],["passiveRegenPerSecond","timeline-passive-regen"],["durationSeconds","timeline-duration"]])
+  $(id).value=simulation?.[key]??"";
+ for(const [key,id] of [["ForbiddenContract","timeline-free-forbidden"],["RoyalContract","timeline-free-royal"]])
+  $(id).value=simulation?.freeTicks?.[key]??"";
  $("astral-activations").value=state.astralActivations??0;
  renderChoices();renderEditor($("skill-search").value);
 }
@@ -313,6 +319,7 @@ function applyPreset(id){
 function importRaw(raw){
  const parsed=parseExport(raw);
  state.currentLevels=parsed.levels;
+ state.contractTimeline=null; // Never reuse a prior account\u0027s mana assumptions.
  if(parsed.skillPoints!==null&&parsed.skillPoints>0)state.skillPoints=parsed.skillPoints;
  else if(!state.skillPoints)state.skillPoints=spentPoints(parsed.levels);
  state.maxStage=parsed.maxStage;state.craftingPower=parsed.craftingPower;state.sets=parsed.sets;
@@ -375,6 +382,17 @@ function readInputs(){
  state.assumeSnapActive=$("snap-active").checked;
  state.assumeContractsAtMax=$("contracts-at-max").checked;
  state.astralActivations=Number($("astral-activations").value);
+ state.contractTimeline=$("timeline-enabled").checked?{
+  enabled:true,
+  startingMana:$("timeline-starting-mana").value,
+  manaCapacity:$("timeline-mana-capacity").value,
+  passiveRegenPerSecond:$("timeline-passive-regen").value,
+  durationSeconds:$("timeline-duration").value,
+  freeTicks:{
+   ForbiddenContract:$("timeline-free-forbidden").value,
+   RoyalContract:$("timeline-free-royal").value
+  }
+ }:null;
  state.mode="power";
  persist();
 }
@@ -615,6 +633,18 @@ function renderAccountIntegration(result){
             contract.levels.TerrifyingPact)
    panel.textContent+=" "+tr(
     "Contracts are present, but their full bonuses are excluded because maximum active ramp is not assumed.");
+ }
+ const timeline=result.manaEvidence?.contractTimeline;
+ if(timeline?.status==="simulated"){
+  panel.textContent+=" "+tr(
+   "Contract mana what-if: {ticks} funded ticks within {window}s (first unfunded: {failed}). Only entered passive regeneration and free ticks were used. This is NOT measured uptime and does not affect the build score.",
+   {ticks:numberText(timeline.fundedTicks),
+    window:numberText(timeline.horizonSeconds),
+    failed:timeline.firstUnfundedSecond===null?
+     tr("none within simulated window"):numberText(timeline.firstUnfundedSecond)});
+ }else if(timeline?.status==="missing-or-invalid-inputs"){
+  panel.textContent+=" "+tr(
+   "Contract mana what-if was not run: provide valid mana, regeneration, duration and explicit free-tick counts for enabled contracts.");
  }
  const modeled=result.modeledScenario;
  if(modeled){

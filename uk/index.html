@@ -68,6 +68,18 @@
     <label class="toggle"><input type="checkbox" id="hayst-active"> Hayst активний проти найскладнішого боса</label>
     <label class="toggle"><input type="checkbox" id="snap-active"> Snap активний проти найскладнішого боса</label>
     <label class="toggle"><input type="checkbox" id="contracts-at-max"> Обидва контракти досягають максимальних бонусів проти найскладнішого боса (потребує багато мани)</label>
+    <h3>Моделювання мани контрактів (лише діагностика)</h3>
+    <p class="hint">Необов’язкова симуляція з кроком одна секунда. Явно припускається відсутність інших витрат заклять або джерел мани. Розподіл SP не змінюється.</p>
+    <label class="toggle"><input type="checkbox" id="timeline-enabled"> Увімкнути модель мани контрактів</label>
+    <div class="field-grid">
+      <label>Мана на момент активації <input id="timeline-starting-mana" type="number" min="0" step="any" inputmode="decimal" placeholder="—"></label>
+      <label>Максимальний запас мани <input id="timeline-mana-capacity" type="number" min="0" step="any" inputmode="decimal" placeholder="—"></label>
+      <label>Пасивне відновлення за секунду <input id="timeline-passive-regen" type="number" min="0" step="any" inputmode="decimal" placeholder="—"></label>
+      <label>Тривалість у секундах (1–3600) <input id="timeline-duration" type="number" min="1" max="3600" step="1" inputmode="numeric" value="60"></label>
+      <label>Безкоштовні такти Forbidden Contract <input id="timeline-free-forbidden" type="number" min="0" max="3600" step="1" inputmode="numeric" placeholder="—"></label>
+      <label>Безкоштовні такти Royal Contract <input id="timeline-free-royal" type="number" min="0" max="3600" step="1" inputmode="numeric" placeholder="—"></label>
+    </div>
+
     <label>Натискання сфер Astral Awakening (0–5) <input type="number" id="astral-activations" min="0" max="5" step="1" inputmode="numeric" value="0"></label>
     <label class="toggle"><input type="checkbox" id="preserve-current">Зберігати поточні рівні як мінімальні</label>
     <label class="toggle"><input type="checkbox" id="protect-unmodeled-skills" checked> Зберігати наявні умовні навички, якщо їхню дію не враховано в моделі (рекомендовано)</label>

@@ -68,6 +68,18 @@
     <label class="toggle"><input type="checkbox" id="hayst-active"> Hayst активен против самого сложного босса</label>
     <label class="toggle"><input type="checkbox" id="snap-active"> Snap активен против самого сложного босса</label>
     <label class="toggle"><input type="checkbox" id="contracts-at-max"> Оба контракта достигают максимальных бонусов против самого сложного босса (требует много маны)</label>
+    <h3>Модель маны контрактов (только диагностика)</h3>
+    <p class="hint">Необязательная симуляция с шагом одна секунда. Явно предполагается отсутствие других расходов заклинаний и источников маны. Распределение SP не меняется.</p>
+    <label class="toggle"><input type="checkbox" id="timeline-enabled"> Включить моделирование маны контрактов</label>
+    <div class="field-grid">
+      <label>Мана в момент активации <input id="timeline-starting-mana" type="number" min="0" step="any" inputmode="decimal" placeholder="—"></label>
+      <label>Максимальный запас маны <input id="timeline-mana-capacity" type="number" min="0" step="any" inputmode="decimal" placeholder="—"></label>
+      <label>Пассивная регенерация за секунду <input id="timeline-passive-regen" type="number" min="0" step="any" inputmode="decimal" placeholder="—"></label>
+      <label>Время моделирования в секундах (1–3600) <input id="timeline-duration" type="number" min="1" max="3600" step="1" inputmode="numeric" value="60"></label>
+      <label>Бесплатные тики Forbidden Contract <input id="timeline-free-forbidden" type="number" min="0" max="3600" step="1" inputmode="numeric" placeholder="—"></label>
+      <label>Бесплатные тики Royal Contract <input id="timeline-free-royal" type="number" min="0" max="3600" step="1" inputmode="numeric" placeholder="—"></label>
+    </div>
+
     <label>Нажатия на сферы Astral Awakening (0–5) <input type="number" id="astral-activations" min="0" max="5" step="1" inputmode="numeric" value="0"></label>
     <label class="toggle"><input type="checkbox" id="preserve-current">Сохранить текущие уровни как минимальные</label>
     <label class="toggle"><input type="checkbox" id="protect-unmodeled-skills" checked> Сохранять имеющиеся условные навыки, если модель не учитывает их эффект (рекомендуется)</label>

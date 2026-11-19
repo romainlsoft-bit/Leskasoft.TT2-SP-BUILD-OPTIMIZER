@@ -68,6 +68,18 @@
     <label class="toggle"><input type="checkbox" id="hayst-active"> Hayst actif contre votre boss le plus difficile</label>
     <label class="toggle"><input type="checkbox" id="snap-active"> Snap actif contre votre boss le plus difficile</label>
     <label class="toggle"><input type="checkbox" id="contracts-at-max"> Les deux contrats atteignent leur bonus maximal contre votre boss le plus difficile (consomme beaucoup de mana)</label>
+    <h3>Simulation du mana des contrats (diagnostic uniquement)</h3>
+    <p class="hint">Simulation facultative par ticks d’une seconde. Elle suppose explicitement l’absence d’autres coûts de sorts ou gains de mana. Elle ne modifie pas les SP attribués.</p>
+    <label class="toggle"><input type="checkbox" id="timeline-enabled"> Activer la simulation de mana</label>
+    <div class="field-grid">
+      <label>Mana disponible à l’activation <input id="timeline-starting-mana" type="number" min="0" step="any" inputmode="decimal" placeholder="—"></label>
+      <label>Capacité de mana <input id="timeline-mana-capacity" type="number" min="0" step="any" inputmode="decimal" placeholder="—"></label>
+      <label>Régénération passive par seconde <input id="timeline-passive-regen" type="number" min="0" step="any" inputmode="decimal" placeholder="—"></label>
+      <label>Durée à simuler en secondes (1–3600) <input id="timeline-duration" type="number" min="1" max="3600" step="1" inputmode="numeric" value="60"></label>
+      <label>Ticks gratuits Forbidden Contract <input id="timeline-free-forbidden" type="number" min="0" max="3600" step="1" inputmode="numeric" placeholder="—"></label>
+      <label>Ticks gratuits Royal Contract <input id="timeline-free-royal" type="number" min="0" max="3600" step="1" inputmode="numeric" placeholder="—"></label>
+    </div>
+
     <label>Orbes Astral Awakening activés (0–5) <input type="number" id="astral-activations" min="0" max="5" step="1" inputmode="numeric" value="0"></label>
     <label class="toggle"><input type="checkbox" id="preserve-current">Conserver les niveaux actuels comme minimums</label>
     <label class="toggle"><input type="checkbox" id="protect-unmodeled-skills" checked> Conserver les compétences conditionnelles existantes lorsque leurs effets ne sont pas modélisés (recommandé)</label>

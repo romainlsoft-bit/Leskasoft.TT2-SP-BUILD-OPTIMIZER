@@ -68,6 +68,18 @@
     <label class="toggle"><input type="checkbox" id="hayst-active"> Hayst active at your hardest boss</label>
     <label class="toggle"><input type="checkbox" id="snap-active"> Snap active at your hardest boss</label>
     <label class="toggle"><input type="checkbox" id="contracts-at-max"> Both contracts reach maximum bonuses at your hardest boss (mana-intensive)</label>
+    <h3>Contract mana what-if (diagnostic only)</h3>
+    <p class="hint">Optional one-second tick simulation. Explicitly assume no other spell costs, mana taps or proc events. This does not affect Skill Point allocation.</p>
+    <label class="toggle"><input type="checkbox" id="timeline-enabled"> Enable contract mana what-if</label>
+    <div class="field-grid">
+      <label>Mana available at activation <input id="timeline-starting-mana" type="number" min="0" step="any" inputmode="decimal" placeholder="—"></label>
+      <label>Mana pool capacity <input id="timeline-mana-capacity" type="number" min="0" step="any" inputmode="decimal" placeholder="—"></label>
+      <label>Passive mana per second <input id="timeline-passive-regen" type="number" min="0" step="any" inputmode="decimal" placeholder="—"></label>
+      <label>Seconds to simulate (1–3600) <input id="timeline-duration" type="number" min="1" max="3600" step="1" inputmode="numeric" value="60"></label>
+      <label>Forbidden Contract free ticks <input id="timeline-free-forbidden" type="number" min="0" max="3600" step="1" inputmode="numeric" placeholder="—"></label>
+      <label>Royal Contract free ticks <input id="timeline-free-royal" type="number" min="0" max="3600" step="1" inputmode="numeric" placeholder="—"></label>
+    </div>
+
     <label>Astral Awakening orb taps (0–5) <input type="number" id="astral-activations" min="0" max="5" step="1" inputmode="numeric" value="0"></label>
     <label class="toggle"><input type="checkbox" id="preserve-current">Keep current levels as minimums</label>
     <label class="toggle"><input type="checkbox" id="protect-unmodeled-skills" checked> Keep existing conditional skills when their effects cannot be modeled (recommended)</label>

@@ -5,6 +5,10 @@ export const SUPPORTED_LANGUAGES = ["en","fr","uk","ru"];
 export const NATIVE_LANGUAGE_NAMES = {en:"English",fr:"Français",uk:"Українська",ru:"Русский"};
 export const translations = {
 fr:{
+ "Contract mana what-if: {ticks} funded ticks within {window}s (first unfunded: {failed}). Only entered passive regeneration and free ticks were used. This is NOT measured uptime and does not affect the build score.":"Scénario mana des contrats : {ticks} ticks financés sur {window} s (premier tick non finançable : {failed}). Seules la régénération passive et les ticks gratuits saisis ont été pris en compte. Ce n'est PAS une durée réelle mesurée et le score est inchangé.",
+ "none within simulated window":"aucun pendant la durée simulée",
+ "Contract mana what-if was not run: provide valid mana, regeneration, duration and explicit free-tick counts for enabled contracts.":"Scénario mana non calculé : indiquez des valeurs valides pour le mana, la régénération, la durée et les ticks gratuits explicites des contrats actifs.",
+
  "Some conditional skills have unverified activation or stacking; their damage was not guessed.":"Certaines compétences conditionnelles ont une activation ou un cumul non vérifiés ; aucun dégât n'a été inventé.",
  "Lightning Strike hits per boss are unknown; current SP levels are protected, but no speculative damage is scored.":"Le nombre de frappes Lightning Strike par boss est inconnu ; les SP déjà investis sont conservés, sans dégâts supposés.",
  "Lightning Strike source-only estimate uses an explicitly supplied hit count; actual proc rate remains unverified.":"L'estimation Lightning Strike utilise un nombre de frappes fourni explicitement ; la fréquence réelle n'est pas vérifiée.",
@@ -262,6 +266,10 @@ fr:{
  "Free Tap Titans 2 skill tree optimizer for TT2 8.4. Optimize skill points for Clan Ship, Pet, Shadow Clone, Heavenly Strike, Dagger or Gold Gun. Import game data or configure manually.":"Optimiseur gratuit de compétences Tap Titans 2 version 8.4. Import des données ou configuration manuelle pour tous les types de builds."
 },
 uk:{
+ "Contract mana what-if: {ticks} funded ticks within {window}s (first unfunded: {failed}). Only entered passive regeneration and free ticks were used. This is NOT measured uptime and does not affect the build score.":"Гіпотетичний розрахунок мани контрактів: {ticks} оплачених тактів за {window} с (перший неоплачений: {failed}). Враховано лише введені пасивне відновлення мани та безкоштовні такти. Це НЕ виміряна тривалість дії та не змінює оцінку білду.",
+ "none within simulated window":"немає в межах змодельованого часу",
+ "Contract mana what-if was not run: provide valid mana, regeneration, duration and explicit free-tick counts for enabled contracts.":"Гіпотетичний розрахунок мани не виконано: введіть коректні значення мани, відновлення, тривалості та кількості безкоштовних тактів активних контрактів.",
+
  "Some conditional skills have unverified activation or stacking; their damage was not guessed.":"Умови активації або накопичення деяких навичок не перевірені; вигадане значення шкоди не додається.",
  "Lightning Strike hits per boss are unknown; current SP levels are protected, but no speculative damage is scored.":"Кількість ударів Lightning Strike на боса невідома; поточні SP збережено, але припущену шкоду не додано.",
  "Lightning Strike source-only estimate uses an explicitly supplied hit count; actual proc rate remains unverified.":"Оцінка Lightning Strike використовує явно задану кількість ударів; фактичну частоту спрацювання не підтверджено.",
@@ -470,6 +478,10 @@ uk:{
  "Free Tap Titans 2 skill tree optimizer for TT2 8.4. Optimize skill points for Clan Ship, Pet, Shadow Clone, Heavenly Strike, Dagger or Gold Gun. Import game data or configure manually.":"Безкоштовний оптимізатор дерева навичок Tap Titans 2 версії 8.4. Імпорт даних або ручне налаштування для всіх збірок."
 },
 ru:{
+ "Contract mana what-if: {ticks} funded ticks within {window}s (first unfunded: {failed}). Only entered passive regeneration and free ticks were used. This is NOT measured uptime and does not affect the build score.":"Гипотетический расчёт маны контрактов: {ticks} оплаченных тиков за {window} с (первый неоплаченный: {failed}). Учтены только указанные пассивная регенерация маны и бесплатные тики. Это НЕ измеренная продолжительность действия и не влияет на оценку билда.",
+ "none within simulated window":"нет за время моделирования",
+ "Contract mana what-if was not run: provide valid mana, regeneration, duration and explicit free-tick counts for enabled contracts.":"Гипотетический расчёт маны не выполнен: укажите корректные значения маны, регенерации, длительности и бесплатных тиков действующих контрактов.",
+
  "Some conditional skills have unverified activation or stacking; their damage was not guessed.":"Условия активации или накопления некоторых навыков не проверены; вымышленный урон не учитывается.",
  "Lightning Strike hits per boss are unknown; current SP levels are protected, but no speculative damage is scored.":"Число ударов Lightning Strike по боссу неизвестно; уже вложенные SP сохраняются, но предполагаемый урон не начисляется.",
  "Lightning Strike source-only estimate uses an explicitly supplied hit count; actual proc rate remains unverified.":"Оценка Lightning Strike использует явно заданное число ударов; фактическая частота срабатываний не подтверждена.",
