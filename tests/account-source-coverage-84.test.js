@@ -120,3 +120,37 @@ test("direct permanent and daily set effects are reported without adding their s
  assert.ok(Math.abs(sets.fixedWeightedLog10-26)<1e-12);
  assert.equal(report.allGameBonusesIncluded,false);
 });
+
+test("coverage keeps unresolved dependent bonuses in their original subsystem",()=>{
+ const profile=parse({
+  artifacts:{Artifact1:{level:5}},
+  monuments:{SeasonalArtifact34:{level:10}},
+  petLevels:{Pet1:100},
+  heroWeapons:{Hero1:{level:10}},
+  equipmentSets:["MythicSmith"]
+ });
+ const power={
+  available:false,entries:[],byType:{},
+  unsupported:[
+   {system:"artifactDerived",reason:"white-dwarf-ownership-count-unverifiable"},
+   {system:"monumentDerived",reason:"unscored-monument-enchantment-boosts"},
+   {system:"petAmplifier",reason:"seasonal-pet-cross-stack-unverified"},
+   {system:"petLevels",reason:"invalid-passive-pet-level"},
+   {system:"heroProgression",reason:"unverified-per-hero-dps"}
+  ]
+ };
+ const coverage=accountSourceCoverage(profile,power,
+  {damage:"Pet",gold:"Fairy",goldWeight:.7},{
+   permanentSetPower:{entries:[],unresolved:3},
+   timedSetPower:{entries:[],omitted:2}
+  });
+ const group=id=>coverage.systems.find(row=>row.id===id);
+ assert.equal(group("artifacts").unresolved,1);
+ assert.equal(group("monuments").unresolved,1);
+ assert.equal(group("pets").unresolved,2);
+ assert.equal(group("heroWeapons").unresolved,1);
+ assert.equal(group("equipmentSets").unresolved,5);
+ assert.equal(group("equipmentSets").status,"partially-modeled-with-unknowns");
+ assert.equal(coverage.unresolvedRows,10);
+ assert.equal(coverage.allGameBonusesIncluded,false);
+});

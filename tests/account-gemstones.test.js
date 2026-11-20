@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {parseAccountProfile} from "../src/account-profile.js";
 import {resolveGemstoneEvidence} from "../src/account-gemstones.js";
 import {extractFixedAccountPower,fixedAccountScore} from "../src/account-power.js";
+import {equipmentEffectReduction} from "../src/equipment-reductions.js";
 import {equipmentPrimaryAmplifiers,gearSelectionEffects} from "../src/equipment-scenarios.js";
 import {resourceResearchEvidence} from "../src/account-research-resources.js";
 import {accountDependencyGraph} from "../src/account-dependencies.js";

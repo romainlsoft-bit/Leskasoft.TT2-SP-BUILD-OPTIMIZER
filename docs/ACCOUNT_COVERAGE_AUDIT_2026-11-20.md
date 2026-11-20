@@ -30,3 +30,15 @@ No GitHub Actions are run, triggered or required for this change. Tests are comm
 ## Near-season-end daily monument diagnostics
 
 See `docs/MONUMENT_SEASON_DAY_AUDIT.md`. `monumentSeasonDayEvidence` now reports each in-rotation per-season-day monument source and its hypothetical daily-compounded value separately from the real fixed/skill ledger. This deliberately does not assert the native formula or count a conditional gold/crit value as always-on damage. The end-of-season reset remains an explicit risk for carrying old exports into the next season.
+
+## Unresolved dependent-effect attribution (20 Nov regression)
+
+The source coverage report previously ignored the auxiliary subsystem names
+`artifactDerived`, `monumentDerived`, `petAmplifier`, `petLevels`,
+and `heroProgression`. These are precisely where several high-impact
+unknown or conditional interactions are recorded. The report now
+attributes those unknowns to their corresponding artifact, monument,
+pet and hero groups. It also counts unresolved permanent owned-set
+effects and omitted dated-set effects from their independent ledgers.
+This is **reporting only**: no power or skill multipliers were invented,
+and the actual SP objective is unchanged.

@@ -11,6 +11,15 @@
  */
 import {fixedAccountScore} from "./account-power.js";
 import {clanTechnologyEvidence} from "./account-clan-technology.js";
+// A subsystem may report unresolved dependent effects under a DIFFERENT
+// namespace than its scored source rows. Keep their counts on the same
+// system instead of presenting an over-optimistic coverage dashboard.
+const UNSUPPORTED_SYSTEMS=Object.freeze({
+ artifacts:["artifacts","artifactDerived"],
+ monuments:["monuments","monumentDerived"],
+ pets:["petPassive","petAmplifier","petLevels"],
+ heroWeapons:["heroWeapons","heroProgression"]
+});
 const GROUPS=Object.freeze([
  {id:"titanCards",sections:["titanCards"],ledger:["titanCards"]},
  {id:"titanResearch",sections:["titanResearch","forbiddenResearch"],ledger:["titanResearch"]},
@@ -54,10 +63,12 @@ export function accountSourceCoverage(profile,power,settings={},extra={}){
   const importedRecords=sum(sources.map(x=>Number(x.count)||0));
   const named=new Set(group.ledger);
   const rows=ledger.filter(x=>named.has(x.system));
-  const bad=unsupported.filter(x=>named.has(x.system)||
-   group.id==="titanResearch"&&x.system==="titanResearch"||
-   group.id==="gemstoneResearch"&&x.system==="gemstoneResearch"||
-   group.id==="gemstones"&&x.system==="gemstones");
+  const unmodeledSystems=new Set(
+   UNSUPPORTED_SYSTEMS[group.id]||group.ledger);
+  const bad=unsupported.filter(x=>unmodeledSystems.has(x.system));
+  const supplementalUnknown=group.id==="equipmentSets"?
+   (Number(extra.permanentSetPower?.unresolved)||0)+
+   (Number(extra.timedSetPower?.omitted)||0):0;
   const eligible=rows.filter(x=>Number.isFinite(x.log10));
   const fixedScoreRows=eligible.filter(x=>x.log10>0&&weights[x.bonusType]>0&&
     x.route!=="equipment"&&x.route!=="pet");
@@ -80,8 +91,8 @@ export function accountSourceCoverage(profile,power,settings={},extra={}){
    group.id==="gemstoneResearch"?
    resources?.gemstones?.matchedNodes??0:
    group.id==="clanTechnology"?clan.resourceNodes:0;
-  const unresolved=bad.length+(group.id==="clanTechnology"?
-   clan.unknown.length:0);
+  const unresolved=bad.length+supplementalUnknown+
+   (group.id==="clanTechnology"?clan.unknown.length:0);
   const status=!present?"not-in-export":truncated?"truncated":
    unresolved?"partially-modeled-with-unknowns":
    fixedScoreRows.length||creditedSetRows.length||dependentRows?"modeled-subset":

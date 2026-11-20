@@ -24,7 +24,7 @@ import {monumentDerivedPower} from "./account-monument-derived.js?v=20261117-mon
 import {petPassiveEvidence} from "./pet-scenarios.js?v=20261118-work-review-r1";
 import {artifactDerivedPower} from "./account-artifact-derived.js?v=20261118-work-review-r1";
 import {mergeTitanResearch,resourceResearchEvidence} from "./account-research-resources.js?v=20261117-resource-integrity";
-import {resolveGemstoneEvidence} from "./account-gemstones.js?v=20261118-final-v";
+import {resolveGemstoneEvidence} from "./account-gemstones.js?v=20261120-tt2-source-pact-q";
 
 const MAX_LEVEL=100000;
 const DIRECT_DAMAGE_TYPES=Object.freeze({
