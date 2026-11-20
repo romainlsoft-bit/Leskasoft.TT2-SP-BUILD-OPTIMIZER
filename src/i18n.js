@@ -5,6 +5,7 @@ export const SUPPORTED_LANGUAGES = ["en","fr","uk","ru"];
 export const NATIVE_LANGUAGE_NAMES = {en:"English",fr:"Français",uk:"Українська",ru:"Русский"};
 export const translations = {
 fr:{
+ "Contract-aware pet search: {visited} visited pairs screened under your explicit contract scenario; {refined} finalists reoptimized. This is a bounded shortlist, not a global optimum.":"Recherche de familiers avec contrats : {visited} couples examinés selon votre scénario explicite ; {refined} finalistes réoptimisés. Il s'agit d'une présélection bornée, pas d'un optimum global.",
  "Contract scenario comparison needs valid, explicitly entered assumptions. The original SP recommendation is preserved.":"La comparaison des scénarios de contrats nécessite des hypothèses explicites et valides. La recommandation SP d'origine est conservée.",
  "Contract-aware SP comparison (optional)":"Comparaison de SP selon les contrats (facultative)",
  "Compare your inactive-contract build against a contract-investment alternative. Enter your own estimated share of boss attempts with contracts active; this is not measured by the optimizer.":"Comparez un build sans contrat actif à une allocation favorisant les contrats. Saisissez vous-même la part estimée de combats de boss avec contrats actifs : l'optimiseur ne la mesure pas.",
@@ -287,6 +288,7 @@ fr:{
  "Free Tap Titans 2 skill tree optimizer for TT2 8.4. Optimize skill points for Clan Ship, Pet, Shadow Clone, Heavenly Strike, Dagger or Gold Gun. Import game data or configure manually.":"Optimiseur gratuit de compétences Tap Titans 2 version 8.4. Import des données ou configuration manuelle pour tous les types de builds."
 },
 uk:{
+ "Contract-aware pet search: {visited} visited pairs screened under your explicit contract scenario; {refined} finalists reoptimized. This is a bounded shortlist, not a global optimum.":"Пошук улюбленців з контрактами: {visited} перевірених пар за заданим сценарієм; повторно оптимізовано {refined} фіналістів. Це обмежений список, не глобальний оптимум.",
  "Contract scenario comparison needs valid, explicitly entered assumptions. The original SP recommendation is preserved.":"Для порівняння сценаріїв контрактів потрібні коректні, явно введені припущення. Початковий рекомендований розподіл SP збережено.",
  "Contract-aware SP comparison (optional)":"Порівняння SP за сценаріями контрактів (необов’язково)",
  "Compare your inactive-contract build against a contract-investment alternative. Enter your own estimated share of boss attempts with contracts active; this is not measured by the optimizer.":"Порівняйте білд без активних контрактів з варіантом, що інвестує в контракти. Самостійно введіть частку боїв із активними контрактами; оптимізатор її не вимірює.",
@@ -520,6 +522,7 @@ uk:{
  "Free Tap Titans 2 skill tree optimizer for TT2 8.4. Optimize skill points for Clan Ship, Pet, Shadow Clone, Heavenly Strike, Dagger or Gold Gun. Import game data or configure manually.":"Безкоштовний оптимізатор дерева навичок Tap Titans 2 версії 8.4. Імпорт даних або ручне налаштування для всіх збірок."
 },
 ru:{
+ "Contract-aware pet search: {visited} visited pairs screened under your explicit contract scenario; {refined} finalists reoptimized. This is a bounded shortlist, not a global optimum.":"Поиск питомцев с контрактами: {visited} пар проверено по выбранному сценарию; повторно оптимизировано {refined} финалистов. Это ограниченный список, не глобальный оптимум.",
  "Contract scenario comparison needs valid, explicitly entered assumptions. The original SP recommendation is preserved.":"Для сравнения сценариев контрактов необходимы корректные, явно заданные предположения. Исходное рекомендуемое распределение SP сохранено.",
  "Contract-aware SP comparison (optional)":"Сравнение SP по сценариям контрактов (необязательно)",
  "Compare your inactive-contract build against a contract-investment alternative. Enter your own estimated share of boss attempts with contracts active; this is not measured by the optimizer.":"Сравните билд без действующих контрактов с вариантом вложений в контракты. Самостоятельно укажите долю боёв с действующими контрактами; оптимизатор её не измеряет.",

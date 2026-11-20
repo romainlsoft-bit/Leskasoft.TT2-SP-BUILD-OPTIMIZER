@@ -223,3 +223,38 @@ test("worker: conflicting maximum mode does not alter original maximum-score led
  assert.equal(conflict.result.result.modeledScenario.totalLog10,
   reference.result.result.modeledScenario.totalLog10);
 });
+
+test("worker: contract mode re-ranks visited owned pet pairs and returns consistent final pet IDs",async()=>{
+ const execute=await workerHarness();
+ const profile=parseAccountProfile({
+  petLevels:{Pet1:110,Pet7:110,Pet6:110,Pet12:110},
+  equipmentInventory:[{id:"SwordPet",slot:"Sword",
+   bonusType:"PetDamage",bonusAmount:"1e30"}]
+ });
+ const settings={...makeSettings(profile),skillPoints:180,maxStage:20000,
+  contractTimeline:{enabled:true,startingMana:200,manaCapacity:200,
+   passiveRegenPerSecond:1,durationSeconds:8,
+   freeTicks:{ForbiddenContract:0,RoyalContract:0}},
+  contractMultiScenario:{enabled:true,activeFraction:.6,
+   pactAtMaxDuringFundedTicks:true}};
+ const {result}=execute("optimize-pet-scenarios",settings);
+ assert.equal(result?.ok,true,result?.error);
+ const rerank=result.result.petSearch.contractPetRerank;
+ assert.equal(rerank.status,"ranked-visited-shortlist");
+ assert.equal(rerank.visitedPairs,4);
+ assert.equal(rerank.shortlistedPairs,3);
+ assert.equal(rerank.scenarioRankingCertified,false);
+ assert.equal(rerank.globallyOptimal,false);
+ assert.equal(result.result.petSearch.comparisonBounds.certifiedForScenarioRanking,false);
+ assert.equal(result.result.petSearch.globallyOptimalAcrossPetGearSP,false);
+ assert.equal(result.selectedPets.damage,
+  result.result.modeledScenario.selectedDamagePet);
+ assert.equal(result.selectedPets.gold,
+  result.result.modeledScenario.selectedGoldPet);
+ assert.ok(result.result.spent<=settings.skillPoints);
+ assert.equal(result.result.contractScenario.weightedLog10,0);
+ if(rerank.selectedPairChanged){
+  assert.deepEqual(result.petComparisons,{damage:[],gold:[]});
+  assert.equal(result.result.petSearch.selectedPairAfterContractRerank,true);
+ }
+});

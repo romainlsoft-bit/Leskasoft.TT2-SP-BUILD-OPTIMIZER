@@ -654,6 +654,12 @@ function renderAccountIntegration(result){
   panel.textContent+=" "+tr(
    "Contract mana what-if was not run: provide valid mana, regeneration, duration and explicit free-tick counts for enabled contracts.");
  }
+ const petContractSearch=result.petSearch?.contractPetRerank;
+ if(petContractSearch?.status==="ranked-visited-shortlist")
+  panel.textContent+=" "+tr(
+   "Contract-aware pet search: {visited} visited pairs screened under your explicit contract scenario; {refined} finalists reoptimized. This is a bounded shortlist, not a global optimum.",
+   {visited:numberText(petContractSearch.visitedPairs),
+    refined:numberText(petContractSearch.shortlistedPairs)});
  const decision=result.contractMultiScenario;
  if(decision?.status==="ranked"){
   const chosen=decision.rows.find(x=>x.id===decision.winnerId);
