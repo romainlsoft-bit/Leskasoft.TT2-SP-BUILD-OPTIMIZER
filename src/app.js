@@ -60,7 +60,7 @@ function engineError(message){
 }
 const iconMap={"Clan Ship":"⛵","Pet":"🐾","Shadow Clone":"◈","Heavenly Strike":"⚡","Dagger":"🗡","Gold Gun":"✦"};
 const branchColors={Knight:"#d77879",Summoner:"#edab66",Warlord:"#e7ca75",Sorcerer:"#86adf7",Rogue:"#7ad0a0",Alchemist:"#b595ed"};
-const fresh=()=>({damage:"Clan Ship",gold:"Fairy",skillPoints:0,maxStage:0,playstyle:"balanced",qol:"recommended",goldWeight:.7,craftingPower:1,timeToKill:8,sClone:30,sets:{},currentLevels:{},minimums:{},excluded:[],preserveCurrent:false,assumeHaystActive:false,assumeSnapActive:false,assumeContractsAtMax:false,astralActivations:0,mode:"power",accountProfile:null,selectedDamagePet:null,selectedGoldPet:null,comparePetScenarios:true,selectedEquipment:{},protectUnmodeledSkills:true,contractTimeline:null});
+const fresh=()=>({damage:"Clan Ship",gold:"Fairy",skillPoints:0,maxStage:0,playstyle:"balanced",qol:"recommended",goldWeight:.7,craftingPower:1,timeToKill:8,sClone:30,sets:{},currentLevels:{},minimums:{},excluded:[],preserveCurrent:false,assumeHaystActive:false,assumeSnapActive:false,assumeContractsAtMax:false,astralActivations:0,mode:"power",accountProfile:null,selectedDamagePet:null,selectedGoldPet:null,comparePetScenarios:true,selectedEquipment:{},protectUnmodeledSkills:true,contractTimeline:null,contractMultiScenario:null});
 let state=fresh(),lastResult=null,lastScenarios=[],lastEquipment={},
  lastGearSelection=null,lastResolvedPets=null,lastRunContext=null,
  worker=null,calculationRevision=0;
@@ -297,6 +297,9 @@ function fillInputs(){
  $("contracts-at-max").checked=state.assumeContractsAtMax===true;
  const simulation=state.contractTimeline;
  $("timeline-enabled").checked=simulation?.enabled===true;
+ $("scenario-enabled").checked=state.contractMultiScenario?.enabled===true;
+ $("scenario-active-fraction").value=state.contractMultiScenario?.activeFraction??"";
+ $("scenario-pact-max").checked=state.contractMultiScenario?.pactAtMaxDuringFundedTicks===true;
  for(const [key,id] of [["startingMana","timeline-starting-mana"],["manaCapacity","timeline-mana-capacity"],["passiveRegenPerSecond","timeline-passive-regen"],["durationSeconds","timeline-duration"]])
   $(id).value=simulation?.[key]??"";
  for(const [key,id] of [["ForbiddenContract","timeline-free-forbidden"],["RoyalContract","timeline-free-royal"]])
@@ -319,7 +322,7 @@ function applyPreset(id){
 function importRaw(raw){
  const parsed=parseExport(raw);
  state.currentLevels=parsed.levels;
- state.contractTimeline=null; // Never reuse a prior account\u0027s mana assumptions.
+ state.contractTimeline=null; // Never reuse a prior account\u0027s mana assumptions.\n state.contractMultiScenario=null;
  if(parsed.skillPoints!==null&&parsed.skillPoints>0)state.skillPoints=parsed.skillPoints;
  else if(!state.skillPoints)state.skillPoints=spentPoints(parsed.levels);
  state.maxStage=parsed.maxStage;state.craftingPower=parsed.craftingPower;state.sets=parsed.sets;
@@ -382,6 +385,11 @@ function readInputs(){
  state.assumeSnapActive=$("snap-active").checked;
  state.assumeContractsAtMax=$("contracts-at-max").checked;
  state.astralActivations=Number($("astral-activations").value);
+ state.contractMultiScenario=$("scenario-enabled").checked?{
+  enabled:true,
+  activeFraction:$("scenario-active-fraction").value,
+  pactAtMaxDuringFundedTicks:$("scenario-pact-max").checked
+ }:null;
  state.contractTimeline=$("timeline-enabled").checked?{
   enabled:true,
   startingMana:$("timeline-starting-mana").value,
@@ -645,6 +653,27 @@ function renderAccountIntegration(result){
  }else if(timeline?.status==="missing-or-invalid-inputs"){
   panel.textContent+=" "+tr(
    "Contract mana what-if was not run: provide valid mana, regeneration, duration and explicit free-tick counts for enabled contracts.");
+ }
+ const decision=result.contractMultiScenario;
+ if(decision?.status==="ranked"){
+  const chosen=decision.rows.find(x=>x.id===decision.winnerId);
+  panel.textContent+=" "+tr(
+   "Contract scenario comparison: {count} SP allocations considered; selected {chosen} using your declared active fraction {fraction}. This is a hypothetical log-score ranking, not predicted stages or a global optimum.",
+   {count:numberText(decision.candidatesChecked??decision.rows.length),
+    chosen:decision.winnerId==="contract-investment"?tr("contract-investment candidate"):
+     tr("conservative candidate"),
+    fraction:numberText(decision.scenarioWeights.active)});
+  if(decision.requiresNewGearCTRefinement)
+   panel.textContent+=" "+tr(
+    "Contract alternative was not applied: Combat Techniques changed and the equipment interaction must be recalculated.");
+  if(!decision.appliedToRecommendation)
+   panel.textContent+=" "+tr(
+    "No scenario-based replacement was applied to the current recommended allocation.");
+ }else if(decision?.status==="unresolved"||
+   decision?.status==="only-conservative-feasible"){
+  panel.textContent+=" "+tr(
+   "Contract scenario allocation comparison is unavailable: {reason}. The conservative allocation is preserved.",
+   {reason:decision.reason??tr("not verifiable from this export")});
  }
  const modeled=result.modeledScenario;
  if(modeled){

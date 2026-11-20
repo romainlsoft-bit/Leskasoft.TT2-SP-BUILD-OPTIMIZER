@@ -71,6 +71,14 @@
     <h3>Contract mana what-if (diagnostic only)</h3>
     <p class="hint">Optional one-second tick simulation. Explicitly assume no other spell costs, mana taps or proc events. This does not affect Skill Point allocation.</p>
     <label class="toggle"><input type="checkbox" id="timeline-enabled"> Enable contract mana what-if</label>
+    <h3>Contract-aware SP comparison (optional)</h3>
+    <p class="hint">Compare your inactive-contract build against a contract-investment alternative. Enter your own estimated share of boss attempts with contracts active; this is not measured by the optimizer.</p>
+    <label class="toggle"><input id="scenario-enabled" type="checkbox"> Compare SP allocations under two contract scenarios</label>
+    <div class="field-grid">
+      <label>Share of boss attempts with contracts active (0–1) <input id="scenario-active-fraction" type="number" min="0" max="1" step=".05" inputmode="decimal" placeholder="—"></label>
+    </div>
+    <label class="toggle"><input id="scenario-pact-max" type="checkbox"> Assume Terrifying Pact's maximum bonus while a contract tick is funded (unverified)</label>
+
     <div class="field-grid">
       <label>Mana available at activation <input id="timeline-starting-mana" type="number" min="0" step="any" inputmode="decimal" placeholder="—"></label>
       <label>Mana pool capacity <input id="timeline-mana-capacity" type="number" min="0" step="any" inputmode="decimal" placeholder="—"></label>

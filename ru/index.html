@@ -71,6 +71,14 @@
     <h3>Модель маны контрактов (только диагностика)</h3>
     <p class="hint">Необязательная симуляция с шагом одна секунда. Явно предполагается отсутствие других расходов заклинаний и источников маны. Распределение SP не меняется.</p>
     <label class="toggle"><input type="checkbox" id="timeline-enabled"> Включить моделирование маны контрактов</label>
+    <h3>Сравнение SP по сценариям контрактов (необязательно)</h3>
+    <p class="hint">Сравните билд без действующих контрактов с вариантом вложений в контракты. Самостоятельно укажите долю боёв с действующими контрактами; оптимизатор её не измеряет.</p>
+    <label class="toggle"><input id="scenario-enabled" type="checkbox"> Сравнивать распределение SP по двум сценариям</label>
+    <div class="field-grid">
+      <label>Доля боёв с действующими контрактами (0–1) <input id="scenario-active-fraction" type="number" min="0" max="1" step=".05" inputmode="decimal" placeholder="—"></label>
+    </div>
+    <label class="toggle"><input id="scenario-pact-max" type="checkbox"> Предполагать максимальный бонус Terrifying Pact во время оплаченных тиков (не проверено)</label>
+
     <div class="field-grid">
       <label>Мана в момент активации <input id="timeline-starting-mana" type="number" min="0" step="any" inputmode="decimal" placeholder="—"></label>
       <label>Максимальный запас маны <input id="timeline-mana-capacity" type="number" min="0" step="any" inputmode="decimal" placeholder="—"></label>

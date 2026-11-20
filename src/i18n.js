@@ -5,6 +5,17 @@ export const SUPPORTED_LANGUAGES = ["en","fr","uk","ru"];
 export const NATIVE_LANGUAGE_NAMES = {en:"English",fr:"Français",uk:"Українська",ru:"Русский"};
 export const translations = {
 fr:{
+ "Contract-aware SP comparison (optional)":"Comparaison de SP selon les contrats (facultative)",
+ "Compare your inactive-contract build against a contract-investment alternative. Enter your own estimated share of boss attempts with contracts active; this is not measured by the optimizer.":"Comparez un build sans contrat actif à une allocation favorisant les contrats. Saisissez vous-même la part estimée de combats de boss avec contrats actifs : l'optimiseur ne la mesure pas.",
+ "Compare SP allocations under two contract scenarios":"Comparer les allocations SP dans deux scénarios de contrats",
+ "Share of boss attempts with contracts active (0–1)":"Part estimée de combats avec contrats actifs (0–1)",
+ "Assume Terrifying Pact's maximum bonus while a contract tick is funded (unverified)":"Supposer le bonus maximal de Terrifying Pact pendant les ticks financés (non vérifié)",
+ "Contract scenario comparison: {count} SP allocations considered; selected {chosen} using your declared active fraction {fraction}. This is a hypothetical log-score ranking, not predicted stages or a global optimum.":"Comparaison des contrats : {count} allocations SP étudiées ; sélection de {chosen} avec votre part déclarée de contrats actifs {fraction}. Classement hypothétique en log10, sans prédiction d'étages ni optimum global.",
+ "contract-investment candidate":"candidat investissant dans les contrats",
+ "conservative candidate":"candidat prudent",
+ "Contract alternative was not applied: Combat Techniques changed and the equipment interaction must be recalculated.":"L'alternative n'a pas été appliquée : Combat Techniques a changé, et l'interaction avec l'équipement doit être recalculée.",
+ "No scenario-based replacement was applied to the current recommended allocation.":"Aucun remplacement fondé sur les scénarios n'a été appliqué à l'allocation conseillée.",
+ "Contract scenario allocation comparison is unavailable: {reason}. The conservative allocation is preserved.":"Comparaison des allocations impossible : {reason}. L'allocation prudente est conservée.",
  "Contract mana what-if (diagnostic only)":"Simulation du mana des contrats (diagnostic uniquement)",
  "Optional one-second tick simulation. Explicitly assume no other spell costs, mana taps or proc events. This does not affect Skill Point allocation.":"Simulation facultative par ticks d’une seconde. Elle suppose explicitement l’absence d’autres coûts de sorts ou gains de mana. Elle ne modifie pas les SP attribués.",
  "Enable contract mana what-if":"Activer la simulation de mana",
@@ -275,6 +286,17 @@ fr:{
  "Free Tap Titans 2 skill tree optimizer for TT2 8.4. Optimize skill points for Clan Ship, Pet, Shadow Clone, Heavenly Strike, Dagger or Gold Gun. Import game data or configure manually.":"Optimiseur gratuit de compétences Tap Titans 2 version 8.4. Import des données ou configuration manuelle pour tous les types de builds."
 },
 uk:{
+ "Contract-aware SP comparison (optional)":"Порівняння SP за сценаріями контрактів (необов’язково)",
+ "Compare your inactive-contract build against a contract-investment alternative. Enter your own estimated share of boss attempts with contracts active; this is not measured by the optimizer.":"Порівняйте білд без активних контрактів з варіантом, що інвестує в контракти. Самостійно введіть частку боїв із активними контрактами; оптимізатор її не вимірює.",
+ "Compare SP allocations under two contract scenarios":"Порівнювати розподіл SP за двома сценаріями",
+ "Share of boss attempts with contracts active (0–1)":"Частка боїв з активними контрактами (0–1)",
+ "Assume Terrifying Pact's maximum bonus while a contract tick is funded (unverified)":"Припускати максимальний бонус Terrifying Pact під час оплачених тактів (не перевірено)",
+ "Contract scenario comparison: {count} SP allocations considered; selected {chosen} using your declared active fraction {fraction}. This is a hypothetical log-score ranking, not predicted stages or a global optimum.":"Порівняння контрактів: розглянуто {count} розподілів SP; вибрано {chosen} за введеної вами частки активних контрактів {fraction}. Це гіпотетичне оцінювання log10, а не прогноз етапів чи глобальний оптимум.",
+ "contract-investment candidate":"варіант інвестицій у контракти",
+ "conservative candidate":"обережний варіант",
+ "Contract alternative was not applied: Combat Techniques changed and the equipment interaction must be recalculated.":"Альтернативний розподіл не застосовано: рівень Combat Techniques змінився, тож взаємодію зі спорядженням потрібно перерахувати.",
+ "No scenario-based replacement was applied to the current recommended allocation.":"Рекомендований розподіл не замінено на основі сценаріїв.",
+ "Contract scenario allocation comparison is unavailable: {reason}. The conservative allocation is preserved.":"Порівняння розподілів недоступне: {reason}. Збережено обережний розподіл.",
  "Contract mana what-if (diagnostic only)":"Моделювання мани контрактів (лише діагностика)",
  "Optional one-second tick simulation. Explicitly assume no other spell costs, mana taps or proc events. This does not affect Skill Point allocation.":"Необов’язкова симуляція з кроком одна секунда. Явно припускається відсутність інших витрат заклять або джерел мани. Розподіл SP не змінюється.",
  "Enable contract mana what-if":"Увімкнути модель мани контрактів",
@@ -496,6 +518,17 @@ uk:{
  "Free Tap Titans 2 skill tree optimizer for TT2 8.4. Optimize skill points for Clan Ship, Pet, Shadow Clone, Heavenly Strike, Dagger or Gold Gun. Import game data or configure manually.":"Безкоштовний оптимізатор дерева навичок Tap Titans 2 версії 8.4. Імпорт даних або ручне налаштування для всіх збірок."
 },
 ru:{
+ "Contract-aware SP comparison (optional)":"Сравнение SP по сценариям контрактов (необязательно)",
+ "Compare your inactive-contract build against a contract-investment alternative. Enter your own estimated share of boss attempts with contracts active; this is not measured by the optimizer.":"Сравните билд без действующих контрактов с вариантом вложений в контракты. Самостоятельно укажите долю боёв с действующими контрактами; оптимизатор её не измеряет.",
+ "Compare SP allocations under two contract scenarios":"Сравнивать распределение SP по двум сценариям",
+ "Share of boss attempts with contracts active (0–1)":"Доля боёв с действующими контрактами (0–1)",
+ "Assume Terrifying Pact's maximum bonus while a contract tick is funded (unverified)":"Предполагать максимальный бонус Terrifying Pact во время оплаченных тиков (не проверено)",
+ "Contract scenario comparison: {count} SP allocations considered; selected {chosen} using your declared active fraction {fraction}. This is a hypothetical log-score ranking, not predicted stages or a global optimum.":"Сравнение контрактов: рассмотрено {count} распределений SP; выбран {chosen} при указанной вами доле активных контрактов {fraction}. Это гипотетическая оценка log10, не прогноз этапов и не глобальный оптимум.",
+ "contract-investment candidate":"вариант с вложениями в контракты",
+ "conservative candidate":"осторожный вариант",
+ "Contract alternative was not applied: Combat Techniques changed and the equipment interaction must be recalculated.":"Альтернативный вариант не применён: уровень Combat Techniques изменился, необходимо пересчитать взаимодействие со снаряжением.",
+ "No scenario-based replacement was applied to the current recommended allocation.":"Рекомендуемое распределение не заменено результатом сценариев.",
+ "Contract scenario allocation comparison is unavailable: {reason}. The conservative allocation is preserved.":"Сравнение распределений недоступно: {reason}. Сохранён осторожный вариант.",
  "Contract mana what-if (diagnostic only)":"Модель маны контрактов (только диагностика)",
  "Optional one-second tick simulation. Explicitly assume no other spell costs, mana taps or proc events. This does not affect Skill Point allocation.":"Необязательная симуляция с шагом одна секунда. Явно предполагается отсутствие других расходов заклинаний и источников маны. Распределение SP не меняется.",
  "Enable contract mana what-if":"Включить моделирование маны контрактов",

@@ -8,6 +8,7 @@ import {bestEquipmentByCategory,gearSelectionEffects,petCandidateGearWeightEnvel
 import {refineCoupledGearAndSkills,enumerateJointGearAndSkills}
  from "./joint-candidate-search.js?v=20261118-final-w";
 import {modeledCandidateUpperBound} from "./model-score-bounds.js?v=20261118-final-w";
+import {proposeContractScenarioBuild} from "./contract-multi-scenarios.js";
 
 // Per-request cache: branch DP signatures must distinguish changes in pet,
 // equipment and the resulting Combat Techniques contribution.
@@ -50,7 +51,26 @@ self.onmessage=event=>{
    return {adjustedScore:modeledScenario.totalLog10,
     scoreUpperBound:modeledCandidateUpperBound(winning.result,modeledScenario.totalLog10),
     result:{...winning.result,modeledScenario},
-    gearSelection:winning.gearSelection,jointSearch:refined.search};
+    gearSelection:winning.gearSelection,jointSearch:refined.search,
+    context:winning.context};
+  };
+  // Optional explicit scenario comparison only for the final chosen
+  // pet/gear pair. Do NOT multiply the whole gear/pet search workload.
+  const withContractDecision=choice=>{
+   const context=choice.context||settings;
+   if(context.contractMultiScenario?.enabled!==true)return choice.result;
+   const selection=proposeContractScenarioBuild({
+    settings:context,baseline:choice.result,gearSelection:choice.gearSelection,
+    solve:opts=>optimizeBuild(opts,undefined,cache),
+    score:(result,opts,gear)=>
+     calculateModeledScenario(result,opts,gear).totalLog10
+   });
+   const winner=selection.result;
+   // The returned result uses the conservative DP objective (the contract
+   // source-only window gain never becomes an always-on skill multiplier).
+   const modeledScenario=calculateModeledScenario(winner,{
+    ...context,assumeContractsAtMax:false},choice.gearSelection);
+   return {...winner,modeledScenario,contractMultiScenario:selection.selection};
   };
   if(type==="optimize-pet-scenarios"){
    const initialGear=gearFor(settings);
@@ -89,7 +109,7 @@ self.onmessage=event=>{
      entireEligibleRoster:fullySearched,
      onProgress:progress=>self.postMessage({progress})});
     if(!chosen.best)throw new Error("No pet scenario available");
-    const result={...chosen.best.result,
+    const result={...withContractDecision(chosen.best),
      petSearch:{
       converged:chosen.converged,passes:chosen.passes,
       uniqueEvaluations:chosen.uniqueEvaluations,
@@ -124,7 +144,7 @@ self.onmessage=event=>{
   }
   const chosen=evaluateJoint(settings,true);
   const equipment=bestEquipmentByCategory(settings.accountProfile,settings,3);
-  self.postMessage({ok:true,result:{...chosen.result,
+  self.postMessage({ok:true,result:{...withContractDecision(chosen),
    jointSearch:chosen.jointSearch},
    selectedPets:{damage:settings.selectedDamagePet||null,
     gold:settings.selectedGoldPet||null},

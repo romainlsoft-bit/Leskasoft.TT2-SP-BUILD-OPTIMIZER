@@ -71,6 +71,14 @@
     <h3>Simulation du mana des contrats (diagnostic uniquement)</h3>
     <p class="hint">Simulation facultative par ticks d’une seconde. Elle suppose explicitement l’absence d’autres coûts de sorts ou gains de mana. Elle ne modifie pas les SP attribués.</p>
     <label class="toggle"><input type="checkbox" id="timeline-enabled"> Activer la simulation de mana</label>
+    <h3>Comparaison de SP selon les contrats (facultative)</h3>
+    <p class="hint">Comparez un build sans contrat actif à une allocation favorisant les contrats. Saisissez vous-même la part estimée de combats de boss avec contrats actifs : l'optimiseur ne la mesure pas.</p>
+    <label class="toggle"><input id="scenario-enabled" type="checkbox"> Comparer les allocations SP dans deux scénarios de contrats</label>
+    <div class="field-grid">
+      <label>Part estimée de combats avec contrats actifs (0–1) <input id="scenario-active-fraction" type="number" min="0" max="1" step=".05" inputmode="decimal" placeholder="—"></label>
+    </div>
+    <label class="toggle"><input id="scenario-pact-max" type="checkbox"> Supposer le bonus maximal de Terrifying Pact pendant les ticks financés (non vérifié)</label>
+
     <div class="field-grid">
       <label>Mana disponible à l’activation <input id="timeline-starting-mana" type="number" min="0" step="any" inputmode="decimal" placeholder="—"></label>
       <label>Capacité de mana <input id="timeline-mana-capacity" type="number" min="0" step="any" inputmode="decimal" placeholder="—"></label>

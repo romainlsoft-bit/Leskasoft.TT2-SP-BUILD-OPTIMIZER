@@ -71,6 +71,14 @@
     <h3>Моделювання мани контрактів (лише діагностика)</h3>
     <p class="hint">Необов’язкова симуляція з кроком одна секунда. Явно припускається відсутність інших витрат заклять або джерел мани. Розподіл SP не змінюється.</p>
     <label class="toggle"><input type="checkbox" id="timeline-enabled"> Увімкнути модель мани контрактів</label>
+    <h3>Порівняння SP за сценаріями контрактів (необов’язково)</h3>
+    <p class="hint">Порівняйте білд без активних контрактів з варіантом, що інвестує в контракти. Самостійно введіть частку боїв із активними контрактами; оптимізатор її не вимірює.</p>
+    <label class="toggle"><input id="scenario-enabled" type="checkbox"> Порівнювати розподіл SP за двома сценаріями</label>
+    <div class="field-grid">
+      <label>Частка боїв з активними контрактами (0–1) <input id="scenario-active-fraction" type="number" min="0" max="1" step=".05" inputmode="decimal" placeholder="—"></label>
+    </div>
+    <label class="toggle"><input id="scenario-pact-max" type="checkbox"> Припускати максимальний бонус Terrifying Pact під час оплачених тактів (не перевірено)</label>
+
     <div class="field-grid">
       <label>Мана на момент активації <input id="timeline-starting-mana" type="number" min="0" step="any" inputmode="decimal" placeholder="—"></label>
       <label>Максимальний запас мани <input id="timeline-mana-capacity" type="number" min="0" step="any" inputmode="decimal" placeholder="—"></label>
