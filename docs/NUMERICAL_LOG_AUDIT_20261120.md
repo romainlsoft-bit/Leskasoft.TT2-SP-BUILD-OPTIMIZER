@@ -1,0 +1,9 @@
+## 20 November 2026 — logarithmic arithmetic hardening
+
+The permanent artifact pipeline now adds The Magnifier and Treasure of Fergus in **logarithmic coefficient space**. This changes neither the source formula (`1 + (perLevel × enchantment × amplifier) × Level^GrowthExpo`) nor how counted/capped artifacts work. It removes the intermediary `10^log10Boost` that could overflow before the valid final `log10` was calculated. The old numeric `factor` and `amplificationFactor` are retained for representable values, with additional `log10` / `amplificationLog10` for large values. Unknown amplifier sources are still excluded; unsupported secondary effect types remain unscored.
+
+`positiveLog10` additionally parses long positive decimal mantissas without overflow or underflow, using the first 16 significant digits and the exact scientific decimal position. Valid scientific strings such as `0.00...001e900` and `999...e-500` remain representable. Zero, negative, nonnumeric or unsafe exponents are rejected, never treated as multipliers.
+
+The contract score's sum of 1 Hz source-ramp logs is now an **O(1) closed form**. A grid of 120 reference cases compares its output against independent second-by-second iteration; no new instantaneous Pact bonus or extra uptime is inferred. The gold-weight input is validated even when both contract skills are absent.
+
+Source provenance: pinned TT2 8.4 tables `vendor/account-catalog.js` / `vendor/skills.js`; community descriptions of [The Magnifier](https://tap-titans-2.fandom.com/wiki/The_Magnifier) and [Treasure of Fergus](https://tap-titans-2.fandom.com/wiki/The_Treasure_of_Fergus), and [Heavenly Sword](https://tap-titans-2.fandom.com/wiki/Heavenly_Sword) for the distinct additive artifact-damage route. This is numerical improvement and source-only diagnostics, **not validated damage per second or stage gain**.

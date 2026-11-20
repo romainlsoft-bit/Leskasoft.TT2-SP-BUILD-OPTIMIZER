@@ -32,7 +32,28 @@ const invalid=(reason)=>({schema:"tt2-multi-contract-candidates-v1",
  * The zero-power tail after a simulated termination is included.
  * The result is a reference to source maxima, not a real observed uptime.
  */
+/**
+ * Constant-time sum of the 1 Hz contract ramp (the source maximum raised to
+ * min(1,tick/ramp) on each funded tick), expressed directly in log10.
+ * This does not estimate actual uptime or native cancellation order.
+ */
+export function contractWindowRampMeanLog10(maximumLog10,rampSeconds,
+ fundedTicks,horizonSeconds){
+ const M=maximumLog10,R=rampSeconds,N=fundedTicks,T=horizonSeconds;
+ if(!Number.isFinite(M)||!Number.isFinite(R)||R<=0||
+    !Number.isSafeInteger(N)||N<0||!Number.isSafeInteger(T)||T<=0||N>T)
+  return null;
+ const partial=Math.min(N,Math.max(0,Math.ceil(R)-1));
+ const mean=(partial*(partial+1)/(2*R)+(N-partial))/T;
+ const value=M*mean;
+ return Number.isFinite(value)?value:null;
+}
 export function contractWindowSourceScore(levels,timeline,settings={}){
+ const weight=Number(settings.goldWeight);
+ if(settings.goldWeight===null||settings.goldWeight===undefined||
+    settings.goldWeight===""||!Number.isFinite(weight)||weight<0||
+    weight>2)
+  return {status:"unresolved",reason:"invalid-gold-weight"};
  const sim=simulateContractTimeline(levels,timeline);
  if(sim.status==="no-active-contract-talents")
   return {status:"scored",weightedLog10:0,damageLog10:0,goldLog10:0,
@@ -40,20 +61,17 @@ export function contractWindowSourceScore(levels,timeline,settings={}){
    nativeCancellationOrderVerified:false,gameplayUptimeVerified:false};
  if(sim.status!=="simulated")
   return {status:"unresolved",reason:sim.status,reasons:sim.reasons??[]};
- const weight=Number(settings.goldWeight);
- if(!finite(weight)||weight<0||weight>2)
-  return {status:"unresolved",reason:"invalid-gold-weight"};
  let damage=0,gold=0;
  const T=sim.horizonSeconds,N=sim.fundedTicks;
  for(const [id,term] of Object.entries(sim.terms)){
   // The final-source log maximum is the native ramp, not an always-on
   // bonus. An unfunded tick contributes exactly zero in THIS model.
-  const maximum=term.sourceMaxLog10;
-  const ramp=term.sourceRampSeconds;
-  let sum=0;
-  for(let tick=1;tick<=N;tick++)sum+=maximum*Math.min(1,tick/ramp);
-  if(id==="ForbiddenContract")damage+=sum/T;
-  if(id==="RoyalContract")gold+=sum/T;
+  const sourceMean=contractWindowRampMeanLog10(
+   term.sourceMaxLog10,term.sourceRampSeconds,N,T);
+  if(sourceMean===null)
+   return {status:"unresolved",reason:"nonfinite-contract-source-ramp:"+id};
+  if(id==="ForbiddenContract")damage+=sourceMean;
+  if(id==="RoyalContract")gold+=sourceMean;
  }
  // No unconditional Terrifying Pact credit. An opt-in explicitly
  // assumes the full A/B source modifier while the matching contract
