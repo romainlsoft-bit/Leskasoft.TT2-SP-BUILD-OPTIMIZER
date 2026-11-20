@@ -11,6 +11,7 @@
  */
 import {fixedAccountScore} from "./account-power.js";
 import {clanTechnologyEvidence} from "./account-clan-technology.js";
+import {resolveTranscendenceAge} from "./account-temporal.js?v=20261120-tt2-season-rollover-s";
 // A subsystem may report unresolved dependent effects under a DIFFERENT
 // namespace than its scored source rows. Keep their counts on the same
 // system instead of presenting an over-optimistic coverage dashboard.
@@ -116,6 +117,14 @@ export function accountSourceCoverage(profile,power,settings={},extra={}){
   unverifiedSourceRelationshipsRemain:true,
   baselineScoredEffectsAreNotIndependentSPMarginals:true,
   sourceSnapshots:"TT2 8.4.0 Unity; 8.4.1 compatibility not independently proven",
+  seasonCalendar:(()=>{
+   const age=resolveTranscendenceAge(profile);
+   return {season:age.season,
+    estimatedEndDate:age.estimatedEndDate,
+    estimatedSeasonEnded:age.estimatedSeasonEnded,
+    endDateSource:age.endDateSource,
+    expirationOfficiallyConfirmed:false};
+  })(),
   knownHighImpactOmissions:{
    monumentEnchantmentBoostsUnscored:power?.monumentEffects?.omittedEnchantmentBoosts??0,
    unknownMonumentEnchantmentStates:power?.monumentEffects?.unresolvedEnchantments??0,

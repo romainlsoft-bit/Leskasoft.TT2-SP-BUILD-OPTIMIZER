@@ -6,7 +6,7 @@
  * legacy category, conflicting mirrored rows, or an unknown season.
  */
 import {SEASON_ARTIFACT_CATALOG} from "../vendor/account-catalog.js";
-import {resolveTranscendenceAge} from "./account-temporal.js";
+import {resolveTranscendenceAge} from "./account-temporal.js?v=20261120-tt2-season-rollover-s";
 import {computeArtifactEffect,isDirectBonusType,positiveLog10} from "./account-artifacts.js";
 import {resolvePermanentSetPower} from "./account-permanent-sets.js";
 
@@ -80,6 +80,7 @@ export function resolveMonumentEvidence(profile,at=new Date()){
   const count=counted&&countVerified?sets.ownedCounts[counted.kind]:null;
   const blocked=conflict?"ignored-conflicting-export-records":
    wrongSeason?"ignored-wrong-transcendence-season":
+   age.estimatedSeasonEnded?"ignored-estimated-expired-transcendence":
    truncation.length?"ignored-truncated-monument-export":
    level===null?"ignored-missing-or-invalid-level":
    !categoryAllowed?(seasonKnown?"not-in-current-transcendence-rotation":
@@ -120,8 +121,8 @@ export function resolveMonumentEvidence(profile,at=new Date()){
    enchantmentMult:info.enchantmentMult,
    // A separate, additive All Monument Damage contribution exists even
    // when the monument's MAIN effect depends on another gameplay state.
-   damageEligible:!conflict&&!wrongSeason&&!truncation.length&&
-    level!==null&&categoryAllowed&&seasonKnown,
+   damageEligible:!conflict&&!wrongSeason&&!age.estimatedSeasonEnded&&
+    !truncation.length&&level!==null&&categoryAllowed&&seasonKnown,
    formulaStatus,appliedToScore});
  }
  entries.sort((a,b)=>Number(a.id.slice("SeasonalArtifact".length))-
@@ -137,7 +138,11 @@ export function resolveMonumentEvidence(profile,at=new Date()){
   missingSeasonAge:entries.filter(x=>x.formulaStatus===
    "ignored-missing-transcendence-age").length,
   seasonDays:age.days,season:age.season,
-  seasonVerified:categories!==null,
+  estimatedEndDate:age.estimatedEndDate,
+  estimatedSeasonEnded:age.estimatedSeasonEnded,
+  endDateSource:age.endDateSource,
+  expirationOfficiallyConfirmed:false,
+  seasonVerified:categories!==null&&!age.estimatedSeasonEnded,
   countedSetEffects:entries.filter(x=>x.countedSetKind!==null),
   computed:entries.filter(x=>x.log10!==null).length,
   modeled:entries.filter(x=>x.appliedToScore).length,complete:false};

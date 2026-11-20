@@ -14,7 +14,7 @@
  * Do not add another fixedAccountScore here, nor multiply these values by
  * account Gemstone levels. Both would double-count existing contributions.
  */
-import {petScenarioScore,petScenarioEvidence,availablePets} from "./pet-scenarios.js?v=20261118-work-review-r1";
+import {petScenarioScore,petScenarioEvidence,availablePets} from "./pet-scenarios.js?v=20261120-tt2-season-rollover-s";
 import {resolveConditionalProbabilityEvidence} from "./conditional-probabilities.js?v=20261118-final-v";
 
 function finite(value,label){

@@ -4,15 +4,15 @@
  * The graph is a DAG of dependency *classes*, not an invented skill model.
  */
 import {ARTIFACT_CATALOG,EQUIPMENT_SET_CATALOG,SEASON_ARTIFACT_CATALOG} from "../vendor/account-catalog.js";
-import {resolveSetCompletionDates,resolveTranscendenceAge,heroWeaponEvidence} from "./account-temporal.js";
+import {resolveSetCompletionDates,resolveTranscendenceAge,heroWeaponEvidence} from "./account-temporal.js?v=20261120-tt2-season-rollover-s";
 import {clanScrollEvidence} from "./account-scrolls.js";
 import {extractTimedSetPower} from "./account-set-bonuses.js";
 import {resolveUniqueOwnership} from "./account-unique.js";
-import {resolveMonumentEvidence} from "./account-monuments.js?v=20261117-monument-pools";
+import {resolveMonumentEvidence} from "./account-monuments.js?v=20261120-tt2-season-rollover-s";
 import {calculatePermanentArtifactEffects} from "./account-artifacts.js?v=20261118-work-review-r1";
 import {additiveDamageEvidence} from "./account-damage-pools.js?v=20261118-work-review-r1";
 import {resourceResearchEvidence} from "./account-research-resources.js?v=20261117-resource-integrity";
-import {resolveGemstoneEvidence} from "./account-gemstones.js?v=20261117-pet-gemstone-chain";
+import {resolveGemstoneEvidence} from "./account-gemstones.js?v=20261120-tt2-season-rollover-s";
 
 const object=x=>x&&typeof x==="object";
 const byName=(catalog,value)=>{

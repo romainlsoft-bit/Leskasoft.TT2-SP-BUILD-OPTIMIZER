@@ -9,7 +9,7 @@ import { spellInfo, spell_reductions } from "../vendor/spells.js";
 import {spellTableIndex} from "./spell-caps.js?v=20261118-final-v";
 import {spellCapGainEligible} from "./spell-scenarios.js?v=20261118-final-v";
 import {lightningStrikeSkillScore} from "./lightning-strike-evidence.js";
-import {petCombatTechniquesIncrement,petEquipmentCombatTechniquesIncrement} from "./pet-scenarios.js?v=20261118-final-v";
+import {petCombatTechniquesIncrement,petEquipmentCombatTechniquesIncrement} from "./pet-scenarios.js?v=20261120-tt2-season-rollover-s";
 import {skillTreeSetScore} from "./skill-tree-set-effects.js";
 import {contractSkillScore} from "./contract-scenarios.js";
 

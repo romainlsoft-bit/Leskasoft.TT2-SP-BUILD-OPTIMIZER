@@ -13,11 +13,32 @@ import {equipmentEffectReduction} from "./equipment-reductions.js";
 import {EQUIPMENT_SET_CATALOG} from "../vendor/account-catalog.js";
 import {petTier,petArtifactAmplifiers,logPassivePetMultiplier,verifiedEquipmentPetAmplifierTarget} from "./pet-amplifiers.js?v=20261118-work-review-r1";
 import {petLevelEvidence} from "./account-pet-levels.js";
+import {resolveTranscendenceAge} from "./account-temporal.js?v=20261120-tt2-season-rollover-s";
 export {petTier,petArtifactAmplifiers,logPassivePetMultiplier,verifiedEquipmentPetAmplifierTarget} from "./pet-amplifiers.js?v=20261118-work-review-r1";
 const finite=v=>{const n=Number(v);return Number.isFinite(n)?n:0;};
-const petLevels=profile=>petLevelEvidence(profile).levels;
-export function availablePets(profile){
- const levels=petLevels(profile);
+// Official Game Hive DevLog #231: only these 10 Transcendent pets
+// belong to season 13, not all 15 historical pets in the CSV.
+export const OFFICIAL_SEASON13_PET_ROSTER=Object.freeze([
+ "Brushleaf","Clawsette","Daisy","Lemon","Lullabye",
+ "Owlivia","Quippy","Scaly","Sonara","Watson"
+]);
+const season13=new Set(OFFICIAL_SEASON13_PET_ROSTER);
+const petLevels=(profile,at=new Date())=>{
+ const raw=petLevelEvidence(profile).levels;
+ const season=resolveTranscendenceAge(profile,at);
+ // With no season metadata, preserve the raw positive-pet evidence,
+ // explicitly without claiming that the historical season is verified.
+ if(!season.season)return raw;
+ const filtered={...raw};
+ for(const pet of Object.values(TRANSCENDENT_PETS)){
+  const allowed=season.season==="13"&&!season.estimatedSeasonEnded&&
+   season13.has(pet.name);
+  if(!allowed)delete filtered[pet.id];
+ }
+ return filtered;
+};
+export function availablePets(profile,at=new Date()){
+ const levels=petLevels(profile,at);
  return Object.values(ALL_PETS).filter(pet=>levels[pet.id]>0).map(pet=>({
   id:pet.id,name:pet.name,type:pet.type,equipType:pet.equipType,
   tier:petTier(pet),
@@ -314,8 +335,8 @@ const MULTIPLICATIVE_PASSIVE=new Set([
  "GoldBoss","JackpotGold","MultiMonstersGold",
  "SwordBoost","HelmetBoost","ArmorBoost","AuraBoost","SlashBoost"
 ]);
-export function petPassiveEvidence(profile){
- const pets=availablePets(profile),boosts=petArtifactAmplifiers(profile),
+export function petPassiveEvidence(profile,at=new Date()){
+ const pets=availablePets(profile,at),boosts=petArtifactAmplifiers(profile),
   byType=Object.create(null),entries=[],unmodeled=[];
  for(const p of pets){
   const pet=ALL_PETS[p.id],kind=pet.equipType==="Support"?"gold":"damage";

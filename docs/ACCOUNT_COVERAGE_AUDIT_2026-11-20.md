@@ -42,3 +42,34 @@ pet and hero groups. It also counts unresolved permanent owned-set
 effects and omitted dated-set effects from their independent ledgers.
 This is **reporting only**: no power or skill multipliers were invented,
 and the actual SP objective is unchanged.
+
+## Season 13 expiry and archived Transcendent pets (2026-11-20)
+
+The **official** Game Hive [DevLog #231](https://gamehive.com/blog/devlog-231-transcendence-season-13/)
+confirms the *start*, 12 August 2026, and the 10 eligible pets:
+Brushleaf, Clawsette, Daisy, Lemon, Lullabye, Owlivia, Quippy, Scaly,
+Sonara, Watson.
+
+The **unofficial** community E9 calendar
+(https://e9wiki.com/tt2/en, checked on 20 November 2026) lists
+*24 November 2026* as the final day of season 13. It does not prove the
+actual server rollover instant. As a conservative protection against
+an old account export continuing to claim extreme seasonal power,
+`resolveTranscendenceAge` now reports
+`estimatedSeasonEnded=true` on and after **2026-11-25 00:00 UTC**.
+It explicitly reports `expirationOfficiallyConfirmed:false`.
+
+From that date, the season-13 monument evaluator excludes primary and
+additive Monument Damage effects from the SP ledger. Positive levels
+for historical Transcendent pets are also excluded, while permanent pet
+levels remain available. **Before** the estimated expiry, only the 10
+officially listed season-13 pets may be used; other historical seasonal
+pet IDs are kept in raw import diagnostics but not credited to the score.
+
+The fixed account score is cached **per UTC calendar day**, not forever
+by profile identity. The same cached export recalculates on the first
+post-expiry use. The user-facing report explains the conservative
+community-date protection and requests a fresh export after rollover.
+
+This does not assert that Game Hive's live season ends exactly at the
+fan wiki's boundary, and it does not presume a season-14 roster.

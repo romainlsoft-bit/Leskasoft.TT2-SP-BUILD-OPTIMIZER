@@ -1,10 +1,10 @@
-import {optimizeBuild} from "./engine.js?v=20261120-tt2-source-pact-q";
-import {petSearchPlan,availablePets} from "./pet-scenarios.js?v=20261118-unity84-engine-r1";
-import {calculateModeledScenario} from "./calculation-ledger.js?v=20261118-unity84-engine-r1";
+import {optimizeBuild} from "./engine.js?v=20261120-tt2-season-rollover-s";
+import {petSearchPlan,availablePets} from "./pet-scenarios.js?v=20261120-tt2-season-rollover-s";
+import {calculateModeledScenario} from "./calculation-ledger.js?v=20261120-tt2-season-rollover-s";
 import {selectPetPair} from "./pet-pair-search.js?v=20261118-final-w";
 import {bestEquipmentByCategory,gearSelectionEffects,petCandidateGearWeightEnvelope,
  enumerateOwnedGearAssignments}
- from "./equipment-scenarios.js?v=20261120-tt2-source-pact-q";
+ from "./equipment-scenarios.js?v=20261120-tt2-season-rollover-s";
 import {refineCoupledGearAndSkills,enumerateJointGearAndSkills}
  from "./joint-candidate-search.js?v=20261118-final-w";
 import {modeledCandidateUpperBound} from "./model-score-bounds.js?v=20261118-final-w";

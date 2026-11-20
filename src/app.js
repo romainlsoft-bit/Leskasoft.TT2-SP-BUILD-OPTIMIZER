@@ -1,13 +1,13 @@
-import {SKILLS,SKILL_IDS,BRANCH_NAMES,PRESETS,DAMAGE_TYPES,GOLD_TYPES,GAME_VERSION,parseExport,exportBuild,spentPoints,ownedSetFlags} from "./engine.js?v=20261120-tt2-source-pact-q";
-import { t, localizeDocument, SUPPORTED_LANGUAGES } from "./i18n.js?v=20261120-tt2-source-pact-q";
+import {SKILLS,SKILL_IDS,BRANCH_NAMES,PRESETS,DAMAGE_TYPES,GOLD_TYPES,GAME_VERSION,parseExport,exportBuild,spentPoints,ownedSetFlags} from "./engine.js?v=20261120-tt2-season-rollover-s";
+import { t, localizeDocument, SUPPORTED_LANGUAGES } from "./i18n.js?v=20261120-tt2-season-rollover-s";
 import { readClipboardText } from "./clipboard.js";
 import {resetAccountDependentOptions} from "./import-session-reset.js";
-import { profileCoverage } from "./account-profile.js?v=20261120-tt2-source-pact-q";
+import { profileCoverage } from "./account-profile.js?v=20261120-tt2-season-rollover-s";
 import {petLevelEvidence} from "./account-pet-levels.js";
-import {resolveGemstoneEvidence} from "./account-gemstones.js?v=20261120-tt2-source-pact-q";
-import {formatLogMultiplier} from "./account-power.js?v=20261120-tt2-source-pact-q";
-import {availablePets,recommendPets} from "./pet-scenarios.js?v=20261118-unity84-engine-r1";
-import {bestEquipmentByCategory,EQUIPMENT_CATEGORIES} from "./equipment-scenarios.js?v=20261118-unity84-engine-r1";
+import {resolveGemstoneEvidence} from "./account-gemstones.js?v=20261120-tt2-season-rollover-s";
+import {formatLogMultiplier} from "./account-power.js?v=20261120-tt2-season-rollover-s";
+import {availablePets,recommendPets} from "./pet-scenarios.js?v=20261120-tt2-season-rollover-s";
+import {bestEquipmentByCategory,EQUIPMENT_CATEGORIES} from "./equipment-scenarios.js?v=20261120-tt2-season-rollover-s";
 const $=id=>document.getElementById(id);
 let locale="en";
 let lastStatus={message:"Import your account or enter your skill points to begin.",type:"",params:{}};
@@ -424,7 +424,7 @@ function optimize(){
  status("Checking prerequisites and calculating the best allocation for the chosen scoring model…");
  const revision=++calculationRevision;
  const requestContext=structuredClone(state);
- const running=new Worker(new URL("./worker.js?v=20261120-tt2-source-pact-q",import.meta.url),{type:"module"});
+ const running=new Worker(new URL("./worker.js?v=20261120-tt2-season-rollover-s",import.meta.url),{type:"module"});
  worker=running;
  running.onmessage=event=>{
    if(revision!==calculationRevision||worker!==running)return;
@@ -687,6 +687,9 @@ function renderAccountIntegration(result){
    "Contract scenario comparison needs valid, explicitly entered assumptions. The original SP recommendation is preserved.");
  }
  const sourceCoverage=result.accountSourceCoverage;
+ if(sourceCoverage?.seasonCalendar?.estimatedSeasonEnded)
+  panel.textContent+=" "+tr(
+   "The season-13 export may now be obsolete: a community calendar lists November 24, 2026 as the last day. Old-season monuments and Transcendent pets are excluded conservatively from November 25 UTC; import a current game export. This end date is not confirmed by Game Hive.");
  if(sourceCoverage){
   const system=id=>sourceCoverage.systems.find(x=>x.id===id);
   const desc=id=>{

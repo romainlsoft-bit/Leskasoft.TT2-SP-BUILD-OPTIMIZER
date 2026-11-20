@@ -19,12 +19,12 @@ import {heroProgressionEvidence} from "./hero-progression.js?v=20261117-hero-scr
 import {equipmentEffectReduction} from "./equipment-reductions.js";
 import {ARTIFACT_CATALOG} from "../vendor/account-catalog.js";
 import {calculatePermanentArtifactEffects} from "./account-artifacts.js?v=20261118-work-review-r1";
-import {resolveMonumentEvidence} from "./account-monuments.js?v=20261117-monument-pools";
+import {resolveMonumentEvidence} from "./account-monuments.js?v=20261120-tt2-season-rollover-s";
 import {monumentDerivedPower} from "./account-monument-derived.js?v=20261117-monument-pools";
-import {petPassiveEvidence} from "./pet-scenarios.js?v=20261118-work-review-r1";
+import {petPassiveEvidence} from "./pet-scenarios.js?v=20261120-tt2-season-rollover-s";
 import {artifactDerivedPower} from "./account-artifact-derived.js?v=20261118-work-review-r1";
 import {mergeTitanResearch,resourceResearchEvidence} from "./account-research-resources.js?v=20261117-resource-integrity";
-import {resolveGemstoneEvidence} from "./account-gemstones.js?v=20261120-tt2-source-pact-q";
+import {resolveGemstoneEvidence} from "./account-gemstones.js?v=20261120-tt2-season-rollover-s";
 
 const MAX_LEVEL=100000;
 const DIRECT_DAMAGE_TYPES=Object.freeze({
@@ -76,9 +76,16 @@ function findResearchRows(records,group,out,unknown){
    bonusType:row.bonusType,level,log10});
  }
 }
-export function extractFixedAccountPower(profile){
+export function extractFixedAccountPower(profile,at=new Date()){
  if(!profile||typeof profile!=="object")return {available:false,byType:{},entries:[],unsupported:[],matched:0};
- if(cache.has(profile))return cache.get(profile);
+ // The permanent account baseline also includes date-sensitive monuments
+ // and Transcendent pet passives. A WeakMap keyed on account identity alone
+ // would keep yesterday's seasonal power indefinitely after rollover.
+ const timestamp=at instanceof Date?at.getTime():NaN;
+ if(!Number.isFinite(timestamp))throw new TypeError("Invalid account snapshot date.");
+ const utcDay=new Date(timestamp).toISOString().slice(0,10);
+ const cached=cache.get(profile);
+ if(cached?.utcDay===utcDay)return cached.value;
  const sections=profile.sections||{};
  const entries=[],unsupported=[];
  const from=key=>sections[key]?.records||[];
@@ -123,7 +130,7 @@ export function extractFixedAccountPower(profile){
  for(const row of heroProgression.entries)entries.push(row);
  for(const reason of heroProgression.unresolved)
   unsupported.push({system:"heroProgression",reason});
- const monuments=resolveMonumentEvidence(profile);
+ const monuments=resolveMonumentEvidence(profile,at);
  for(const row of monuments.entries){
   if(row.appliedToScore)entries.push({system:"monuments",id:row.id,bonusType:row.bonusType??row.type,
    level:row.level,enchanted:row.enchanted,log10:row.log10});
@@ -142,7 +149,7 @@ export function extractFixedAccountPower(profile){
   log10:row.log10,conservative:row.conservative===true});
  for(const reason of artifactDerived.unmodeled)
   unsupported.push({system:"artifactDerived",reason});
- const passivePets=petPassiveEvidence(profile);
+ const passivePets=petPassiveEvidence(profile,at);
  for(const row of passivePets.entries){
   if(row.appliedToScore&&row.log10!==null)entries.push({
    system:"petPassive",id:row.id,bonusType:row.bonusType,
@@ -221,7 +228,7 @@ export function extractFixedAccountPower(profile){
    omittedEnchantmentBoosts:monumentDerived.omittedEnchantmentBoosts,
    additiveDamageConservative:monumentDerived.conservative,
    complete:false}};
- cache.set(profile,value);
+ cache.set(profile,{utcDay,value});
  return value;
 }
 export function fixedAccountScore(power,settings){
