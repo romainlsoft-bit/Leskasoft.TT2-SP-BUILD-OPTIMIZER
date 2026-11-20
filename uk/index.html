@@ -16,7 +16,7 @@
 <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg"><link rel="stylesheet" href="../styles.css?v=20261118-work-review-r1">
 <title>Оптимізатор дерева навичок TT2 8.4 — безкоштовний калькулятор | Leskasoft</title>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Оптимізатор дерева навичок Tap Titans 2","description":"Калькулятор очок навичок Tap Titans 2: імпорт JSON, ручне введення, налаштування QoL та експорт збірки до 50 000 очок.","applicationCategory":"GameApplication","operatingSystem":"Any","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"url":"https://tap-titans.leskasoft.com/uk/","inLanguage":"uk","@id":"https://tap-titans.leskasoft.com/uk/#tool"}</script>
-<script type="module" src="../src/app.js?v=20261120-log-native-r4" defer></script>
+<script type="module" src="../src/app.js?v=20261120-simple-ui-r5" defer></script>
 </head>
 <body>
 <div class="site">
@@ -67,27 +67,6 @@
     <p class="hint">Враховуйте тимчасові бонуси лише якщо можете застосувати їх проти найскладнішого боса. Неактивні ефекти та нуль — обережне припущення.</p>
     <label class="toggle"><input type="checkbox" id="hayst-active"> Hayst активний проти найскладнішого боса</label>
     <label class="toggle"><input type="checkbox" id="snap-active"> Snap активний проти найскладнішого боса</label>
-    <label class="toggle"><input type="checkbox" id="contracts-at-max"> Обидва контракти досягають максимальних бонусів проти найскладнішого боса (потребує багато мани)</label>
-    <h3>Моделювання мани контрактів (лише діагностика)</h3>
-    <p class="hint">Необов’язкова симуляція з кроком одна секунда. Явно припускається відсутність інших витрат заклять або джерел мани. Розподіл SP не змінюється.</p>
-    <label class="toggle"><input type="checkbox" id="timeline-enabled"> Увімкнути модель мани контрактів</label>
-    <h3>Порівняння SP за сценаріями контрактів (необов’язково)</h3>
-    <p class="hint">Порівняйте білд без активних контрактів з варіантом, що інвестує в контракти. Самостійно введіть частку боїв із активними контрактами; оптимізатор її не вимірює.</p>
-    <label class="toggle"><input id="scenario-enabled" type="checkbox"> Порівнювати розподіл SP за двома сценаріями</label>
-    <div class="field-grid">
-      <label>Частка боїв з активними контрактами (0–1) <input id="scenario-active-fraction" type="number" min="0" max="1" step=".05" inputmode="decimal" placeholder="—"></label>
-    </div>
-    <label class="toggle"><input id="scenario-pact-max" type="checkbox"> Припускати максимальний бонус Terrifying Pact під час оплачених тактів (не перевірено)</label>
-
-    <div class="field-grid">
-      <label>Мана на момент активації <input id="timeline-starting-mana" type="number" min="0" step="any" inputmode="decimal" placeholder="—"></label>
-      <label>Максимальний запас мани <input id="timeline-mana-capacity" type="number" min="0" step="any" inputmode="decimal" placeholder="—"></label>
-      <label>Пасивне відновлення за секунду <input id="timeline-passive-regen" type="number" min="0" step="any" inputmode="decimal" placeholder="—"></label>
-      <label>Тривалість у секундах (1–3600) <input id="timeline-duration" type="number" min="1" max="3600" step="1" inputmode="numeric" value="60"></label>
-      <label>Безкоштовні такти Forbidden Contract <input id="timeline-free-forbidden" type="number" min="0" max="3600" step="1" inputmode="numeric" placeholder="—"></label>
-      <label>Безкоштовні такти Royal Contract <input id="timeline-free-royal" type="number" min="0" max="3600" step="1" inputmode="numeric" placeholder="—"></label>
-    </div>
-
     <label>Натискання сфер Astral Awakening (0–5) <input type="number" id="astral-activations" min="0" max="5" step="1" inputmode="numeric" value="0"></label>
     <label class="toggle"><input type="checkbox" id="preserve-current">Зберігати поточні рівні як мінімальні</label>
     <label class="toggle"><input type="checkbox" id="protect-unmodeled-skills" checked> Зберігати наявні умовні навички, якщо їхню дію не враховано в моделі (рекомендовано)</label>

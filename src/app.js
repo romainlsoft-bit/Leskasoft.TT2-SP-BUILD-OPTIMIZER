@@ -1,13 +1,13 @@
-import {SKILLS,SKILL_IDS,BRANCH_NAMES,PRESETS,DAMAGE_TYPES,GOLD_TYPES,GAME_VERSION,parseExport,exportBuild,spentPoints,ownedSetFlags} from "./engine.js?v=20261120-log-native-r4";
-import { t, localizeDocument, SUPPORTED_LANGUAGES } from "./i18n.js?v=20261120-log-native-r4";
-import { readClipboardText } from "./clipboard.js?v=20261120-log-native-r4";
-import {resetAccountDependentOptions} from "./import-session-reset.js?v=20261120-log-native-r4";
-import { profileCoverage } from "./account-profile.js?v=20261120-log-native-r4";
-import {petLevelEvidence} from "./account-pet-levels.js?v=20261120-log-native-r4";
-import {resolveGemstoneEvidence} from "./account-gemstones.js?v=20261120-log-native-r4";
-import {formatLogMultiplier} from "./account-power.js?v=20261120-log-native-r4";
-import {availablePets,recommendPets} from "./pet-scenarios.js?v=20261120-log-native-r4";
-import {bestEquipmentByCategory,EQUIPMENT_CATEGORIES} from "./equipment-scenarios.js?v=20261120-log-native-r4";
+import {SKILLS,SKILL_IDS,BRANCH_NAMES,PRESETS,DAMAGE_TYPES,GOLD_TYPES,GAME_VERSION,parseExport,exportBuild,spentPoints,ownedSetFlags} from "./engine.js?v=20261120-simple-ui-r5";
+import { t, localizeDocument, SUPPORTED_LANGUAGES } from "./i18n.js?v=20261120-simple-ui-r5";
+import { readClipboardText } from "./clipboard.js?v=20261120-simple-ui-r5";
+import {resetAccountDependentOptions} from "./import-session-reset.js?v=20261120-simple-ui-r5";
+import { profileCoverage } from "./account-profile.js?v=20261120-simple-ui-r5";
+import {petLevelEvidence} from "./account-pet-levels.js?v=20261120-simple-ui-r5";
+import {resolveGemstoneEvidence} from "./account-gemstones.js?v=20261120-simple-ui-r5";
+import {formatLogMultiplier} from "./account-power.js?v=20261120-simple-ui-r5";
+import {availablePets,recommendPets} from "./pet-scenarios.js?v=20261120-simple-ui-r5";
+import {bestEquipmentByCategory,EQUIPMENT_CATEGORIES} from "./equipment-scenarios.js?v=20261120-simple-ui-r5";
 const $=id=>document.getElementById(id);
 let locale="en";
 let lastStatus={message:"Import your account or enter your skill points to begin.",type:"",params:{}};
@@ -66,6 +66,14 @@ const fresh=()=>({damage:"Clan Ship",gold:"Fairy",skillPoints:0,maxStage:0,plays
 let state=fresh(),lastResult=null,lastScenarios=[],lastEquipment={},
  lastGearSelection=null,lastResolvedPets=null,lastRunContext=null,
  worker=null,calculationRevision=0;
+// Public recommendations must ignore obsolete speculative contract settings.
+function keepContractsConservative(options){
+ options.assumeContractsAtMax=false;
+ options.contractTimeline=null;
+ options.contractMultiScenario=null;
+ options.allowContractScenarioReallocation=false;
+ return options;
+}
 // Fixed-position notifications are shared by errors and successful actions.
 // Errors stay visible until dismissed; successes auto-dismiss after six seconds.
 let toastDismissTimer=null;
@@ -300,16 +308,6 @@ function fillInputs(){
  $("protect-unmodeled-skills").checked=state.protectUnmodeledSkills!==false;
  $("hayst-active").checked=state.assumeHaystActive===true;
  $("snap-active").checked=state.assumeSnapActive===true;
- $("contracts-at-max").checked=state.assumeContractsAtMax===true;
- const simulation=state.contractTimeline;
- $("timeline-enabled").checked=simulation?.enabled===true;
- $("scenario-enabled").checked=state.contractMultiScenario?.enabled===true;
- $("scenario-active-fraction").value=state.contractMultiScenario?.activeFraction??"";
- $("scenario-pact-max").checked=state.contractMultiScenario?.pactAtMaxDuringFundedTicks===true;
- for(const [key,id] of [["startingMana","timeline-starting-mana"],["manaCapacity","timeline-mana-capacity"],["passiveRegenPerSecond","timeline-passive-regen"],["durationSeconds","timeline-duration"]])
-  $(id).value=simulation?.[key]??"";
- for(const [key,id] of [["ForbiddenContract","timeline-free-forbidden"],["RoyalContract","timeline-free-royal"]])
-  $(id).value=simulation?.freeTicks?.[key]??"";
  $("astral-activations").value=state.astralActivations??0;
  renderChoices();renderEditor($("skill-search").value);
 }
@@ -389,24 +387,7 @@ function readInputs(){
  state.protectUnmodeledSkills=$("protect-unmodeled-skills").checked;
  state.assumeHaystActive=$("hayst-active").checked;
  state.assumeSnapActive=$("snap-active").checked;
- state.assumeContractsAtMax=$("contracts-at-max").checked;
- state.astralActivations=Number($("astral-activations").value);
- state.contractMultiScenario=$("scenario-enabled").checked?{
-  enabled:true,
-  activeFraction:$("scenario-active-fraction").value,
-  pactAtMaxDuringFundedTicks:$("scenario-pact-max").checked
- }:null;
- state.contractTimeline=$("timeline-enabled").checked?{
-  enabled:true,
-  startingMana:$("timeline-starting-mana").value,
-  manaCapacity:$("timeline-mana-capacity").value,
-  passiveRegenPerSecond:$("timeline-passive-regen").value,
-  durationSeconds:$("timeline-duration").value,
-  freeTicks:{
-   ForbiddenContract:$("timeline-free-forbidden").value,
-   RoyalContract:$("timeline-free-royal").value
-  }
- }:null;
+ keepContractsConservative(state);
  state.mode="power";
  persist();
 }
@@ -423,8 +404,8 @@ function optimize(){
  button.disabled=false;button.textContent=tr("Cancel optimization");
  status("Checking prerequisites and calculating the best allocation for the chosen scoring model…");
  const revision=++calculationRevision;
- const requestContext=structuredClone(state);
- const running=new Worker(new URL("./worker.js?v=20261120-log-native-r4",import.meta.url),{type:"module"});
+ const requestContext=keepContractsConservative(structuredClone(state));
+ const running=new Worker(new URL("./worker.js?v=20261120-simple-ui-r5",import.meta.url),{type:"module"});
  worker=running;
  running.onmessage=event=>{
    if(revision!==calculationRevision||worker!==running)return;
@@ -630,73 +611,7 @@ function renderAccountIntegration(result){
      numberText(mana.exportedFinalManaPool),
     regen:mana.exportedFinalManaRegenPerSecond===null?
      tr("not verifiable from this export"):numberText(mana.exportedFinalManaRegenPerSecond)});
- const contract=result.contractScenario;
- if(contract){
-  if(contract.assumptions.maximumRampReached){
-   panel.textContent+=" "+tr(
-    "Conditional contracts (maximum ramp): damage {damage}, gold {gold}, initial mana drain {drain}/s. Mana sustainability and actual uptime are not verified.",
-    {damage:formatLogMultiplier(contract.damageLog10),
-     gold:formatLogMultiplier(contract.goldLog10),
-     drain:contract.baseDrain.combined===null
-      ?tr("not verifiable from this export")
-      :numberText(Math.round(contract.baseDrain.combined*100)/100)});
-   if(contract.titanReduction.duringContracts>0)
-    panel.textContent+=" "+tr(
-     "Terrifying Pact reduces titans per stage during active contracts; this speed effect is not converted to damage.");
-  }else if(contract.levels.ForbiddenContract||contract.levels.RoyalContract||
-            contract.levels.TerrifyingPact)
-   panel.textContent+=" "+tr(
-    "Contracts are present, but their full bonuses are excluded because maximum active ramp is not assumed.");
- }
- const timeline=result.manaEvidence?.contractTimeline;
- if(timeline?.status==="simulated"){
-  panel.textContent+=" "+tr(
-   "Contract mana what-if: {ticks} funded ticks within {window}s (first unfunded: {failed}). Only entered passive regeneration and free ticks were used. This is NOT measured uptime and does not affect the build score.",
-   {ticks:numberText(timeline.fundedTicks),
-    window:numberText(timeline.horizonSeconds),
-    failed:timeline.firstUnfundedSecond===null?
-     tr("none within simulated window"):numberText(timeline.firstUnfundedSecond)});
- }else if(timeline?.status==="missing-or-invalid-inputs"){
-  panel.textContent+=" "+tr(
-   "Contract mana what-if was not run: provide valid mana, regeneration, duration and explicit free-tick counts for enabled contracts.");
- }
- const petContractSearch=result.petSearch?.contractPetRerank;
- if(petContractSearch?.status==="ranked-visited-shortlist")
-  panel.textContent+=" "+tr(
-   "Contract-aware pet search: {visited} visited pairs screened under your explicit contract scenario; {refined} finalists reoptimized. This is a bounded shortlist, not a global optimum.",
-   {visited:numberText(petContractSearch.visitedPairs),
-    refined:numberText(petContractSearch.shortlistedPairs)});
- const decision=result.contractMultiScenario;
- if(decision?.status==="ranked"){
-  const chosen=decision.rows.find(x=>x.id===decision.winnerId);
-  panel.textContent+=" "+tr(
-   "Contract scenario comparison: {count} SP allocations considered; selected {chosen} using your declared active fraction {fraction}. This is a hypothetical log-score ranking, not predicted stages or a global optimum.",
-   {count:numberText(decision.candidatesChecked??decision.rows.length),
-    chosen:decision.winnerId!=="conservative"?tr("contract-investment candidate"):
-     tr("conservative candidate"),
-    fraction:numberText(decision.scenarioWeights.active)});
-  if(decision.requiresNewGearCTRefinement)
-   panel.textContent+=" "+tr(
-    "Contract alternative was not applied: Combat Techniques changed and the equipment interaction must be recalculated.");
-  if(!decision.appliedToRecommendation)
-   panel.textContent+=" "+tr(
-    "No scenario-based replacement was applied to the current recommended allocation.");
- }else if(decision?.status==="unresolved"||
-   decision?.status==="only-conservative-feasible"){
-  panel.textContent+=" "+tr(
-   "Contract scenario comparison needs valid, explicitly entered assumptions. The original SP recommendation is preserved.");
- }
- const audit=result.investmentAudit;
-  if(audit?.protectedSp>0){
-   const skills=audit.protectedEntries.slice(0,5).map(row=>
-    row.name+" "+row.protectedLevel+" ("+numberText(row.protectedSp)+" SP)").join(", ");
-   panel.textContent+=" "+tr("Protected imported skills reserve {sp} SP ({percent}%): {skills}. Those SP were not freely re-optimized.",{
-    sp:numberText(audit.protectedSp),percent:numberText(Math.round(audit.protectedPct*10)/10),skills});
-  }
-  if(audit?.tacticalInsight?.level>0&&
-     audit.tacticalInsight.sourceWeightValidatedAgainstNative===false)
-   panel.textContent+=" "+tr("Tactical Insight uses unverified hero-skill reduction weights. Warlord allocation should be checked against in-game Stats.");
-  const sourceCoverage=result.accountSourceCoverage;
+ const sourceCoverage=result.accountSourceCoverage;
  if(sourceCoverage?.seasonCalendar?.estimatedSeasonEnded)
   panel.textContent+=" "+tr(
    "The season-13 export may now be obsolete: a community calendar lists November 24, 2026 as the last day. Old-season monuments and Transcendent pets are excluded conservatively from November 25 UTC; import a current game export. This end date is not confirmed by Game Hive.");
@@ -792,8 +707,7 @@ function renderResults(result,scroll=true){
  $("combat-assumptions-summary").textContent=tr(
    "Modeled at the limit-stage boss: Hayst {hayst}, Snap {snap}, Astral Awakening {stacks}/5 taps.",
    {hayst:tr(assumptions.hayst?"active":"inactive"),
-    snap:tr(assumptions.snap?"active":"inactive"),stacks:assumptions.astralActivations??0})
-   +" · "+tr("Contracts at full bonus: {status}",{status:tr(assumptions.contractsAtMax?"yes":"no")});
+    snap:tr(assumptions.snap?"active":"inactive"),stacks:assumptions.astralActivations??0});
  const guarded=result.protectedSkills||[];
  if(guarded.length){
    const names=guarded.map(id=>SKILLS[id]?.Name||id).join(", ");
@@ -823,7 +737,7 @@ function renderResults(result,scroll=true){
 function sharePayload(){
  // Compact URL encoding; the exported skill tree itself is intentionally
  // not encrypted. Sharing the link discloses the included game settings.
- return {protect:state.protectUnmodeledSkills!==false,sp:state.skillPoints,st:state.maxStage,da:state.damage,go:state.gold,p:state.playstyle,q:state.qol,w:state.goldWeight,cp:state.craftingPower,tk:state.timeToKill,cl:state.sClone,cur:state.currentLevels,min:state.minimums,exc:state.excluded,keep:state.preserveCurrent,hay:state.assumeHaystActive,snap:state.assumeSnapActive,contracts:state.assumeContractsAtMax,astral:state.astralActivations};
+ return {protect:state.protectUnmodeledSkills!==false,sp:state.skillPoints,st:state.maxStage,da:state.damage,go:state.gold,p:state.playstyle,q:state.qol,w:state.goldWeight,cp:state.craftingPower,tk:state.timeToKill,cl:state.sClone,cur:state.currentLevels,min:state.minimums,exc:state.excluded,keep:state.preserveCurrent,hay:state.assumeHaystActive,snap:state.assumeSnapActive,astral:state.astralActivations};
 }
 function decodeLink(){
  const hash=window.location.hash;
@@ -832,7 +746,7 @@ function decodeLink(){
   const payload=JSON.parse(decodeURIComponent(escape(atob(hash.slice(7)))));
   if(!payload||typeof payload!=="object")return;
   state={...fresh(),skillPoints:payload.sp??0,maxStage:payload.st??0,damage:payload.da??"Clan Ship",gold:payload.go??"Fairy",playstyle:payload.p??"balanced",qol:payload.q??"recommended",goldWeight:payload.w??.7,craftingPower:payload.cp??1,timeToKill:payload.tk??8,sClone:payload.cl??30,currentLevels:payload.cur||{},minimums:payload.min||{},excluded:Array.isArray(payload.exc)?payload.exc:[],preserveCurrent:Boolean(payload.keep),assumeHaystActive:payload.hay===true,
-    assumeSnapActive:payload.snap===true,assumeContractsAtMax:payload.contracts===true,astralActivations:payload.astral??0,protectUnmodeledSkills:payload.protect!==false,mode:"power"};
+    assumeSnapActive:payload.snap===true,assumeContractsAtMax:false,astralActivations:payload.astral??0,protectUnmodeledSkills:payload.protect!==false,mode:"power"};
   window.history.replaceState(null,"",window.location.pathname+window.location.search);
   status("Shared build settings loaded. Optimize to calculate a new recommendation.","success");
  }catch(e){status("Could not load this shared build link.","error");}
@@ -840,6 +754,8 @@ function decodeLink(){
 function initialize(){
  try{const saved=JSON.parse(localStorage.getItem("tt2_skill_optimizer_v1")||"null");if(saved&&typeof saved==="object")state={...fresh(),...saved};}catch{}
  decodeLink();
+ keepContractsConservative(state);
+ persist();
  // Old manual toggles or old shared links must never override the export.
  // No completed-set collection means unknown ownership, not zero owned in-game.
  state.sets=ownedSetFlags(state.accountProfile);
@@ -874,7 +790,7 @@ function initialize(){
   remember();
  });
  $("clear-minimums").addEventListener("click",()=>{state.minimums={};fillInputs();remember();});
- for(const id of ["skill-points","max-stage","gold-weight","crafting-power","time-to-kill","clone-level","qol-mode","preserve-current","protect-unmodeled-skills","hayst-active","snap-active","contracts-at-max","astral-activations"])$(id).addEventListener("change",()=>{readInputs();remember();});
+ for(const id of ["skill-points","max-stage","gold-weight","crafting-power","time-to-kill","clone-level","qol-mode","preserve-current","protect-unmodeled-skills","hayst-active","snap-active","astral-activations"])$(id).addEventListener("change",()=>{readInputs();remember();});
  // Text fields emit "input" before their "change" event (on blur).
  // Cancel a running optimization immediately while the user edits; never
  // accept an old worker result against a half-edited budget or setting.

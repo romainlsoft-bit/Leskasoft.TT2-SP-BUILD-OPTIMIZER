@@ -3,16 +3,16 @@
  * NOT silently promoted to a numerical effect without a verified formula.
  * The graph is a DAG of dependency *classes*, not an invented skill model.
  */
-import {ARTIFACT_CATALOG,EQUIPMENT_SET_CATALOG,SEASON_ARTIFACT_CATALOG} from "../vendor/account-catalog.js?v=20261120-log-native-r4";
-import {resolveSetCompletionDates,resolveTranscendenceAge,heroWeaponEvidence} from "./account-temporal.js?v=20261120-log-native-r4";
-import {clanScrollEvidence} from "./account-scrolls.js?v=20261120-log-native-r4";
-import {extractTimedSetPower} from "./account-set-bonuses.js?v=20261120-log-native-r4";
-import {resolveUniqueOwnership} from "./account-unique.js?v=20261120-log-native-r4";
-import {resolveMonumentEvidence} from "./account-monuments.js?v=20261120-log-native-r4";
-import {calculatePermanentArtifactEffects} from "./account-artifacts.js?v=20261120-log-native-r4";
-import {additiveDamageEvidence} from "./account-damage-pools.js?v=20261120-log-native-r4";
-import {resourceResearchEvidence} from "./account-research-resources.js?v=20261120-log-native-r4";
-import {resolveGemstoneEvidence} from "./account-gemstones.js?v=20261120-log-native-r4";
+import {ARTIFACT_CATALOG,EQUIPMENT_SET_CATALOG,SEASON_ARTIFACT_CATALOG} from "../vendor/account-catalog.js?v=20261120-simple-ui-r5";
+import {resolveSetCompletionDates,resolveTranscendenceAge,heroWeaponEvidence} from "./account-temporal.js?v=20261120-simple-ui-r5";
+import {clanScrollEvidence} from "./account-scrolls.js?v=20261120-simple-ui-r5";
+import {extractTimedSetPower} from "./account-set-bonuses.js?v=20261120-simple-ui-r5";
+import {resolveUniqueOwnership} from "./account-unique.js?v=20261120-simple-ui-r5";
+import {resolveMonumentEvidence} from "./account-monuments.js?v=20261120-simple-ui-r5";
+import {calculatePermanentArtifactEffects} from "./account-artifacts.js?v=20261120-simple-ui-r5";
+import {additiveDamageEvidence} from "./account-damage-pools.js?v=20261120-simple-ui-r5";
+import {resourceResearchEvidence} from "./account-research-resources.js?v=20261120-simple-ui-r5";
+import {resolveGemstoneEvidence} from "./account-gemstones.js?v=20261120-simple-ui-r5";
 
 const object=x=>x&&typeof x==="object";
 const byName=(catalog,value)=>{

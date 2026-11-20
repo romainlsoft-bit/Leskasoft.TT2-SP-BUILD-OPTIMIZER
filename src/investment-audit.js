@@ -3,8 +3,8 @@
  * This is a provenance/uncertainty diagnostic, never an alternative score.
  * Exact SP costs are from the independent TT2 8.4 Unity SkillTreeInfo2.0.
  */
-import {skillInfo} from "../vendor/skills.js?v=20261120-log-native-r4";
-import {reductions} from "../vendor/reductions.js?v=20261120-log-native-r4";
+import {skillInfo} from "../vendor/skills.js?v=20261120-simple-ui-r5";
+import {reductions} from "../vendor/reductions.js?v=20261120-simple-ui-r5";
 
 export function sourceSpent(id,level,catalog=skillInfo){
  const row=catalog[id];
