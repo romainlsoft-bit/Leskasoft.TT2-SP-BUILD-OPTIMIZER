@@ -51,7 +51,7 @@ export function rerankVisitedContractPetPairs(choices,settings,{
   const pre=rankContractCandidates([{
    id:"conservative",result:choice.result,
    modeledLogScore:choice.adjustedScore
-  }],choice.context,settings.contractMultiScenario);
+  }],settings,settings.contractMultiScenario);
   if(pre.status!=="ranked")
    return {...invalid("unresolved",pre.reason),visitedPairs:visited.length};
   const preScore=pre.rows[0].scenarioWeightedLog10;
