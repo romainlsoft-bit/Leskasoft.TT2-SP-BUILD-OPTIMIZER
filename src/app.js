@@ -703,6 +703,12 @@ function renderAccountIntegration(result){
    sourceCoverage.clanTechnology?.present?
     "Clan Technology is recognized as a clan-wide system, but its exported effects cannot yet be independently verified or added to the SP score.":"Clan Technology is not included in this export; its clan-wide effects remain unknown.");
  }
+ const seasonDay=result.monumentSeasonDay;
+ if(seasonDay?.totalEntries>0)
+  panel.textContent+=" "+tr(
+   "Season-day monuments: {count} source effects identified, {calculable} illustrative compounded examples; none is silently credited as guaranteed damage. Season changes reset monuments.",{
+    count:numberText(seasonDay.totalEntries),
+    calculable:numberText(seasonDay.illustrableEntries)});
  const modeled=result.modeledScenario;
  if(modeled){
   panel.textContent+=" "+tr(
