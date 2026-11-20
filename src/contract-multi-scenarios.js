@@ -141,6 +141,9 @@ export function proposeContractScenarioBuild({settings,baseline,gearSelection,
  solve,score}={}){
  if(settings?.contractMultiScenario?.enabled!==true)
   return {selection:invalid("not-requested"),result:baseline};
+ if(settings.assumeContractsAtMax===true)
+  return {selection:invalid("cannot-combine-with-maximum-contract-scoring"),
+   result:baseline};
  if(typeof solve!=="function"||typeof score!=="function"||!baseline?.levels)
   throw new TypeError("Scenario candidate search requires solve, score and baseline");
  const policy=settings.contractMultiScenario;

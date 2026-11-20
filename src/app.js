@@ -672,8 +672,7 @@ function renderAccountIntegration(result){
  }else if(decision?.status==="unresolved"||
    decision?.status==="only-conservative-feasible"){
   panel.textContent+=" "+tr(
-   "Contract scenario allocation comparison is unavailable: {reason}. The conservative allocation is preserved.",
-   {reason:decision.reason??tr("not verifiable from this export")});
+   "Contract scenario comparison needs valid, explicitly entered assumptions. The original SP recommendation is preserved.");
  }
  const modeled=result.modeledScenario;
  if(modeled){

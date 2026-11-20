@@ -105,6 +105,13 @@ test("generator blocks changed CT gear coupling, invalid explicit weight, or inf
  assert.equal(alt.selection.requiresNewGearCTRefinement,true);
  assert.equal(alt.selection.appliedToRecommendation,false);
  assert.equal(alt.result,baseline);
+ const conflict=proposeContractScenarioBuild({settings:{
+  ...s,assumeContractsAtMax:true},baseline,
+  solve:()=>{throw Error("must not run an inconsistent scenario")},
+  score:()=>100});
+ assert.equal(conflict.selection.status,"unresolved");
+ assert.equal(conflict.selection.reason,"cannot-combine-with-maximum-contract-scoring");
+ assert.equal(conflict.result,baseline);
  const invalid=proposeContractScenarioBuild({settings:{
   ...s,contractMultiScenario:{enabled:true}},baseline,solve:()=>{throw Error("should not execute")},
   score:()=>100});

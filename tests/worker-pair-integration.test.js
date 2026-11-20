@@ -158,3 +158,45 @@ test("review P2: automatic gold pet search does not alter fixed damage pet",asyn
  assert.equal(result.petSearch.manualSlots.gold,false);
  assert.equal(result.petSearch.candidateCount.damage,1);
 });
+
+test("worker: missing scenario weight preserves default allocation without guessing a probability",async()=>{
+ const execute=await workerHarness();
+ const profile=parseAccountProfile({equipmentSets:[]});
+ const base={...makeSettings(profile),skillPoints:100};
+ const reference=execute("optimize",base);
+ const attempt=execute("optimize",{...base,
+  contractTimeline:{enabled:true,startingMana:100,manaCapacity:100,
+   passiveRegenPerSecond:0,durationSeconds:10,
+   freeTicks:{ForbiddenContract:0,RoyalContract:0}},
+  contractMultiScenario:{enabled:true,activeFraction:"",
+   pactAtMaxDuringFundedTicks:true}});
+ assert.equal(reference.result?.ok,true,reference.result?.error);
+ assert.equal(attempt.result?.ok,true,attempt.result?.error);
+ assert.deepEqual(attempt.result.result.levels,reference.result.result.levels);
+ assert.equal(attempt.result.result.contractMultiScenario.status,"unresolved");
+ assert.equal(attempt.result.result.contractMultiScenario.appliedToRecommendation,false);
+});
+test("worker: explicit timed scenario integrates through the final modeled ledger",async()=>{
+ const execute=await workerHarness();
+ const profile=parseAccountProfile({equipmentSets:[]});
+ const settings={...makeSettings(profile),skillPoints:750,maxStage:15000,
+  contractTimeline:{enabled:true,startingMana:200,manaCapacity:200,
+   passiveRegenPerSecond:1,durationSeconds:10,
+   freeTicks:{ForbiddenContract:0,RoyalContract:0}},
+  contractMultiScenario:{enabled:true,activeFraction:1,
+   pactAtMaxDuringFundedTicks:true}};
+ const {result}=execute("optimize",settings);
+ assert.equal(result?.ok,true,result?.error);
+ const selection=result.result.contractMultiScenario;
+ assert.ok(["ranked","only-conservative-feasible"].includes(selection.status),
+  selection.status+": "+selection.reason);
+ assert.ok(result.result.spent<=settings.skillPoints);
+ assert.equal(selection.globallyOptimal,false);
+ assert.equal(selection.predictsStages,false);
+ const total=result.result.modeledScenario.totalLog10;
+ const expected=result.result.accountAdjustedScore+
+  result.result.modeledScenario.equippedGearLog10+
+  result.result.modeledScenario.activePetsAbovePassivesLog10;
+ assert.ok(Math.abs(total-expected)<1e-7*Math.max(1,Math.abs(total)));
+ assert.equal(result.result.contractScenario.weightedLog10,0);
+});
