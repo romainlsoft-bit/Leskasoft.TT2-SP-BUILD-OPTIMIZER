@@ -8,8 +8,8 @@
  * Conditional, skill boost, crit and equipment dependent types remain
  * visible but unscored until their conversion to build power is verified.
  */
-import {EQUIPMENT_SET_CATALOG} from "../vendor/account-catalog.js";
-import {resolveSetCompletionDates} from "./account-temporal.js";
+import {EQUIPMENT_SET_CATALOG} from "../vendor/account-catalog.js?v=20261120-log-native-r4";
+import {resolveSetCompletionDates} from "./account-temporal.js?v=20261120-log-native-r4";
 
 const DIRECT_TYPES=new Set([
  "AllDamage","GoldAll","PetDamage","FairyGold","ChestAmount","UltraDaggerDamage",

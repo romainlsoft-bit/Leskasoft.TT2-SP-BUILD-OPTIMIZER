@@ -9,49 +9,88 @@
  * damage or contextual multipliers (active spells, pets, hero damage, etc).
  */
 const SCIENTIFIC=/^(?:\d+(?:\.\d*)?|\.\d+)(?:[Ee][+-]?\d+)?$/;
+/** Log10 of a positive scientific decimal, including very long mantissas.
+ * Parses the leading 16 significant digits and the decimal position;
+ * neither an overflowing mantissa nor an underflowing mantissa gets fed
+ * through Number() before extracting the order of magnitude.
+ */
 export function positiveLog10(value){
  if(typeof value!=="string"&&typeof value!=="number")return null;
  const s=String(value).trim();
- if(!SCIENTIFIC.test(s))return null;
- // Splitting the exponent avoids Number("1e9999") becoming Infinity.
+ if(s.length>10000||!SCIENTIFIC.test(s))return null;
  const matched=s.match(/^(\d+(?:\.\d*)?|\.\d+)(?:[Ee]([+-]?\d+))?$/);
- const a=Number(matched[1]),power=Number(matched[2]||0);
- if(!(a>0)||!Number.isFinite(a)||!Number.isSafeInteger(power))return null;
- return Math.log10(a)+power;
+ if(!matched)return null;
+ const power=Number(matched[2]||0);
+ if(!Number.isSafeInteger(power))return null;
+ const parts=matched[1].split(".");
+ const whole=parts.length===2?parts[0]:""+parts[0];
+ const digits=(parts[0]||"")+(parts[1]||"");
+ const first=digits.search(/[1-9]/);
+ if(first<0)return null;
+ // The position of the first nonzero digit determines the decimal order;
+ // the leading 16 digits determine the normalized coefficient.
+ const lead=digits.slice(first,first+16);
+ const coefficient=Number(lead)/Math.pow(10,lead.length-1);
+ const order=whole.length-first-1;
+ const result=power+order+Math.log10(coefficient);
+ return Number.isFinite(result)?result:null;
 }
 export function log10OnePlusPower(exponent){
  if(exponent===null||!Number.isFinite(exponent))return null;
  // log10(1 + 10^exponent), stable for tiny and enormous exponents.
- return exponent>16?exponent:exponent < -16?
-  Math.pow(10,exponent)/Math.LN10:
-  Math.log10(1+Math.pow(10,exponent));
+ // Math.log10(1+x) loses most significant digits for x~=1e-12
+ // because 1+x first rounds to the nearest representable double.
+ // log1p preserves tiny artifact/monument marginal bonuses. For large
+ // exponents use the identity log10(1+10^x)=x+log10(1+10^-x)
+ // so no 10^x temporary can overflow.
+ return exponent>16?
+  exponent+Math.log1p(Math.pow(10,-exponent))/Math.LN10:
+  Math.log1p(Math.pow(10,exponent))/Math.LN10;
 }
-export function computeArtifactEffect(catalog,level,enchanted=false,coefficientFactor=1){
- const lv=positiveLog10(level),per=positiveLog10(catalog?.perLevel??catalog?.effectPerLevel);
+/**
+ * Main effect with log10(coefficient amplifier), avoiding construction of
+ * 10^1000 (overflow) even when the final log10 bonus is finite.
+ */
+export function computeArtifactEffectWithLogAmplifier(
+ catalog,level,enchanted=false,amplifierLog10=0
+){
+ const lv=positiveLog10(level);
+ const per=positiveLog10(catalog?.perLevel??catalog?.effectPerLevel);
  const growth=Number(catalog?.growthExpo),max=Number(catalog?.maxLevel);
  if(lv===null||per===null||!Number.isFinite(growth)||growth<0||
-   !Number.isFinite(max)||max<0)return {status:"invalid-level-or-scaling",log10:null};
- // Capped levels must be integers within the source limit. Zero max = uncapped.
+    !Number.isFinite(max)||max<0)
+  return {status:"invalid-level-or-scaling",log10:null};
  if(max>0){
   const numeric=Number(level);
   if(!Number.isSafeInteger(numeric)||numeric<1||numeric>max)
    return {status:"invalid-capped-level",log10:null};
  }
- const enchantMagnitude=enchanted?positiveLog10(catalog.enchantedMagnitude??catalog.enchantmentMagnitude):0;
- if(enchantMagnitude===null)return {status:"unknown-enchantment-magnitude",log10:null};
- if(typeof coefficientFactor!=="number"||!Number.isFinite(coefficientFactor)||
-    coefficientFactor<=0)return {status:"invalid-main-effect-amplifier",log10:null};
- // Multiplying EffectPerLevel occurs INSIDE 1 + c * Level^g. It does not
- // exponentiate the full resulting bonus (F^k was the old erroneous route).
- const exponent=per+growth*lv+enchantMagnitude+Math.log10(coefficientFactor);
- const log10=log10OnePlusPower(exponent);
- const rawLog10=log10OnePlusPower(per+growth*lv+Math.log10(coefficientFactor));
+ const enchantMagnitude=enchanted?
+  positiveLog10(catalog.enchantedMagnitude??catalog.enchantmentMagnitude):0;
+ if(enchantMagnitude===null)
+  return {status:"unknown-enchantment-magnitude",log10:null};
+ if(typeof amplifierLog10!=="number"||!Number.isFinite(amplifierLog10))
+  return {status:"invalid-main-effect-amplifier",log10:null};
+ // The amplifier multiplies EffectPerLevel INSIDE 1 + coefficient*level^g.
+ const rawExponent=per+growth*lv+amplifierLog10;
+ const finalExponent=rawExponent+enchantMagnitude;
+ const rawLog10=log10OnePlusPower(rawExponent);
+ const log10=log10OnePlusPower(finalExponent);
  return {status:log10===null?"unrepresentable-scaling":"computed-main-effect",
   log10,rawLog10,
-  enchantmentDeltaLog10:log10===null||rawLog10===null?null:log10-rawLog10,
+  enchantmentDeltaLog10:log10===null||rawLog10===null?null:
+   log10-rawLog10,
   enchanted:enchanted===true,
   formula:"1 + (EffectPerLevel * EnchantmentMagnitude_if_enchanted) * Level^GrowthExpo",
   includesArtifactOrMonumentDamage:false};
+}
+/** Numeric factor API retained for callers with ordinary, finite values. */
+export function computeArtifactEffect(catalog,level,enchanted=false,coefficientFactor=1){
+ if(typeof coefficientFactor!=="number"||!Number.isFinite(coefficientFactor)||
+    coefficientFactor<=0)
+  return {status:"invalid-main-effect-amplifier",log10:null};
+ return computeArtifactEffectWithLogAmplifier(catalog,level,enchanted,
+  Math.log10(coefficientFactor));
 }
 const DIRECT_DAMAGE=new Set(["AllDamage","AllHelperDamage","BossDamage","TapDamage","CritDamage","PetDamage","ClanShipDamage",
  "GoldGunDamage","UltraDaggerDamage","BurstDamageSkillAmount",
@@ -74,15 +113,19 @@ const MAGNIFIER_EXTRAS=new Set([
 const TREASURE_EXTRAS=new Set(["Artifact53","Artifact97","Artifact9","Artifact77"]);
 function artifactBoostFactor(group,id,catalog){
  const rows=group.get(id)||[];
- if(!rows.length)return {factor:1,status:"not-owned"};
+ if(!rows.length)return {factor:1,log10:0,status:"not-owned"};
  const levels=[...new Set(rows.map(x=>x.level).filter(x=>x!=null).map(String))];
  const enchants=[...new Set(rows.map(x=>x.enchanted).filter(x=>x!==undefined))];
  // Identical mirrored export records represent one owned amplifier.
  // Conflicting level / enchantment evidence remains unusable.
  if(levels.length!==1||enchants.length>1)
-  return {factor:null,status:"conflicting-artifact-amplifier"};
+  return {factor:null,log10:null,status:"conflicting-artifact-amplifier"};
  const effect=computeArtifactEffect(catalog[id],levels[0],enchants[0]===true);
- return {factor:effect.log10===null?null:Math.pow(10,effect.log10),status:effect.status};
+ const log10=Number.isFinite(effect.log10)?effect.log10:null;
+ const rawFactor=log10===null?null:Math.pow(10,log10);
+ const factor=Number.isFinite(rawFactor)?rawFactor:null;
+ // Ordinary factor may be unrepresentable while logarithmic source remains valid.
+ return {factor,log10,status:effect.status};
 }
 /** The Magnifier and The Treasure boost the MAIN effect of supported
  * artifacts (not the separate additive Artifact Damage sum). TT2 patches
@@ -123,12 +166,16 @@ export function calculatePermanentArtifactEffects(profile,catalog){
    MAGNIFIER_EXTRAS.has(id);
   const boostGold=(data.maxLevel===0&&data.bonusIcon==="Gold")||
    TREASURE_EXTRAS.has(id);
-  const incompleteBoost=(boostDamage&&magnifier.factor===null)||
-   (boostGold&&treasure.factor===null);
-  const factor=(boostDamage?magnifier.factor:1)*(boostGold?treasure.factor:1);
-  const amplifiedEffect=effect.log10===null||incompleteBoost||
-   !Number.isFinite(factor)||factor<=0?null:
-   computeArtifactEffect(data,levels[0],enchanted===true,factor);
+  const incompleteBoost=(boostDamage&&magnifier.log10===null)||
+   (boostGold&&treasure.log10===null);
+  const amplifierLog10=incompleteBoost?null:
+   (boostDamage?magnifier.log10:0)+(boostGold?treasure.log10:0);
+  const rawFactor=amplifierLog10===null?null:Math.pow(10,amplifierLog10);
+  const factor=Number.isFinite(rawFactor)?rawFactor:null;
+  // Add source logs. Never multiply two potentially enormous JS numbers.
+  const amplifiedEffect=effect.log10===null||incompleteBoost?null:
+   computeArtifactEffectWithLogAmplifier(data,levels[0],
+    enchanted===true,amplifierLog10);
   const amplifiedLog10=amplifiedEffect?.log10??null;
   // A truncated export is not a reliable account snapshot. Keep the
   // calculations for audit but do not score a potentially partial roster.
@@ -139,9 +186,10 @@ export function calculatePermanentArtifactEffects(profile,catalog){
    level:levels.length===1?levels[0]:null,
    enchanted,log10:amplifiedLog10,rawLog10:effect.rawLog10??null,
    unamplifiedLog10:effect.log10??null,
-   magnifierApplied:boostDamage&&magnifier.factor!==1,
-   treasureApplied:boostGold&&treasure.factor!==1,
-   amplificationFactor:incompleteBoost?null:factor,
+   magnifierApplied:boostDamage&&magnifier.log10!==null&&magnifier.log10>0,
+   treasureApplied:boostGold&&treasure.log10!==null&&treasure.log10>0,
+   amplificationFactor:factor,
+   amplificationLog10:amplifierLog10,
    enchantmentDeltaLog10:amplifiedEffect?.enchantmentDeltaLog10??null,
    appliedToScore:scoreable,status:truncated?
     "truncated-artifact-collection":incompleteBoost?
@@ -155,8 +203,10 @@ export function calculatePermanentArtifactEffects(profile,catalog){
   // Source record IDs are canonicalized and counted once. This alone
   // cannot prove completeness when the input is truncated or has unknown IDs.
   ownedCountVerifiable:!truncated&&unknown.length===0,
-  magnifier:{owned:group.has("Artifact80"),factor:magnifier.factor,status:magnifier.status},
-  treasure:{owned:group.has("Artifact81"),factor:treasure.factor,status:treasure.status},
+  magnifier:{owned:group.has("Artifact80"),factor:magnifier.factor,
+   log10:magnifier.log10,status:magnifier.status},
+  treasure:{owned:group.has("Artifact81"),factor:treasure.factor,
+   log10:treasure.log10,status:treasure.status},
   recognized:entries.length,
   computed:entries.filter(x=>x.log10!==null).length,
   scored:entries.filter(x=>x.appliedToScore).length,

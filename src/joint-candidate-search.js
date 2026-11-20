@@ -1,4 +1,4 @@
-import {rankVisitedCandidateBounds} from "./model-score-bounds.js";
+import {rankVisitedCandidateBounds} from "./model-score-bounds.js?v=20261120-log-native-r4";
 /**
  * Block-coordinate refinement between the ACTUAL equipped gear and the
  * optimized skill tree for one chosen pair of active pets.

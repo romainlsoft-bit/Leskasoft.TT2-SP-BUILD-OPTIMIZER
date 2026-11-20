@@ -1,21 +1,23 @@
-import { skillInfo } from "../vendor/skills.js";
-import { baseline } from "../vendor/qol-baseline.js";
-import { optimizeExact } from "./solver-core.js?v=20261118-final-v";
-import { scoreAtLevel } from "./effects.js?v=20261118-investment-audit-r1";
-import { parseAccountProfile } from "./account-profile.js?v=20261118-work-review-r1";
-import {extractFixedAccountPower,fixedAccountScore} from "./account-power.js?v=20261118-work-review-r1";
-import {accountDependencyGraph} from "./account-dependencies.js?v=20261118-work-review-r1";
-import {resolveSpellCaps} from "./spell-caps.js?v=20261118-final-v";
-import {resolveSpellScenario,spellSelectionEvidence,SPELL_CAP_SKILLS} from "./spell-scenarios.js?v=20261118-final-v";
-import {ACTIVE_SPELL_CAPS} from "../vendor/active-spell-caps.js";
-import {resolveManaEvidence} from "./mana-evidence.js?v=20261118-final-v";
-import {extractTimedSetPower} from "./account-set-bonuses.js";
-import {resolvePermanentSetPower} from "./account-permanent-sets.js";
-import {skillTreeSetAllocationEvidence} from "./skill-tree-set-effects.js";
-import {resolveContractScenario} from "./contract-scenarios.js?v=20261118-investment-audit-r1";
-import {conditionalSkillEvidence} from "./conditional-skill-evidence.js";
-import {lightningStrikeEvidence} from "./lightning-strike-evidence.js";
-import {buildInvestmentAudit} from "./investment-audit.js";
+import { skillInfo } from "../vendor/skills.js?v=20261120-log-native-r4";
+import { baseline } from "../vendor/qol-baseline.js?v=20261120-log-native-r4";
+import { optimizeExact } from "./solver-core.js?v=20261120-log-native-r4";
+import { scoreAtLevel } from "./effects.js?v=20261120-log-native-r4";
+import { parseAccountProfile } from "./account-profile.js?v=20261120-log-native-r4";
+import {extractFixedAccountPower,fixedAccountScore} from "./account-power.js?v=20261120-log-native-r4";
+import {accountDependencyGraph} from "./account-dependencies.js?v=20261120-log-native-r4";
+import {resolveSpellCaps} from "./spell-caps.js?v=20261120-log-native-r4";
+import {resolveSpellScenario,spellSelectionEvidence,SPELL_CAP_SKILLS} from "./spell-scenarios.js?v=20261120-log-native-r4";
+import {ACTIVE_SPELL_CAPS} from "../vendor/active-spell-caps.js?v=20261120-log-native-r4";
+import {resolveManaEvidence} from "./mana-evidence.js?v=20261120-log-native-r4";
+import {accountSourceCoverage} from "./account-source-coverage.js?v=20261120-log-native-r4";
+import {monumentSeasonDayEvidence} from "./monument-season-day.js?v=20261120-log-native-r4";
+import {extractTimedSetPower} from "./account-set-bonuses.js?v=20261120-log-native-r4";
+import {resolvePermanentSetPower} from "./account-permanent-sets.js?v=20261120-log-native-r4";
+import {skillTreeSetAllocationEvidence} from "./skill-tree-set-effects.js?v=20261120-log-native-r4";
+import {resolveContractScenario} from "./contract-scenarios.js?v=20261120-log-native-r4";
+import {conditionalSkillEvidence} from "./conditional-skill-evidence.js?v=20261120-log-native-r4";
+import {lightningStrikeEvidence} from "./lightning-strike-evidence.js?v=20261120-log-native-r4";
+import {buildInvestmentAudit} from "./investment-audit.js?v=20261120-log-native-r4";
 
 export const GAME_VERSION = "8.4.0";
 export const DATASET_REVISION = "2026-09-18"; // SkillTreeInfo2.0.csv comparison
@@ -121,9 +123,21 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
   const spellCapEvidenceIsIncomplete=!spellSelection.valid||
    !(combatContext.assumeMaxSpells===true||
      (combatContext.assumeMaxSpells!==false&&Number(combatContext.maxStage)>=15000));
+  // Only explicitly enabled, source-limited contract scenario comparisons
+  // may test reallocating these three otherwise protected skills.
+  const policy=settings.contractMultiScenario||{};
+  const activeFraction=Number(policy.activeFraction);
+  const contractReallocationAllowed=
+    settings.allowContractScenarioReallocation===true&&
+    policy.enabled===true&&
+    policy.pactAtMaxDuringFundedTicks===true&&
+    settings.contractTimeline?.enabled===true&&
+    policy.activeFraction!==""&&policy.activeFraction!=null&&
+    Number.isFinite(activeFraction)&&activeFraction>=0&&activeFraction<=1;
   const uncertainSkills=[
     ...(spellCapEvidenceIsIncomplete?Object.keys(SPELL_CAP_SKILLS):[]),
-    ...(combatContext.assumeContractsAtMax?[]:["ForbiddenContract","RoyalContract","TerrifyingPact"]),
+    ...(combatContext.assumeContractsAtMax||contractReallocationAllowed?[]:
+      ["ForbiddenContract","RoyalContract","TerrifyingPact"]),
     ...(combatContext.assumeHaystActive?[]:["QuickFortune"]),
     ...(combatContext.assumeSnapActive?[]:["PhilosophersFlux"]),
     ...(astralActivations>0?[]:["HelperDmgQTE"]),
@@ -245,11 +259,16 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
   const contractScenario=resolveContractScenario(result.levels,scoreContext);
   const conditionalSkills=conditionalSkillEvidence(result.levels,scoreContext);
   const lightningStrike=lightningStrikeEvidence(result.levels,scoreContext);
-  const investmentAudit=buildInvestmentAudit(result.levels,scoreContext,protectedSkills);
+   const investmentAudit=buildInvestmentAudit(result.levels,scoreContext,protectedSkills);
   const spellCaps=resolveSpellCaps(scoreContext,result.levels);
   const spellScenario=resolveSpellScenario(scoreContext,result.levels,spellCaps);
   const manaEvidence=resolveManaEvidence(scoreContext,result.levels,spellScenario,contractScenario);
+  const accountCoverage=accountSourceCoverage(settings.accountProfile,power,
+   scoreContext,{permanentSetPower,timedSetPower:timed});
+  const seasonDayMonuments=monumentSeasonDayEvidence(dependencyReport.monuments,
+   scoreContext);
   return {...result,prior:current,spent:points,remaining:SP-points,changes,branchTotals,protectedSkills,investmentAudit,
+    accountSourceCoverage:accountCoverage,monumentSeasonDay:seasonDayMonuments,
     selectedSpellUnlocks,spellBaselineInvariantUnderSkillOptimization:
      spellSelection.valid&&!spellCapEvidenceIsIncomplete,
     spellCaps,spellScenario,manaEvidence,contractScenario,conditionalSkills,lightningStrike,

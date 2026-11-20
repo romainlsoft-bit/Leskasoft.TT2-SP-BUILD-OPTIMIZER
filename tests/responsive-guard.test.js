@@ -12,7 +12,8 @@ test("all static locales expose the same conditional-skill safety control",()=>{
   assert.match(html,/id="protect-unmodeled-skills" checked/);
   assert.match(html,/src\/app\.js\?v=20\d{6}-[a-z0-9-]+/);
   assert.ok(!html.includes("20261117-conditional-guard"));
-  assert.match(html,/styles\.css\?v=20261117-locale-layout/);
+  // Any versioned CSS asset is allowed; a stale hard-coded token is not.
+  assert.match(html,/styles\.css\?v=20\d{6}-[a-z0-9-]+/);
   assert.match(html,/id="preserve-current"/);
  }
 });

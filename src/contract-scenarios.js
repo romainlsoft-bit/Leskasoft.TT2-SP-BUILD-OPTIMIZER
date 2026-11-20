@@ -12,8 +12,8 @@
  * that a user's mana can sustain the effect. The game drain rises over time.
  * No invented mana regen, proc rate, uptime or ramp duration.
  */
-import {skillInfo} from "../vendor/skills.js";
-import {contractNativeTickSchedule} from "./contract-native-ticks.js";
+import {skillInfo} from "../vendor/skills.js?v=20261120-log-native-r4";
+import {contractNativeTickSchedule} from "./contract-native-ticks.js?v=20261120-log-native-r4";
 
 const CONTRACTS=Object.freeze(["ForbiddenContract","RoyalContract"]);
 const CONTRACT_SKILLS=Object.freeze([...CONTRACTS,"TerrifyingPact"]);
@@ -62,6 +62,43 @@ export function contractSkillScore(id,level,settings={}){
 }
 
 /**
+ * Compare two Terrifying Pact levels using source values only.
+ *
+ * Pact A requires active Forbidden Contract; Pact B requires active
+ * Royal Contract. This is NOT a forecast of the game Stats panel.
+ * Co0 is the cost of the first skill level (not Co1).
+ */
+export function compareTerrifyingPactLevels(fromLevel,toLevel){
+ const id="TerrifyingPact";
+ const from=validLevel(id,fromLevel),to=validLevel(id,toLevel);
+ const cumulativeSP=level=>{
+  let spent=0;
+  for(let i=0;i<level;i++){
+   const cost=Number(skillInfo[id]["Co"+i]);
+   if(!Number.isSafeInteger(cost)||cost<0)
+    throw new RangeError("Invalid source Pact SP cost at "+i);
+   spent+=cost;
+  }
+  return spent;
+ };
+ const delta=code=>scoreLog(numberAt(id,code,to))-scoreLog(numberAt(id,code,from));
+ const beforeTitan=numberAt(id,"C",from),afterTitan=numberAt(id,"C",to);
+ if(beforeTitan===null||afterTitan===null)
+  throw new RangeError("Missing source Pact titan reduction");
+ return {
+  schema:"tt2-pact-source-level-comparison-v1",
+  fromLevel:from,toLevel:to,skillPointDelta:cumulativeSP(to)-cumulativeSP(from),
+  maxConditionalGoldLog10Delta:delta("A"),
+  maxConditionalDamageLog10Delta:delta("B"),
+  titansPerStageReductionDelta:afterTitan-beforeTitan,
+  conditions:{gold:"ForbiddenContract-active",
+   damage:"RoyalContract-active",titanReduction:"either-contract-active"},
+  actualContractUptimeVerified:false,shownInGameStatsVerified:false,
+  appliedToOptimizationScore:false,predictsStageGain:false
+ };
+}
+
+/**
  * Diagnostic snapshot AFTER optimization: only the selected final skill
  * levels may be used to report the maximum conditional effect.
  */
@@ -103,6 +140,10 @@ export function resolveContractScenario(levels={},settings={}){
   nativeTickEvidence,
   baseDrain:{forbidden:baseForbiddenDrain,royal:baseRoyalDrain,
    combined:baseDrain,unit:"exported-base-mana-cost-per-second"},
+  pactSourceLevelComparison:settings?.currentLevels &&
+   Object.hasOwn(settings.currentLevels,"TerrifyingPact")?
+    compareTerrifyingPactLevels(settings.currentLevels.TerrifyingPact,
+     level.TerrifyingPact):null,
   titanReduction: {duringContracts:titanReduction,addedToDamageScore:false},
   // The numerical contribution has already been included in scoreAtLevel.
   appliedInsideSkills:eligible,addToAccountBaseline:false,

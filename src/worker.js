@@ -1,13 +1,15 @@
-import {optimizeBuild} from "./engine.js?v=20261118-investment-audit-r1";
-import {petSearchPlan,availablePets} from "./pet-scenarios.js?v=20261118-investment-audit-r1";
-import {calculateModeledScenario} from "./calculation-ledger.js?v=20261118-investment-audit-r1";
-import {selectPetPair} from "./pet-pair-search.js?v=20261118-final-w";
+import {optimizeBuild} from "./engine.js?v=20261120-log-native-r4";
+import {petSearchPlan,availablePets} from "./pet-scenarios.js?v=20261120-log-native-r4";
+import {calculateModeledScenario} from "./calculation-ledger.js?v=20261120-log-native-r4";
+import {selectPetPair} from "./pet-pair-search.js?v=20261120-log-native-r4";
 import {bestEquipmentByCategory,gearSelectionEffects,petCandidateGearWeightEnvelope,
  enumerateOwnedGearAssignments}
- from "./equipment-scenarios.js?v=20261118-investment-audit-r1";
+ from "./equipment-scenarios.js?v=20261120-log-native-r4";
 import {refineCoupledGearAndSkills,enumerateJointGearAndSkills}
- from "./joint-candidate-search.js?v=20261118-final-w";
-import {modeledCandidateUpperBound} from "./model-score-bounds.js?v=20261118-final-w";
+ from "./joint-candidate-search.js?v=20261120-log-native-r4";
+import {modeledCandidateUpperBound} from "./model-score-bounds.js?v=20261120-log-native-r4";
+import {proposeContractScenarioBuild} from "./contract-multi-scenarios.js?v=20261120-log-native-r4";
+import {rerankVisitedContractPetPairs} from "./contract-pet-rerank.js?v=20261120-log-native-r4";
 
 // Per-request cache: branch DP signatures must distinguish changes in pet,
 // equipment and the resulting Combat Techniques contribution.
@@ -50,9 +52,33 @@ self.onmessage=event=>{
    return {adjustedScore:modeledScenario.totalLog10,
     scoreUpperBound:modeledCandidateUpperBound(winning.result,modeledScenario.totalLog10),
     result:{...winning.result,modeledScenario},
-    gearSelection:winning.gearSelection,jointSearch:refined.search};
+    gearSelection:winning.gearSelection,jointSearch:refined.search,
+    context:winning.context};
+  };
+  // Optional explicit scenario comparison only for the final chosen
+  // pet/gear pair. Do NOT multiply the whole gear/pet search workload.
+  const withContractDecision=choice=>{
+   const context=choice.context||settings;
+   if(context.contractMultiScenario?.enabled!==true)return choice.result;
+   const selection=proposeContractScenarioBuild({
+    settings:context,baseline:choice.result,gearSelection:choice.gearSelection,
+    solve:opts=>optimizeBuild(opts,undefined,cache),
+    score:(result,opts,gear)=>
+     calculateModeledScenario(result,opts,gear).totalLog10
+   });
+   // On unresolved or infeasible inputs, preserve the EXACT original
+   // modeled result, including its score and existing maximum-mode choice.
+   if(selection.selection.status!=="ranked")
+    return {...choice.result,contractMultiScenario:selection.selection};
+   const winner=selection.result;
+   // The returned result uses the conservative DP objective (the contract
+   // source-only window gain never becomes an always-on skill multiplier).
+   const modeledScenario=calculateModeledScenario(winner,{
+    ...context,assumeContractsAtMax:false},choice.gearSelection);
+   return {...winner,modeledScenario,contractMultiScenario:selection.selection};
   };
   if(type==="optimize-pet-scenarios"){
+   const visitedPetPairs=[];
    const initialGear=gearFor(settings);
    const envelope=petCandidateGearWeightEnvelope(settings.accountProfile,settings);
    const screening={...settings,
@@ -82,14 +108,38 @@ self.onmessage=event=>{
     const chosen=selectPetPair(damage,gold,(damagePet,goldPet)=>{
      const context={...settings,selectedDamagePet:damagePet,
       selectedGoldPet:goldPet};
-     return {damagePet,goldPet,...evaluateJoint(context),
+     const candidate={damagePet,goldPet,...evaluateJoint(context),
       damageName:damage.find(x=>x.id===damagePet)?.name||"",
       goldName:gold.find(x=>x.id===goldPet)?.name||""};
+     visitedPetPairs.push(candidate);
+     return candidate;
     },{maxPasses:3,exhaustiveShortlist:true,maxCandidatesPerSlot:6,
      entireEligibleRoster:fullySearched,
      onProgress:progress=>self.postMessage({progress})});
     if(!chosen.best)throw new Error("No pet scenario available");
-    const result={...chosen.best.result,
+    // A different pet pair can win under the explicitly declared contract
+    // window. Examine EVERY already-visited pair cheaply, then fully rerun
+    // at most three pair/gear/SP finalists. Defaults add zero extra work.
+    const rerank=rerankVisitedContractPetPairs(visitedPetPairs,settings,{
+     original:chosen.best,maxRefinements:3,resolve:withContractDecision
+    });
+    const contractReranked=rerank.status==="ranked-visited-shortlist";
+    const finalChoice=contractReranked?rerank.selected:chosen.best;
+    const finalModeledResult=contractReranked?
+     rerank.selectedResult:withContractDecision(chosen.best);
+    const selectedPairChanged=finalChoice!==chosen.best;
+    const rerankSummary=contractReranked?{
+     schema:rerank.schema,status:rerank.status,
+     visitedPairs:rerank.visitedPairs,shortlistedPairs:rerank.shortlistedPairs,
+     selectedPairChanged,compared:rerank.compared,
+     scenarioRankingCertified:false,globallyOptimal:false,
+     originalPetSearchBoundsNotApplicable:true,
+     unexploredAlternativesRemain:true,
+     accountForOtherGearChoices:false,actualUptimeVerified:false,
+     predictsStages:false
+    }: {status:rerank.status,reason:rerank.reason,
+     selectedPairChanged:false};
+    const result={...finalModeledResult,
      petSearch:{
       converged:chosen.converged,passes:chosen.passes,
       uniqueEvaluations:chosen.uniqueEvaluations,
@@ -104,27 +154,45 @@ self.onmessage=event=>{
       manualSlots,
       candidateCount:chosen.candidateCount,
       pairBudget:plan.pairBudget,
-      jointSearch:chosen.best.jointSearch,
-      comparisonBounds:chosen.comparisonBounds,
+      jointSearch:finalChoice.jointSearch,
+      comparisonBounds:contractReranked?{
+       // The original additive score bounds do NOT bound the new
+       // weighted scenario objective, even for the same visited pets.
+       compared:rerank.shortlistedPairs,
+       certifiedWithinVisited:false,
+       certifiedForScenarioRanking:false,
+       unresolvedCompetitors:null,
+       largestPossibleChallengerGain:null,
+       winningFeasibleScore:null,winningUpperBound:null,
+       scope:"contract-scenario-shortlist-uncertified",
+       priorConservativeObjectiveBounds:chosen.comparisonBounds
+      }:chosen.comparisonBounds,
+      contractPetRerank:rerankSummary,
+      contractRerankUsesFiniteVisitedShortlist:contractReranked,
+      selectedPairAfterContractRerank:selectedPairChanged,
       fullOwnedGearCartesianPerPair:useFullGearEnumeration,
       completeOwnedPetAndGearCartesian:useFullGearEnumeration&&
        fullySearched,
       globallyOptimalAcrossPetGearSP:false
      }};
     const winningSettings={...settings,
-     selectedDamagePet:chosen.best.damagePet,
-     selectedGoldPet:chosen.best.goldPet};
+     selectedDamagePet:finalChoice.damagePet,
+     selectedGoldPet:finalChoice.goldPet};
     const equipment=bestEquipmentByCategory(settings.accountProfile,winningSettings,3);
     self.postMessage({ok:true,result,
-     selectedPets:{damage:chosen.best.damagePet,gold:chosen.best.goldPet},
-     petComparisons:{damage:chosen.damageResults,gold:chosen.goldResults},
-     petSearch:result.petSearch,equipment,gearSelection:chosen.best.gearSelection});
+     selectedPets:{damage:finalChoice.damagePet,gold:finalChoice.goldPet},
+     // The conservative one-axis pet comparisons would be misleading
+     // when the explicit contract scenario changes the winning pair.
+     petComparisons:selectedPairChanged?{damage:[],gold:[]}:
+      {damage:chosen.damageResults,gold:chosen.goldResults},
+     petSearch:result.petSearch,equipment,
+     gearSelection:finalChoice.gearSelection});
     return;
    }
   }
   const chosen=evaluateJoint(settings,true);
   const equipment=bestEquipmentByCategory(settings.accountProfile,settings,3);
-  self.postMessage({ok:true,result:{...chosen.result,
+  self.postMessage({ok:true,result:{...withContractDecision(chosen),
    jointSearch:chosen.jointSearch},
    selectedPets:{damage:settings.selectedDamagePet||null,
     gold:settings.selectedGoldPet||null},

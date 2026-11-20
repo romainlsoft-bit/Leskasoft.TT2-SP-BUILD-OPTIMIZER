@@ -8,7 +8,7 @@
  * An incomplete or contradictory export does not justify a claimed total:
  * valid nodes remain inspectable, but aggregate resource rates are unknown.
  */
-import {RESOURCE_RESEARCH_CATALOG} from "../vendor/account-research-resources.js";
+import {RESOURCE_RESEARCH_CATALOG} from "../vendor/account-research-resources.js?v=20261120-log-native-r4";
 const GEM=new Map(RESOURCE_RESEARCH_CATALOG.gemstoneLevel.map(x=>[x.id,x]));
 const SOUL=new Map(RESOURCE_RESEARCH_CATALOG.titanSouls.map(x=>[x.id,x]));
 

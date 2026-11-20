@@ -420,7 +420,8 @@ test("conflicting monument entries, mismatched seasons and invalid levels are ex
  assert.equal(resolveMonumentEvidence(wrong).entries[0].formulaStatus,"ignored-wrong-transcendence-season");
  const over=parseAccountProfile({monuments:{SeasonalArtifact8:41}});
  assert.equal(resolveMonumentEvidence(over).entries[0].formulaStatus,"ignored-missing-or-invalid-level");
- const noAge=parseAccountProfile({monuments:{SeasonalArtifact8:3}});
+ // Active in the 8.4 catalog: absence of season must remain unverified.
+ const noAge=parseAccountProfile({monuments:{SeasonalArtifact34:3}});
  assert.equal(resolveMonumentEvidence(noAge).entries[0].formulaStatus,"unknown-season-category");
  assert.equal(resolveMonumentEvidence(noAge).seasonVerified,false);
 });
@@ -521,7 +522,7 @@ test("monuments retain genuine boolean enchantment state and unknown season bloc
  const r=resolveMonumentEvidence(p,new Date("2026-11-17T00:00:00Z"));
  assert.equal(r.entries[0].enchanted,true);
  assert.equal(r.entries[0].enchantmentDeltaLog10>0,true);
- const unknown=parseAccountProfile({monuments:{SeasonalArtifact10:{level:100,enchanted:true}}});
+ const unknown=parseAccountProfile({monuments:{SeasonalArtifact34:{level:100,enchanted:true}}});
  const u=resolveMonumentEvidence(unknown);
  assert.equal(u.entries[0].formulaStatus,"unknown-season-category");
  assert.equal(u.modeled,0);

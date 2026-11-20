@@ -6,9 +6,10 @@
   "description": "Free open-source Tap Titans 2 skill tree optimizer (TT2 8.4)",
   "scripts": {
     "test": "node --test tests/*.test.js",
-    "check": "npm test",
+    "check": "npm test && npm run check:data && npm run check:modules",
     "check:data": "node scripts/verify-data.mjs",
-    "bench:22k": "node scripts/benchmark-22k.mjs --all"
+    "bench:22k": "node scripts/benchmark-22k.mjs --all",
+    "check:modules": "node scripts/verify-module-graph.mjs"
   },
   "engines": {
     "node": ">=22"

@@ -54,7 +54,7 @@ test("Skill-tree-only exports and pre-8.0 gemstone schemas stay compatible",()=>
  assert.equal(old.sections.gemstones.count,10);
  assert.equal(old.sections.mysticResearch.present,false);
  assert.equal(parseAccountProfile({gemstones:null}).sections.gemstones.present,false);
- assert.equal(PROFILE_SECTION_NAMES.length,18);
+ assert.equal(PROFILE_SECTION_NAMES.length,19);
  assert.ok(PROFILE_SECTION_NAMES.includes("heroLevels"));
 });
 test("Import is bounded and rejects unsafe keys",()=>{
@@ -146,4 +146,18 @@ test("review P2: set ownership normalizes case and whitespace, both map and obje
   MultiCast:{completed:"False"}
  }});
  assert.deepEqual(q.ownedSetIds,["DarkAngel"]);
+});
+
+
+test("TT2 8.4 Clan Technology is allowlisted but never imports private clan/player identifiers",()=>{
+ const p=parseAccountProfile({
+  clanTechnology:{Tech0:{Level:2,BonusType:"TitanSoulsPerDay",BonusAmount:"10"}},
+  clanName:"PRIVATE_CLAN",playerName:"PRIVATE_PLAYER"
+ });
+ assert.equal(p.sections.clanTechnology.present,true);
+ assert.equal(p.sections.clanTechnology.count,1);
+ assert.equal(p.sections.clanTechnology.records[0].level,"2");
+ assert.equal(p.sections.clanTechnology.records[0].bonusType,"TitanSoulsPerDay");
+ assert.equal(JSON.stringify(p).includes("PRIVATE_CLAN"),false);
+ assert.equal(JSON.stringify(p).includes("PRIVATE_PLAYER"),false);
 });

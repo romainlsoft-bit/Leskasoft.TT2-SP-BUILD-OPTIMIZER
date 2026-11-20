@@ -3,9 +3,9 @@
  * Only allowlisted mechanics fields are retained, without any identity data.
  * A present section is NOT necessarily modeled by the optimizer score.
  */
-import {HERO_CLASS_BY_ID} from "../vendor/hero-classes.js";
-import {canonicalEquipmentSetId} from "./equipment-set-aliases.js";
-import {parseFinalChanceEvidence} from "./conditional-probabilities.js?v=20261118-conditional-t";
+import {HERO_CLASS_BY_ID} from "../vendor/hero-classes.js?v=20261120-log-native-r4";
+import {canonicalEquipmentSetId} from "./equipment-set-aliases.js?v=20261120-log-native-r4";
+import {parseFinalChanceEvidence} from "./conditional-probabilities.js?v=20261120-log-native-r4";
 const SOURCE_SECTIONS=Object.freeze({
  artifacts:["artifacts","Artifacts","artifactLevels","ArtifactLevels"],
  gemstones:["gemstones","Gemstones","mysticGemstones","MysticGemstones"],
@@ -13,6 +13,10 @@ const SOURCE_SECTIONS=Object.freeze({
  titanCards:["titanCards","TitanCards","necrobearCards","NecrobearCards","titanCollection","TitanCollection"],
  forbiddenResearch:["forbiddenResearch","ForbiddenResearch","necrobearResearch","NecrobearResearch","forbiddenResearchTree","ForbiddenResearchTree"],
  titanResearch:["titanResearch","TitanResearch","titanResearchLevels","TitanResearchLevels"],
+ // New in TT2 8.4; clan-wide unlocked state is NOT the player's
+ // contributions or personal skill-tree level.
+ clanTechnology:["clanTechnology","ClanTechnology","clanTech","ClanTech",
+  "clanTechnologyNodes","ClanTechnologyNodes"],
  petLevels:["petLevels","PetLevels","pets","Pets"],
  passiveSkills:["passiveSkills","PassiveSkills"],
  monuments:["monuments","Monuments"],
@@ -249,7 +253,7 @@ export function parseAccountProfile(data){
  for(const [name,aliases] of Object.entries(SOURCE_SECTIONS)){
   const source=field(data,aliases);
   sections[name]=source.present?{present:true,...extractEntries(source.value,
-    ["mysticResearch","titanResearch","forbiddenResearch"].includes(name)?2048:MAX_ENTRIES,
+    ["mysticResearch","titanResearch","forbiddenResearch","clanTechnology"].includes(name)?2048:MAX_ENTRIES,
     ["equippedGear","equipmentInventory","equipmentHistory"].includes(name),
     name==="equipmentSets")}
    :{present:false,count:0,records:[],truncated:false};

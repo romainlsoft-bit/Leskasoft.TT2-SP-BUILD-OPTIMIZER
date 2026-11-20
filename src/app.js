@@ -1,12 +1,13 @@
-import {SKILLS,SKILL_IDS,BRANCH_NAMES,PRESETS,DAMAGE_TYPES,GOLD_TYPES,GAME_VERSION,parseExport,exportBuild,spentPoints,ownedSetFlags} from "./engine.js?v=20261118-investment-audit-r1";
-import { t, localizeDocument, SUPPORTED_LANGUAGES } from "./i18n.js?v=20261118-investment-audit-r1";
-import { readClipboardText } from "./clipboard.js";
-import { profileCoverage } from "./account-profile.js?v=20261118-investment-audit-r1";
-import {petLevelEvidence} from "./account-pet-levels.js";
-import {resolveGemstoneEvidence} from "./account-gemstones.js?v=20261118-final-w";
-import {formatLogMultiplier} from "./account-power.js?v=20261118-investment-audit-r1";
-import {availablePets,recommendPets} from "./pet-scenarios.js?v=20261118-investment-audit-r1";
-import {bestEquipmentByCategory,EQUIPMENT_CATEGORIES} from "./equipment-scenarios.js?v=20261118-investment-audit-r1";
+import {SKILLS,SKILL_IDS,BRANCH_NAMES,PRESETS,DAMAGE_TYPES,GOLD_TYPES,GAME_VERSION,parseExport,exportBuild,spentPoints,ownedSetFlags} from "./engine.js?v=20261120-log-native-r4";
+import { t, localizeDocument, SUPPORTED_LANGUAGES } from "./i18n.js?v=20261120-log-native-r4";
+import { readClipboardText } from "./clipboard.js?v=20261120-log-native-r4";
+import {resetAccountDependentOptions} from "./import-session-reset.js?v=20261120-log-native-r4";
+import { profileCoverage } from "./account-profile.js?v=20261120-log-native-r4";
+import {petLevelEvidence} from "./account-pet-levels.js?v=20261120-log-native-r4";
+import {resolveGemstoneEvidence} from "./account-gemstones.js?v=20261120-log-native-r4";
+import {formatLogMultiplier} from "./account-power.js?v=20261120-log-native-r4";
+import {availablePets,recommendPets} from "./pet-scenarios.js?v=20261120-log-native-r4";
+import {bestEquipmentByCategory,EQUIPMENT_CATEGORIES} from "./equipment-scenarios.js?v=20261120-log-native-r4";
 const $=id=>document.getElementById(id);
 let locale="en";
 let lastStatus={message:"Import your account or enter your skill points to begin.",type:"",params:{}};
@@ -60,7 +61,8 @@ function engineError(message){
 }
 const iconMap={"Clan Ship":"⛵","Pet":"🐾","Shadow Clone":"◈","Heavenly Strike":"⚡","Dagger":"🗡","Gold Gun":"✦"};
 const branchColors={Knight:"#d77879",Summoner:"#edab66",Warlord:"#e7ca75",Sorcerer:"#86adf7",Rogue:"#7ad0a0",Alchemist:"#b595ed"};
-const fresh=()=>({damage:"Clan Ship",gold:"Fairy",skillPoints:0,maxStage:0,playstyle:"balanced",qol:"recommended",goldWeight:.7,craftingPower:1,timeToKill:8,sClone:30,sets:{},currentLevels:{},minimums:{},excluded:[],preserveCurrent:false,assumeHaystActive:false,assumeSnapActive:false,assumeContractsAtMax:false,astralActivations:0,mode:"power",accountProfile:null,selectedDamagePet:null,selectedGoldPet:null,comparePetScenarios:true,selectedEquipment:{},protectUnmodeledSkills:true});
+const fresh=()=>({damage:"Clan Ship",gold:"Fairy",skillPoints:0,maxStage:0,playstyle:"balanced",qol:"recommended",goldWeight:.7,craftingPower:1,timeToKill:8,sClone:30,sets:{},currentLevels:{},minimums:{},excluded:[],preserveCurrent:false,assumeHaystActive:false,assumeSnapActive:false,assumeContractsAtMax:false,astralActivations:0,mode:"power",accountProfile:null,selectedDamagePet:null,selectedGoldPet:null,comparePetScenarios:true,selectedEquipment:{},protectUnmodeledSkills:true,contractTimeline:null,contractMultiScenario:null,
+ importedVersion:null});
 let state=fresh(),lastResult=null,lastScenarios=[],lastEquipment={},
  lastGearSelection=null,lastResolvedPets=null,lastRunContext=null,
  worker=null,calculationRevision=0;
@@ -125,6 +127,7 @@ function renderAccountProfile(){
  if(!profile){el.hidden=true;return;}
  const labels={
   artifacts:"Artifacts",gemstones:"Mystic Gemstones",mysticResearch:"Mystic Research",
+  clanTechnology:"Clan Technology",
   titanCards:"Titan cards",forbiddenResearch:"Forbidden Research",titanResearch:"Titan Research",
   petLevels:"Pets",passiveSkills:"Passive skills",monuments:"Monuments",
   seasonArtifacts:"Seasonal artifacts",heroWeapons:"Hero weapons",clanScrolls:"Clan Scrolls",
@@ -137,6 +140,9 @@ function renderAccountProfile(){
  el.textContent=names.length
   ?tr("Detected account categories: {categories}. Some effects are modeled; other imported categories remain diagnostic.",{categories:names.join(" · ")})
   :tr("Skill-tree-only export: no additional account categories detected.");
+ if(String(state.importedVersion||"").startsWith("8.4.1"))
+  el.textContent+=" "+tr(
+   "This account export reports TT2 8.4.1. The mathematical catalog is verified against 8.4.0; compatibility with later live data has not been independently confirmed.");
  const petData=petLevelEvidence(profile);
  if(petData.rejected.length){
   el.textContent+=" "+tr("Pet import warning: {count} invalid, conflicting or unknown pet records were excluded from calculations.",{count:numberText(petData.rejected.length)});
@@ -295,6 +301,15 @@ function fillInputs(){
  $("hayst-active").checked=state.assumeHaystActive===true;
  $("snap-active").checked=state.assumeSnapActive===true;
  $("contracts-at-max").checked=state.assumeContractsAtMax===true;
+ const simulation=state.contractTimeline;
+ $("timeline-enabled").checked=simulation?.enabled===true;
+ $("scenario-enabled").checked=state.contractMultiScenario?.enabled===true;
+ $("scenario-active-fraction").value=state.contractMultiScenario?.activeFraction??"";
+ $("scenario-pact-max").checked=state.contractMultiScenario?.pactAtMaxDuringFundedTicks===true;
+ for(const [key,id] of [["startingMana","timeline-starting-mana"],["manaCapacity","timeline-mana-capacity"],["passiveRegenPerSecond","timeline-passive-regen"],["durationSeconds","timeline-duration"]])
+  $(id).value=simulation?.[key]??"";
+ for(const [key,id] of [["ForbiddenContract","timeline-free-forbidden"],["RoyalContract","timeline-free-royal"]])
+  $(id).value=simulation?.freeTicks?.[key]??"";
  $("astral-activations").value=state.astralActivations??0;
  renderChoices();renderEditor($("skill-search").value);
 }
@@ -312,13 +327,14 @@ function applyPreset(id){
 }
 function importRaw(raw){
  const parsed=parseExport(raw);
+ resetAccountDependentOptions(state);
  state.currentLevels=parsed.levels;
+ state.importedVersion=parsed.importedVersion;
  if(parsed.skillPoints!==null&&parsed.skillPoints>0)state.skillPoints=parsed.skillPoints;
  else if(!state.skillPoints)state.skillPoints=spentPoints(parsed.levels);
  state.maxStage=parsed.maxStage;state.craftingPower=parsed.craftingPower;state.sets=parsed.sets;
  state.accountProfile=parsed.profile;
- state.selectedDamagePet=null;state.selectedGoldPet=null;state.comparePetScenarios=true;
- state.selectedEquipment={};
+
  state.sClone=state.sets.tFA?35:30;
  if(parsed.damage)state.damage=parsed.damage;
  if(parsed.gold)state.gold=parsed.gold;
@@ -375,6 +391,22 @@ function readInputs(){
  state.assumeSnapActive=$("snap-active").checked;
  state.assumeContractsAtMax=$("contracts-at-max").checked;
  state.astralActivations=Number($("astral-activations").value);
+ state.contractMultiScenario=$("scenario-enabled").checked?{
+  enabled:true,
+  activeFraction:$("scenario-active-fraction").value,
+  pactAtMaxDuringFundedTicks:$("scenario-pact-max").checked
+ }:null;
+ state.contractTimeline=$("timeline-enabled").checked?{
+  enabled:true,
+  startingMana:$("timeline-starting-mana").value,
+  manaCapacity:$("timeline-mana-capacity").value,
+  passiveRegenPerSecond:$("timeline-passive-regen").value,
+  durationSeconds:$("timeline-duration").value,
+  freeTicks:{
+   ForbiddenContract:$("timeline-free-forbidden").value,
+   RoyalContract:$("timeline-free-royal").value
+  }
+ }:null;
  state.mode="power";
  persist();
 }
@@ -392,7 +424,7 @@ function optimize(){
  status("Checking prerequisites and calculating the best allocation for the chosen scoring model…");
  const revision=++calculationRevision;
  const requestContext=structuredClone(state);
- const running=new Worker(new URL("./worker.js?v=20261118-investment-audit-r1",import.meta.url),{type:"module"});
+ const running=new Worker(new URL("./worker.js?v=20261120-log-native-r4",import.meta.url),{type:"module"});
  worker=running;
  running.onmessage=event=>{
    if(revision!==calculationRevision||worker!==running)return;
@@ -616,6 +648,86 @@ function renderAccountIntegration(result){
    panel.textContent+=" "+tr(
     "Contracts are present, but their full bonuses are excluded because maximum active ramp is not assumed.");
  }
+ const timeline=result.manaEvidence?.contractTimeline;
+ if(timeline?.status==="simulated"){
+  panel.textContent+=" "+tr(
+   "Contract mana what-if: {ticks} funded ticks within {window}s (first unfunded: {failed}). Only entered passive regeneration and free ticks were used. This is NOT measured uptime and does not affect the build score.",
+   {ticks:numberText(timeline.fundedTicks),
+    window:numberText(timeline.horizonSeconds),
+    failed:timeline.firstUnfundedSecond===null?
+     tr("none within simulated window"):numberText(timeline.firstUnfundedSecond)});
+ }else if(timeline?.status==="missing-or-invalid-inputs"){
+  panel.textContent+=" "+tr(
+   "Contract mana what-if was not run: provide valid mana, regeneration, duration and explicit free-tick counts for enabled contracts.");
+ }
+ const petContractSearch=result.petSearch?.contractPetRerank;
+ if(petContractSearch?.status==="ranked-visited-shortlist")
+  panel.textContent+=" "+tr(
+   "Contract-aware pet search: {visited} visited pairs screened under your explicit contract scenario; {refined} finalists reoptimized. This is a bounded shortlist, not a global optimum.",
+   {visited:numberText(petContractSearch.visitedPairs),
+    refined:numberText(petContractSearch.shortlistedPairs)});
+ const decision=result.contractMultiScenario;
+ if(decision?.status==="ranked"){
+  const chosen=decision.rows.find(x=>x.id===decision.winnerId);
+  panel.textContent+=" "+tr(
+   "Contract scenario comparison: {count} SP allocations considered; selected {chosen} using your declared active fraction {fraction}. This is a hypothetical log-score ranking, not predicted stages or a global optimum.",
+   {count:numberText(decision.candidatesChecked??decision.rows.length),
+    chosen:decision.winnerId!=="conservative"?tr("contract-investment candidate"):
+     tr("conservative candidate"),
+    fraction:numberText(decision.scenarioWeights.active)});
+  if(decision.requiresNewGearCTRefinement)
+   panel.textContent+=" "+tr(
+    "Contract alternative was not applied: Combat Techniques changed and the equipment interaction must be recalculated.");
+  if(!decision.appliedToRecommendation)
+   panel.textContent+=" "+tr(
+    "No scenario-based replacement was applied to the current recommended allocation.");
+ }else if(decision?.status==="unresolved"||
+   decision?.status==="only-conservative-feasible"){
+  panel.textContent+=" "+tr(
+   "Contract scenario comparison needs valid, explicitly entered assumptions. The original SP recommendation is preserved.");
+ }
+ const audit=result.investmentAudit;
+  if(audit?.protectedSp>0){
+   const skills=audit.protectedEntries.slice(0,5).map(row=>
+    row.name+" "+row.protectedLevel+" ("+numberText(row.protectedSp)+" SP)").join(", ");
+   panel.textContent+=" "+tr("Protected imported skills reserve {sp} SP ({percent}%): {skills}. Those SP were not freely re-optimized.",{
+    sp:numberText(audit.protectedSp),percent:numberText(Math.round(audit.protectedPct*10)/10),skills});
+  }
+  if(audit?.tacticalInsight?.level>0&&
+     audit.tacticalInsight.sourceWeightValidatedAgainstNative===false)
+   panel.textContent+=" "+tr("Tactical Insight uses unverified hero-skill reduction weights. Warlord allocation should be checked against in-game Stats.");
+  const sourceCoverage=result.accountSourceCoverage;
+ if(sourceCoverage?.seasonCalendar?.estimatedSeasonEnded)
+  panel.textContent+=" "+tr(
+   "The season-13 export may now be obsolete: a community calendar lists November 24, 2026 as the last day. Old-season monuments and Transcendent pets are excluded conservatively from November 25 UTC; import a current game export. This end date is not confirmed by Game Hive.");
+ if(sourceCoverage){
+  const system=id=>sourceCoverage.systems.find(x=>x.id===id);
+  const desc=id=>{
+   const x=system(id);
+   return [x?.importedRecords??0,x?.fixedScoreRows??0,x?.unresolved??0]
+    .map(numberText).join("/");
+  };
+  panel.textContent+=" "+tr(
+   "Account calculation sources (imported / directly credited / unresolved): Titan research {titan}; Gemstone research {gemResearch}; gems {gems}; artifacts {artifacts}; monuments {monuments}. Titan Souls and extra Gemstone levels are progression resources, not automatically damage.",
+   {titan:desc("titanResearch"),gemResearch:desc("gemstoneResearch"),
+    gems:desc("gemstones"),artifacts:desc("artifacts"),
+    monuments:desc("monuments")});
+  panel.textContent+=" "+tr(
+   sourceCoverage.clanTechnology?.present?
+    "Clan Technology is recognized as a clan-wide system, but its exported effects cannot yet be independently verified or added to the SP score.":"Clan Technology is not included in this export; its clan-wide effects remain unknown.");
+ }
+ const monumentEnchant=result.accountIntegration?.monuments;
+ if(monumentEnchant?.omittedEnchantmentBoosts>0&&
+    Number.isFinite(monumentEnchant.hypotheticalEnchantmentDeltaLog10))
+  panel.textContent+=" "+tr(
+   "Monument enchantment what-if: +{delta} log10 versus the source-based conservative pool under an unverified stacking assumption. This bonus is NOT included in the SP score.",{
+    delta:monumentEnchant.hypotheticalEnchantmentDeltaLog10.toFixed(2)});
+ const seasonDay=result.monumentSeasonDay;
+ if(seasonDay?.totalEntries>0)
+  panel.textContent+=" "+tr(
+   "Season-day monuments: {count} source effects identified, {calculable} illustrative compounded examples; none is silently credited as guaranteed damage. Season changes reset monuments.",{
+    count:numberText(seasonDay.totalEntries),
+    calculable:numberText(seasonDay.illustrableEntries)});
  const modeled=result.modeledScenario;
  if(modeled){
   panel.textContent+=" "+tr(
@@ -641,16 +753,6 @@ function renderAccountIntegration(result){
   else if(limitations.lightningStrikeSourceOnly)
    panel.textContent+=" "+tr("Lightning Strike source-only estimate uses an explicitly supplied hit count; actual proc rate remains unverified.");
  }
- const audit=result.investmentAudit;
- if(audit?.protectedSp>0){
-  const skills=audit.protectedEntries.slice(0,5).map(row=>
-    row.name+" "+row.protectedLevel+" ("+numberText(row.protectedSp)+" SP)").join(", ");
-  panel.textContent+=" "+tr("Protected imported skills reserve {sp} SP ({percent}%): {skills}. Those SP were not freely re-optimized.",{
-   sp:numberText(audit.protectedSp),percent:numberText(Math.round(audit.protectedPct*10)/10),skills});
- }
- if(audit?.tacticalInsight?.level>0&&
-    audit.tacticalInsight.sourceWeightValidatedAgainstNative===false)
-  panel.textContent+=" "+tr("Tactical Insight uses unverified hero-skill reduction weights. Warlord allocation should be checked against in-game Stats.");
  if(result.petSearch?.shortlistOnly)
   panel.textContent+=" "+tr(
    "Pet comparison may omit candidates in large owned rosters; compare only the evaluated setups.");

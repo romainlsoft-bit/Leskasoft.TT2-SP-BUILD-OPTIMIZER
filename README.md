@@ -103,3 +103,20 @@ These changes do **not** establish a guaranteed in-game improvement or close iss
 ## SP budget regression fix (November 2026)
 
 The retired score-per-SP ratio setting could allocate just a handful of points even when a player owned more than 22,000 SP. The calculator now always maximizes **total modeled score within the entered budget**; old persisted/share-linked ratio settings cannot reactivate the previous behavior. The 22k+ Pet/Fairy benchmark is available with `node scripts/benchmark-22k.mjs 22642 --all`. This does not resolve the separate validation of in-game stages tracked in issue #9.
+
+## Verify locally without GitHub Actions
+
+GitHub Actions was deliberately removed from the development branch to avoid CI credits. On a Windows machine with Node.js 22+ and npm, run the following from the repository root:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\Verify-TT2-Offline.ps1
+```
+
+Optionally include the full 18-build benchmark (it may be CPU-intensive):
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\Verify-TT2-Offline.ps1 -Benchmark -SkillPoints 22600
+```
+
+The script invokes **local** `npm test`, `npm run check:data`, and `npm run check:modules` (complete ESM import graph, release versions and syntax checks); the benchmark runs only with `-Benchmark`. For the module graph alone, run `npm run check:modules`. It never submits GitHub Actions jobs, merges a PR or deploys a website. It does not replace gameplay calibration, especially for live contracts and season reset. See [module-graph release gate](docs/ESM_MODULE_GRAPH.md).
+

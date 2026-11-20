@@ -3,7 +3,8 @@
  * not an observed number of spell casts or Mana Siphon procs per second.
  * No mana regeneration/contract ramp/uptime is invented.
  */
-import {skillInfo} from "../vendor/skills.js";
+import {skillInfo} from "../vendor/skills.js?v=20261120-log-native-r4";
+import {simulateContractTimeline} from "./contract-timeline.js?v=20261120-log-native-r4";
 const MANA_SKILLS=Object.freeze({
  MPCapacityBoost:["ManaPoolCap","AllManaSourceMult"],
  ManaStealSkillBoost:["ManaTapRegenAmount","ManaStealChance"],
@@ -78,6 +79,8 @@ export function resolveManaEvidence(settings={},levels={},spellScenario=null,con
   null:manaRegen-drain;
  const initialContractDrainCoveredByPassiveRegen=
   initialRegenMinusContractDrain===null?null:initialRegenMinusContractDrain>=0;
+ // A user-configured, deterministic what-if: never folded into the score.
+ const contractTimeline=simulateContractTimeline(levels,settings?.contractTimeline);
  const notes=[];
  if(manaPool===null)notes.push("exported-final-mana-pool-missing");
  if(manaRegen===null)notes.push("exported-final-mana-regen-missing");
@@ -104,6 +107,9 @@ export function resolveManaEvidence(settings={},levels={},spellScenario=null,con
   // The above comparison is a single simultaneous cast budget, NOT the
   // actual sustainable number of spells; regeneration and recasts differ.
   independentManaSourceEffectsNotAddedToExportedStats:true,
-  simulatedCastTimeline:false,actualUptimeVerified:false,
+  contractTimeline,
+  simulatedContractTimeline:contractTimeline.status==="simulated",
+  simulatedCastTimeline:false, // Contract ticks do not simulate spell casts.
+  actualUptimeVerified:false,
   sustainedContractManaVerified:false,notes,complete:false};
 }

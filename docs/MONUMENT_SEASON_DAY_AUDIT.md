@@ -1,0 +1,7 @@
+## Source-only per-season-day diagnostics
+
+Game Hive [DevUpdate #109](https://gamehive.com/blog/devupdate-109-shepherd-in-the-winter/) identifies Freemana's Hot Springs as **All Damage Per Season Day** and explicitly confirms its effect grows each season day. The pinned TT2 8.4 source identifies the exact bonus type and monument level, season 13 begins 12 August 2026, and the current accumulated days are derived from the exported season.
+
+`monumentSeasonDayEvidence` audits the four known 'PerSeasonDay' monument primaries without making up a numerical stacking rule. For each valid current-season item it shows the known base `log10(effectPerDay)` and an **explicitly hypothetical** day-compounded illustration `days * log10(effectPerDay)`. This is NOT included in the account or skill score. Converting those illustrated magnitudes into a guaranteed actual multiplier requires a native bonus application verification. The output also notes which damage routes can use All Damage and which guarantee Crit Damage (Heavenly Strike). Jackpot Gold Per Season Day remains unrouted until its conversion is validated.
+
+The report is especially important shortly before season end because ignoring these confirmed-but-not-integrated effects can make comparisons across different damage builds inaccurate. Do not claim the output predicts stages or that any season-13 value persists after the season ends.
