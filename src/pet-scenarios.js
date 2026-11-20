@@ -4,17 +4,17 @@
  * We rank each slot separately and do not build a 3x3 Cartesian product.
  * Scores are log10 proxies, not predictions of stages gained.
  */
-import {PETS} from "../vendor/pets.js?v=20261120-math-safety-r3";
-import {TRANSCENDENT_PETS} from "../vendor/transcendent-pets.js?v=20261120-math-safety-r3";
+import {PETS} from "../vendor/pets.js?v=20261120-log-native-r4";
+import {TRANSCENDENT_PETS} from "../vendor/transcendent-pets.js?v=20261120-log-native-r4";
 
 export const ALL_PETS=Object.freeze({...PETS,...TRANSCENDENT_PETS});
-import {skillInfo} from "../vendor/skills.js?v=20261120-math-safety-r3";
-import {equipmentEffectReduction} from "./equipment-reductions.js?v=20261120-math-safety-r3";
-import {EQUIPMENT_SET_CATALOG} from "../vendor/account-catalog.js?v=20261120-math-safety-r3";
-import {petTier,petArtifactAmplifiers,logPassivePetMultiplier,verifiedEquipmentPetAmplifierTarget} from "./pet-amplifiers.js?v=20261120-math-safety-r3";
-import {petLevelEvidence} from "./account-pet-levels.js?v=20261120-math-safety-r3";
-import {resolveTranscendenceAge} from "./account-temporal.js?v=20261120-math-safety-r3";
-export {petTier,petArtifactAmplifiers,logPassivePetMultiplier,verifiedEquipmentPetAmplifierTarget} from "./pet-amplifiers.js?v=20261120-math-safety-r3";
+import {skillInfo} from "../vendor/skills.js?v=20261120-log-native-r4";
+import {equipmentEffectReduction} from "./equipment-reductions.js?v=20261120-log-native-r4";
+import {EQUIPMENT_SET_CATALOG} from "../vendor/account-catalog.js?v=20261120-log-native-r4";
+import {petTier,petArtifactAmplifiers,logPassivePetMultiplier,verifiedEquipmentPetAmplifierTarget} from "./pet-amplifiers.js?v=20261120-log-native-r4";
+import {petLevelEvidence} from "./account-pet-levels.js?v=20261120-log-native-r4";
+import {resolveTranscendenceAge} from "./account-temporal.js?v=20261120-log-native-r4";
+export {petTier,petArtifactAmplifiers,logPassivePetMultiplier,verifiedEquipmentPetAmplifierTarget} from "./pet-amplifiers.js?v=20261120-log-native-r4";
 const finite=v=>{const n=Number(v);return Number.isFinite(n)?n:0;};
 // Official Game Hive DevLog #231: only these 10 Transcendent pets
 // belong to season 13, not all 15 historical pets in the CSV.

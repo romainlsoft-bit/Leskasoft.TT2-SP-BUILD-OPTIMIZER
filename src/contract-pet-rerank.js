@@ -11,7 +11,7 @@
  * over all owned gear/pets or all alternative SP minima. No score bounds
  * from the original additive objective can certify this new ranking.
  */
-import {rankContractCandidates} from "./contract-multi-scenarios.js?v=20261120-math-safety-r3";
+import {rankContractCandidates} from "./contract-multi-scenarios.js?v=20261120-log-native-r4";
 
 const finite=x=>typeof x==="number"&&Number.isFinite(x);
 const invalid=(status,reason)=>({

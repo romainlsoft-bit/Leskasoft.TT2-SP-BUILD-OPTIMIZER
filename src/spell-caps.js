@@ -1,5 +1,5 @@
-import {skillInfo} from "../vendor/skills.js?v=20261120-math-safety-r3";
-import {ACTIVE_SPELL_CAPS} from "../vendor/active-spell-caps.js?v=20261120-math-safety-r3";
+import {skillInfo} from "../vendor/skills.js?v=20261120-log-native-r4";
+import {ACTIVE_SPELL_CAPS} from "../vendor/active-spell-caps.js?v=20261120-log-native-r4";
 const SPELLS_BY_SKILL={
  TwilightBell:["BurstDamage","TwilightFairy"],
  SummonerAutoTap:["DualPet","TapBoost"],

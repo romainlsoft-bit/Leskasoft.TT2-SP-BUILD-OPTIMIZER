@@ -50,3 +50,7 @@ puis le benchmark seulement avec `-Benchmark`.
 
 Tous les GitHub Actions du dépôt avaient déjà été supprimés ; ce lot
 n'en recrée aucun. Aucun déploiement ni fusion.
+
+## Logarithmic numerical update (r4)
+
+After the numerical accuracy work, the active release token is now `20261120-log-native-r4` across all browser JavaScript imports and four locale pages. The historical `unified-graph-r2` line above describes the initial ESM graph normalization and is not the latest release.

@@ -203,8 +203,10 @@ export function calculatePermanentArtifactEffects(profile,catalog){
   // Source record IDs are canonicalized and counted once. This alone
   // cannot prove completeness when the input is truncated or has unknown IDs.
   ownedCountVerifiable:!truncated&&unknown.length===0,
-  magnifier:{owned:group.has("Artifact80"),factor:magnifier.factor,status:magnifier.status},
-  treasure:{owned:group.has("Artifact81"),factor:treasure.factor,status:treasure.status},
+  magnifier:{owned:group.has("Artifact80"),factor:magnifier.factor,
+   log10:magnifier.log10,status:magnifier.status},
+  treasure:{owned:group.has("Artifact81"),factor:treasure.factor,
+   log10:treasure.log10,status:treasure.status},
   recognized:entries.length,
   computed:entries.filter(x=>x.log10!==null).length,
   scored:entries.filter(x=>x.appliedToScore).length,

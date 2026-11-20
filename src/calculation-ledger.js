@@ -14,8 +14,8 @@
  * Do not add another fixedAccountScore here, nor multiply these values by
  * account Gemstone levels. Both would double-count existing contributions.
  */
-import {petScenarioScore,petScenarioEvidence,availablePets} from "./pet-scenarios.js?v=20261120-math-safety-r3";
-import {resolveConditionalProbabilityEvidence} from "./conditional-probabilities.js?v=20261120-math-safety-r3";
+import {petScenarioScore,petScenarioEvidence,availablePets} from "./pet-scenarios.js?v=20261120-log-native-r4";
+import {resolveConditionalProbabilityEvidence} from "./conditional-probabilities.js?v=20261120-log-native-r4";
 
 function finite(value,label){
  if(typeof value!=="number"||!Number.isFinite(value))

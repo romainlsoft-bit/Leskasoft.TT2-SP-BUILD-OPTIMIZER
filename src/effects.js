@@ -3,15 +3,15 @@
  * This is a damage/gold proxy, not a model of real farming speed or all
  * conditional cross-skill interactions. See docs/MATH_AUDIT.md.
  */
-import { skillInfo } from "../vendor/skills.js?v=20261120-math-safety-r3";
-import { reductions } from "../vendor/reductions.js?v=20261120-math-safety-r3";
-import { spellInfo, spell_reductions } from "../vendor/spells.js?v=20261120-math-safety-r3";
-import {spellTableIndex} from "./spell-caps.js?v=20261120-math-safety-r3";
-import {spellCapGainEligible} from "./spell-scenarios.js?v=20261120-math-safety-r3";
-import {lightningStrikeSkillScore} from "./lightning-strike-evidence.js?v=20261120-math-safety-r3";
-import {petCombatTechniquesIncrement,petEquipmentCombatTechniquesIncrement} from "./pet-scenarios.js?v=20261120-math-safety-r3";
-import {skillTreeSetScore} from "./skill-tree-set-effects.js?v=20261120-math-safety-r3";
-import {contractSkillScore} from "./contract-scenarios.js?v=20261120-math-safety-r3";
+import { skillInfo } from "../vendor/skills.js?v=20261120-log-native-r4";
+import { reductions } from "../vendor/reductions.js?v=20261120-log-native-r4";
+import { spellInfo, spell_reductions } from "../vendor/spells.js?v=20261120-log-native-r4";
+import {spellTableIndex} from "./spell-caps.js?v=20261120-log-native-r4";
+import {spellCapGainEligible} from "./spell-scenarios.js?v=20261120-log-native-r4";
+import {lightningStrikeSkillScore} from "./lightning-strike-evidence.js?v=20261120-log-native-r4";
+import {petCombatTechniquesIncrement,petEquipmentCombatTechniquesIncrement} from "./pet-scenarios.js?v=20261120-log-native-r4";
+import {skillTreeSetScore} from "./skill-tree-set-effects.js?v=20261120-log-native-r4";
+import {contractSkillScore} from "./contract-scenarios.js?v=20261120-log-native-r4";
 
 const num=(v,fallback=0)=>{ const x=Number(v); return Number.isFinite(x)?x:fallback; };
 const lg=v=>Math.log10(num(v)>0?num(v):1);

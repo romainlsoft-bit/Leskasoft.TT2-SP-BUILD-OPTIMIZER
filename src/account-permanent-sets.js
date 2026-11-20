@@ -15,9 +15,9 @@
  * A missing CP permits only an identified baseline LOWER BOUND at CP=1.
  * This must never be called the user's exact bonus or a game-stage estimate.
  */
-import {EQUIPMENT_SET_CATALOG} from "../vendor/account-catalog.js?v=20261120-math-safety-r3";
-import {resolveUniqueOwnership} from "./account-unique.js?v=20261120-math-safety-r3";
-import {positiveLog10} from "./account-artifacts.js?v=20261120-math-safety-r3";
+import {EQUIPMENT_SET_CATALOG} from "../vendor/account-catalog.js?v=20261120-log-native-r4";
+import {resolveUniqueOwnership} from "./account-unique.js?v=20261120-log-native-r4";
+import {positiveLog10} from "./account-artifacts.js?v=20261120-log-native-r4";
 
 const DIRECT=new Set([
  "AllDamage","BossDamage","GoldAll","PetDamage","FairyGold",
