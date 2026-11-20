@@ -118,5 +118,5 @@ Optionally include the full 18-build benchmark (it may be CPU-intensive):
 powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\Verify-TT2-Offline.ps1 -Benchmark -SkillPoints 22600
 ```
 
-The script only invokes **local** `npm test`, `npm run check:data`, and optionally the local benchmark. It never submits GitHub Actions jobs, merges a PR or deploys a website. It does not replace gameplay calibration, especially for live contracts and season reset.
+The script invokes **local** `npm test`, `npm run check:data`, and `npm run check:modules` (complete ESM import graph, release versions and syntax checks); the benchmark runs only with `-Benchmark`. For the module graph alone, run `npm run check:modules`. It never submits GitHub Actions jobs, merges a PR or deploys a website. It does not replace gameplay calibration, especially for live contracts and season reset. See [module-graph release gate](docs/ESM_MODULE_GRAPH.md).
 
