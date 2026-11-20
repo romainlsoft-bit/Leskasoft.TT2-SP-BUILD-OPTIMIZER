@@ -9,3 +9,7 @@ The scorer remains `base modeled log10 + user's declared fraction * source 1Hz w
 **No global optimality guarantee.** A pair not shortlisted for full SP search might have been better after a different contract investment; gear alternatives within each pair also were not explored under the new objective. Existing upper bounds and comparative charts from the conservative objective cannot be repurposed as certification. The diagnostic exposes `scenarioRankingCertified:false`, `originalPetSearchBoundsNotApplicable:true`, and visited/shortlisted pair counts; no stage forecast or measured uptime.
 
 Performance: at most three full alternative-comparison runs in the **entire request**, not for every gear in every pet pair. The default mode incurs no scenario rerank cost. Integration and unit tests include pair changes, selected pets/ledger synchronization, deterministic ties, error fallbacks and no invented probabilities.
+
+## Certifying the displayed ranking
+
+The old `rankVisitedCandidateBounds` certificate applies **only** to the original conservative additive objective. When the contract-aware pet-pair rerank executes, it is nested under `priorConservativeObjectiveBounds`; the active comparison reports `certifiedWithinVisited:false`, `winningFeasibleScore:null`, `winningUpperBound:null`, `scenarioRankingCertified:false`. This prevents stale bounds from being passed off as evidence of an optimum for the new weighted scenario. The conservative-only UI path remains unchanged.

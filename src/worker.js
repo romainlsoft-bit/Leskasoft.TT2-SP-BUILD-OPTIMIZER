@@ -155,11 +155,18 @@ self.onmessage=event=>{
       candidateCount:chosen.candidateCount,
       pairBudget:plan.pairBudget,
       jointSearch:finalChoice.jointSearch,
-      comparisonBounds:contractReranked?
-       {...chosen.comparisonBounds,
-        scope:"prior-conservative-proxy-only",
-        certifiedForScenarioRanking:false}:
-       chosen.comparisonBounds,
+      comparisonBounds:contractReranked?{
+       // The original additive score bounds do NOT bound the new
+       // weighted scenario objective, even for the same visited pets.
+       compared:rerank.shortlistedPairs,
+       certifiedWithinVisited:false,
+       certifiedForScenarioRanking:false,
+       unresolvedCompetitors:null,
+       largestPossibleChallengerGain:null,
+       winningFeasibleScore:null,winningUpperBound:null,
+       scope:"contract-scenario-shortlist-uncertified",
+       priorConservativeObjectiveBounds:chosen.comparisonBounds
+      }:chosen.comparisonBounds,
       contractPetRerank:rerankSummary,
       contractRerankUsesFiniteVisitedShortlist:contractReranked,
       selectedPairAfterContractRerank:selectedPairChanged,

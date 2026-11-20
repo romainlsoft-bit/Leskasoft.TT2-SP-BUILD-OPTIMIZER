@@ -246,6 +246,9 @@ test("worker: contract mode re-ranks visited owned pet pairs and returns consist
  assert.equal(rerank.scenarioRankingCertified,false);
  assert.equal(rerank.globallyOptimal,false);
  assert.equal(result.result.petSearch.comparisonBounds.certifiedForScenarioRanking,false);
+ assert.equal(result.result.petSearch.comparisonBounds.certifiedWithinVisited,false);
+ assert.equal(result.result.petSearch.comparisonBounds.winningFeasibleScore,null);
+ assert.ok(result.result.petSearch.comparisonBounds.priorConservativeObjectiveBounds);
  assert.equal(result.result.petSearch.globallyOptimalAcrossPetGearSP,false);
  assert.equal(result.selectedPets.damage,
   result.result.modeledScenario.selectedDamagePet);
