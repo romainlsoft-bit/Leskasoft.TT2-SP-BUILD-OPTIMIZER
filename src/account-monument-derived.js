@@ -3,8 +3,8 @@
  * Main effects of monument rows are scored separately in account-power.
  * Never add each additive component as its own multiplicative AllDamage.
  */
-import {SEASON_ARTIFACT_CATALOG} from "../vendor/account-catalog.js?v=20261120-log-native-r4";
-import {additiveDamageEvidence} from "./account-damage-pools.js?v=20261120-log-native-r4";
+import {SEASON_ARTIFACT_CATALOG} from "../vendor/account-catalog.js?v=20261120-simple-ui-r5";
+import {additiveDamageEvidence} from "./account-damage-pools.js?v=20261120-simple-ui-r5";
 
 export function monumentDerivedPower(profile,monuments){
  const sections=profile?.sections||{};

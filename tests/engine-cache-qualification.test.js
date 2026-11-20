@@ -2,7 +2,7 @@ import {test} from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 const src=path=>readFileSync(new URL("../"+path,import.meta.url),"utf8");
-const REV="20261120-log-native-r4";
+const REV="20261120-simple-ui-r5";
 test("localized pages load the same version of the optimized module",()=>{
  for(const path of ["index.html","fr/index.html","uk/index.html","ru/index.html"]){
   assert.ok(src(path).includes("src/app.js?v="+REV),path);

@@ -16,7 +16,7 @@
 <link rel="icon" type="image/svg+xml" href="assets/favicon.svg"><link rel="stylesheet" href="styles.css?v=20261118-work-review-r1">
 <title>TT2 Skill Tree Optimizer 8.4 — Free Skill Point Calculator | Leskasoft</title>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"TT2 Skill Tree Optimizer","description":"Tap Titans 2 skill tree optimizer with manual and JSON import, QoL preferences and 50,000 Skill Point support.","applicationCategory":"GameApplication","operatingSystem":"Any","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"url":"https://tap-titans.leskasoft.com/","inLanguage":"en","@id":"https://tap-titans.leskasoft.com/#tool"}</script>
-<script type="module" src="src/app.js?v=20261120-log-native-r4" defer></script>
+<script type="module" src="src/app.js?v=20261120-simple-ui-r5" defer></script>
 </head>
 <body>
 <div class="site">
@@ -67,27 +67,6 @@
     <p class="hint">Count temporary bonuses only when you can use them against your hardest boss. Inactive/zero is the conservative default.</p>
     <label class="toggle"><input type="checkbox" id="hayst-active"> Hayst active at your hardest boss</label>
     <label class="toggle"><input type="checkbox" id="snap-active"> Snap active at your hardest boss</label>
-    <label class="toggle"><input type="checkbox" id="contracts-at-max"> Both contracts reach maximum bonuses at your hardest boss (mana-intensive)</label>
-    <h3>Contract mana what-if (diagnostic only)</h3>
-    <p class="hint">Optional one-second tick simulation. Explicitly assume no other spell costs, mana taps or proc events. This does not affect Skill Point allocation.</p>
-    <label class="toggle"><input type="checkbox" id="timeline-enabled"> Enable contract mana what-if</label>
-    <h3>Contract-aware SP comparison (optional)</h3>
-    <p class="hint">Compare your inactive-contract build against a contract-investment alternative. Enter your own estimated share of boss attempts with contracts active; this is not measured by the optimizer.</p>
-    <label class="toggle"><input id="scenario-enabled" type="checkbox"> Compare SP allocations under two contract scenarios</label>
-    <div class="field-grid">
-      <label>Share of boss attempts with contracts active (0–1) <input id="scenario-active-fraction" type="number" min="0" max="1" step=".05" inputmode="decimal" placeholder="—"></label>
-    </div>
-    <label class="toggle"><input id="scenario-pact-max" type="checkbox"> Assume Terrifying Pact's maximum bonus while a contract tick is funded (unverified)</label>
-
-    <div class="field-grid">
-      <label>Mana available at activation <input id="timeline-starting-mana" type="number" min="0" step="any" inputmode="decimal" placeholder="—"></label>
-      <label>Mana pool capacity <input id="timeline-mana-capacity" type="number" min="0" step="any" inputmode="decimal" placeholder="—"></label>
-      <label>Passive mana per second <input id="timeline-passive-regen" type="number" min="0" step="any" inputmode="decimal" placeholder="—"></label>
-      <label>Seconds to simulate (1–3600) <input id="timeline-duration" type="number" min="1" max="3600" step="1" inputmode="numeric" value="60"></label>
-      <label>Forbidden Contract free ticks <input id="timeline-free-forbidden" type="number" min="0" max="3600" step="1" inputmode="numeric" placeholder="—"></label>
-      <label>Royal Contract free ticks <input id="timeline-free-royal" type="number" min="0" max="3600" step="1" inputmode="numeric" placeholder="—"></label>
-    </div>
-
     <label>Astral Awakening orb taps (0–5) <input type="number" id="astral-activations" min="0" max="5" step="1" inputmode="numeric" value="0"></label>
     <label class="toggle"><input type="checkbox" id="preserve-current">Keep current levels as minimums</label>
     <label class="toggle"><input type="checkbox" id="protect-unmodeled-skills" checked> Keep existing conditional skills when their effects cannot be modeled (recommended)</label>
