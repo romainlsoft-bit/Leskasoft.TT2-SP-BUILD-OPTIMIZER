@@ -1121,3 +1121,29 @@ projection or a game-stage emulator.
 The PR remains open DRAFT. No GitHub Actions credit is assumed:
 a staged GitHub commit is NOT a verified CI pass and must not be
 presented as one. No merge, no Pages deployment.
+
+## November 20 numerical safety and unenrolled source enchantments
+
+The small-main-effect calculation now uses `Math.log1p` in log10
+space. The earlier `Math.log10(1 + Math.pow(10, exponent))` rounded off
+part of the marginal effect at exponents around -9 to -15, which can
+matter when comparing very close candidate allocations. The symmetric
+large-exponent identity prevents overflow for `1e9999` levels.
+
+For enchanted monuments, the existing additive pool source table gives
+both a baseline without `EnchantmentMult` and a **candidate** where
+that source multiplier is applied to each additive component. The
+`monumentDerivedPower` and `accountIntegration.monuments` diagnostics
+now expose `hypotheticalEnchantedPoolLog10` and its delta from the
+conservative scored pool, **only if every relevant source flag is known**.
+Neither the conditional delta nor the candidate pool is inserted in
+`byType.AllDamage`, `fixedAccountScore`, or the SP optimizer. The
+native positioning of enchantment and its final gameplay impact still
+require evidence. If the source flags are missing, the candidate remains
+null instead of silently inventing an enchantment state.
+
+An invalid optimistic contract seed now falls back to the already
+feasible conservative result, without crashing the whole worker. This
+is a guard against partial solver responses, not a new optimization
+formula. Tests target tiny exponents, large scientific levels, known
+and unknown enchantment states, season rollover and invalid seeds.

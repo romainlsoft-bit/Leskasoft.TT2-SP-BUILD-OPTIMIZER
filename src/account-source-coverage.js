@@ -9,9 +9,9 @@
  * Only aggregate counts, no player names, IDs, raw exports or inventories
  * appear in the returned user-facing report.
  */
-import {fixedAccountScore} from "./account-power.js?v=20261120-unified-graph-r2";
-import {clanTechnologyEvidence} from "./account-clan-technology.js?v=20261120-unified-graph-r2";
-import {resolveTranscendenceAge} from "./account-temporal.js?v=20261120-unified-graph-r2";
+import {fixedAccountScore} from "./account-power.js?v=20261120-math-safety-r3";
+import {clanTechnologyEvidence} from "./account-clan-technology.js?v=20261120-math-safety-r3";
+import {resolveTranscendenceAge} from "./account-temporal.js?v=20261120-math-safety-r3";
 // A subsystem may report unresolved dependent effects under a DIFFERENT
 // namespace than its scored source rows. Keep their counts on the same
 // system instead of presenting an over-optimistic coverage dashboard.

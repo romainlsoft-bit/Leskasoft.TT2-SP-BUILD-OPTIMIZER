@@ -13,7 +13,7 @@
  * damage pool's gameplay chain is not proven: the scored baseline excludes
  * that boost and keeps any enchanted result diagnostic-only.
  */
-import {positiveLog10} from "./account-artifacts.js?v=20261120-unified-graph-r2";
+import {positiveLog10} from "./account-artifacts.js?v=20261120-math-safety-r3";
 export function log10Sum(logs=[]){
  const values=logs.filter(Number.isFinite);
  if(!values.length)return null;

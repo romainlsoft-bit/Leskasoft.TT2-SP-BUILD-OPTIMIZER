@@ -9,9 +9,9 @@
  *   investments to pin; it is never scored directly / double counted.
  * - We do not claim global optimality across SP × gear × pets × timelines.
  */
-import {skillInfo} from "../vendor/skills.js?v=20261120-unified-graph-r2";
-import {simulateContractTimeline} from "./contract-timeline.js?v=20261120-unified-graph-r2";
-import {contractInvestmentPlans} from "./contract-plan-candidates.js?v=20261120-unified-graph-r2";
+import {skillInfo} from "../vendor/skills.js?v=20261120-math-safety-r3";
+import {simulateContractTimeline} from "./contract-timeline.js?v=20261120-math-safety-r3";
+import {contractInvestmentPlans} from "./contract-plan-candidates.js?v=20261120-math-safety-r3";
 
 const IDS=["ForbiddenContract","RoyalContract","TerrifyingPact"];
 const finite=x=>typeof x==="number"&&Number.isFinite(x);
@@ -163,6 +163,14 @@ export function proposeContractScenarioBuild({settings,baseline,gearSelection,
    reason:e instanceof Error?e.message:String(e),
    appliedToRecommendation:false},result:baseline};
  }
+ // The optimistic seed is ONLY a search hint. If a future solver returns
+ // a partial/invalid candidate, retain the already feasible baseline.
+ // Do not turn this optional what-if error into a failed optimization.
+ if(!seed?.levels||typeof seed.levels!=="object"||
+    Array.isArray(seed.levels))
+  return {selection:{...validation,status:"only-conservative-feasible",
+   reason:"invalid-optimistic-contract-seed",
+   appliedToRecommendation:false},result:baseline};
  const plans=contractInvestmentPlans(
   baseline.levels,seed.levels,settings.minimums,policy);
  const canReallocate=policy.pactAtMaxDuringFundedTicks===true;

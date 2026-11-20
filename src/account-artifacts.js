@@ -22,9 +22,14 @@ export function positiveLog10(value){
 export function log10OnePlusPower(exponent){
  if(exponent===null||!Number.isFinite(exponent))return null;
  // log10(1 + 10^exponent), stable for tiny and enormous exponents.
- return exponent>16?exponent:exponent < -16?
-  Math.pow(10,exponent)/Math.LN10:
-  Math.log10(1+Math.pow(10,exponent));
+ // Math.log10(1+x) loses most significant digits for x~=1e-12
+ // because 1+x first rounds to the nearest representable double.
+ // log1p preserves tiny artifact/monument marginal bonuses. For large
+ // exponents use the identity log10(1+10^x)=x+log10(1+10^-x)
+ // so no 10^x temporary can overflow.
+ return exponent>16?
+  exponent+Math.log1p(Math.pow(10,-exponent))/Math.LN10:
+  Math.log1p(Math.pow(10,exponent))/Math.LN10;
 }
 export function computeArtifactEffect(catalog,level,enchanted=false,coefficientFactor=1){
  const lv=positiveLog10(level),per=positiveLog10(catalog?.perLevel??catalog?.effectPerLevel);

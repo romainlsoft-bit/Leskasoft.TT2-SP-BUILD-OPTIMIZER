@@ -1,15 +1,15 @@
-import {optimizeBuild} from "./engine.js?v=20261120-unified-graph-r2";
-import {petSearchPlan,availablePets} from "./pet-scenarios.js?v=20261120-unified-graph-r2";
-import {calculateModeledScenario} from "./calculation-ledger.js?v=20261120-unified-graph-r2";
-import {selectPetPair} from "./pet-pair-search.js?v=20261120-unified-graph-r2";
+import {optimizeBuild} from "./engine.js?v=20261120-math-safety-r3";
+import {petSearchPlan,availablePets} from "./pet-scenarios.js?v=20261120-math-safety-r3";
+import {calculateModeledScenario} from "./calculation-ledger.js?v=20261120-math-safety-r3";
+import {selectPetPair} from "./pet-pair-search.js?v=20261120-math-safety-r3";
 import {bestEquipmentByCategory,gearSelectionEffects,petCandidateGearWeightEnvelope,
  enumerateOwnedGearAssignments}
- from "./equipment-scenarios.js?v=20261120-unified-graph-r2";
+ from "./equipment-scenarios.js?v=20261120-math-safety-r3";
 import {refineCoupledGearAndSkills,enumerateJointGearAndSkills}
- from "./joint-candidate-search.js?v=20261120-unified-graph-r2";
-import {modeledCandidateUpperBound} from "./model-score-bounds.js?v=20261120-unified-graph-r2";
-import {proposeContractScenarioBuild} from "./contract-multi-scenarios.js?v=20261120-unified-graph-r2";
-import {rerankVisitedContractPetPairs} from "./contract-pet-rerank.js?v=20261120-unified-graph-r2";
+ from "./joint-candidate-search.js?v=20261120-math-safety-r3";
+import {modeledCandidateUpperBound} from "./model-score-bounds.js?v=20261120-math-safety-r3";
+import {proposeContractScenarioBuild} from "./contract-multi-scenarios.js?v=20261120-math-safety-r3";
+import {rerankVisitedContractPetPairs} from "./contract-pet-rerank.js?v=20261120-math-safety-r3";
 
 // Per-request cache: branch DP signatures must distinguish changes in pet,
 // equipment and the resulting Combat Techniques contribution.
