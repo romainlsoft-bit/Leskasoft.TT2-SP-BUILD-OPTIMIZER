@@ -9,6 +9,7 @@ import {resolveSpellCaps} from "./spell-caps.js?v=20261118-final-v";
 import {resolveSpellScenario,spellSelectionEvidence,SPELL_CAP_SKILLS} from "./spell-scenarios.js?v=20261118-final-v";
 import {ACTIVE_SPELL_CAPS} from "../vendor/active-spell-caps.js";
 import {resolveManaEvidence} from "./mana-evidence.js?v=20261118-final-v";
+import {accountSourceCoverage} from "./account-source-coverage.js";
 import {extractTimedSetPower} from "./account-set-bonuses.js";
 import {resolvePermanentSetPower} from "./account-permanent-sets.js";
 import {skillTreeSetAllocationEvidence} from "./skill-tree-set-effects.js";
@@ -247,7 +248,9 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
   const spellCaps=resolveSpellCaps(scoreContext,result.levels);
   const spellScenario=resolveSpellScenario(scoreContext,result.levels,spellCaps);
   const manaEvidence=resolveManaEvidence(scoreContext,result.levels,spellScenario,contractScenario);
+  const accountCoverage=accountSourceCoverage(settings.accountProfile,power,scoreContext);
   return {...result,prior:current,spent:points,remaining:SP-points,changes,branchTotals,protectedSkills,
+    accountSourceCoverage:accountCoverage,
     selectedSpellUnlocks,spellBaselineInvariantUnderSkillOptimization:
      spellSelection.valid&&!spellCapEvidenceIsIncomplete,
     spellCaps,spellScenario,manaEvidence,contractScenario,conditionalSkills,lightningStrike,

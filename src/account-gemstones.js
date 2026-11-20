@@ -16,7 +16,10 @@ const DIRECT=new Set([
  "AllDamage","BossDamage","ClanShipDamage","PetDamage",
  "ShadowCloneSkillAmount","CloneDmg","BurstDamageSkillAmount",
  "UltraDaggerDamage","GoldGunDamage","GoldAll","FairyGold",
- "GoldBoss","GoldChesterson","ChestAmount"
+ "GoldBoss","GoldChesterson","ChestAmount",
+ // These explicit exported magnitudes already have sourced per-build
+ // conversion rules in fixedAccountScore/equipmentEffectReduction.
+ "TapDamage","AllHeroDamage","AllHelperDamage","HeroDamage","CritDamage"
 ]);
 const EQUIPMENT=new Set([
  "AllEquipmentEffect","SwordBoost","HelmetBoost","ArmorBoost",

@@ -125,6 +125,7 @@ function renderAccountProfile(){
  if(!profile){el.hidden=true;return;}
  const labels={
   artifacts:"Artifacts",gemstones:"Mystic Gemstones",mysticResearch:"Mystic Research",
+  clanTechnology:"Clan Technology",
   titanCards:"Titan cards",forbiddenResearch:"Forbidden Research",titanResearch:"Titan Research",
   petLevels:"Pets",passiveSkills:"Passive skills",monuments:"Monuments",
   seasonArtifacts:"Seasonal artifacts",heroWeapons:"Hero weapons",clanScrolls:"Clan Scrolls",
@@ -679,6 +680,23 @@ function renderAccountIntegration(result){
    decision?.status==="only-conservative-feasible"){
   panel.textContent+=" "+tr(
    "Contract scenario comparison needs valid, explicitly entered assumptions. The original SP recommendation is preserved.");
+ }
+ const sourceCoverage=result.accountSourceCoverage;
+ if(sourceCoverage){
+  const system=id=>sourceCoverage.systems.find(x=>x.id===id);
+  const desc=id=>{
+   const x=system(id);
+   return [x?.importedRecords??0,x?.fixedScoreRows??0,x?.unresolved??0]
+    .map(numberText).join("/");
+  };
+  panel.textContent+=" "+tr(
+   "Account calculation sources (imported / directly credited / unresolved): Titan research {titan}; Gemstone research {gemResearch}; gems {gems}; artifacts {artifacts}; monuments {monuments}. Titan Souls and extra Gemstone levels are progression resources, not automatically damage.",
+   {titan:desc("titanResearch"),gemResearch:desc("gemstoneResearch"),
+    gems:desc("gemstones"),artifacts:desc("artifacts"),
+    monuments:desc("monuments")});
+  panel.textContent+=" "+tr(
+   sourceCoverage.clanTechnology?.present?
+    "Clan Technology is recognized as a clan-wide system, but its exported effects cannot yet be independently verified or added to the SP score.":"Clan Technology is not included in this export; its clan-wide effects remain unknown.");
  }
  const modeled=result.modeledScenario;
  if(modeled){

@@ -5,6 +5,10 @@ export const SUPPORTED_LANGUAGES = ["en","fr","uk","ru"];
 export const NATIVE_LANGUAGE_NAMES = {en:"English",fr:"Français",uk:"Українська",ru:"Русский"};
 export const translations = {
 fr:{
+ "Account calculation sources (imported / directly credited / unresolved): Titan research {titan}; Gemstone research {gemResearch}; gems {gems}; artifacts {artifacts}; monuments {monuments}. Titan Souls and extra Gemstone levels are progression resources, not automatically damage.":"Sources de calcul du compte (importées / directement créditées / non résolues) : recherche Titan {titan} ; recherche Gemstone {gemResearch} ; gemmes {gems} ; artefacts {artifacts} ; monuments {monuments}. Les Titan Souls et les niveaux supplémentaires de gemmes sont des ressources de progression, pas automatiquement des dégâts.",
+ "Clan Technology is recognized as a clan-wide system, but its exported effects cannot yet be independently verified or added to the SP score.":"Clan Technology est reconnu comme système collectif, mais ses effets exportés ne sont pas encore vérifiés de façon indépendante ni intégrés au score SP.",
+ "Clan Technology is not included in this export; its clan-wide effects remain unknown.":"Clan Technology n'apparaît pas dans cet export ; ses effets collectifs restent inconnus.",
+ "Clan Technology":"Technologie de clan",
  "Contract-aware pet search: {visited} visited pairs screened under your explicit contract scenario; {refined} finalists reoptimized. This is a bounded shortlist, not a global optimum.":"Recherche de familiers avec contrats : {visited} couples examinés selon votre scénario explicite ; {refined} finalistes réoptimisés. Il s'agit d'une présélection bornée, pas d'un optimum global.",
  "Contract scenario comparison needs valid, explicitly entered assumptions. The original SP recommendation is preserved.":"La comparaison des scénarios de contrats nécessite des hypothèses explicites et valides. La recommandation SP d'origine est conservée.",
  "Contract-aware SP comparison (optional)":"Comparaison de SP selon les contrats (facultative)",
@@ -288,6 +292,10 @@ fr:{
  "Free Tap Titans 2 skill tree optimizer for TT2 8.4. Optimize skill points for Clan Ship, Pet, Shadow Clone, Heavenly Strike, Dagger or Gold Gun. Import game data or configure manually.":"Optimiseur gratuit de compétences Tap Titans 2 version 8.4. Import des données ou configuration manuelle pour tous les types de builds."
 },
 uk:{
+ "Account calculation sources (imported / directly credited / unresolved): Titan research {titan}; Gemstone research {gemResearch}; gems {gems}; artifacts {artifacts}; monuments {monuments}. Titan Souls and extra Gemstone levels are progression resources, not automatically damage.":"Джерела розрахунку облікового запису (імпортовано / безпосередньо враховано / невизначено): дослідження титанів {titan}; дослідження самоцвітів {gemResearch}; самоцвіти {gems}; артефакти {artifacts}; монументи {monuments}. Душі титанів і додаткові рівні самоцвітів — ресурси розвитку, а не автоматичний множник шкоди.",
+ "Clan Technology is recognized as a clan-wide system, but its exported effects cannot yet be independently verified or added to the SP score.":"Clan Technology розпізнається як спільнокланова система, але її ефекти з експорту ще не перевірені незалежно й не входять у рейтинг SP.",
+ "Clan Technology is not included in this export; its clan-wide effects remain unknown.":"Clan Technology відсутня в цьому експорті; її спільнокланові ефекти залишаються невідомими.",
+ "Clan Technology":"Кланові технології",
  "Contract-aware pet search: {visited} visited pairs screened under your explicit contract scenario; {refined} finalists reoptimized. This is a bounded shortlist, not a global optimum.":"Пошук улюбленців з контрактами: {visited} перевірених пар за заданим сценарієм; повторно оптимізовано {refined} фіналістів. Це обмежений список, не глобальний оптимум.",
  "Contract scenario comparison needs valid, explicitly entered assumptions. The original SP recommendation is preserved.":"Для порівняння сценаріїв контрактів потрібні коректні, явно введені припущення. Початковий рекомендований розподіл SP збережено.",
  "Contract-aware SP comparison (optional)":"Порівняння SP за сценаріями контрактів (необов’язково)",
@@ -522,6 +530,10 @@ uk:{
  "Free Tap Titans 2 skill tree optimizer for TT2 8.4. Optimize skill points for Clan Ship, Pet, Shadow Clone, Heavenly Strike, Dagger or Gold Gun. Import game data or configure manually.":"Безкоштовний оптимізатор дерева навичок Tap Titans 2 версії 8.4. Імпорт даних або ручне налаштування для всіх збірок."
 },
 ru:{
+ "Account calculation sources (imported / directly credited / unresolved): Titan research {titan}; Gemstone research {gemResearch}; gems {gems}; artifacts {artifacts}; monuments {monuments}. Titan Souls and extra Gemstone levels are progression resources, not automatically damage.":"Источники расчёта аккаунта (импортировано / напрямую учтено / не установлено): исследования титанов {titan}; исследования самоцветов {gemResearch}; самоцветы {gems}; артефакты {artifacts}; монументы {monuments}. Души титанов и дополнительные уровни самоцветов — ресурсы развития, а не автоматический множитель урона.",
+ "Clan Technology is recognized as a clan-wide system, but its exported effects cannot yet be independently verified or added to the SP score.":"Clan Technology распознаётся как общеклановая система, но её экспортированные эффекты ещё не проверены независимо и не включены в оценку SP.",
+ "Clan Technology is not included in this export; its clan-wide effects remain unknown.":"Clan Technology отсутствует в этом экспорте; её общеклановые эффекты неизвестны.",
+ "Clan Technology":"Клановые технологии",
  "Contract-aware pet search: {visited} visited pairs screened under your explicit contract scenario; {refined} finalists reoptimized. This is a bounded shortlist, not a global optimum.":"Поиск питомцев с контрактами: {visited} пар проверено по выбранному сценарию; повторно оптимизировано {refined} финалистов. Это ограниченный список, не глобальный оптимум.",
  "Contract scenario comparison needs valid, explicitly entered assumptions. The original SP recommendation is preserved.":"Для сравнения сценариев контрактов необходимы корректные, явно заданные предположения. Исходное рекомендуемое распределение SP сохранено.",
  "Contract-aware SP comparison (optional)":"Сравнение SP по сценариям контрактов (необязательно)",

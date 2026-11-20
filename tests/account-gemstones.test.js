@@ -174,3 +174,25 @@ test("AllEquipmentEffect gemstone boosts five selected primary slots once each",
  assert.equal(fixedAccountScore(extractFixedAccountPower(boosted),settings(boosted)).damageLog10,0);
  assert.equal(resolveGemstoneEvidence(boosted).equipmentEffects,1);
 });
+
+
+test("explicit exported TapDamage/AllHeroDamage/CritDamage gemstones use existing source reductions",()=>{
+ const p=parseAccountProfile({gemstones:[
+  {id:"Gem1",primary:"TapDamage:1e60",secondary:[
+   "AllHeroDamage:1e35","CritDamage:1e70"]}
+ ]});
+ const source=resolveGemstoneEvidence(p);
+ assert.equal(source.directEffects,3);
+ assert.equal(source.unresolvedEffects,0);
+ for(const damage of DAMAGE_TYPES)for(const gold of GOLD_TYPES){
+  const settings={damage,gold,goldWeight:.7};
+  const reduced=extractFixedAccountPower(p);
+  const actual=fixedAccountScore(reduced,settings);
+  const tap=equipmentEffectReduction("TapDamage",settings).weight??0;
+  const hero=equipmentEffectReduction("AllHeroDamage",settings).weight??0;
+  const crit=equipmentEffectReduction("CritDamage",settings).weight??0;
+  const expected=60*tap+35*hero+70*crit;
+  assert.ok(Math.abs(actual.damageLog10-expected)<1e-9,
+   damage+"/"+gold);
+ }
+});
