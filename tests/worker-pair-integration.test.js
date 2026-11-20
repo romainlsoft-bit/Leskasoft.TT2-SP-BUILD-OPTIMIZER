@@ -200,3 +200,26 @@ test("worker: explicit timed scenario integrates through the final modeled ledge
  assert.ok(Math.abs(total-expected)<1e-7*Math.max(1,Math.abs(total)));
  assert.equal(result.result.contractScenario.weightedLog10,0);
 });
+
+test("worker: conflicting maximum mode does not alter original maximum-score ledger",async()=>{
+ const execute=await workerHarness();
+ const profile=parseAccountProfile({equipmentSets:[]});
+ const base={...makeSettings(profile),skillPoints:400,maxStage:15000,
+  assumeContractsAtMax:true};
+ const reference=execute("optimize",base);
+ const timeline={enabled:true,startingMana:100,manaCapacity:100,
+  passiveRegenPerSecond:0,durationSeconds:5,
+  freeTicks:{ForbiddenContract:0,RoyalContract:0}};
+ const conflict=execute("optimize",{...base,contractTimeline:timeline,
+  contractMultiScenario:{enabled:true,activeFraction:1,
+   pactAtMaxDuringFundedTicks:true}});
+ assert.equal(reference.result?.ok,true,reference.result?.error);
+ assert.equal(conflict.result?.ok,true,conflict.result?.error);
+ assert.equal(conflict.result.result.contractMultiScenario.status,"unresolved");
+ assert.equal(conflict.result.result.contractMultiScenario.reason,
+  "cannot-combine-with-maximum-contract-scoring");
+ assert.deepEqual(conflict.result.result.levels,reference.result.result.levels);
+ assert.equal(conflict.result.result.score,reference.result.result.score);
+ assert.equal(conflict.result.result.modeledScenario.totalLog10,
+  reference.result.result.modeledScenario.totalLog10);
+});

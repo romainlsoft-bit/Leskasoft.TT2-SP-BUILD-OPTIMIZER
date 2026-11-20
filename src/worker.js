@@ -65,6 +65,10 @@ self.onmessage=event=>{
     score:(result,opts,gear)=>
      calculateModeledScenario(result,opts,gear).totalLog10
    });
+   // On unresolved or infeasible inputs, preserve the EXACT original
+   // modeled result, including its score and existing maximum-mode choice.
+   if(selection.selection.status!=="ranked")
+    return {...choice.result,contractMultiScenario:selection.selection};
    const winner=selection.result;
    // The returned result uses the conservative DP objective (the contract
    // source-only window gain never becomes an always-on skill multiplier).
