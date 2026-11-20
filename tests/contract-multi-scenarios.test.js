@@ -88,10 +88,10 @@ test("candidate generator never uses the optimistically scored solution directly
  const base={levels:level()};
  const x=proposeContractScenarioBuild({settings,baseline:base,
   gearSelection:{selected:{}},solve,score:r=>r.levels.ForbiddenContract?80:100});
- assert.equal(calls.length,2);
+ assert.ok(calls.length>=2&&calls.length<=4);
  assert.equal(calls[0].assumeContractsAtMax,true);
- assert.equal(calls[1].assumeContractsAtMax,false);
- assert.equal(calls[1].minimums.TerrifyingPact,15);
+ assert.ok(calls.slice(1).every(ctx=>ctx.assumeContractsAtMax===false));
+ assert.ok(calls.slice(1).some(ctx=>ctx.minimums.TerrifyingPact===15));
  assert.equal(x.selection.appliedToRecommendation,true);
  assert.equal(x.result.levels.ForbiddenContract,10);
  assert.equal(x.selection.globallyOptimal,false);
@@ -134,4 +134,66 @@ test("18 real damage/gold routes remain conservative by default and are eligible
   assert.equal(inactive.status,"scored");
   assert.ok(Number.isFinite(inactive.weightedLog10));
  }
+});
+
+test("explicit scenario can test Pact lv15 from a saved lv22 while respecting other protected skills",()=>{
+ const settings={goldWeight:.7,contractTimeline:period,
+  contractMultiScenario:{enabled:true,activeFraction:1,
+   pactAtMaxDuringFundedTicks:true}};
+ const saved={levels:level(10,10,22,5)};
+ const calls=[];
+ const resolve=ctx=>{
+  calls.push(ctx);
+  if(ctx.assumeContractsAtMax)return {levels:level(20,20,25,5)};
+  return {levels:level(ctx.minimums.ForbiddenContract,
+   ctx.minimums.RoyalContract,ctx.minimums.TerrifyingPact,5)};
+ };
+ const score=r=>r.levels.TerrifyingPact===15?199:
+  r.levels.TerrifyingPact===22?198:100;
+ const choice=proposeContractScenarioBuild({settings,baseline:saved,
+  solve:resolve,score});
+ assert.equal(choice.selection.status,"ranked");
+ assert.ok(choice.selection.rows.some(row=>row.id==="contract-pact-stepdown"));
+ assert.ok(calls.slice(1).every(ctx=>ctx.allowContractScenarioReallocation===true));
+ assert.ok(calls.length<=4);
+ assert.equal(choice.selection.protectsOtherUnmodeledSkills,true);
+ assert.equal(choice.selection.globallyOptimal,false);
+});
+test("CT-unsafe highest scoring candidate does not exclude the next-safe scenario alternative",()=>{
+ const settings={goldWeight:.7,contractTimeline:period,
+  contractMultiScenario:{enabled:true,activeFraction:1,
+   pactAtMaxDuringFundedTicks:true}};
+ const base={levels:level(10,10,22,5)};
+ const solve=ctx=>{
+  if(ctx.assumeContractsAtMax)return {levels:level(20,20,25,5)};
+  const m=ctx.minimums;
+  return {levels:level(m.ForbiddenContract,m.RoyalContract,
+   m.TerrifyingPact,m.TerrifyingPact===15?5:20)};
+ };
+ const result=proposeContractScenarioBuild({settings,baseline:base,
+  solve,score:r=>r.levels.TerrifyingPact===25?300:
+   r.levels.TerrifyingPact===15?299:100});
+ assert.equal(result.selection.requiresNewGearCTRefinement,true);
+ assert.equal(result.result.levels.CombatTechniques,5);
+ assert.equal(result.selection.winnerId,"contract-pact-stepdown");
+ assert.equal(result.selection.appliedToRecommendation,true);
+});
+test("narrow opt-in releases only contract protection, not unrelated unmodeled skills",()=>{
+ const common={damage:"Pet",gold:"Fairy",goldWeight:.7,skillPoints:450,
+  maxStage:16000,timeToKill:8,sClone:30,
+  qol:"none",currentLevels:{ForbiddenContract:1,RoyalContract:1,
+   TerrifyingPact:1,QuickFortune:1},minimums:{}};
+ const normal=optimizeBuild(common);
+ assert.ok(normal.protectedSkills.includes("TerrifyingPact"));
+ assert.ok(normal.protectedSkills.includes("QuickFortune"));
+ const policy={enabled:true,activeFraction:1,pactAtMaxDuringFundedTicks:true};
+ const enabled=optimizeBuild({...common,contractTimeline:period,
+  contractMultiScenario:policy,allowContractScenarioReallocation:true});
+ assert.ok(!enabled.protectedSkills.includes("TerrifyingPact"));
+ assert.ok(enabled.protectedSkills.includes("QuickFortune"));
+ assert.ok(spentPoints(enabled.levels)<=450);
+ const noExplicitPolicy=optimizeBuild({...common,contractTimeline:period,
+  contractMultiScenario:{enabled:true,activeFraction:""},
+  allowContractScenarioReallocation:true});
+ assert.ok(noExplicitPolicy.protectedSkills.includes("TerrifyingPact"));
 });

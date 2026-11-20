@@ -11,6 +11,7 @@
  */
 import {skillInfo} from "../vendor/skills.js";
 import {simulateContractTimeline} from "./contract-timeline.js";
+import {contractInvestmentPlans} from "./contract-plan-candidates.js";
 
 const IDS=["ForbiddenContract","RoyalContract","TerrifyingPact"];
 const finite=x=>typeof x==="number"&&Number.isFinite(x);
@@ -145,48 +146,67 @@ export function proposeContractScenarioBuild({settings,baseline,gearSelection,
   return {selection:invalid("cannot-combine-with-maximum-contract-scoring"),
    result:baseline};
  if(typeof solve!=="function"||typeof score!=="function"||!baseline?.levels)
-  throw new TypeError("Scenario candidate search requires solve, score and baseline");
+  throw new TypeError("Scenario search requires solve, score and baseline");
  const policy=settings.contractMultiScenario;
  const conservativeMode={...settings,assumeContractsAtMax:false};
- const baseScore=score(baseline,conservativeMode,gearSelection);
- const candidateBase={id:"conservative",result:baseline,modeledLogScore:baseScore};
- // Validate on the baseline before launching any expensive new SP search.
+ const candidateBase={id:"conservative",result:baseline,
+  modeledLogScore:score(baseline,conservativeMode,gearSelection)};
+ // Validate before launching the potentially expensive source seed.
  const validation=rankContractCandidates([candidateBase],conservativeMode,policy);
  if(validation.status!=="ranked")
   return {selection:validation,result:baseline};
- let optimistic,alternative;
- try {
-  optimistic=solve({...conservativeMode,assumeContractsAtMax:true});
-  const minima={...settings.minimums};
-  for(const id of IDS)minima[id]=Math.max(Number(minima[id]??0),
-    Number(optimistic.levels[id]??0));
-  alternative=solve({...conservativeMode,minimums:minima});
+ let seed;
+ try{
+  seed=solve({...conservativeMode,assumeContractsAtMax:true});
  }catch(e){
   return {selection:{...validation,status:"only-conservative-feasible",
    reason:e instanceof Error?e.message:String(e),
    appliedToRecommendation:false},result:baseline};
  }
- const altScore=score(alternative,conservativeMode,gearSelection);
- const rankings=rankContractCandidates([candidateBase,
-  {id:"contract-investment",result:alternative,modeledLogScore:altScore}],
-  conservativeMode,policy);
- if(rankings.status!=="ranked")
-  return {selection:rankings,result:baseline};
- const chosen=rankings.winnerId==="contract-investment"?alternative:baseline;
- const initialCT=Number(baseline.levels.CombatTechniques??0);
- const proposedCT=Number(chosen.levels.CombatTechniques??0);
- // This optional pass holds the previously selected gear/pets fixed.
- // If CT changed, gear effects need a new joint fixed-gear solve.
- // Refuse a false final recommendation until that coupling is checked.
- const ctConsistent=initialCT===proposedCT;
- const applied=rankings.winnerId==="conservative"||ctConsistent;
- return {result:applied?chosen:baseline,selection:{...rankings,
-  winnerId:applied?rankings.winnerId:"conservative",
-  exploratoryWinnerId:rankings.winnerId,
-  candidatesChecked:2,seedRunOptimizedUnderContractMaximum:true,
+ const plans=contractInvestmentPlans(
+  baseline.levels,seed.levels,settings.minimums,policy);
+ const canReallocate=policy.pactAtMaxDuringFundedTicks===true;
+ const candidates=[candidateBase],solutions=new Map([["conservative",baseline]]);
+ const skipped=[];
+ for(const plan of plans){
+  try{
+   const result=solve({...conservativeMode,
+    allowContractScenarioReallocation:canReallocate,
+    minimums:{...settings.minimums,...plan.minimums}});
+   const modeled=score(result,conservativeMode,gearSelection);
+   if(!finite(modeled))throw new Error("nonfinite-candidate-score");
+   solutions.set(plan.id,result);
+   candidates.push({id:plan.id,result,modeledLogScore:modeled});
+  }catch(e){
+   skipped.push({id:plan.id,reason:e instanceof Error?e.message:String(e)});
+  }
+ }
+ if(candidates.length===1)
+  return {selection:{...validation,status:"only-conservative-feasible",
+   reason:"all-constrained-alternatives-infeasible",
+   skippedAlternatives:skipped,appliedToRecommendation:false},result:baseline};
+ const rankings=rankContractCandidates(candidates,conservativeMode,policy);
+ if(rankings.status!=="ranked")return {selection:rankings,result:baseline};
+ const oldCT=Number(baseline.levels.CombatTechniques??0);
+ // A changed CT potentially changes equipment-pet primary multipliers.
+ // Exclude that unsafe allocation, then pick the best remaining candidate
+ // instead of discarding a feasible second-best alternative.
+ const eligible=rankings.rankedIds.filter(id=>
+  id==="conservative"||
+  Number(solutions.get(id)?.levels?.CombatTechniques??0)===oldCT);
+ const winnerId=eligible[0]??"conservative";
+ const exploratoryWinnerId=rankings.rankedIds[0];
+ return {result:solutions.get(winnerId)??baseline,selection:{...rankings,
+  winnerId,exploratoryWinnerId,
+  candidatesChecked:candidates.length,
+  constrainedAlternativesAttempted:plans.length,
+  constrainedAlternativesSkipped:skipped.length,
+  skippedAlternatives:skipped,
+  seedRunOptimizedUnderContractMaximum:true,
   winningCandidateReoptimizedWithConservativeSkillScoring:true,
-  requiresNewGearCTRefinement:!ctConsistent,
-  appliedToRecommendation:applied&&rankings.winnerId==="contract-investment",
-  sourceDerivedButNotMeasured:true,
-  globallyOptimal:false,predictsStages:false}};
+  requiresNewGearCTRefinement:winnerId!==exploratoryWinnerId,
+  selectiveContractReallocation:canReallocate,
+  protectsOtherUnmodeledSkills:true,
+  appliedToRecommendation:winnerId!=="conservative",
+  sourceDerivedButNotMeasured:true,globallyOptimal:false,predictsStages:false}};
 }

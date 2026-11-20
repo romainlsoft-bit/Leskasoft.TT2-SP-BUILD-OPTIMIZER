@@ -672,7 +672,7 @@ function renderAccountIntegration(result){
   panel.textContent+=" "+tr(
    "Contract scenario comparison: {count} SP allocations considered; selected {chosen} using your declared active fraction {fraction}. This is a hypothetical log-score ranking, not predicted stages or a global optimum.",
    {count:numberText(decision.candidatesChecked??decision.rows.length),
-    chosen:decision.winnerId==="contract-investment"?tr("contract-investment candidate"):
+    chosen:decision.winnerId!=="conservative"?tr("contract-investment candidate"):
      tr("conservative candidate"),
     fraction:numberText(decision.scenarioWeights.active)});
   if(decision.requiresNewGearCTRefinement)

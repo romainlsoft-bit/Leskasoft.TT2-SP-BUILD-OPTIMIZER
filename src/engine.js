@@ -122,9 +122,21 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
   const spellCapEvidenceIsIncomplete=!spellSelection.valid||
    !(combatContext.assumeMaxSpells===true||
      (combatContext.assumeMaxSpells!==false&&Number(combatContext.maxStage)>=15000));
+  // Only explicitly enabled, source-limited contract scenario comparisons
+  // may test reallocating these three otherwise protected skills.
+  const policy=settings.contractMultiScenario||{};
+  const activeFraction=Number(policy.activeFraction);
+  const contractReallocationAllowed=
+    settings.allowContractScenarioReallocation===true&&
+    policy.enabled===true&&
+    policy.pactAtMaxDuringFundedTicks===true&&
+    settings.contractTimeline?.enabled===true&&
+    policy.activeFraction!==""&&policy.activeFraction!=null&&
+    Number.isFinite(activeFraction)&&activeFraction>=0&&activeFraction<=1;
   const uncertainSkills=[
     ...(spellCapEvidenceIsIncomplete?Object.keys(SPELL_CAP_SKILLS):[]),
-    ...(combatContext.assumeContractsAtMax?[]:["ForbiddenContract","RoyalContract","TerrifyingPact"]),
+    ...(combatContext.assumeContractsAtMax||contractReallocationAllowed?[]:
+      ["ForbiddenContract","RoyalContract","TerrifyingPact"]),
     ...(combatContext.assumeHaystActive?[]:["QuickFortune"]),
     ...(combatContext.assumeSnapActive?[]:["PhilosophersFlux"]),
     ...(astralActivations>0?[]:["HelperDmgQTE"]),

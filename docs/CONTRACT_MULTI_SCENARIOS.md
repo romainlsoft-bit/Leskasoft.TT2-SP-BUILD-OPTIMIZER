@@ -27,3 +27,11 @@ Insufficient SP, invalid timeline data or absent scenario weights preserves the 
 ## Validation requirements
 
 Automated tests check exact declared weighting, 15/22 Pact gating, shared-mana exhaustion, safety bounds, default-off behavior, seed reoptimization, CT safety and all 18 damage×gold routes. The feature is a **hypothetical recommendation within a small candidate set** and the game calibration gate remains OPEN.
+
+## Additional bounded contract-level probes (2026-11-20)
+
+The single maximally-active seed alone systematically missed useful intermediate Pact levels (e.g. a player's saved level 22 compared with level 15). An explicitly opted-in *Pact maximum while ticks are funded* scenario now generates up to three **SP allocation candidates**: the 8.4 optimistic seed, a Pact level reduced to roughly two-thirds of the current allocation, and a Pact-priority variant with low active Forbidden/Royal levels. **Two-thirds is a search heuristic, not a multiplier formula.** Every candidate is then solved with the conservative scoring objective so that no conditional maximum is already double-counted.
+
+Only an explicitly enabled scenario with a valid active fraction and explicit mana timeline can bypass existing current-level protection **for those three contract talents alone**. All other unmodeled skills remain protected, and explicit user's minimum levels still apply. This is a comparison of a *bounded candidate set*, never an assertion of global optimality; in particular, Pact effects in actual combat remain uncalibrated.
+
+Each candidate whose Combat Techniques level changes is excluded from application to a fixed gear selection. The next highest-scoring **compatible** candidate can still win. Cost bound: at most one optimistic seed and three conservative SP solves per final pet/gear context, and at most three selected pet pairs in the current reranker. Default mode incurs no additional solve.
