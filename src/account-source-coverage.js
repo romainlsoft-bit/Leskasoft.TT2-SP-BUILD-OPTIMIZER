@@ -25,8 +25,11 @@ const GROUPS=Object.freeze([
  {id:"clanTechnology",sections:["clanTechnology"],ledger:[]}
 ]);
 const sum=a=>a.reduce((n,v)=>n+v,0);
-function buildScoreWeights(power,settings){
- const types=[...new Set((power?.entries||[]).map(x=>x.bonusType).filter(Boolean))];
+function buildScoreWeights(power,settings,extra={}){
+ const allRows=[...(power?.entries||[]),
+  ...(extra.permanentSetPower?.entries||[]),
+  ...(extra.timedSetPower?.entries||[])];
+ const types=[...new Set(allRows.map(x=>x.bonusType).filter(Boolean))];
  const out=Object.create(null);
  for(const type of types){
   const result=fixedAccountScore({available:true,byType:{[type]:1}},settings);
@@ -37,10 +40,10 @@ function buildScoreWeights(power,settings){
  }
  return out;
 }
-export function accountSourceCoverage(profile,power,settings={}){
+export function accountSourceCoverage(profile,power,settings={},extra={}){
  const sections=profile?.sections||{};
  const ledger=power?.entries||[],unsupported=power?.unsupported||[];
- const weights=buildScoreWeights(power,settings);
+ const weights=buildScoreWeights(power,settings,extra);
  const clan=clanTechnologyEvidence(profile);
  const resources=power?.researchResources;
  const summaries=[];
@@ -58,7 +61,17 @@ export function accountSourceCoverage(profile,power,settings={}){
   const eligible=rows.filter(x=>Number.isFinite(x.log10));
   const fixedScoreRows=eligible.filter(x=>x.log10>0&&weights[x.bonusType]>0&&
     x.route!=="equipment"&&x.route!=="pet");
-  const fixedWeightedLog10=sum(fixedScoreRows.map(x=>x.log10*weights[x.bonusType]));
+  let fixedWeightedLog10=sum(fixedScoreRows.map(x=>x.log10*weights[x.bonusType]));
+  const extraSetRows=group.id==="equipmentSets"?[
+   ...(extra.permanentSetPower?.entries||[]).filter(x=>x.appliedToAccount),
+   ...(extra.timedSetPower?.entries||[]).filter(x=>x.appliedToScore)
+  ]:[];
+  // Permanent and dated set multipliers enter the fixed score through
+  // dedicated ledgers, NOT through power.entries. Show them only if the
+  // currently chosen build source receives an existing nonzero reduction.
+  const creditedSetRows=extraSetRows.filter(x=>x.log10>0&&
+   weights[x.bonusType]>0);
+  fixedWeightedLog10+=sum(creditedSetRows.map(x=>x.log10*weights[x.bonusType]));
   // Equipment/pet source entries may affect the selected setup later;
   // do not count them as independent permanent account multipliers.
   const dependentRows=rows.filter(x=>x.route==="equipment"||x.route==="pet").length;
@@ -71,11 +84,13 @@ export function accountSourceCoverage(profile,power,settings={}){
    clan.unknown.length:0);
   const status=!present?"not-in-export":truncated?"truncated":
    unresolved?"partially-modeled-with-unknowns":
-   fixedScoreRows.length||dependentRows?"modeled-subset":
+   fixedScoreRows.length||creditedSetRows.length||dependentRows?"modeled-subset":
    importedRecords?"diagnostic-or-resource-only":"empty-exported-section";
   summaries.push({id:group.id,present,truncated,
    importedRecords,numericSourceRows:rows.length,
-   fixedScoreRows:fixedScoreRows.length,fixedWeightedLog10,
+   fixedScoreRows:fixedScoreRows.length+creditedSetRows.length,
+   supplementalSetRows:extraSetRows.length,
+   fixedWeightedLog10,
    dependentRows,resourceNodes,unresolved,status,
    complete:false,scoreSource:"fixed-account-proxy-only"});
  }
@@ -89,5 +104,12 @@ export function accountSourceCoverage(profile,power,settings={}){
   totalStagePredictionVerified:false,
   unverifiedSourceRelationshipsRemain:true,
   baselineScoredEffectsAreNotIndependentSPMarginals:true,
-  sourceSnapshots:"TT2 8.4.0 Unity; 8.4.1 compatibility not independently proven"};
+  sourceSnapshots:"TT2 8.4.0 Unity; 8.4.1 compatibility not independently proven",
+  knownHighImpactOmissions:{
+   monumentEnchantmentBoostsUnscored:power?.monumentEffects?.omittedEnchantmentBoosts??0,
+   unknownMonumentEnchantmentStates:power?.monumentEffects?.unresolvedEnchantments??0,
+   seasonDayBonusApplicationNotVerified:true,
+   effectiveGemstoneResearchLevelUnverified:true,
+   clanTechnologyApplicationNotVerified:true
+  }};
 }

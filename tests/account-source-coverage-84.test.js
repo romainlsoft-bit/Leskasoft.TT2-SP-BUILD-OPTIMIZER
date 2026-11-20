@@ -102,3 +102,21 @@ test("a staged SP optimizer leaves sourced clan data out of unverified direct mu
  })});
  assert.deepEqual(account.levels,noTech.levels);
 });
+
+
+test("direct permanent and daily set effects are reported without adding their score twice",()=>{
+ const source=parse({equipmentSets:[]});
+ const base=extractFixedAccountPower(source);
+ const entries=[{bonusType:"AllDamage",log10:10,appliedToAccount:true},
+  {bonusType:"GoldAll",log10:20,appliedToAccount:true},
+  {bonusType:"AllDamage",log10:999,appliedToEquipment:true}];
+ const extra={permanentSetPower:{entries},timedSetPower:{
+  entries:[{bonusType:"AllDamage",log10:2,appliedToScore:true}]}};
+ const report=accountSourceCoverage(source,base,
+  {damage:"Pet",gold:"Fairy",goldWeight:.7},extra);
+ const sets=report.systems.find(x=>x.id==="equipmentSets");
+ assert.equal(sets.fixedScoreRows,3);
+ assert.equal(sets.supplementalSetRows,3);
+ assert.ok(Math.abs(sets.fixedWeightedLog10-26)<1e-12);
+ assert.equal(report.allGameBonusesIncluded,false);
+});

@@ -60,7 +60,8 @@ function engineError(message){
 }
 const iconMap={"Clan Ship":"⛵","Pet":"🐾","Shadow Clone":"◈","Heavenly Strike":"⚡","Dagger":"🗡","Gold Gun":"✦"};
 const branchColors={Knight:"#d77879",Summoner:"#edab66",Warlord:"#e7ca75",Sorcerer:"#86adf7",Rogue:"#7ad0a0",Alchemist:"#b595ed"};
-const fresh=()=>({damage:"Clan Ship",gold:"Fairy",skillPoints:0,maxStage:0,playstyle:"balanced",qol:"recommended",goldWeight:.7,craftingPower:1,timeToKill:8,sClone:30,sets:{},currentLevels:{},minimums:{},excluded:[],preserveCurrent:false,assumeHaystActive:false,assumeSnapActive:false,assumeContractsAtMax:false,astralActivations:0,mode:"power",accountProfile:null,selectedDamagePet:null,selectedGoldPet:null,comparePetScenarios:true,selectedEquipment:{},protectUnmodeledSkills:true,contractTimeline:null,contractMultiScenario:null});
+const fresh=()=>({damage:"Clan Ship",gold:"Fairy",skillPoints:0,maxStage:0,playstyle:"balanced",qol:"recommended",goldWeight:.7,craftingPower:1,timeToKill:8,sClone:30,sets:{},currentLevels:{},minimums:{},excluded:[],preserveCurrent:false,assumeHaystActive:false,assumeSnapActive:false,assumeContractsAtMax:false,astralActivations:0,mode:"power",accountProfile:null,selectedDamagePet:null,selectedGoldPet:null,comparePetScenarios:true,selectedEquipment:{},protectUnmodeledSkills:true,contractTimeline:null,contractMultiScenario:null,
+ importedVersion:null});
 let state=fresh(),lastResult=null,lastScenarios=[],lastEquipment={},
  lastGearSelection=null,lastResolvedPets=null,lastRunContext=null,
  worker=null,calculationRevision=0;
@@ -138,6 +139,9 @@ function renderAccountProfile(){
  el.textContent=names.length
   ?tr("Detected account categories: {categories}. Some effects are modeled; other imported categories remain diagnostic.",{categories:names.join(" · ")})
   :tr("Skill-tree-only export: no additional account categories detected.");
+ if(String(state.importedVersion||"").startsWith("8.4.1"))
+  el.textContent+=" "+tr(
+   "This account export reports TT2 8.4.1. The mathematical catalog is verified against 8.4.0; compatibility with later live data has not been independently confirmed.");
  const petData=petLevelEvidence(profile);
  if(petData.rejected.length){
   el.textContent+=" "+tr("Pet import warning: {count} invalid, conflicting or unknown pet records were excluded from calculations.",{count:numberText(petData.rejected.length)});
@@ -323,6 +327,7 @@ function applyPreset(id){
 function importRaw(raw){
  const parsed=parseExport(raw);
  state.currentLevels=parsed.levels;
+ state.importedVersion=parsed.importedVersion;
  state.contractTimeline=null; // Never reuse a prior account\u0027s mana assumptions.\n state.contractMultiScenario=null;
  if(parsed.skillPoints!==null&&parsed.skillPoints>0)state.skillPoints=parsed.skillPoints;
  else if(!state.skillPoints)state.skillPoints=spentPoints(parsed.levels);

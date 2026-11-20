@@ -248,7 +248,8 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
   const spellCaps=resolveSpellCaps(scoreContext,result.levels);
   const spellScenario=resolveSpellScenario(scoreContext,result.levels,spellCaps);
   const manaEvidence=resolveManaEvidence(scoreContext,result.levels,spellScenario,contractScenario);
-  const accountCoverage=accountSourceCoverage(settings.accountProfile,power,scoreContext);
+  const accountCoverage=accountSourceCoverage(settings.accountProfile,power,
+   scoreContext,{permanentSetPower,timedSetPower:timed});
   return {...result,prior:current,spent:points,remaining:SP-points,changes,branchTotals,protectedSkills,
     accountSourceCoverage:accountCoverage,
     selectedSpellUnlocks,spellBaselineInvariantUnderSkillOptimization:
