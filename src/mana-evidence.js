@@ -3,8 +3,8 @@
  * not an observed number of spell casts or Mana Siphon procs per second.
  * No mana regeneration/contract ramp/uptime is invented.
  */
-import {skillInfo} from "../vendor/skills.js";
-import {simulateContractTimeline} from "./contract-timeline.js";
+import {skillInfo} from "../vendor/skills.js?v=20261120-unified-graph-r2";
+import {simulateContractTimeline} from "./contract-timeline.js?v=20261120-unified-graph-r2";
 const MANA_SKILLS=Object.freeze({
  MPCapacityBoost:["ManaPoolCap","AllManaSourceMult"],
  ManaStealSkillBoost:["ManaTapRegenAmount","ManaStealChance"],

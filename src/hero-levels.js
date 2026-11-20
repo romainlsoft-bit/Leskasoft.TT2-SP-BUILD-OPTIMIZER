@@ -3,9 +3,9 @@
  * hero weapons and the equipped helmet, so this diagnostic is NEVER a new
  * fixed-score damage multiplier or a basis for claiming a new optimal helmet.
  */
-import {HERO_ROSTER} from "../vendor/hero-roster.js";
-import {HERO_CLASS_BY_ID} from "../vendor/hero-classes.js";
-import {positiveLog10} from "./account-artifacts.js";
+import {HERO_ROSTER} from "../vendor/hero-roster.js?v=20261120-unified-graph-r2";
+import {HERO_CLASS_BY_ID} from "../vendor/hero-classes.js?v=20261120-unified-graph-r2";
+import {positiveLog10} from "./account-artifacts.js?v=20261120-unified-graph-r2";
 const ZERO=/^\+?(?:0+(?:\.0*)?|\.0+)(?:[Ee][+-]?\d+)?$/;
 export function heroLevelEvidence(profile){
  const section=profile?.sections?.heroLevels;

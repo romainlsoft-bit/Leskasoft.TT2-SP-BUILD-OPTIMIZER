@@ -8,8 +8,8 @@
  * No levels are inferred from total-pet statistics, previous Transcendence
  * seasons, or old cached account data.
  */
-import {PETS} from "../vendor/pets.js";
-import {TRANSCENDENT_PETS} from "../vendor/transcendent-pets.js";
+import {PETS} from "../vendor/pets.js?v=20261120-unified-graph-r2";
+import {TRANSCENDENT_PETS} from "../vendor/transcendent-pets.js?v=20261120-unified-graph-r2";
 
 const MAX_PET_LEVEL=100000;
 const ALL=Object.freeze({...PETS,...TRANSCENDENT_PETS});

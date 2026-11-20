@@ -1,4 +1,4 @@
-import {rankVisitedCandidateBounds} from "./model-score-bounds.js";
+import {rankVisitedCandidateBounds} from "./model-score-bounds.js?v=20261120-unified-graph-r2";
 /**
  * Coordinate-wise search over the two actual active pet slots.
  *

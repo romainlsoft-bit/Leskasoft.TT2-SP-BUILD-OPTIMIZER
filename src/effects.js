@@ -3,15 +3,15 @@
  * This is a damage/gold proxy, not a model of real farming speed or all
  * conditional cross-skill interactions. See docs/MATH_AUDIT.md.
  */
-import { skillInfo } from "../vendor/skills.js";
-import { reductions } from "../vendor/reductions.js";
-import { spellInfo, spell_reductions } from "../vendor/spells.js";
-import {spellTableIndex} from "./spell-caps.js?v=20261118-final-v";
-import {spellCapGainEligible} from "./spell-scenarios.js?v=20261118-final-v";
-import {lightningStrikeSkillScore} from "./lightning-strike-evidence.js";
-import {petCombatTechniquesIncrement,petEquipmentCombatTechniquesIncrement} from "./pet-scenarios.js?v=20261120-tt2-season-rollover-s";
-import {skillTreeSetScore} from "./skill-tree-set-effects.js";
-import {contractSkillScore} from "./contract-scenarios.js";
+import { skillInfo } from "../vendor/skills.js?v=20261120-unified-graph-r2";
+import { reductions } from "../vendor/reductions.js?v=20261120-unified-graph-r2";
+import { spellInfo, spell_reductions } from "../vendor/spells.js?v=20261120-unified-graph-r2";
+import {spellTableIndex} from "./spell-caps.js?v=20261120-unified-graph-r2";
+import {spellCapGainEligible} from "./spell-scenarios.js?v=20261120-unified-graph-r2";
+import {lightningStrikeSkillScore} from "./lightning-strike-evidence.js?v=20261120-unified-graph-r2";
+import {petCombatTechniquesIncrement,petEquipmentCombatTechniquesIncrement} from "./pet-scenarios.js?v=20261120-unified-graph-r2";
+import {skillTreeSetScore} from "./skill-tree-set-effects.js?v=20261120-unified-graph-r2";
+import {contractSkillScore} from "./contract-scenarios.js?v=20261120-unified-graph-r2";
 
 const num=(v,fallback=0)=>{ const x=Number(v); return Number.isFinite(x)?x:fallback; };
 const lg=v=>Math.log10(num(v)>0?num(v):1);

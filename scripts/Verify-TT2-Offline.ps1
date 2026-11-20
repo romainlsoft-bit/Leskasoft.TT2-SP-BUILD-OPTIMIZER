@@ -31,6 +31,10 @@ try {
     & $npm.Source run check:data
     if ($LASTEXITCODE -ne 0) { throw "TT2 data checks failed (exit $LASTEXITCODE)." }
 
+    Write-Host "TT2 offline browser ESM graph and syntax..."
+    & $npm.Source run check:modules
+    if ($LASTEXITCODE -ne 0) { throw "TT2 module graph verification failed (exit $LASTEXITCODE)." }
+
     if ($Benchmark) {
         Write-Host "TT2 local 18-route SP benchmark: $SkillPoints SP..."
         & $npm.Source run bench:22k -- --sp $SkillPoints

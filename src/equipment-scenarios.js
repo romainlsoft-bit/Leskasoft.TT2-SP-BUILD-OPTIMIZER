@@ -5,14 +5,14 @@
  * Score only explicit numeric FIRST effects with verified semantics. Unknown
  * values are kept visible but never given guessed power coefficients.
  */
-import {ARTIFACT_CATALOG} from "../vendor/account-catalog.js";
-import {equipmentEffectReduction,EQUIPMENT_AURA_TARGETS} from "./equipment-reductions.js";
-import {calculatePermanentArtifactEffects} from "./account-artifacts.js?v=20261118-work-review-r1";
-import {petPassiveEvidence,logPassivePetMultiplier,petScenarioScore,ALL_PETS,verifiedEquipmentPetAmplifierTarget} from "./pet-scenarios.js?v=20261120-tt2-season-rollover-s";
-import {petLevelEvidence} from "./account-pet-levels.js";
-import {extractFixedAccountPower} from "./account-power.js?v=20261120-tt2-season-rollover-s";
-import {resolveGemstoneEvidence} from "./account-gemstones.js?v=20261120-tt2-season-rollover-s";
-import {resolvePermanentSetPower,resolveCraftingPower} from "./account-permanent-sets.js";
+import {ARTIFACT_CATALOG} from "../vendor/account-catalog.js?v=20261120-unified-graph-r2";
+import {equipmentEffectReduction,EQUIPMENT_AURA_TARGETS} from "./equipment-reductions.js?v=20261120-unified-graph-r2";
+import {calculatePermanentArtifactEffects} from "./account-artifacts.js?v=20261120-unified-graph-r2";
+import {petPassiveEvidence,logPassivePetMultiplier,petScenarioScore,ALL_PETS,verifiedEquipmentPetAmplifierTarget} from "./pet-scenarios.js?v=20261120-unified-graph-r2";
+import {petLevelEvidence} from "./account-pet-levels.js?v=20261120-unified-graph-r2";
+import {extractFixedAccountPower} from "./account-power.js?v=20261120-unified-graph-r2";
+import {resolveGemstoneEvidence} from "./account-gemstones.js?v=20261120-unified-graph-r2";
+import {resolvePermanentSetPower,resolveCraftingPower} from "./account-permanent-sets.js?v=20261120-unified-graph-r2";
 const CATEGORIES=["Sword","Helmet","Armor","Aura","Slash"];
 const GUNBLADE_BUILDS=new Set(["Dagger","Heavenly Strike","Gold Gun","Shadow Clone"]);
 const officialSlots={...Object.fromEntries(CATEGORIES.map(x=>[x.toLowerCase(),x])),

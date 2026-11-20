@@ -13,18 +13,18 @@
  * each candidate's score cannot change marginal SP allocation, but is
  * required for absolute context and later *validated* cross-build ranking.
  */
-import {ACCOUNT_SCALING} from "../vendor/account-scaling.js";
-import {clanScrollEvidence} from "./account-scrolls.js?v=20261117-hero-scroll-m";
-import {heroProgressionEvidence} from "./hero-progression.js?v=20261117-hero-scroll-m";
-import {equipmentEffectReduction} from "./equipment-reductions.js";
-import {ARTIFACT_CATALOG} from "../vendor/account-catalog.js";
-import {calculatePermanentArtifactEffects} from "./account-artifacts.js?v=20261118-work-review-r1";
-import {resolveMonumentEvidence} from "./account-monuments.js?v=20261120-tt2-season-rollover-s";
-import {monumentDerivedPower} from "./account-monument-derived.js?v=20261117-monument-pools";
-import {petPassiveEvidence} from "./pet-scenarios.js?v=20261120-tt2-season-rollover-s";
-import {artifactDerivedPower} from "./account-artifact-derived.js?v=20261118-work-review-r1";
-import {mergeTitanResearch,resourceResearchEvidence} from "./account-research-resources.js?v=20261117-resource-integrity";
-import {resolveGemstoneEvidence} from "./account-gemstones.js?v=20261120-tt2-season-rollover-s";
+import {ACCOUNT_SCALING} from "../vendor/account-scaling.js?v=20261120-unified-graph-r2";
+import {clanScrollEvidence} from "./account-scrolls.js?v=20261120-unified-graph-r2";
+import {heroProgressionEvidence} from "./hero-progression.js?v=20261120-unified-graph-r2";
+import {equipmentEffectReduction} from "./equipment-reductions.js?v=20261120-unified-graph-r2";
+import {ARTIFACT_CATALOG} from "../vendor/account-catalog.js?v=20261120-unified-graph-r2";
+import {calculatePermanentArtifactEffects} from "./account-artifacts.js?v=20261120-unified-graph-r2";
+import {resolveMonumentEvidence} from "./account-monuments.js?v=20261120-unified-graph-r2";
+import {monumentDerivedPower} from "./account-monument-derived.js?v=20261120-unified-graph-r2";
+import {petPassiveEvidence} from "./pet-scenarios.js?v=20261120-unified-graph-r2";
+import {artifactDerivedPower} from "./account-artifact-derived.js?v=20261120-unified-graph-r2";
+import {mergeTitanResearch,resourceResearchEvidence} from "./account-research-resources.js?v=20261120-unified-graph-r2";
+import {resolveGemstoneEvidence} from "./account-gemstones.js?v=20261120-unified-graph-r2";
 
 const MAX_LEVEL=100000;
 const DIRECT_DAMAGE_TYPES=Object.freeze({

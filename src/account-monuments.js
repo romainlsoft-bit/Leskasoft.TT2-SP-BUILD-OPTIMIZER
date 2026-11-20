@@ -5,10 +5,10 @@
  * Season 13 roster/date: Game Hive DevLog #231. No numerical bonus from a
  * legacy category, conflicting mirrored rows, or an unknown season.
  */
-import {SEASON_ARTIFACT_CATALOG} from "../vendor/account-catalog.js";
-import {resolveTranscendenceAge} from "./account-temporal.js?v=20261120-tt2-season-rollover-s";
-import {computeArtifactEffect,isDirectBonusType,positiveLog10} from "./account-artifacts.js";
-import {resolvePermanentSetPower} from "./account-permanent-sets.js";
+import {SEASON_ARTIFACT_CATALOG} from "../vendor/account-catalog.js?v=20261120-unified-graph-r2";
+import {resolveTranscendenceAge} from "./account-temporal.js?v=20261120-unified-graph-r2";
+import {computeArtifactEffect,isDirectBonusType,positiveLog10} from "./account-artifacts.js?v=20261120-unified-graph-r2";
+import {resolvePermanentSetPower} from "./account-permanent-sets.js?v=20261120-unified-graph-r2";
 
 const BY_ID=new Map(Object.values(SEASON_ARTIFACT_CATALOG).flatMap(item=>[
  [item.id.toLowerCase(),item.id],[item.name.toLowerCase(),item.id]

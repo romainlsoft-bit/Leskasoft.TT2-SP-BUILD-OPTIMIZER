@@ -1,13 +1,13 @@
-import {SKILLS,SKILL_IDS,BRANCH_NAMES,PRESETS,DAMAGE_TYPES,GOLD_TYPES,GAME_VERSION,parseExport,exportBuild,spentPoints,ownedSetFlags} from "./engine.js?v=20261120-tt2-season-rollover-s";
-import { t, localizeDocument, SUPPORTED_LANGUAGES } from "./i18n.js?v=20261120-tt2-season-rollover-s";
-import { readClipboardText } from "./clipboard.js";
-import {resetAccountDependentOptions} from "./import-session-reset.js";
-import { profileCoverage } from "./account-profile.js?v=20261120-tt2-season-rollover-s";
-import {petLevelEvidence} from "./account-pet-levels.js";
-import {resolveGemstoneEvidence} from "./account-gemstones.js?v=20261120-tt2-season-rollover-s";
-import {formatLogMultiplier} from "./account-power.js?v=20261120-tt2-season-rollover-s";
-import {availablePets,recommendPets} from "./pet-scenarios.js?v=20261120-tt2-season-rollover-s";
-import {bestEquipmentByCategory,EQUIPMENT_CATEGORIES} from "./equipment-scenarios.js?v=20261120-tt2-season-rollover-s";
+import {SKILLS,SKILL_IDS,BRANCH_NAMES,PRESETS,DAMAGE_TYPES,GOLD_TYPES,GAME_VERSION,parseExport,exportBuild,spentPoints,ownedSetFlags} from "./engine.js?v=20261120-unified-graph-r2";
+import { t, localizeDocument, SUPPORTED_LANGUAGES } from "./i18n.js?v=20261120-unified-graph-r2";
+import { readClipboardText } from "./clipboard.js?v=20261120-unified-graph-r2";
+import {resetAccountDependentOptions} from "./import-session-reset.js?v=20261120-unified-graph-r2";
+import { profileCoverage } from "./account-profile.js?v=20261120-unified-graph-r2";
+import {petLevelEvidence} from "./account-pet-levels.js?v=20261120-unified-graph-r2";
+import {resolveGemstoneEvidence} from "./account-gemstones.js?v=20261120-unified-graph-r2";
+import {formatLogMultiplier} from "./account-power.js?v=20261120-unified-graph-r2";
+import {availablePets,recommendPets} from "./pet-scenarios.js?v=20261120-unified-graph-r2";
+import {bestEquipmentByCategory,EQUIPMENT_CATEGORIES} from "./equipment-scenarios.js?v=20261120-unified-graph-r2";
 const $=id=>document.getElementById(id);
 let locale="en";
 let lastStatus={message:"Import your account or enter your skill points to begin.",type:"",params:{}};
@@ -424,7 +424,7 @@ function optimize(){
  status("Checking prerequisites and calculating the best allocation for the chosen scoring model…");
  const revision=++calculationRevision;
  const requestContext=structuredClone(state);
- const running=new Worker(new URL("./worker.js?v=20261120-tt2-season-rollover-s",import.meta.url),{type:"module"});
+ const running=new Worker(new URL("./worker.js?v=20261120-unified-graph-r2",import.meta.url),{type:"module"});
  worker=running;
  running.onmessage=event=>{
    if(revision!==calculationRevision||worker!==running)return;

@@ -1,8 +1,8 @@
 /** Recognize owned Unique items whether equipped, unequipped or listed
  * as completed sets. No invented Crafting Power or damage coefficients.
  */
-import {EQUIPMENT_SET_CATALOG} from "../vendor/account-catalog.js";
-import {UNIQUE_EQUIPMENT_TO_SET} from "../vendor/unique-equipment.js";
+import {EQUIPMENT_SET_CATALOG} from "../vendor/account-catalog.js?v=20261120-unified-graph-r2";
+import {UNIQUE_EQUIPMENT_TO_SET} from "../vendor/unique-equipment.js?v=20261120-unified-graph-r2";
 const UNIQUE_SET_IDS=Object.freeze(Object.values(EQUIPMENT_SET_CATALOG)
  .filter(x=>x.type==="Unique").map(x=>x.id));
 const INDEX=new Map([
