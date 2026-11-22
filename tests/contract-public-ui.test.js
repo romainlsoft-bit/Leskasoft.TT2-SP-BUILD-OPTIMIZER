@@ -29,7 +29,9 @@ test("old saved preferences and links cannot silently enable contract what-ifs",
   assert.doesNotMatch(app,new RegExp('\\$\\("'+id+'"\\)'));
 });
 test("public UI and all locales use the same refreshed release token",()=>{
- const token="20261120-simple-ui-r5";
+ const entry=read("index.html").match(/src\/app\.js\?v=([A-Za-z0-9_-]+)/);
+ assert.ok(entry,"Missing versioned application entry");
+ const token=entry[1];
  for(const p of pages)assert.ok(read(p).includes("app.js?v="+token),p);
  assert.ok(read("src/app.js").includes("worker.js?v="+token));
 });
