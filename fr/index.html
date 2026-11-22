@@ -16,7 +16,7 @@
 <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg"><link rel="stylesheet" href="../styles.css?v=20261118-work-review-r1">
 <title>Optimiseur de compétences TT2 8.4 — Calculateur SP gratuit | Leskasoft</title>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Optimiseur d’arbre de compétences Tap Titans 2","description":"Optimisez vos points de compétences Tap Titans 2 : import JSON, saisie manuelle, confort de jeu (QoL) et export du build jusqu’à 50 000 SP.","applicationCategory":"GameApplication","operatingSystem":"Any","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"url":"https://tap-titans.leskasoft.com/fr/","inLanguage":"fr","@id":"https://tap-titans.leskasoft.com/fr/#tool"}</script>
-<script type="module" src="../src/app.js?v=20261122-push-target-r2" defer></script>
+<script type="module" src="../src/app.js?v=20261122-boss-push-r1" defer></script>
 </head>
 <body>
 <div class="site">
@@ -63,6 +63,11 @@
       <label>Temps pour tuer (s) <input id="time-to-kill" type="number" min=".1" step=".5" value="8"></label>
       <label>Niveau du sort Clone d'ombre <input id="clone-level" type="number" min="1" max="35" step="1" value="30"></label>
     </div>
+    <h3>Push : mesure d’un coup (facultatif)</h3>
+    <p class="hint">Indiquez les dégâts d’un coup réellement mesuré avec votre arbre actuel contre un boss, dans les conditions d’activation observées. Notation scientifique acceptée (ex. 1.23e30000). Ce n’est pas le DPS total et cette mesure ne s’applique pas automatiquement au build proposé.</p>
+    <label>Attaque mesurée <select id="push-observed-attack"><option value="">Aucune mesure</option></select></label>
+    <label>Étage du boss mesuré (par défaut : étage maximal) <input id="push-observed-stage" type="number" min="1" max="10000000" step="1" placeholder="Étage maximal"></label>
+    <label>Dégâts de ce coup <input id="push-observed-damage" type="text" maxlength="90" inputmode="text" autocomplete="off" placeholder="1.23e30000"></label>
     <h3>Objectif de saut de stages (facultatif)</h3>
     <p class="hint">Indiquez le bonus de saut de stages souhaité pour une attaque. L’optimiseur réserve les niveaux nécessaires puis répartit les SP restants. Il ne s’agit ni du saut total ni d’un gain d’étages garanti : l’attaque doit encore tuer le titan.</p>
     <label>Attaque effectuant le saut <select id="push-attack-channel"><option value="">Aucun objectif</option></select></label>

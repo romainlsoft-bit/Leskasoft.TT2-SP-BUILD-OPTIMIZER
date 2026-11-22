@@ -16,7 +16,7 @@
 <link rel="icon" type="image/svg+xml" href="assets/favicon.svg"><link rel="stylesheet" href="styles.css?v=20261118-work-review-r1">
 <title>TT2 Skill Tree Optimizer 8.4 — Free Skill Point Calculator | Leskasoft</title>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"TT2 Skill Tree Optimizer","description":"Tap Titans 2 skill tree optimizer with manual and JSON import, QoL preferences and 50,000 Skill Point support.","applicationCategory":"GameApplication","operatingSystem":"Any","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"url":"https://tap-titans.leskasoft.com/","inLanguage":"en","@id":"https://tap-titans.leskasoft.com/#tool"}</script>
-<script type="module" src="src/app.js?v=20261122-push-target-r2" defer></script>
+<script type="module" src="src/app.js?v=20261122-boss-push-r1" defer></script>
 </head>
 <body>
 <div class="site">
@@ -63,6 +63,11 @@
       <label>Time to kill (sec) <input id="time-to-kill" type="number" min=".1" step=".5" value="8"></label>
       <label>Shadow Clone spell level <input id="clone-level" type="number" min="1" max="35" step="1" value="30"></label>
     </div>
+    <h3>Boss push: measured hit (optional)</h3>
+    <p class="hint">Enter one real hit from your current skill tree against a boss, with the buffs that were active. Scientific notation such as 1.23e30000 is accepted. It is not total DPS, and cannot be assumed to apply to the proposed build.</p>
+    <label>Attack you measured <select id="push-observed-attack"><option value="">No measurement</option></select></label>
+    <label>Boss stage for the measured hit (defaults to Max stage) <input id="push-observed-stage" type="number" min="1" max="10000000" step="1" placeholder="Max stage"></label>
+    <label>Damage of that single hit <input id="push-observed-damage" type="text" maxlength="90" inputmode="text" autocomplete="off" placeholder="1.23e30000"></label>
     <h3>Source Stage Skip target (optional)</h3>
     <p class="hint">Set the Stage Skip bonus you want from a particular attack talent. The optimizer reserves only the necessary skill levels and optimizes the remaining SP. This is not total Stage Skip or a predicted stage gain; the attack still needs to kill.</p>
     <label>Attack carrying the Stage Skip <select id="push-attack-channel"><option value="">No target</option></select></label>

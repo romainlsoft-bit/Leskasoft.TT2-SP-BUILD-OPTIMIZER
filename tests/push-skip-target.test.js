@@ -116,7 +116,10 @@ test("all four localized pages expose the same explicit Stage Skip controls",()=
   const text=readFileSync(new URL("../"+path,import.meta.url),"utf8");
   assert.equal(text.match(/id="push-attack-channel"/g)?.length,1,path);
   assert.equal(text.match(/id="push-stage-skip-target"/g)?.length,1,path);
-  assert.match(text,/src\/app\.js\?v=20261122-push-target-r2/);
+  const root=readFileSync(new URL("../index.html",import.meta.url),"utf8");
+  const version=root.match(/src\/app\.js\?v=([A-Za-z0-9_-]+)/)?.[1];
+  assert.ok(version,"Missing versioned entry");
+  assert.ok(text.includes("src/app.js?v="+version));
  }
  const app=readFileSync(new URL("../src/app.js",import.meta.url),"utf8");
  const worker=readFileSync(new URL("../src/worker.js",import.meta.url),"utf8");

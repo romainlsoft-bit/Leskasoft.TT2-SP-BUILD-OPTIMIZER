@@ -12,9 +12,9 @@
  * This is *not* one multiplication per skill level and is not applied to
  * every branch or to every spendable SP regardless of allocation.
  */
-import {EQUIPMENT_SET_CATALOG} from "../vendor/account-catalog.js?v=20261122-push-target-r2";
-import {skillInfo} from "../vendor/skills.js?v=20261122-push-target-r2";
-import {positiveLog10} from "./account-artifacts.js?v=20261122-push-target-r2";
+import {EQUIPMENT_SET_CATALOG} from "../vendor/account-catalog.js?v=20261122-boss-push-r1";
+import {skillInfo} from "../vendor/skills.js?v=20261122-boss-push-r1";
+import {positiveLog10} from "./account-artifacts.js?v=20261122-boss-push-r1";
 
 export const SKILL_TREE_SET_FAMILIES=Object.freeze({
  SkillTreeKnightAllDamage:"BranchRed",

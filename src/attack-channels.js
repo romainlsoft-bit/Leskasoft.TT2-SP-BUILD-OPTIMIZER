@@ -9,8 +9,8 @@
  * Source catalog: pinned SkillTreeInfo2.0.csv via vendor/skills.js.
  * Skip mechanics: https://e9wiki.com/tt2/en/guides/stage-skip-and-titan-skip
  */
-import {skillInfo} from "../vendor/skills.js?v=20261122-push-target-r2";
-import {spellSelectionEvidence} from "./spell-scenarios.js?v=20261122-push-target-r2";
+import {skillInfo} from "../vendor/skills.js?v=20261122-boss-push-r1";
+import {spellSelectionEvidence} from "./spell-scenarios.js?v=20261122-boss-push-r1";
 
 // One source-specific channel per actual attack type, not one Pet-only rule.
 // "charged" and "conditional" mean the listed modifier does NOT establish
@@ -89,7 +89,9 @@ export const ATTACK_BUILD_TYPES=Object.freeze(Object.keys(FIELDS));
 export function sourcedStageSkipChannels(damage){
  if(!Object.hasOwn(FIELDS,damage))
   throw new RangeError("Unknown damage source: "+String(damage));
- return FIELDS[damage].flatMap(spec=>(spec.skip||[])
+ // Charged is a temporary Pet damage state, not a separate hit.
+ // It must not be offered as an attack-specific Stage Skip target.
+ return FIELDS[damage].filter(spec=>spec.role!=="charged").flatMap(spec=>(spec.skip||[])
   .filter(row=>row[2]==="stage")
   .map(([skillId,column,,bonusType])=>({
    id:spec.id,label:spec.label,role:spec.role,
