@@ -5,6 +5,10 @@ export const SUPPORTED_LANGUAGES = ["en","fr","uk","ru"];
 export const NATIVE_LANGUAGE_NAMES = {en:"English",fr:"Français",uk:"Українська",ru:"Русский"};
 export const translations = {
 fr:{
+ "Source Stage Skip target (optional)":"Objectif de saut de stages (facultatif)",
+ "Set the Stage Skip bonus you want from a particular attack talent. The optimizer reserves only the necessary skill levels and optimizes the remaining SP. This is not total Stage Skip or a predicted stage gain; the attack still needs to kill.":"Indiquez le bonus de saut de stages souhaité pour une attaque. L’optimiseur réserve les niveaux nécessaires puis répartit les SP restants. Il ne s’agit ni du saut total ni d’un gain d’étages garanti : l’attaque doit encore tuer le titan.",
+ "Attack carrying the Stage Skip":"Attaque effectuant le saut",
+ "Minimum source Stage Skip":"Saut de stages minimal du talent",
  "Stage Skip target: compare two builds":"Objectif de saut de stages : comparer deux builds",
  "The constrained build and the unconstrained build use the same pet/gear context. Their score difference is from the existing damage/gold proxy, not measured boss DPS or stages gained.":"Les deux builds utilisent le même contexte de familiers et d’équipement. Leur différence de score provient du modèle dégâts/or existant, pas de DPS mesuré ni de stages gagnés.",
  "Source Stage Skip from this talent: {before} → {after}":"Saut de stages apporté par ce talent : {before} → {after}",
@@ -323,6 +327,10 @@ fr:{
  "Free Tap Titans 2 skill tree optimizer for TT2 8.4. Optimize skill points for Clan Ship, Pet, Shadow Clone, Heavenly Strike, Dagger or Gold Gun. Import game data or configure manually.":"Optimiseur gratuit de compétences Tap Titans 2 version 8.4. Import des données ou configuration manuelle pour tous les types de builds."
 },
 uk:{
+ "Source Stage Skip target (optional)":"Мета пропуску етапів (необов’язково)",
+ "Set the Stage Skip bonus you want from a particular attack talent. The optimizer reserves only the necessary skill levels and optimizes the remaining SP. This is not total Stage Skip or a predicted stage gain; the attack still needs to kill.":"Вкажіть бажаний бонус пропуску етапів від конкретної атаки. Оптимізатор резервує необхідні рівні навички та розподіляє решту SP. Це не загальний пропуск етапів і не гарантований прогрес: атака має вбити титана.",
+ "Attack carrying the Stage Skip":"Атака, яка забезпечує пропуск",
+ "Minimum source Stage Skip":"Мінімальний бонус пропуску від навички",
  "Stage Skip target: compare two builds":"Мета пропуску етапів: порівняти два білди",
  "The constrained build and the unconstrained build use the same pet/gear context. Their score difference is from the existing damage/gold proxy, not measured boss DPS or stages gained.":"Обидва білди використовують однакові налаштування вихованців і спорядження. Різниця оцінки походить зі старої моделі шкоди/золота, а не з виміряного DPS або пройдених етапів.",
  "Source Stage Skip from this talent: {before} → {after}":"Пропуск етапів від цієї навички: {before} → {after}",
@@ -592,6 +600,10 @@ uk:{
  "Free Tap Titans 2 skill tree optimizer for TT2 8.4. Optimize skill points for Clan Ship, Pet, Shadow Clone, Heavenly Strike, Dagger or Gold Gun. Import game data or configure manually.":"Безкоштовний оптимізатор дерева навичок Tap Titans 2 версії 8.4. Імпорт даних або ручне налаштування для всіх збірок."
 },
 ru:{
+ "Source Stage Skip target (optional)":"Цель по пропуску этапов (необязательно)",
+ "Set the Stage Skip bonus you want from a particular attack talent. The optimizer reserves only the necessary skill levels and optimizes the remaining SP. This is not total Stage Skip or a predicted stage gain; the attack still needs to kill.":"Укажите желаемый бонус пропуска этапов от конкретной атаки. Оптимизатор закрепляет нужные уровни навыка и распределяет остальные SP. Это не общий пропуск этапов и не гарантированный прогресс: атака должна убить титана.",
+ "Attack carrying the Stage Skip":"Атака, дающая пропуск",
+ "Minimum source Stage Skip":"Минимальный бонус пропуска от навыка",
  "Stage Skip target: compare two builds":"Цель пропуска этапов: сравнить два билда",
  "The constrained build and the unconstrained build use the same pet/gear context. Their score difference is from the existing damage/gold proxy, not measured boss DPS or stages gained.":"Оба билда используют одинаковые настройки питомцев и снаряжения. Разница оценок получена из прежней модели урона/золота, а не из измеренного DPS или пройденных этапов.",
  "Source Stage Skip from this talent: {before} → {after}":"Пропуск этапов от этого навыка: {before} → {after}",

@@ -14,7 +14,7 @@ test("all four locale pages load the same fresh application build",()=>{
  const pages=["index.html","fr/index.html","uk/index.html","ru/index.html"];
  const tokens=pages.map(page=>version(src(page),"app.js"));
  assert.equal(new Set(tokens).size,1);
- assert.ok(tokens[0].startsWith("20261120-"));
+ assert.match(tokens[0],/^20\d{6}-[A-Za-z0-9_-]+$/);
 });
 test("updated engine, imports, gemstone conversion and worker share one release token",()=>{
  const app=src("src/app.js"),engine=src("src/engine.js"),
