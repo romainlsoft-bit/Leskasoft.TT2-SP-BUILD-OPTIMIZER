@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {parseExport,optimizeBuild,spentPoints} from "../src/engine.js";
 import {parseExportCounter} from "../src/import-numbers.js";
 import {resetAccountDependentOptions} from "../src/import-session-reset.js";
+import {readFileSync} from "node:fs";
 import {scoreAtLevel} from "../src/effects.js";
 import {multicastSkillEvidence,resolveSpellScenario} from "../src/spell-scenarios.js";
 import {goldSourceReduction} from "../src/gold-source-reductions.js";
@@ -247,4 +248,14 @@ test("#30: every visited equipment upper bound survives pet-pair ranking",()=>{
   {adjustedScore:99,scoreUpperBound:null}],
   {adjustedScore:100,scoreUpperBound:100});
  assert.equal(unknown.certifiedWithinVisited,false);
+});
+
+test("#30: benchmark and worker share the envelope used for pet-pair upper bounds",()=>{
+ const bench=readFileSync(new URL("../scripts/benchmark-22k.mjs",import.meta.url),"utf8");
+ const worker=readFileSync(new URL("../src/worker.js",import.meta.url),"utf8");
+ const pkg=JSON.parse(readFileSync(new URL("../package.json",import.meta.url),"utf8"));
+ assert.match(bench,/scoreUpperBound:joint\.best\.scoreUpperBound/);
+ assert.match(worker,/scoreUpperBound:winning\.scoreUpperBound/);
+ assert.match(pkg.scripts["bench:issue30"],/--sp 22600/);
+ assert.match(pkg.scripts["bench:issue30"],/--sp 50000/);
 });

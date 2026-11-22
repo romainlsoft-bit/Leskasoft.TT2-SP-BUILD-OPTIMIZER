@@ -79,3 +79,18 @@ test result.
 - Source spell durations and maximum stacks do not establish effective
   mana sustain or real-time activation uptime. Explicit cadence inputs
   need calibration against reproducible in-game observations.
+
+## Reproducible full qualification commands
+
+```bash
+npm run check
+npm run bench:issue30
+node scripts/benchmark-22k.mjs --all --sp 22600 --profile ./local-sanitized-export.json --pair-search
+```
+
+The benchmark and live worker now both propagate `joint.best.scoreUpperBound`
+(the envelope of every visited equipment/CT score bound) instead of
+reconstructing the winning equipment bound. A 22,600-SP worker regression
+with the six selected 8.4.2 spells and the Pet/Fairy ×100/×2 armor duel
+are included. They have **not** been executed by the full Node test suite
+in this session.
