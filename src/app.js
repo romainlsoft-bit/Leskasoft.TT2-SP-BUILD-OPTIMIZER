@@ -1,14 +1,14 @@
-import {SKILLS,SKILL_IDS,BRANCH_NAMES,PRESETS,DAMAGE_TYPES,GOLD_TYPES,GAME_VERSION,parseExport,exportBuild,spentPoints,ownedSetFlags} from "./engine.js?v=20261122-push-target-r2";
-import { t, localizeDocument, SUPPORTED_LANGUAGES } from "./i18n.js?v=20261122-push-target-r2";
-import { readClipboardText } from "./clipboard.js?v=20261122-push-target-r2";
-import {resetAccountDependentOptions} from "./import-session-reset.js?v=20261122-push-target-r2";
-import { profileCoverage } from "./account-profile.js?v=20261122-push-target-r2";
-import {petLevelEvidence} from "./account-pet-levels.js?v=20261122-push-target-r2";
-import {resolveGemstoneEvidence} from "./account-gemstones.js?v=20261122-push-target-r2";
-import {formatLogMultiplier} from "./account-power.js?v=20261122-push-target-r2";
-import {availablePets,recommendPets} from "./pet-scenarios.js?v=20261122-push-target-r2";
-import {bestEquipmentByCategory,EQUIPMENT_CATEGORIES} from "./equipment-scenarios.js?v=20261122-push-target-r2";
-import {sourcedStageSkipChannels} from "./attack-channels.js?v=20261122-push-target-r2";
+import {SKILLS,SKILL_IDS,BRANCH_NAMES,PRESETS,DAMAGE_TYPES,GOLD_TYPES,GAME_VERSION,parseExport,exportBuild,spentPoints,ownedSetFlags} from "./engine.js?v=20261122-boss-push-r1";
+import { t, localizeDocument, SUPPORTED_LANGUAGES } from "./i18n.js?v=20261122-boss-push-r1";
+import { readClipboardText } from "./clipboard.js?v=20261122-boss-push-r1";
+import {resetAccountDependentOptions} from "./import-session-reset.js?v=20261122-boss-push-r1";
+import { profileCoverage } from "./account-profile.js?v=20261122-boss-push-r1";
+import {petLevelEvidence} from "./account-pet-levels.js?v=20261122-boss-push-r1";
+import {resolveGemstoneEvidence} from "./account-gemstones.js?v=20261122-boss-push-r1";
+import {formatLogMultiplier} from "./account-power.js?v=20261122-boss-push-r1";
+import {availablePets,recommendPets} from "./pet-scenarios.js?v=20261122-boss-push-r1";
+import {bestEquipmentByCategory,EQUIPMENT_CATEGORIES} from "./equipment-scenarios.js?v=20261122-boss-push-r1";
+import {sourcedStageSkipChannels,attackChannelEvidence} from "./attack-channels.js?v=20261122-boss-push-r1";
 const $=id=>document.getElementById(id);
 let locale="en";
 let lastStatus={message:"Import your account or enter your skill points to begin.",type:"",params:{}};
@@ -25,6 +25,7 @@ function setLocale(next){
  renderChoices();renderEditor($("skill-search").value);
  $("source-label").textContent=tr(state.sourceImported?"Imported from TT2":"Manual setup");
  renderAccountProfile();renderPetControls();renderPushStageSkipOptions();
+ renderObservedAttackOptions();
  $("result-mode").textContent=lastResult?(lastResult.solver==="bounded-grid-dp"?tr("Optimized · bounded grid"):tr("Optimized · exact DP")):tr("Ready when you are");
  if(lastResult)renderResults(lastResult,false);
  status(lastStatus.message,lastStatus.type,lastStatus.params);
@@ -64,7 +65,8 @@ const iconMap={"Clan Ship":"⛵","Pet":"🐾","Shadow Clone":"◈","Heavenly Str
 const branchColors={Knight:"#d77879",Summoner:"#edab66",Warlord:"#e7ca75",Sorcerer:"#86adf7",Rogue:"#7ad0a0",Alchemist:"#b595ed"};
 const fresh=()=>({damage:"Clan Ship",gold:"Fairy",skillPoints:0,maxStage:0,playstyle:"balanced",qol:"recommended",goldWeight:.7,craftingPower:1,timeToKill:8,sClone:30,sets:{},currentLevels:{},minimums:{},excluded:[],preserveCurrent:false,assumeHaystActive:false,assumeSnapActive:false,assumeContractsAtMax:false,astralActivations:0,mode:"power",accountProfile:null,selectedDamagePet:null,selectedGoldPet:null,comparePetScenarios:true,selectedEquipment:{},protectUnmodeledSkills:true,contractTimeline:null,contractMultiScenario:null,
  importedVersion:null,budgetSource:"unset",budgetInconsistent:false,
- pushAttackChannelId:"",pushSourceStageSkipTarget:0});
+ pushAttackChannelId:"",pushSourceStageSkipTarget:0,
+ pushObservedAttackChannelId:"",pushObservedHitDamage:"",pushBossStage:null});
 let state=fresh(),lastResult=null,lastScenarios=[],lastEquipment={},
  lastGearSelection=null,lastResolvedPets=null,lastRunContext=null,
  worker=null,calculationRevision=0;
@@ -311,6 +313,18 @@ function renderPushStageSkipOptions(){
    " · "+safe(SKILLS[c.sourceSkillId]?.Name||c.sourceSkillId)+"</option>").join("");
  select.value=state.pushAttackChannelId||"";
 }
+function renderObservedAttackOptions(){
+ const select=$("push-observed-attack");
+ const channels=attackChannelEvidence({...state},{}).channels.filter(x=>x.role!=="charged");
+ const allowed=channels.some(x=>x.id===state.pushObservedAttackChannelId);
+ if(state.pushObservedAttackChannelId&&!allowed){
+  state.pushObservedAttackChannelId="";
+  state.pushObservedHitDamage="";
+ }
+ select.innerHTML="<option value=''>"+safe(tr("No measurement"))+"</option>"+
+  channels.map(c=>"<option value='"+safe(c.id)+"'>"+safe(tr(c.label))+"</option>").join("");
+ select.value=state.pushObservedAttackChannelId||"";
+}
 function fillInputs(){
  renderAccountProfile();renderPetControls();
  $("skill-points").value=state.skillPoints??"";
@@ -326,7 +340,10 @@ function fillInputs(){
  $("snap-active").checked=state.assumeSnapActive===true;
  $("astral-activations").value=state.astralActivations??0;
  renderPushStageSkipOptions();
+ renderObservedAttackOptions();
  $("push-stage-skip-target").value=state.pushSourceStageSkipTarget??0;
+ $("push-observed-damage").value=state.pushObservedHitDamage??"";
+ $("push-observed-stage").value=state.pushBossStage??"";
  renderChoices();renderEditor($("skill-search").value);
 }
 function remember(){
@@ -351,6 +368,9 @@ function importRaw(raw){
  state.budgetInconsistent=parsed.budgetInconsistent;
  state.maxStage=parsed.maxStage;state.craftingPower=parsed.craftingPower;state.sets=parsed.sets;
  state.accountProfile=parsed.profile;
+ // An observed hit belongs to the previous tree/buffs, never a new export.
+ state.pushObservedAttackChannelId="";state.pushObservedHitDamage="";
+ state.pushBossStage=null;
 
  state.sClone=state.sets.tFA?35:30;
  if(parsed.damage)state.damage=parsed.damage;
@@ -416,6 +436,10 @@ function readInputs(){
  state.assumeSnapActive=$("snap-active").checked;
  state.pushAttackChannelId=$("push-attack-channel").value;
  state.pushSourceStageSkipTarget=$("push-stage-skip-target").value;
+ state.pushObservedAttackChannelId=$("push-observed-attack").value;
+ state.pushObservedHitDamage=$("push-observed-damage").value.trim();
+ state.pushBossStage=$("push-observed-stage").value===""?null:
+  Number($("push-observed-stage").value);
  keepContractsConservative(state);
  state.mode="power";
  persist();
@@ -434,7 +458,7 @@ function optimize(){
  status("Checking prerequisites and calculating the best allocation for the chosen scoring model…");
  const revision=++calculationRevision;
  const requestContext=keepContractsConservative(structuredClone(state));
- const running=new Worker(new URL("./worker.js?v=20261122-push-target-r2",import.meta.url),{type:"module"});
+ const running=new Worker(new URL("./worker.js?v=20261122-boss-push-r1",import.meta.url),{type:"module"});
  worker=running;
  running.onmessage=event=>{
    if(revision!==calculationRevision||worker!==running)return;
@@ -822,6 +846,49 @@ function renderPushSkipComparison(result){
   "<textarea readonly rows='4' class='export-json' aria-label='Unconstrained alternative'>"+
   safe(exportBuild(compare.baselineLevels))+"</textarea></label>";
 }
+/** One observed hit from the CURRENT tree only; the recommendation is
+ * deliberately shown as source evidence, not as a projected hit value.
+ */
+function renderBossPushEvidence(result){
+ let el=$("boss-push-evidence");
+ if(!el){
+  el=document.createElement("details");
+  el.id="boss-push-evidence";el.className="result-detail";
+  $("push-skip-comparison").insertAdjacentElement("afterend",el);
+ }
+ const current=result.bossPushCurrent,proposed=result.bossPushProposed;
+ if(!current||!proposed){el.hidden=true;return;}
+ el.hidden=false;
+ const fmt=n=>Number(n).toFixed(2);
+ const rows=current.channels.map(c=>{
+  const suggested=proposed.channels.find(x=>x.id===c.id);
+  const source=c.sourceStageSkip.map(x=>x.talent+" +"+x.additionalStageSkip).join(", ");
+  const recommended=suggested?.sourceStageSkip.map(x=>x.talent+" +"+x.additionalStageSkip).join(", ")||"—";
+  const title=safe(tr(c.label));
+  const val=c.observed?.compared===true?
+   " · "+safe(tr("Observed single-hit HP margin: {value} log10",{
+    value:(c.observed.unmodifiedHpMarginLog10>=0?"+":"")+
+     fmt(c.observed.unmodifiedHpMarginLog10)}))+
+   " · "+safe(tr({
+    "above-unmodified-upper-roll":"Hit exceeds the unmodified +30% HP roll",
+    "depends-on-hp-roll":"Hit depends on the unmodified HP roll",
+    "below-unmodified-lower-roll":"Hit is below the unmodified -30% HP roll"
+   }[c.observed.status]??"Unverified observation")):
+   c.observed?" · "+safe(tr("Observed attack cannot be verified for this tree")):"";
+  return "<div class='tree-row'><span><strong>"+title+"</strong> · "+
+   safe(tr("Current talent"))+" "+safe(numberText(c.sourceTalentLevel))+" · "+
+   safe(tr("Proposed talent"))+" "+safe(numberText(suggested?.sourceTalentLevel??0))+
+   (source?" · "+safe(tr("Current source Stage Skip"))+": "+safe(source):"")+
+   (recommended?" · "+safe(tr("Proposed source Stage Skip"))+": "+safe(recommended):"")+
+   val+"</span></div>";
+ });
+ el.innerHTML="<summary>"+safe(tr("Boss HP and observed decisive attacks"))+
+ "</summary><p>"+safe(tr("Unmodified boss HP at stage {stage}: 10^{power}",{
+  stage:numberText(current.stage),power:fmt(current.unmodifiedBossHpLog10)}))+
+ "</p><p class='hint'>"+safe(tr(
+ "A single observed hit is compared with theoretical boss HP before HP reductions. Repeated hits, spell uptime, contracts and shared Stage Skip are not simulated. Your measured hit applies only to your current tree; it is never assigned to the proposed build."))+
+ "</p>"+rows.join("");
+}
 function renderResults(result,scroll=true){
  $("empty-results").hidden=true;$("actual-results").hidden=false;if(scroll)$("results").scrollIntoView({behavior:"smooth",block:"start"});
  const bounded=result.optimality?.mode==="bounded-power";
@@ -866,6 +933,7 @@ function renderResults(result,scroll=true){
  renderAttackChannelEvidence(result);
  renderModelAttribution(result);
  renderPushSkipComparison(result);
+ renderBossPushEvidence(result);
  $("full-tree").innerHTML=Object.entries(BRANCH_NAMES).map(([code,name])=>`<h4 class="group-title">${safe(tr(name))}</h4>`+SKILL_IDS.filter(id=>SKILLS[id].Branch===code&&result.levels[id]>0).map(id=>`<div class="tree-row"><span>${safe(SKILLS[id].Name)}</span><strong>${result.levels[id]}</strong></div>`).join("")).join("");
  $("delta-count").textContent="("+result.changes.length+")";
  $("diff-list").innerHTML=result.changes.length?result.changes.map(change=>`<div class="change-row"><span>${safe(change.name)}</span><span><small>${change.before} → ${change.after}</small> <strong class="${change.difference>=0?"plus":"minus"}">${change.difference>0?"+":""}${change.difference}</strong></span></div>`).join(""):"<p class='hint'>"+safe(tr("No skill-level changes."))+"</p>";
@@ -917,25 +985,33 @@ function initialize(){
  $("import-help-button").addEventListener("click",()=>importHelp.showModal());
  for(const id of ["import-help-close","import-help-done"])$(id).addEventListener("click",()=>importHelp.close());
  $("damage-choices").addEventListener("click",e=>{const b=e.target.closest("[data-damage]");if(b){state.damage=b.dataset.damage;fillInputs();remember();}});
- $("gold-choices").addEventListener("click",e=>{const b=e.target.closest("[data-gold]");if(b){state.gold=b.dataset.gold;fillInputs();remember();}});
+ $("gold-choices").addEventListener("click",e=>{const b=e.target.closest("[data-gold]");if(b){state.gold=b.dataset.gold;state.pushObservedHitDamage="";fillInputs();remember();}});
  $("push-attack-channel").addEventListener("change",()=>{readInputs();remember();});
+ $("push-observed-attack").addEventListener("change",()=>{readInputs();remember();});
  $("playstyle-choices").addEventListener("click",e=>{const b=e.target.closest("[data-playstyle]");if(b)applyPreset(b.dataset.playstyle);});
  $("skill-search").addEventListener("input",e=>renderEditor(e.target.value));
  $("skill-editor").addEventListener("change",e=>{
   const t=e.target,id=t.dataset.level||t.dataset.minimum||t.dataset.exclude;
   if(!id)return;
-  if(t.dataset.level)state.currentLevels[id]=Number(t.value);
+  if(t.dataset.level){
+   state.currentLevels[id]=Number(t.value);
+   state.pushObservedHitDamage="";$("push-observed-damage").value="";
+  }
   if(t.dataset.minimum)state.minimums[id]=Number(t.value);
   if(t.dataset.exclude)state.excluded=t.checked?[...new Set([...state.excluded,id])]:state.excluded.filter(x=>x!==id);
   remember();
  });
  $("clear-minimums").addEventListener("click",()=>{state.minimums={};fillInputs();remember();});
- for(const id of ["skill-points","max-stage","gold-weight","crafting-power","time-to-kill","clone-level","qol-mode","preserve-current","protect-unmodeled-skills","hayst-active","snap-active","astral-activations","push-stage-skip-target"])$(id).addEventListener("change",()=>{readInputs();remember();});
+ for(const id of ["skill-points","max-stage","gold-weight","crafting-power","time-to-kill","clone-level","qol-mode","preserve-current","protect-unmodeled-skills","hayst-active","snap-active","astral-activations","push-stage-skip-target","push-observed-damage","push-observed-stage"])$(id).addEventListener("change",()=>{
+  const was=state.maxStage;readInputs();
+  if(id==="max-stage"&&was!==state.maxStage){state.pushObservedHitDamage="";$("push-observed-damage").value="";}
+  remember();
+ });
  // Text fields emit "input" before their "change" event (on blur).
  // Cancel a running optimization immediately while the user edits; never
  // accept an old worker result against a half-edited budget or setting.
  for(const id of ["skill-points","max-stage","gold-weight",
-  "crafting-power","time-to-kill","clone-level","astral-activations","push-stage-skip-target"]){
+  "crafting-power","time-to-kill","clone-level","astral-activations","push-stage-skip-target","push-observed-damage","push-observed-stage"]){
    $(id).addEventListener("input",()=>{if(worker){readInputs();remember();}});
  }
  $("skill-editor").addEventListener("input",e=>{

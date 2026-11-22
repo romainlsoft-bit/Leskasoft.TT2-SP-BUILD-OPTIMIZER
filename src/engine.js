@@ -1,26 +1,27 @@
-import { skillInfo } from "../vendor/skills.js?v=20261122-push-target-r2";
-import {parseExportCounter} from "./import-numbers.js?v=20261122-push-target-r2";
-import {attackChannelEvidence,compareAttackChannels} from "./attack-channels.js?v=20261122-push-target-r2";
-import {resolvePushSkipTarget,verifyPushSkipTarget} from "./push-skip-target.js?v=20261122-push-target-r2";
-import { baseline } from "../vendor/qol-baseline.js?v=20261122-push-target-r2";
-import { optimizeExact } from "./solver-core.js?v=20261122-push-target-r2";
-import { scoreAtLevel } from "./effects.js?v=20261122-push-target-r2";
-import { parseAccountProfile } from "./account-profile.js?v=20261122-push-target-r2";
-import {extractFixedAccountPower,fixedAccountScore} from "./account-power.js?v=20261122-push-target-r2";
-import {accountDependencyGraph} from "./account-dependencies.js?v=20261122-push-target-r2";
-import {resolveSpellCaps} from "./spell-caps.js?v=20261122-push-target-r2";
-import {resolveSpellScenario,spellSelectionEvidence,SPELL_CAP_SKILLS,MULTICAST_SKILL_SPELLS,multicastSkillEvidence} from "./spell-scenarios.js?v=20261122-push-target-r2";
-import {ACTIVE_SPELL_CAPS} from "../vendor/active-spell-caps.js?v=20261122-push-target-r2";
-import {resolveManaEvidence} from "./mana-evidence.js?v=20261122-push-target-r2";
-import {accountSourceCoverage} from "./account-source-coverage.js?v=20261122-push-target-r2";
-import {monumentSeasonDayEvidence} from "./monument-season-day.js?v=20261122-push-target-r2";
-import {extractTimedSetPower} from "./account-set-bonuses.js?v=20261122-push-target-r2";
-import {resolvePermanentSetPower} from "./account-permanent-sets.js?v=20261122-push-target-r2";
-import {skillTreeSetAllocationEvidence} from "./skill-tree-set-effects.js?v=20261122-push-target-r2";
-import {resolveContractScenario} from "./contract-scenarios.js?v=20261122-push-target-r2";
-import {conditionalSkillEvidence} from "./conditional-skill-evidence.js?v=20261122-push-target-r2";
-import {lightningStrikeEvidence} from "./lightning-strike-evidence.js?v=20261122-push-target-r2";
-import {buildInvestmentAudit} from "./investment-audit.js?v=20261122-push-target-r2";
+import { skillInfo } from "../vendor/skills.js?v=20261122-boss-push-r1";
+import {parseExportCounter} from "./import-numbers.js?v=20261122-boss-push-r1";
+import {attackChannelEvidence,compareAttackChannels} from "./attack-channels.js?v=20261122-boss-push-r1";
+import {bossPushEvidence} from "./boss-push-evidence.js?v=20261122-boss-push-r1";
+import {resolvePushSkipTarget,verifyPushSkipTarget} from "./push-skip-target.js?v=20261122-boss-push-r1";
+import { baseline } from "../vendor/qol-baseline.js?v=20261122-boss-push-r1";
+import { optimizeExact } from "./solver-core.js?v=20261122-boss-push-r1";
+import { scoreAtLevel } from "./effects.js?v=20261122-boss-push-r1";
+import { parseAccountProfile } from "./account-profile.js?v=20261122-boss-push-r1";
+import {extractFixedAccountPower,fixedAccountScore} from "./account-power.js?v=20261122-boss-push-r1";
+import {accountDependencyGraph} from "./account-dependencies.js?v=20261122-boss-push-r1";
+import {resolveSpellCaps} from "./spell-caps.js?v=20261122-boss-push-r1";
+import {resolveSpellScenario,spellSelectionEvidence,SPELL_CAP_SKILLS,MULTICAST_SKILL_SPELLS,multicastSkillEvidence} from "./spell-scenarios.js?v=20261122-boss-push-r1";
+import {ACTIVE_SPELL_CAPS} from "../vendor/active-spell-caps.js?v=20261122-boss-push-r1";
+import {resolveManaEvidence} from "./mana-evidence.js?v=20261122-boss-push-r1";
+import {accountSourceCoverage} from "./account-source-coverage.js?v=20261122-boss-push-r1";
+import {monumentSeasonDayEvidence} from "./monument-season-day.js?v=20261122-boss-push-r1";
+import {extractTimedSetPower} from "./account-set-bonuses.js?v=20261122-boss-push-r1";
+import {resolvePermanentSetPower} from "./account-permanent-sets.js?v=20261122-boss-push-r1";
+import {skillTreeSetAllocationEvidence} from "./skill-tree-set-effects.js?v=20261122-boss-push-r1";
+import {resolveContractScenario} from "./contract-scenarios.js?v=20261122-boss-push-r1";
+import {conditionalSkillEvidence} from "./conditional-skill-evidence.js?v=20261122-boss-push-r1";
+import {lightningStrikeEvidence} from "./lightning-strike-evidence.js?v=20261122-boss-push-r1";
+import {buildInvestmentAudit} from "./investment-audit.js?v=20261122-boss-push-r1";
 
 export const GAME_VERSION = "8.4.0";
 export const DATASET_REVISION = "2026-09-18"; // SkillTreeInfo2.0.csv comparison
@@ -312,8 +313,18 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
   const pushSkipTarget=verifyPushSkipTarget(pushSkipRequested,result.levels);
   const attackChannels=attackChannelEvidence(scoreContext,result.levels);
   const attackChannelChanges=compareAttackChannels(scoreContext,current,result.levels);
+  // Observed damage belongs ONLY to the player's *imported/current* tree
+  // with their real buffs. Never transfer it to a new proposed SP allocation.
+  // The proposed tree receives source-only evidence without any observed hit.
+  const hasBossStage=Number(scoreContext.pushBossStage??scoreContext.maxStage)>=1;
+  const bossPushCurrent=hasBossStage?
+   bossPushEvidence(scoreContext,current):null;
+  const bossPushProposed=hasBossStage?
+   bossPushEvidence({...scoreContext,pushObservedAttackChannelId:null,
+    pushObservedHitDamage:null},result.levels):null;
   return {...result,prior:current,spent:points,remaining:SP-points,changes,branchTotals,protectedSkills,investmentAudit,
     attackChannels,attackChannelChanges,modelAttribution,pushSkipTarget,
+    bossPushCurrent,bossPushProposed,
     accountSourceCoverage:accountCoverage,monumentSeasonDay:seasonDayMonuments,
     selectedSpellUnlocks,spellBaselineInvariantUnderSkillOptimization:
      spellSelection.valid&&!spellCapEvidenceIsIncomplete,

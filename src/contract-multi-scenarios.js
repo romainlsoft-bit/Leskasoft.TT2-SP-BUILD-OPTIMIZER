@@ -9,9 +9,9 @@
  *   investments to pin; it is never scored directly / double counted.
  * - We do not claim global optimality across SP × gear × pets × timelines.
  */
-import {skillInfo} from "../vendor/skills.js?v=20261122-push-target-r2";
-import {simulateContractTimeline} from "./contract-timeline.js?v=20261122-push-target-r2";
-import {contractInvestmentPlans} from "./contract-plan-candidates.js?v=20261122-push-target-r2";
+import {skillInfo} from "../vendor/skills.js?v=20261122-boss-push-r1";
+import {simulateContractTimeline} from "./contract-timeline.js?v=20261122-boss-push-r1";
+import {contractInvestmentPlans} from "./contract-plan-candidates.js?v=20261122-boss-push-r1";
 
 const IDS=["ForbiddenContract","RoyalContract","TerrifyingPact"];
 const finite=x=>typeof x==="number"&&Number.isFinite(x);
