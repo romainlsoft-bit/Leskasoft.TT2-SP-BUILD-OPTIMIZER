@@ -11,7 +11,7 @@
  * level effect can be compared for a caller-provided hypothetical proc
  * count, but it is not a validated stage or uptime prediction.
  */
-import {skillInfo} from "../vendor/skills.js?v=20261120-simple-ui-r5";
+import {skillInfo} from "../vendor/skills.js?v=20261122-push-target-r2";
 const TALENT="CritSkillBoost";
 function validCount(settings){
  if(settings?.assumeSourceOnlyLightningStrike!==true)return null;

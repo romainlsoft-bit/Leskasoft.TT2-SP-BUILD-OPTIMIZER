@@ -7,6 +7,8 @@
  *                   contents are never printed or transmitted
  * --sp N            explicit SP budget, default 22,500
  * --pair-search     exhaustively evaluate shortlisted pairs; costly
+ * --push-source-skip  enforce 1 source-only Stage Skip on the first eligible
+ *                     attack for each build (18-build feasibility regression)
  *
  * Test results are modeled scores, NOT projected stages.
  * This does not automatically choose a globally strongest damage build:
@@ -23,11 +25,13 @@ import {refineCoupledGearAndSkills,enumerateJointGearAndSkills} from "../src/joi
 import {modeledCandidateUpperBound} from "../src/model-score-bounds.js";
 import {calculateModeledScenario} from "../src/calculation-ledger.js";
 import {selectPetPair} from "../src/pet-pair-search.js";
+import {sourcedStageSkipChannels} from "../src/attack-channels.js";
 
 const args=process.argv.slice(2);
 const option=(flag)=>{const i=args.indexOf(flag);return i>=0?args[i+1]:undefined};
 const all=args.includes("--all");
 const pairSearch=args.includes("--pair-search");
+const pushSourceSkip=args.includes("--push-source-skip");
 const requireRealPairs=args.includes("--require-real-pairs");
 const profilePath=option("--profile");
 const positional=args.find(value=>/^\d+$/.test(value));
@@ -52,7 +56,10 @@ if(requireRealPairs&&(!pairSearch||!localExport)){
 }
 let failed=0,realPairEvaluations=0;
 for(const {damage,gold} of compare){
+ const targetChannel=pushSourceSkip?sourcedStageSkipChannels(damage)[0]:null;
  const initial={skillPoints:sp,damage,gold,goldWeight:.7,
+  pushAttackChannelId:targetChannel?.id??"",
+  pushSourceStageSkipTarget:pushSourceSkip?1:0,
   qol:"none",sets:localExport?.sets||{},currentLevels:localExport?.levels||{},
   minimums:{},maxStage:localExport?.maxStage||0,
   craftingPower:localExport?.craftingPower||1,timeToKill:8,sClone:30,
@@ -119,11 +126,17 @@ for(const {damage,gold} of compare){
   assert.ok(Number.isFinite(result.score));
   assert.ok(Number.isFinite(modeled.totalLog10));
   assert.ok(result.optimality.upperBound+1e-8>=result.score);
+  if(pushSourceSkip){
+   assert.equal(result.pushSkipTarget.enabled,true);
+   assert.equal(result.pushSkipTarget.satisfied,true);
+   assert.ok(result.pushSkipTarget.actualSourceStageSkip>=1);
+  }
   if(damage==="Pet"&&gold==="Fairy"&&sp>=20000)
    assert.ok(result.spent>=sp*.95,`Pet/Fairy spent only ${result.spent} / ${sp} SP`);
   console.log(JSON.stringify({damage,gold,SP:sp,spent:result.spent,
    elapsedMs:Math.round(elapsedMs),approximate:result.optimality.mode!=="exact",
    scoreGap:result.optimality.gap,scoreLedger:modeled,
+   pushSkipTarget:result.pushSkipTarget,
    unresolvedEffects:result.accountIntegration.unmodeledEffects,
    importedAccount:Boolean(localExport),progressEvents:progress.length,
    petSelection:selection?{converged:selection.converged,
@@ -145,5 +158,6 @@ for(const {damage,gold} of compare){
 console.log(JSON.stringify({buildsChecked:compare.length,failed,
  realPairEvaluations,realPairSearchValidated:realPairEvaluations>1,
  success:failed===0,accountImported:Boolean(localExport),
+ pushSourceSkipEnabled:pushSourceSkip,
  disclaimer:"Modeled score only; in-game stage progression not measured."}));
 if(failed)process.exitCode=1;

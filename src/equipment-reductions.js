@@ -7,8 +7,8 @@
  * Chance, crit, spell uptime, conditional hero families and per-resource
  * equipment effects deliberately remain unscored.
  */
-import {reductions} from "../vendor/reductions.js?v=20261120-simple-ui-r5";
-import {goldSourceReduction} from "./gold-source-reductions.js?v=20261120-simple-ui-r5";
+import {reductions} from "../vendor/reductions.js?v=20261122-push-target-r2";
+import {goldSourceReduction} from "./gold-source-reductions.js?v=20261122-push-target-r2";
 const DAMAGES=["Pet","Clan Ship","Shadow Clone","Heavenly Strike","Dagger","Gold Gun"];
 const GOLD_TYPES=["Fairy","HoG","Chesterson"];
 const UNIVERSAL=new Set(["AllDamage","BossDamage"]);

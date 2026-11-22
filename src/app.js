@@ -1,13 +1,14 @@
-import {SKILLS,SKILL_IDS,BRANCH_NAMES,PRESETS,DAMAGE_TYPES,GOLD_TYPES,GAME_VERSION,parseExport,exportBuild,spentPoints,ownedSetFlags} from "./engine.js?v=20261120-simple-ui-r5";
-import { t, localizeDocument, SUPPORTED_LANGUAGES } from "./i18n.js?v=20261120-simple-ui-r5";
-import { readClipboardText } from "./clipboard.js?v=20261120-simple-ui-r5";
-import {resetAccountDependentOptions} from "./import-session-reset.js?v=20261120-simple-ui-r5";
-import { profileCoverage } from "./account-profile.js?v=20261120-simple-ui-r5";
-import {petLevelEvidence} from "./account-pet-levels.js?v=20261120-simple-ui-r5";
-import {resolveGemstoneEvidence} from "./account-gemstones.js?v=20261120-simple-ui-r5";
-import {formatLogMultiplier} from "./account-power.js?v=20261120-simple-ui-r5";
-import {availablePets,recommendPets} from "./pet-scenarios.js?v=20261120-simple-ui-r5";
-import {bestEquipmentByCategory,EQUIPMENT_CATEGORIES} from "./equipment-scenarios.js?v=20261120-simple-ui-r5";
+import {SKILLS,SKILL_IDS,BRANCH_NAMES,PRESETS,DAMAGE_TYPES,GOLD_TYPES,GAME_VERSION,parseExport,exportBuild,spentPoints,ownedSetFlags} from "./engine.js?v=20261122-push-target-r2";
+import { t, localizeDocument, SUPPORTED_LANGUAGES } from "./i18n.js?v=20261122-push-target-r2";
+import { readClipboardText } from "./clipboard.js?v=20261122-push-target-r2";
+import {resetAccountDependentOptions} from "./import-session-reset.js?v=20261122-push-target-r2";
+import { profileCoverage } from "./account-profile.js?v=20261122-push-target-r2";
+import {petLevelEvidence} from "./account-pet-levels.js?v=20261122-push-target-r2";
+import {resolveGemstoneEvidence} from "./account-gemstones.js?v=20261122-push-target-r2";
+import {formatLogMultiplier} from "./account-power.js?v=20261122-push-target-r2";
+import {availablePets,recommendPets} from "./pet-scenarios.js?v=20261122-push-target-r2";
+import {bestEquipmentByCategory,EQUIPMENT_CATEGORIES} from "./equipment-scenarios.js?v=20261122-push-target-r2";
+import {sourcedStageSkipChannels} from "./attack-channels.js?v=20261122-push-target-r2";
 const $=id=>document.getElementById(id);
 let locale="en";
 let lastStatus={message:"Import your account or enter your skill points to begin.",type:"",params:{}};
@@ -23,7 +24,7 @@ function setLocale(next){
  if(leskasoft)leskasoft.href="https://www.leskasoft.fr/"+locale;
  renderChoices();renderEditor($("skill-search").value);
  $("source-label").textContent=tr(state.sourceImported?"Imported from TT2":"Manual setup");
- renderAccountProfile();renderPetControls();
+ renderAccountProfile();renderPetControls();renderPushStageSkipOptions();
  $("result-mode").textContent=lastResult?(lastResult.solver==="bounded-grid-dp"?tr("Optimized · bounded grid"):tr("Optimized · exact DP")):tr("Ready when you are");
  if(lastResult)renderResults(lastResult,false);
  status(lastStatus.message,lastStatus.type,lastStatus.params);
@@ -62,7 +63,8 @@ function engineError(message){
 const iconMap={"Clan Ship":"⛵","Pet":"🐾","Shadow Clone":"◈","Heavenly Strike":"⚡","Dagger":"🗡","Gold Gun":"✦"};
 const branchColors={Knight:"#d77879",Summoner:"#edab66",Warlord:"#e7ca75",Sorcerer:"#86adf7",Rogue:"#7ad0a0",Alchemist:"#b595ed"};
 const fresh=()=>({damage:"Clan Ship",gold:"Fairy",skillPoints:0,maxStage:0,playstyle:"balanced",qol:"recommended",goldWeight:.7,craftingPower:1,timeToKill:8,sClone:30,sets:{},currentLevels:{},minimums:{},excluded:[],preserveCurrent:false,assumeHaystActive:false,assumeSnapActive:false,assumeContractsAtMax:false,astralActivations:0,mode:"power",accountProfile:null,selectedDamagePet:null,selectedGoldPet:null,comparePetScenarios:true,selectedEquipment:{},protectUnmodeledSkills:true,contractTimeline:null,contractMultiScenario:null,
- importedVersion:null,budgetSource:"unset",budgetInconsistent:false});
+ importedVersion:null,budgetSource:"unset",budgetInconsistent:false,
+ pushAttackChannelId:"",pushSourceStageSkipTarget:0});
 let state=fresh(),lastResult=null,lastScenarios=[],lastEquipment={},
  lastGearSelection=null,lastResolvedPets=null,lastRunContext=null,
  worker=null,calculationRevision=0;
@@ -295,6 +297,20 @@ function renderEquipmentRecommendations(){
  el.innerHTML=heading+petLine+winner+alternatives;
 }
 
+function renderPushStageSkipOptions(){
+ const select=$("push-attack-channel");
+ const channels=sourcedStageSkipChannels(state.damage);
+ const eligible=channels.some(c=>c.id===state.pushAttackChannelId);
+ if(state.pushAttackChannelId&&!eligible){
+  // Never import a channel-specific target into an unrelated build.
+  state.pushAttackChannelId="";
+  state.pushSourceStageSkipTarget=0;
+ }
+ select.innerHTML="<option value=''>"+safe(tr("No target"))+"</option>"+
+  channels.map(c=>"<option value='"+safe(c.id)+"'>"+safe(tr(c.label))+
+   " · "+safe(SKILLS[c.sourceSkillId]?.Name||c.sourceSkillId)+"</option>").join("");
+ select.value=state.pushAttackChannelId||"";
+}
 function fillInputs(){
  renderAccountProfile();renderPetControls();
  $("skill-points").value=state.skillPoints??"";
@@ -309,6 +325,8 @@ function fillInputs(){
  $("hayst-active").checked=state.assumeHaystActive===true;
  $("snap-active").checked=state.assumeSnapActive===true;
  $("astral-activations").value=state.astralActivations??0;
+ renderPushStageSkipOptions();
+ $("push-stage-skip-target").value=state.pushSourceStageSkipTarget??0;
  renderChoices();renderEditor($("skill-search").value);
 }
 function remember(){
@@ -396,6 +414,8 @@ function readInputs(){
  state.protectUnmodeledSkills=$("protect-unmodeled-skills").checked;
  state.assumeHaystActive=$("hayst-active").checked;
  state.assumeSnapActive=$("snap-active").checked;
+ state.pushAttackChannelId=$("push-attack-channel").value;
+ state.pushSourceStageSkipTarget=$("push-stage-skip-target").value;
  keepContractsConservative(state);
  state.mode="power";
  persist();
@@ -414,7 +434,7 @@ function optimize(){
  status("Checking prerequisites and calculating the best allocation for the chosen scoring model…");
  const revision=++calculationRevision;
  const requestContext=keepContractsConservative(structuredClone(state));
- const running=new Worker(new URL("./worker.js?v=20261120-simple-ui-r5",import.meta.url),{type:"module"});
+ const running=new Worker(new URL("./worker.js?v=20261122-push-target-r2",import.meta.url),{type:"module"});
  worker=running;
  running.onmessage=event=>{
    if(revision!==calculationRevision||worker!==running)return;
@@ -704,6 +724,104 @@ function renderAccountIntegration(result){
    {count:numberText(resources.audit.excludedOrConflictingNodes)});
  }
 }
+/**
+ * Same table-backed attack / skip diagnostics for ALL damage builds.
+ * Deliberately do not sum source modifiers, skip counts or cooldowns
+ * into total hit damage or the SP optimization score.
+ */
+function renderAttackChannelEvidence(result){
+ let el=$("attack-channel-diagnostics");
+ if(!el){
+  el=document.createElement("details");
+  el.id="attack-channel-diagnostics";el.className="result-detail";
+  $("combat-assumptions-summary").insertAdjacentElement("afterend",el);
+ }
+ const report=result.attackChannels;
+ if(!report){el.hidden=true;return;}
+ el.hidden=false;
+ const rows=report.channels.map(channel=>{
+  const bonus=channel.sourceModifierLog10===null?"":(" · "+
+   safe(tr("Source talent modifier: +{value} log10 (not total hit damage)",
+    {value:channel.sourceModifierLog10.toFixed(3)})));
+  const skip=channel.skip.filter(x=>x.value!==null&&x.level>0&&x.value>0)
+   .map(x=>safe(x.skillName)+": "+
+    safe(tr(x.kind==="stage"?"Stage Skip":"Titan Skip"))+" "+
+    safe(numberText(x.value))).join(" · ");
+  const note=channel.status==="unverified-spell-selection"?
+   " · "+safe(tr("Spell loadout unknown")):
+   channel.status==="spell-not-equipped"?
+    " · "+safe(tr("Required spell not equipped")):"";
+  return "<div class='tree-row'><span><strong>"+safe(channel.label)+
+   "</strong> · "+safe(channel.skillId)+" "+
+   safe(tr("level"))+" "+safe(numberText(channel.level))+
+   bonus+note+(skip?" · "+skip:"")+"</span></div>";
+ });
+ el.innerHTML="<summary>"+safe(tr("Attack channels and stage skips"))+
+  "</summary><p class='hint'>"+
+  safe(tr("Source-table diagnostics for the selected damage build. Stage Skip, cooldowns, hit damage and uptime are separate mechanics. No stage gain or combat DPS is predicted, and the SP score is unchanged."))+
+  "</p>"+rows.join("");
+}
+/** Skill-level proxy attribution is intentionally separate from real attack DPS. */
+function renderModelAttribution(result){
+ let el=$("model-score-attribution");
+ if(!el){
+  el=document.createElement("details");
+  el.id="model-score-attribution";el.className="result-detail";
+  $("attack-channel-diagnostics").insertAdjacentElement("afterend",el);
+ }
+ const audit=result.modelAttribution;
+ if(!audit){el.hidden=true;return;}
+ el.hidden=false;
+ const branches=Object.entries(audit.byBranch).map(([name,value])=>
+  "<div class='tree-row'><span>"+safe(tr(name))+
+  "</span><strong>"+safe(value.toFixed(2))+" log10</strong></div>");
+ const top=audit.top.map(x=>
+  "<div class='tree-row'><span>"+safe(x.name)+
+  " · "+safe(tr(x.branch))+" · "+safe(tr("level"))+" "+
+  safe(numberText(x.level))+
+  (x.conditionalSourceUnverified?" · "+safe(tr("Conditional or unverified model weight")):"")+
+  "</span><strong>"+safe(x.scoreLog10.toFixed(2))+" log10</strong></div>");
+ el.innerHTML="<summary>"+safe(tr("Why the proxy invests in these trees"))+
+  "</summary><p class='hint'>"+
+  safe(tr("Modeled skill contributions only; a high contribution is not proof of real combat power. The comparison does not alter the build."))+
+  "</p>"+branches.join("")+
+  "<h4>"+safe(tr("Largest modeled talent contributions"))+"</h4>"+top.join("");
+}
+/** Keep both valid builds visible; never invent a damage-to-stage conversion. */
+function renderPushSkipComparison(result){
+ let el=$("push-skip-comparison");
+ if(!el){
+  el=document.createElement("details");
+  el.id="push-skip-comparison";el.className="result-detail";
+  $("model-score-attribution").insertAdjacentElement("afterend",el);
+ }
+ const compare=result.pushSkipComparison;
+ if(!compare||compare.status!=="compared-same-pet-gear-context"){
+  el.hidden=true;return;
+ }
+ el.hidden=false;
+ const delta=compare.scoreDifferenceLog10;
+ const branches=Object.entries(compare.constrainedBranchTotals).map(([name,after])=>{
+  const before=compare.baselineBranchTotals[name]??0;
+  const difference=after-before;
+  return "<div class='tree-row'><span>"+safe(tr(name))+"</span><strong>"+
+   safe(numberText(before))+" → "+safe(numberText(after))+
+   " SP ("+(difference>0?"+":"")+safe(numberText(difference))+")</strong></div>";
+ });
+ el.innerHTML="<summary>"+safe(tr("Stage Skip target: compare two builds"))+
+  "</summary><p class='hint'>"+
+  safe(tr("The constrained build and the unconstrained build use the same pet/gear context. Their score difference is from the existing damage/gold proxy, not measured boss DPS or stages gained."))+
+  "</p><p>"+safe(tr("Source Stage Skip from this talent: {before} → {after}",{
+   before:numberText(compare.baselineSourceStageSkip),
+   after:numberText(compare.constrainedSourceStageSkip)}))+
+  "</p><p>"+safe(tr("Constrained minus baseline proxy score: {delta} log10",{
+    delta:(delta>0?"+":"")+delta.toFixed(3)}))+
+  "</p>"+branches.join("")+
+  "<p class='hint'>"+safe(tr("The comparison uses a bounded SP grid when necessary; neither allocation guarantees a higher stage."))+"</p>"+
+  "<label>"+safe(tr("Unconstrained alternative (copy to compare in game)"))+
+  "<textarea readonly rows='4' class='export-json' aria-label='Unconstrained alternative'>"+
+  safe(exportBuild(compare.baselineLevels))+"</textarea></label>";
+}
 function renderResults(result,scroll=true){
  $("empty-results").hidden=true;$("actual-results").hidden=false;if(scroll)$("results").scrollIntoView({behavior:"smooth",block:"start"});
  const bounded=result.optimality?.mode==="bounded-power";
@@ -717,6 +835,13 @@ function renderResults(result,scroll=true){
    "Modeled at the limit-stage boss: Hayst {hayst}, Snap {snap}, Astral Awakening {stacks}/5 taps.",
    {hayst:tr(assumptions.hayst?"active":"inactive"),
     snap:tr(assumptions.snap?"active":"inactive"),stacks:assumptions.astralActivations??0});
+ const target=result.pushSkipTarget;
+ if(target?.enabled){
+  $("combat-assumptions-summary").textContent+=" · "+tr(
+   "Source Stage Skip target: {attack}, {value} from {skill} (talent level {level}). Actual boss kill and total Stage Skip are not verified.",
+   {attack:target.attackLabel,value:numberText(target.actualSourceStageSkip),
+    skill:target.sourceSkillName,level:numberText(target.actualLevel)});
+ }
  const guarded=result.protectedSkills||[];
  if(guarded.length){
    const names=guarded.map(id=>SKILLS[id]?.Name||id).join(", ");
@@ -738,6 +863,9 @@ function renderResults(result,scroll=true){
  $("branch-chart").innerHTML=Object.entries(result.branchTotals).map(([name,points])=>`<div class="branch-row"><div class="branch-header"><span>${safe(tr(name))}</span><strong>${numberText(points)} SP</strong></div><div class="progress-track"><div class="progress-fill" style="width:${points/max*100}%;background:${branchColors[name]}"></div></div></div>`).join("");
  renderPetComparisons();renderEquipmentRecommendations();
  renderAccountIntegration(result);
+ renderAttackChannelEvidence(result);
+ renderModelAttribution(result);
+ renderPushSkipComparison(result);
  $("full-tree").innerHTML=Object.entries(BRANCH_NAMES).map(([code,name])=>`<h4 class="group-title">${safe(tr(name))}</h4>`+SKILL_IDS.filter(id=>SKILLS[id].Branch===code&&result.levels[id]>0).map(id=>`<div class="tree-row"><span>${safe(SKILLS[id].Name)}</span><strong>${result.levels[id]}</strong></div>`).join("")).join("");
  $("delta-count").textContent="("+result.changes.length+")";
  $("diff-list").innerHTML=result.changes.length?result.changes.map(change=>`<div class="change-row"><span>${safe(change.name)}</span><span><small>${change.before} → ${change.after}</small> <strong class="${change.difference>=0?"plus":"minus"}">${change.difference>0?"+":""}${change.difference}</strong></span></div>`).join(""):"<p class='hint'>"+safe(tr("No skill-level changes."))+"</p>";
@@ -746,7 +874,7 @@ function renderResults(result,scroll=true){
 function sharePayload(){
  // Compact URL encoding; the exported skill tree itself is intentionally
  // not encrypted. Sharing the link discloses the included game settings.
- return {protect:state.protectUnmodeledSkills!==false,sp:state.skillPoints,st:state.maxStage,da:state.damage,go:state.gold,p:state.playstyle,q:state.qol,w:state.goldWeight,cp:state.craftingPower,tk:state.timeToKill,cl:state.sClone,cur:state.currentLevels,min:state.minimums,exc:state.excluded,keep:state.preserveCurrent,hay:state.assumeHaystActive,snap:state.assumeSnapActive,astral:state.astralActivations};
+ return {protect:state.protectUnmodeledSkills!==false,sp:state.skillPoints,st:state.maxStage,da:state.damage,go:state.gold,p:state.playstyle,q:state.qol,w:state.goldWeight,cp:state.craftingPower,tk:state.timeToKill,cl:state.sClone,cur:state.currentLevels,min:state.minimums,exc:state.excluded,keep:state.preserveCurrent,hay:state.assumeHaystActive,snap:state.assumeSnapActive,astral:state.astralActivations,attack:state.pushAttackChannelId,skip:state.pushSourceStageSkipTarget};
 }
 function decodeLink(){
  const hash=window.location.hash;
@@ -755,7 +883,9 @@ function decodeLink(){
   const payload=JSON.parse(decodeURIComponent(escape(atob(hash.slice(7)))));
   if(!payload||typeof payload!=="object")return;
   state={...fresh(),skillPoints:payload.sp??0,maxStage:payload.st??0,damage:payload.da??"Clan Ship",gold:payload.go??"Fairy",playstyle:payload.p??"balanced",qol:payload.q??"recommended",goldWeight:payload.w??.7,craftingPower:payload.cp??1,timeToKill:payload.tk??8,sClone:payload.cl??30,currentLevels:payload.cur||{},minimums:payload.min||{},excluded:Array.isArray(payload.exc)?payload.exc:[],preserveCurrent:Boolean(payload.keep),assumeHaystActive:payload.hay===true,
-    assumeSnapActive:payload.snap===true,assumeContractsAtMax:false,astralActivations:payload.astral??0,protectUnmodeledSkills:payload.protect!==false,mode:"power"};
+    assumeSnapActive:payload.snap===true,assumeContractsAtMax:false,astralActivations:payload.astral??0,protectUnmodeledSkills:payload.protect!==false,
+    pushAttackChannelId:typeof payload.attack==="string"?payload.attack:"",
+    pushSourceStageSkipTarget:payload.skip??0,mode:"power"};
   window.history.replaceState(null,"",window.location.pathname+window.location.search);
   status("Shared build settings loaded. Optimize to calculate a new recommendation.","success");
  }catch(e){status("Could not load this shared build link.","error");}
@@ -788,6 +918,7 @@ function initialize(){
  for(const id of ["import-help-close","import-help-done"])$(id).addEventListener("click",()=>importHelp.close());
  $("damage-choices").addEventListener("click",e=>{const b=e.target.closest("[data-damage]");if(b){state.damage=b.dataset.damage;fillInputs();remember();}});
  $("gold-choices").addEventListener("click",e=>{const b=e.target.closest("[data-gold]");if(b){state.gold=b.dataset.gold;fillInputs();remember();}});
+ $("push-attack-channel").addEventListener("change",()=>{readInputs();remember();});
  $("playstyle-choices").addEventListener("click",e=>{const b=e.target.closest("[data-playstyle]");if(b)applyPreset(b.dataset.playstyle);});
  $("skill-search").addEventListener("input",e=>renderEditor(e.target.value));
  $("skill-editor").addEventListener("change",e=>{
@@ -799,12 +930,12 @@ function initialize(){
   remember();
  });
  $("clear-minimums").addEventListener("click",()=>{state.minimums={};fillInputs();remember();});
- for(const id of ["skill-points","max-stage","gold-weight","crafting-power","time-to-kill","clone-level","qol-mode","preserve-current","protect-unmodeled-skills","hayst-active","snap-active","astral-activations"])$(id).addEventListener("change",()=>{readInputs();remember();});
+ for(const id of ["skill-points","max-stage","gold-weight","crafting-power","time-to-kill","clone-level","qol-mode","preserve-current","protect-unmodeled-skills","hayst-active","snap-active","astral-activations","push-stage-skip-target"])$(id).addEventListener("change",()=>{readInputs();remember();});
  // Text fields emit "input" before their "change" event (on blur).
  // Cancel a running optimization immediately while the user edits; never
  // accept an old worker result against a half-edited budget or setting.
  for(const id of ["skill-points","max-stage","gold-weight",
-  "crafting-power","time-to-kill","clone-level","astral-activations"]){
+  "crafting-power","time-to-kill","clone-level","astral-activations","push-stage-skip-target"]){
    $(id).addEventListener("input",()=>{if(worker){readInputs();remember();}});
  }
  $("skill-editor").addEventListener("input",e=>{
