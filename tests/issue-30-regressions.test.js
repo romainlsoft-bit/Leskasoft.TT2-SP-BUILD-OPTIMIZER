@@ -119,9 +119,12 @@ test("#30: specialized multicast branches obey the identical spell context",()=>
  const missing={...pet,selectedSpells:["TapBoost"]};
  near(scoreAtLevel("TwilightGatheringMultiCastSkill",3,missing),0);
  near(scoreAtLevel("HandOfMidasMultiCastSkillBoost",3,missing),0);
- const tw={...pet,selectedSpells:["TwilightFairy"],minimums:{TwilightGathering:1}};
+ const tw={...pet,damage:"Shadow Clone",selectedSpells:["TwilightFairy"],minimums:{TwilightGathering:1}};
  const mid={...pet,selectedSpells:["HandOfMidas"]};
+ assert.equal(multicastSkillEvidence("TwilightGatheringMultiCastSkill",1,tw).status,"modeled");
  assert.ok(scoreAtLevel("TwilightGatheringMultiCastSkill",1,tw)>0);
+ assert.ok(scoreAtLevel("TwilightGatheringMultiCastSkill",1,{...tw,damage:"Heavenly Strike"})>0);
+ near(scoreAtLevel("TwilightGatheringMultiCastSkill",1,{...tw,damage:"Pet"}),0);
  assert.ok(scoreAtLevel("HandOfMidasMultiCastSkillBoost",1,mid)>0);
  assert.equal(resolveSpellScenario(mid,{HandOfMidasMultiCastSkillBoost:1})
   .multicast.HandOfMidasMultiCastSkillBoost.modeled,true);
