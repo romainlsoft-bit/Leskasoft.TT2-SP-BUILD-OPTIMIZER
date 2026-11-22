@@ -13,10 +13,10 @@
 <link rel="alternate" hreflang="uk" href="https://tap-titans.leskasoft.com/uk/">
 <link rel="alternate" hreflang="ru" href="https://tap-titans.leskasoft.com/ru/">
 <link rel="alternate" hreflang="x-default" href="https://tap-titans.leskasoft.com/">
-<link rel="icon" type="image/svg+xml" href="../assets/favicon.svg"><link rel="stylesheet" href="../styles.css?v=20261118-work-review-r1">
+<link rel="icon" type="image/svg+xml" href="../assets/favicon.svg"><link rel="stylesheet" href="../styles.css?v=20261122-toast-flat-r1">
 <title>Оптимізатор дерева навичок TT2 8.4 — безкоштовний калькулятор | Leskasoft</title>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Оптимізатор дерева навичок Tap Titans 2","description":"Калькулятор очок навичок Tap Titans 2: імпорт JSON, ручне введення, налаштування QoL та експорт збірки до 50 000 очок.","applicationCategory":"GameApplication","operatingSystem":"Any","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"url":"https://tap-titans.leskasoft.com/uk/","inLanguage":"uk","@id":"https://tap-titans.leskasoft.com/uk/#tool"}</script>
-<script type="module" src="../src/app.js?v=20261122-boss-push-r1" defer></script>
+<script type="module" src="../src/app.js?v=20261122-combat-window-r1" defer></script>
 </head>
 <body>
 <div class="site">
@@ -72,6 +72,8 @@
     <p class="hint">Вкажіть бажаний бонус пропуску етапів від конкретної атаки. Оптимізатор резервує необхідні рівні навички та розподіляє решту SP. Це не загальний пропуск етапів і не гарантований прогрес: атака має вбити титана.</p>
     <label>Атака, яка забезпечує пропуск <select id="push-attack-channel"><option value="">Без мети</option></select></label>
     <label>Мінімальний бонус пропуску від навички <input id="push-stage-skip-target" type="number" min="0" max="10000" step="1" inputmode="numeric" value="0"></label>
+    <h3>Порівняти білди для push (необов’язково)</h3>
+    <label class="toggle"><input type="checkbox" id="push-frontier-enabled"> Порівняйте повні розподіли SP з різними бонусами пропуску етапів. Це потребує додаткових обчислень і не прогнозує реальні етапи або шкоду по босу.</label>
     <h3>Умови бою на найвищому етапі</h3>
     <p class="hint">Враховуйте тимчасові бонуси лише якщо можете застосувати їх проти найскладнішого боса. Неактивні ефекти та нуль — обережне припущення.</p>
     <label class="toggle"><input type="checkbox" id="hayst-active"> Hayst активний проти найскладнішого боса</label>

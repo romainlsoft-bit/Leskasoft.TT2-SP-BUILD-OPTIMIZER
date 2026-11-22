@@ -5,11 +5,11 @@
  * Game Hive spell selection, skill cap source rows. This is a
  * conditional maximum-spell scenario, not proven active uptime.
  */
-import {spellInfo,spell_reductions} from "../vendor/spells.js?v=20261122-boss-push-r1";
-import {skillInfo} from "../vendor/skills.js?v=20261122-boss-push-r1";
-import {ACTIVE_SPELL_CAPS} from "../vendor/active-spell-caps.js?v=20261122-boss-push-r1";
-import {resolveSpellCaps,spellTableIndex} from "./spell-caps.js?v=20261122-boss-push-r1";
-import {positiveLog10} from "./account-artifacts.js?v=20261122-boss-push-r1";
+import {spellInfo,spell_reductions} from "../vendor/spells.js?v=20261122-combat-window-r1";
+import {skillInfo} from "../vendor/skills.js?v=20261122-combat-window-r1";
+import {ACTIVE_SPELL_CAPS} from "../vendor/active-spell-caps.js?v=20261122-combat-window-r1";
+import {resolveSpellCaps,spellTableIndex} from "./spell-caps.js?v=20261122-combat-window-r1";
+import {positiveLog10} from "./account-artifacts.js?v=20261122-combat-window-r1";
 const CATALOG_IDS=Object.keys(ACTIVE_SPELL_CAPS);
 const INDEX=new Map(CATALOG_IDS.map(id=>[id.toLowerCase(),id]));
 /**

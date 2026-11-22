@@ -1,14 +1,14 @@
-import {SKILLS,SKILL_IDS,BRANCH_NAMES,PRESETS,DAMAGE_TYPES,GOLD_TYPES,GAME_VERSION,parseExport,exportBuild,spentPoints,ownedSetFlags} from "./engine.js?v=20261122-boss-push-r1";
-import { t, localizeDocument, SUPPORTED_LANGUAGES } from "./i18n.js?v=20261122-boss-push-r1";
-import { readClipboardText } from "./clipboard.js?v=20261122-boss-push-r1";
-import {resetAccountDependentOptions} from "./import-session-reset.js?v=20261122-boss-push-r1";
-import { profileCoverage } from "./account-profile.js?v=20261122-boss-push-r1";
-import {petLevelEvidence} from "./account-pet-levels.js?v=20261122-boss-push-r1";
-import {resolveGemstoneEvidence} from "./account-gemstones.js?v=20261122-boss-push-r1";
-import {formatLogMultiplier} from "./account-power.js?v=20261122-boss-push-r1";
-import {availablePets,recommendPets} from "./pet-scenarios.js?v=20261122-boss-push-r1";
-import {bestEquipmentByCategory,EQUIPMENT_CATEGORIES} from "./equipment-scenarios.js?v=20261122-boss-push-r1";
-import {sourcedStageSkipChannels,attackChannelEvidence} from "./attack-channels.js?v=20261122-boss-push-r1";
+import {SKILLS,SKILL_IDS,BRANCH_NAMES,PRESETS,DAMAGE_TYPES,GOLD_TYPES,GAME_VERSION,parseExport,exportBuild,spentPoints,ownedSetFlags} from "./engine.js?v=20261122-combat-window-r1";
+import { t, localizeDocument, SUPPORTED_LANGUAGES } from "./i18n.js?v=20261122-combat-window-r1";
+import { readClipboardText } from "./clipboard.js?v=20261122-combat-window-r1";
+import {resetAccountDependentOptions} from "./import-session-reset.js?v=20261122-combat-window-r1";
+import { profileCoverage } from "./account-profile.js?v=20261122-combat-window-r1";
+import {petLevelEvidence} from "./account-pet-levels.js?v=20261122-combat-window-r1";
+import {resolveGemstoneEvidence} from "./account-gemstones.js?v=20261122-combat-window-r1";
+import {formatLogMultiplier} from "./account-power.js?v=20261122-combat-window-r1";
+import {availablePets,recommendPets} from "./pet-scenarios.js?v=20261122-combat-window-r1";
+import {bestEquipmentByCategory,EQUIPMENT_CATEGORIES} from "./equipment-scenarios.js?v=20261122-combat-window-r1";
+import {sourcedStageSkipChannels,attackChannelEvidence} from "./attack-channels.js?v=20261122-combat-window-r1";
 const $=id=>document.getElementById(id);
 let locale="en";
 let lastStatus={message:"Import your account or enter your skill points to begin.",type:"",params:{}};
@@ -66,7 +66,8 @@ const branchColors={Knight:"#d77879",Summoner:"#edab66",Warlord:"#e7ca75",Sorcer
 const fresh=()=>({damage:"Clan Ship",gold:"Fairy",skillPoints:0,maxStage:0,playstyle:"balanced",qol:"recommended",goldWeight:.7,craftingPower:1,timeToKill:8,sClone:30,sets:{},currentLevels:{},minimums:{},excluded:[],preserveCurrent:false,assumeHaystActive:false,assumeSnapActive:false,assumeContractsAtMax:false,astralActivations:0,mode:"power",accountProfile:null,selectedDamagePet:null,selectedGoldPet:null,comparePetScenarios:true,selectedEquipment:{},protectUnmodeledSkills:true,contractTimeline:null,contractMultiScenario:null,
  importedVersion:null,budgetSource:"unset",budgetInconsistent:false,
  pushAttackChannelId:"",pushSourceStageSkipTarget:0,
- pushObservedAttackChannelId:"",pushObservedHitDamage:"",pushBossStage:null});
+ pushObservedAttackChannelId:"",pushObservedHitDamage:"",pushBossStage:null,
+ pushFrontierEnabled:false});
 let state=fresh(),lastResult=null,lastScenarios=[],lastEquipment={},
  lastGearSelection=null,lastResolvedPets=null,lastRunContext=null,
  worker=null,calculationRevision=0;
@@ -342,6 +343,7 @@ function fillInputs(){
  renderPushStageSkipOptions();
  renderObservedAttackOptions();
  $("push-stage-skip-target").value=state.pushSourceStageSkipTarget??0;
+ $("push-frontier-enabled").checked=state.pushFrontierEnabled===true;
  $("push-observed-damage").value=state.pushObservedHitDamage??"";
  $("push-observed-stage").value=state.pushBossStage??"";
  renderChoices();renderEditor($("skill-search").value);
@@ -436,6 +438,7 @@ function readInputs(){
  state.assumeSnapActive=$("snap-active").checked;
  state.pushAttackChannelId=$("push-attack-channel").value;
  state.pushSourceStageSkipTarget=$("push-stage-skip-target").value;
+ state.pushFrontierEnabled=$("push-frontier-enabled").checked;
  state.pushObservedAttackChannelId=$("push-observed-attack").value;
  state.pushObservedHitDamage=$("push-observed-damage").value.trim();
  state.pushBossStage=$("push-observed-stage").value===""?null:
@@ -458,7 +461,7 @@ function optimize(){
  status("Checking prerequisites and calculating the best allocation for the chosen scoring model…");
  const revision=++calculationRevision;
  const requestContext=keepContractsConservative(structuredClone(state));
- const running=new Worker(new URL("./worker.js?v=20261122-boss-push-r1",import.meta.url),{type:"module"});
+ const running=new Worker(new URL("./worker.js?v=20261122-combat-window-r1",import.meta.url),{type:"module"});
  worker=running;
  running.onmessage=event=>{
    if(revision!==calculationRevision||worker!==running)return;
@@ -889,6 +892,41 @@ function renderBossPushEvidence(result){
  "A single observed hit is compared with theoretical boss HP before HP reductions. Repeated hits, spell uptime, contracts and shared Stage Skip are not simulated. Your measured hit applies only to your current tree; it is never assigned to the proposed build."))+
  "</p>"+rows.join("");
 }
+/** Optional competing SP allocations; Stage Skip is not a damage score. */
+function renderPushFrontier(result){
+ let el=$("push-pareto-frontier");
+ if(!el){
+  el=document.createElement("details");
+  el.id="push-pareto-frontier";el.className="result-detail";
+  $("boss-push-evidence").insertAdjacentElement("afterend",el);
+ }
+ const search=result.pushFrontier;
+ if(!search){el.hidden=true;return;}
+ el.hidden=false;
+ if(search.status!=="explored"){
+  el.innerHTML="<summary>"+safe(tr("Push alternatives"))+"</summary><p class='hint'>"+
+   safe(tr("Alternative allocation search was not available: {reason}",{
+    reason:search.reason||search.status}))+"</p>";
+  return;
+ }
+ const rows=search.pareto.map(row=>
+  "<div class='tree-row'><div><strong>"+
+   safe(tr("Source Stage Skip: {value}",{
+    value:numberText(row.sourceStageSkip)}))+
+   "</strong> · "+safe(tr("Modeled proxy score: {score} log10",{
+    score:row.scoreProxyLog10.toFixed(2)}))+
+   " · "+safe(tr("Spent SP: {sp}",{sp:numberText(row.spent)}))+
+   "<textarea readonly rows='3' class='export-json' aria-label='"+
+   safe(tr("Alternative build export"))+"'>"+
+   safe(exportBuild(row.levels))+"</textarea></div></div>").join("");
+ const attempts=search.attempted.filter(x=>x.status!=="solved").length;
+ el.innerHTML="<summary>"+safe(tr("Push alternatives"))+
+  "</summary><p class='hint'>"+
+  safe(tr("Source Stage Skip versus the existing skill-score proxy, evaluated for this selected build and final pet/gear setup. These are non-dominated visited alternatives, not predicted stage gains. Extra optimizations are limited."))+
+  "</p>"+rows+"<p class='hint'>"+
+  safe(tr("Unresolved or infeasible alternatives: {count}",{
+   count:numberText(attempts)}))+"</p>";
+}
 function renderResults(result,scroll=true){
  $("empty-results").hidden=true;$("actual-results").hidden=false;if(scroll)$("results").scrollIntoView({behavior:"smooth",block:"start"});
  const bounded=result.optimality?.mode==="bounded-power";
@@ -934,6 +972,7 @@ function renderResults(result,scroll=true){
  renderModelAttribution(result);
  renderPushSkipComparison(result);
  renderBossPushEvidence(result);
+ renderPushFrontier(result);
  $("full-tree").innerHTML=Object.entries(BRANCH_NAMES).map(([code,name])=>`<h4 class="group-title">${safe(tr(name))}</h4>`+SKILL_IDS.filter(id=>SKILLS[id].Branch===code&&result.levels[id]>0).map(id=>`<div class="tree-row"><span>${safe(SKILLS[id].Name)}</span><strong>${result.levels[id]}</strong></div>`).join("")).join("");
  $("delta-count").textContent="("+result.changes.length+")";
  $("diff-list").innerHTML=result.changes.length?result.changes.map(change=>`<div class="change-row"><span>${safe(change.name)}</span><span><small>${change.before} → ${change.after}</small> <strong class="${change.difference>=0?"plus":"minus"}">${change.difference>0?"+":""}${change.difference}</strong></span></div>`).join(""):"<p class='hint'>"+safe(tr("No skill-level changes."))+"</p>";
@@ -942,7 +981,7 @@ function renderResults(result,scroll=true){
 function sharePayload(){
  // Compact URL encoding; the exported skill tree itself is intentionally
  // not encrypted. Sharing the link discloses the included game settings.
- return {protect:state.protectUnmodeledSkills!==false,sp:state.skillPoints,st:state.maxStage,da:state.damage,go:state.gold,p:state.playstyle,q:state.qol,w:state.goldWeight,cp:state.craftingPower,tk:state.timeToKill,cl:state.sClone,cur:state.currentLevels,min:state.minimums,exc:state.excluded,keep:state.preserveCurrent,hay:state.assumeHaystActive,snap:state.assumeSnapActive,astral:state.astralActivations,attack:state.pushAttackChannelId,skip:state.pushSourceStageSkipTarget};
+ return {pushFrontier:state.pushFrontierEnabled===true,protect:state.protectUnmodeledSkills!==false,sp:state.skillPoints,st:state.maxStage,da:state.damage,go:state.gold,p:state.playstyle,q:state.qol,w:state.goldWeight,cp:state.craftingPower,tk:state.timeToKill,cl:state.sClone,cur:state.currentLevels,min:state.minimums,exc:state.excluded,keep:state.preserveCurrent,hay:state.assumeHaystActive,snap:state.assumeSnapActive,astral:state.astralActivations,attack:state.pushAttackChannelId,skip:state.pushSourceStageSkipTarget};
 }
 function decodeLink(){
  const hash=window.location.hash;
@@ -953,7 +992,8 @@ function decodeLink(){
   state={...fresh(),skillPoints:payload.sp??0,maxStage:payload.st??0,damage:payload.da??"Clan Ship",gold:payload.go??"Fairy",playstyle:payload.p??"balanced",qol:payload.q??"recommended",goldWeight:payload.w??.7,craftingPower:payload.cp??1,timeToKill:payload.tk??8,sClone:payload.cl??30,currentLevels:payload.cur||{},minimums:payload.min||{},excluded:Array.isArray(payload.exc)?payload.exc:[],preserveCurrent:Boolean(payload.keep),assumeHaystActive:payload.hay===true,
     assumeSnapActive:payload.snap===true,assumeContractsAtMax:false,astralActivations:payload.astral??0,protectUnmodeledSkills:payload.protect!==false,
     pushAttackChannelId:typeof payload.attack==="string"?payload.attack:"",
-    pushSourceStageSkipTarget:payload.skip??0,mode:"power"};
+    pushSourceStageSkipTarget:payload.skip??0,
+    pushFrontierEnabled:payload.pushFrontier===true,mode:"power"};
   window.history.replaceState(null,"",window.location.pathname+window.location.search);
   status("Shared build settings loaded. Optimize to calculate a new recommendation.","success");
  }catch(e){status("Could not load this shared build link.","error");}
@@ -1002,7 +1042,7 @@ function initialize(){
   remember();
  });
  $("clear-minimums").addEventListener("click",()=>{state.minimums={};fillInputs();remember();});
- for(const id of ["skill-points","max-stage","gold-weight","crafting-power","time-to-kill","clone-level","qol-mode","preserve-current","protect-unmodeled-skills","hayst-active","snap-active","astral-activations","push-stage-skip-target","push-observed-damage","push-observed-stage"])$(id).addEventListener("change",()=>{
+ for(const id of ["skill-points","max-stage","gold-weight","crafting-power","time-to-kill","clone-level","qol-mode","preserve-current","protect-unmodeled-skills","hayst-active","snap-active","astral-activations","push-stage-skip-target","push-observed-damage","push-observed-stage","push-frontier-enabled"])$(id).addEventListener("change",()=>{
   const was=state.maxStage;readInputs();
   if(id==="max-stage"&&was!==state.maxStage){state.pushObservedHitDamage="";$("push-observed-damage").value="";}
   remember();

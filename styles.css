@@ -111,8 +111,8 @@ hr{border:0;border-top:1px solid #384158;margin:27px 0}.playstyles{display:grid;
  align-items:flex-start;
  gap:12px;
  padding:15px 14px;
- border:1px solid #e78b98;
- border-left:5px solid #ff9b9b;
+ /* Flat dark surface: no bright edge or inset highlight at top-left. */
+ border:0;
  border-radius:12px;
  background:#30202a;
  color:#fff0f2;
@@ -161,7 +161,7 @@ hr{border:0;border-top:1px solid #384158;margin:27px 0}.playstyles{display:grid;
 
 /* Positive confirmations reuse the accessible notification, with a distinct
    visual treatment; failed actions remain persistent errors. */
-.app-toast[data-kind="success"]{border-color:#7cd5ac;border-left-color:#8ce8b4;background:#19372f;color:#e6fff2}
+.app-toast[data-kind="success"]{background:#19372f;color:#e6fff2}
 .app-toast[data-kind="success"] .toast-symbol{border-color:#8ce8b4;color:#c9ffdf}
 .app-toast[data-kind="success"] .toast-content p{color:#e0f7eb}
 .app-toast[data-kind="success"] .toast-close{border-color:#90d8b277;background:#255245}

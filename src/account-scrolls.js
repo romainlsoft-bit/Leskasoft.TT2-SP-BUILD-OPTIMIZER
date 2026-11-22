@@ -1,6 +1,6 @@
-import {CLAN_SCROLLS} from "../vendor/clan-scrolls.js?v=20261122-boss-push-r1";
-import {ARTIFACT_CATALOG,EQUIPMENT_SET_CATALOG} from "../vendor/account-catalog.js?v=20261122-boss-push-r1";
-import {calculatePermanentArtifactEffects} from "./account-artifacts.js?v=20261122-boss-push-r1";
+import {CLAN_SCROLLS} from "../vendor/clan-scrolls.js?v=20261122-combat-window-r1";
+import {ARTIFACT_CATALOG,EQUIPMENT_SET_CATALOG} from "../vendor/account-catalog.js?v=20261122-combat-window-r1";
+import {calculatePermanentArtifactEffects} from "./account-artifacts.js?v=20261122-combat-window-r1";
 /** Source-backed capped boosters: Quill targets individual scroll effects,
  * Stamp the completed-scroll-set fraction. Additive resource scrolls are
  * excluded. Dragon Weaver's additive +25% applies only to an
