@@ -252,7 +252,8 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
     additiveReconstructionMatches:Math.abs(scoredTotal-result.score)<=
      1e-7*Math.max(1,Math.abs(result.score)),
     sourceOnly:true,gameplayCalibrationVerified:false,
-    optimizerScoreChanged:false};
+    tacticalInsightCommunityWeightExcluded:settings.excludeUnverifiedTacticalInsight===true,
+    optimizerScoreChanged:settings.excludeUnverifiedTacticalInsight===true};
   const points=spentPoints(result.levels);
   if(points>SP)throw new Error("Internal validation failed: allocation exceeds SP budget.");
   for(const item of skills){
