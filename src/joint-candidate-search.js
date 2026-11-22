@@ -1,4 +1,4 @@
-import {rankVisitedCandidateBounds} from "./model-score-bounds.js?v=20261120-simple-ui-r5";
+import {rankVisitedCandidateBounds,visitedScoreEnvelope} from "./model-score-bounds.js?v=20261120-simple-ui-r5";
 /**
  * Block-coordinate refinement between the ACTUAL equipped gear and the
  * optimized skill tree for one chosen pair of active pets.
@@ -42,8 +42,15 @@ export function refineCoupledGearAndSkills(settings,{gearFor,solve,score,upperBo
   const optimizedCT=Number(result?.levels?.CombatTechniques??0);
   if(!Number.isSafeInteger(optimizedCT)||optimizedCT<0||optimizedCT>50)
    throw new Error("Invalid optimized Combat Techniques level");
-  const scoreUpperBound=upperBoundOf?
-   upperBoundOf(result,adjustedScore):adjustedScore;
+  // Missing bounds invalidate ranking certification, not the feasible build.
+  let scoreUpperBound=null;
+  if(upperBoundOf){
+   try{
+    const high=upperBoundOf(result,adjustedScore);
+    if(Number.isFinite(high)&&high>=adjustedScore-1e-8)
+     scoreUpperBound=high;
+   }catch{}
+  }
   const row={signature,ctForGear:ct,optimizedCT,adjustedScore,
    scoreUpperBound,
    exhaustiveGearSearch:gear.gearSearch?.exhaustiveWithinOwnedInventory===true};
@@ -59,8 +66,12 @@ export function refineCoupledGearAndSkills(settings,{gearFor,solve,score,upperBo
   if(signature===nextKey&&ct===optimizedCT){converged=true;break;}
   ct=optimizedCT;
  }
+ const envelope=visitedScoreEnvelope(trace);
+ if(best){best.scoreUpperBound=envelope.upperBound;
+  best.boundUnresolved=envelope.unresolved;}
  return {best,search:{
   evaluations:trace.length,trace,converged,cycleDetected,
+  scoreEnvelope:envelope,
   comparisonBounds:rankVisitedCandidateBounds(trace,bestRow),
   allExaminedGearSpacesComplete:trace.length>0&&
    trace.every(x=>x.exhaustiveGearSearch),
@@ -117,8 +128,12 @@ export function enumerateJointGearAndSkills(settings,{
    best={gearSelection:gear,result,context,adjustedScore,scoreUpperBound};
   }
  }
+ const envelope=visitedScoreEnvelope(trace);
+ if(best){best.scoreUpperBound=envelope.upperBound;
+  best.boundUnresolved=envelope.unresolved;}
  return {best,search:{
   method:"full-owned-gear-cartesian-with-SP-reoptimization",
+  scoreEnvelope:envelope,
   evaluations:trace.length,assignmentsRequested:assignments.length,
   refinementEvaluations:refinements,unconvergedAssignments:unconverged,
   trace,converged:unconverged===0,cycleDetected:false,

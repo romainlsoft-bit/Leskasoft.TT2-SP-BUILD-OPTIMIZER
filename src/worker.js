@@ -50,7 +50,8 @@ self.onmessage=event=>{
    const modeledScenario=calculateModeledScenario(
     winning.result,winning.context,winning.gearSelection);
    return {adjustedScore:modeledScenario.totalLog10,
-    scoreUpperBound:modeledCandidateUpperBound(winning.result,modeledScenario.totalLog10),
+    scoreUpperBound:winning.scoreUpperBound,
+     boundUnresolved:winning.boundUnresolved===true,
     result:{...winning.result,modeledScenario},
     gearSelection:winning.gearSelection,jointSearch:refined.search,
     context:winning.context};

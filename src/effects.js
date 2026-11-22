@@ -7,15 +7,15 @@ import { skillInfo } from "../vendor/skills.js?v=20261120-simple-ui-r5";
 import { reductions } from "../vendor/reductions.js?v=20261120-simple-ui-r5";
 import { spellInfo, spell_reductions } from "../vendor/spells.js?v=20261120-simple-ui-r5";
 import {spellTableIndex} from "./spell-caps.js?v=20261120-simple-ui-r5";
-import {spellCapGainEligible} from "./spell-scenarios.js?v=20261120-simple-ui-r5";
+import {spellCapGainEligible,multicastSkillEvidence} from "./spell-scenarios.js?v=20261120-simple-ui-r5";
 import {lightningStrikeSkillScore} from "./lightning-strike-evidence.js?v=20261120-simple-ui-r5";
 import {petCombatTechniquesIncrement,petEquipmentCombatTechniquesIncrement} from "./pet-scenarios.js?v=20261120-simple-ui-r5";
 import {skillTreeSetScore} from "./skill-tree-set-effects.js?v=20261120-simple-ui-r5";
 import {contractSkillScore} from "./contract-scenarios.js?v=20261120-simple-ui-r5";
+import {cooldownFrequencyGainLog10} from "./flash-zip.js?v=20261120-simple-ui-r5";
 
 const num=(v,fallback=0)=>{ const x=Number(v); return Number.isFinite(x)?x:fallback; };
 const lg=v=>Math.log10(num(v)>0?num(v):1);
-const multicastIds=new Set(["BurstDamageMultiCastSkill","TapBoostMultiCastSkill","DualPetMultiCast","HelperBoostMultiCastSkill","ClanShipVoltageMultiCastSkill","ShadowCloneMultiCastSkill","GuidedBlade","StreamOfBladesMultiCastSkill"]);
 const spellMap={TwilightBell:["BurstDamage","TwilightFairy"],SummonerAutoTap:["DualPet","TapBoost"],PhantomBlades:["CritBoost","StreamOfBlades"],AlchemistMastery:["HandOfMidas","GoldenMissile"]};
 const mcA=[1,100,10000,1000000,100000000,1000000000];
 const mcB=[1,10,100,1000,10000,50000];
@@ -27,16 +27,33 @@ function sourceSkillScoreAtLevel(id,level,settings){
   const A=n=>num(info["A"+n]), B=n=>num(info["B"+n]), C=n=>num(info["C"+n]);
   const r=num(reductions[id]?.[settings.damage])+num(reductions[id]?.[settings.gold])*num(settings.goldWeight);
   const goldWeight=num(settings.goldWeight);
-  const mc=Number(Boolean(settings.sets?.FB))+Number(Boolean(settings.sets?.FF));
   const lr=fn=>fn(level)-fn(0);
   const logA=n=>lg(A(n)),logB=n=>lg(B(n)),logC=n=>lg(C(n));
-  if(multicastIds.has(id))return r*lr(n=>(B(n)?B(n)+mc:0)*(1+logA(n)));
+  const multicast=multicastSkillEvidence(id,level,settings);
+  if(multicast){
+    if(!multicast.modeled||multicast.modeledCharges===0)return 0;
+    const count=multicast.modeledCharges;
+    if(id==="TwilightGatheringMultiCastSkill")
+      return r*(count*(1+logA(level))+logC(level));
+    if(id==="HandOfMidasMultiCastSkillBoost"){
+      const otherGold=settings.gold==="Chesterson"?0:1;
+      const idx=Math.max(0,Math.min(5,count));
+      return r*(lg(mcA[idx])+idx*logA(level))
+        +otherGold*goldWeight*lg(mcB[idx]);
+    }
+    return r*count*(1+logA(level));
+  }
   switch(id){
-    case "TwilightGatheringMultiCastSkill":
-      return r*lr(n=>(B(n)?B(n)+mc:0)*(1+logA(n))+logC(n));
     case "PetBonusBoost":
       return r*lr(logA)+num(reductions.TapDmg?.[settings.damage])*lr(logB);
-    case "BossDmgQTE":
+    case "BossDmgQTE": {
+      // A is the QTE damage per activation. B < 1 is a shorter
+      // cooldown, never a damage penalty.
+      const cadence=cooldownFrequencyGainLog10(B(level),settings);
+      const heartOfGold=settings.gold==="HoG"?
+       goldWeight*cooldownFrequencyGainLog10(B(level),settings,"heartOfGold"):0;
+      return r*logA(level)+r*cadence+heartOfGold;
+    }
     case "HelperInspiredWeaken":
     case "ClanShipVoltage":
     case "CriticalHit":
@@ -96,12 +113,6 @@ function sourceSkillScoreAtLevel(id,level,settings){
       // A = gold under Forbidden, B = damage under Royal. The solver may
       // award only those pieces whose corresponding contract is guaranteed.
       return contractSkillScore(id,level,settings);
-    case "HandOfMidasMultiCastSkillBoost": {
-      const otherGold=settings.gold==="Chesterson"?0:1;
-      const idx=n=>Math.max(0,Math.min(5,B(n)?B(n)+mc:0));
-      return r*lr(n=>lg(mcA[idx(n)])+idx(n)*logA(n))
-        +otherGold*goldWeight*lr(n=>lg(mcB[idx(n)]));
-    }
     default: {
       const spells=spellMap[id];
       if(!spells)return r*lr(logA);

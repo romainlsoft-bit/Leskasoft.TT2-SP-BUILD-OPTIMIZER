@@ -62,7 +62,7 @@ function engineError(message){
 const iconMap={"Clan Ship":"⛵","Pet":"🐾","Shadow Clone":"◈","Heavenly Strike":"⚡","Dagger":"🗡","Gold Gun":"✦"};
 const branchColors={Knight:"#d77879",Summoner:"#edab66",Warlord:"#e7ca75",Sorcerer:"#86adf7",Rogue:"#7ad0a0",Alchemist:"#b595ed"};
 const fresh=()=>({damage:"Clan Ship",gold:"Fairy",skillPoints:0,maxStage:0,playstyle:"balanced",qol:"recommended",goldWeight:.7,craftingPower:1,timeToKill:8,sClone:30,sets:{},currentLevels:{},minimums:{},excluded:[],preserveCurrent:false,assumeHaystActive:false,assumeSnapActive:false,assumeContractsAtMax:false,astralActivations:0,mode:"power",accountProfile:null,selectedDamagePet:null,selectedGoldPet:null,comparePetScenarios:true,selectedEquipment:{},protectUnmodeledSkills:true,contractTimeline:null,contractMultiScenario:null,
- importedVersion:null});
+ importedVersion:null,budgetSource:"unset",budgetInconsistent:false});
 let state=fresh(),lastResult=null,lastScenarios=[],lastEquipment={},
  lastGearSelection=null,lastResolvedPets=null,lastRunContext=null,
  worker=null,calculationRevision=0;
@@ -297,7 +297,7 @@ function renderEquipmentRecommendations(){
 
 function fillInputs(){
  renderAccountProfile();renderPetControls();
- $("skill-points").value=state.skillPoints||"";
+ $("skill-points").value=state.skillPoints??"";
  $("max-stage").value=state.maxStage||"";
  $("gold-weight").value=state.goldWeight;
  $("crafting-power").value=state.craftingPower;
@@ -328,8 +328,9 @@ function importRaw(raw){
  resetAccountDependentOptions(state);
  state.currentLevels=parsed.levels;
  state.importedVersion=parsed.importedVersion;
- if(parsed.skillPoints!==null&&parsed.skillPoints>0)state.skillPoints=parsed.skillPoints;
- else if(!state.skillPoints)state.skillPoints=spentPoints(parsed.levels);
+ state.skillPoints=parsed.skillPoints??parsed.skillPointsSpent;
+ state.budgetSource=parsed.budgetSource;
+ state.budgetInconsistent=parsed.budgetInconsistent;
  state.maxStage=parsed.maxStage;state.craftingPower=parsed.craftingPower;state.sets=parsed.sets;
  state.accountProfile=parsed.profile;
 
@@ -340,7 +341,11 @@ function importRaw(raw){
  $("source-label").textContent=tr("Imported from TT2");
  fillInputs();remember();
  $("import-json").value=""; // Do not retain the raw full-account export in the DOM.
- status("Account data imported. Review the damage/gold choices and optimize.","success");
+ if(parsed.budgetInconsistent)
+  status("Imported Skill Points are lower than the cost of the imported skill tree. Correct the budget before optimizing.","error");
+ else if(parsed.budgetSource==="inferred")
+  status("No SP budget in the export: initialized from the imported skill tree cost. You can adjust it.");
+ else status("Account data imported. Review the damage/gold choices and optimize.","success");
 }
 function offerManualPaste(message,params={},clipboardContent=null){
  const panel=$("paste-details");
@@ -376,7 +381,11 @@ async function copyText(value){
  let ok=false;try{ok=document.execCommand("copy");}catch{}tmp.remove();return ok;
 }
 function readInputs(){
- state.skillPoints=Number($("skill-points").value);
+ const manuallyEntered=Number($("skill-points").value);
+ if(manuallyEntered!==state.skillPoints){
+  state.budgetSource="manual";state.budgetInconsistent=false;
+ }
+ state.skillPoints=manuallyEntered;
  state.maxStage=Number($("max-stage").value)||0;
  state.goldWeight=Number($("gold-weight").value);
  state.craftingPower=Number($("crafting-power").value);

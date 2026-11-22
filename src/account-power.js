@@ -17,6 +17,7 @@ import {ACCOUNT_SCALING} from "../vendor/account-scaling.js?v=20261120-simple-ui
 import {clanScrollEvidence} from "./account-scrolls.js?v=20261120-simple-ui-r5";
 import {heroProgressionEvidence} from "./hero-progression.js?v=20261120-simple-ui-r5";
 import {equipmentEffectReduction} from "./equipment-reductions.js?v=20261120-simple-ui-r5";
+import {goldSourceReduction} from "./gold-source-reductions.js?v=20261120-simple-ui-r5";
 import {ARTIFACT_CATALOG} from "../vendor/account-catalog.js?v=20261120-simple-ui-r5";
 import {calculatePermanentArtifactEffects} from "./account-artifacts.js?v=20261120-simple-ui-r5";
 import {resolveMonumentEvidence} from "./account-monuments.js?v=20261120-simple-ui-r5";
@@ -35,11 +36,7 @@ const DIRECT_DAMAGE_TYPES=Object.freeze({
  "Dagger":["UltraDaggerDamage"],
  "Gold Gun":["GoldGunDamage"]
 });
-const DIRECT_GOLD_TYPES=Object.freeze({
- Fairy:["FairyGold"],
- HoG:["GoldBoss"],
- Chesterson:["ChestAmount","GoldChesterson"]
-});
+const GOLD_BONUS_TYPES=Object.freeze(["GoldAll","FairyGold","GoldBoss","ChestAmount","GoldChesterson"]);
 const cache=new WeakMap();
 function numericLevel(value,max){
  const n=Number(value);
@@ -243,7 +240,8 @@ export function extractFixedAccountPower(profile,at=new Date()){
 export function fixedAccountScore(power,settings){
  if(!power?.available)return {damageLog10:0,goldLog10:0,weightedLog10:0,types:[]};
  const types=["AllDamage","BossDamage",...(DIRECT_DAMAGE_TYPES[settings.damage]||[])];
- const goldTypes=["GoldAll",...(DIRECT_GOLD_TYPES[settings.gold]||[])];
+ const goldTypes=GOLD_BONUS_TYPES.filter(type=>
+  goldSourceReduction(type,settings.gold)>0);
  // Route verified All Hero Damage through pinned source build reductions,
  // rather than incorrectly treating it as universal All Damage.
  const heroTypes=["AllHelperDamage","AllHeroDamage","HeroDamage"];

@@ -709,7 +709,7 @@ test("no artifact collection must never generate made-up Artifact Damage",()=>{
  assert.equal(derived.ownedArtifactCount,null);
 });
 
-test("ChestAmount artifacts and research affect Chesterson gold, never Fairy or HoG",()=>{
+test("ChestAmount artifacts and research boost Fairy and Chesterson, never HoG",()=>{
  const profile=parseAccountProfile({
   artifacts:{Artifact19:{level:100,enchanted:false}},
   gemstonesResearch:{"20":{level:2}}
@@ -721,8 +721,8 @@ test("ChestAmount artifacts and research affect Chesterson gold, never Fairy or 
  for(const damage of ["Clan Ship","Pet","Shadow Clone","Heavenly Strike","Dagger","Gold Gun"]){
   for(const gold of ["Fairy","HoG","Chesterson"]){
    const actual=fixedAccountScore(power,{damage,gold,goldWeight:1});
-   assert.equal(actual.goldLog10,gold==="Chesterson"?power.byType.ChestAmount:0,
-    damage+" / "+gold+" should not leak the Chesterson multiplier");
+   assert.equal(actual.goldLog10,gold==="HoG"?0:power.byType.ChestAmount,
+    damage+" / "+gold+" must use the same source conversion as skills and gear");
   }
  }
  const disabled=fixedAccountScore(power,{damage:"Pet",gold:"Chesterson",goldWeight:0});
