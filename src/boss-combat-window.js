@@ -218,12 +218,18 @@ export function simulateBossCombatWindow(settings={},levels={},scenario=null){
 export function compareMeasuredBossWindows(candidates=[]){
  if(!Array.isArray(candidates)||candidates.length<2||candidates.length>8)
   throw new RangeError("Compare 2 to 8 independently measured scenarios");
+ const ids=new Set();
  const results=candidates.map((candidate,i)=>{
   if(!candidate||typeof candidate!=="object")
    throw new TypeError("Invalid independently measured candidate");
+  const id=candidate.id??String(i);
+  if((typeof id!=="string"&&typeof id!=="number")||
+     String(id).trim()===""||ids.has(String(id)))
+   throw new RangeError("Each independently measured candidate needs a unique ID");
+  ids.add(String(id));
   const report=simulateBossCombatWindow(candidate.settings,
    candidate.levels,candidate.scenario);
-  return {id:candidate.id??String(i),report};
+  return {id,report};
  });
  const first=results[0].report;
  if(first.status!=="simulated-explicit-events")
@@ -235,12 +241,21 @@ export function compareMeasuredBossWindows(candidates=[]){
    return {status:"unresolved",reason:"incompatible-boss-windows",results};
  }
  const robust=results.filter(x=>x.report.robustKillWithUnmodifiedHp);
- const fastest=robust.length?robust.reduce((best,x)=>
-  x.report.firstKillByHpRoll.max.second<
-   best.report.firstKillByHpRoll.max.second?x:best):null;
+ const earliestRobustSecond=robust.length?
+  Math.min(...robust.map(x=>x.report.firstKillByHpRoll.max.second)):null;
+ // Input events have whole-second precision: equal seconds are a tie,
+ // not evidence that the first submitted build is faster.
+ const fastestRobustObservedIds=robust
+  .filter(x=>x.report.firstKillByHpRoll.max.second===earliestRobustSecond)
+  .map(x=>x.id);
  return {schema:"tt2-observed-boss-window-comparison-v1",
   status:"compared-independent-events",
-  results,fastestRobustObservedId:fastest?.id??null,
+  results,
+  fastestRobustObservedId:fastestRobustObservedIds.length===1?
+   fastestRobustObservedIds[0]:null,
+  fastestRobustObservedIds,
+  fastestRobustObservedSecond:earliestRobustSecond,
+  tiedFastestRobustObservation:fastestRobustObservedIds.length>1,
   comparedOnlyIndependentlyMeasuredTrees:true,
   producesNewSkillPointAllocation:false,stageGainPredicted:false};
 }
