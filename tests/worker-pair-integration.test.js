@@ -1,6 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {parseAccountProfile} from "../src/account-profile.js";
+import {parseExport} from "../src/engine.js";
+import {scoreAtLevel} from "../src/effects.js";
 
 const makeSettings=accountProfile=>({
  accountProfile,damage:"Pet",gold:"Fairy",goldWeight:.7,
@@ -260,4 +262,45 @@ test("worker: contract mode re-ranks visited owned pet pairs and returns consist
   assert.deepEqual(result.petComparisons,{damage:[],gold:[]});
   assert.equal(result.result.petSearch.selectedPairAfterContractRerank,true);
  }
+});
+
+test("#30: real worker respects imported 8.4.2 six-spell loadout at 22,600 SP",async()=>{
+ const exportData=parseExport({
+  Version:"8.4.2",Skills:{},
+  selectedSpells:["BurstDamage","CritBoost","HandOfMidas",
+   "HelperBoost","ShadowClone","StreamOfBlades"]});
+ const settings={...makeSettings(exportData.profile),
+  importedVersion:exportData.importedVersion,
+  currentLevels:exportData.levels,skillPoints:22600,
+  maxStage:800000,goldWeight:.7};
+ const execute=await workerHarness();
+ const {result}=execute("optimize",settings);
+ assert.equal(result?.ok,true,result?.error);
+ assert.ok(result.result.spent<=22600);
+ assert.ok(result.result.optimality.upperBound>=result.result.score);
+ assert.equal(result.result.importedGameVersion,"8.4.2");
+ assert.equal(result.result.sourceDataGameVersion,"8.4.0");
+ assert.equal(result.result.spellScenario.multicast.TapBoostMultiCastSkill.status,"spell-absent");
+ assert.equal(result.result.spellScenario.multicast.DualPetMultiCast.status,"spell-absent");
+ for(const id of ["TapBoostMultiCastSkill","DualPetMultiCast"]){
+  const level=result.result.levels[id];
+  assert.equal(scoreAtLevel(id,level,settings),0,id+" has no selected source spell");
+ }
+ assert.equal(result.result.modeledScenario.selectedSpellBaselineLog10>0,true);
+ assert.ok(Number.isFinite(result.result.modeledScenario.totalLog10));
+});
+test("#30: real worker Pet/Fairy selects ChestAmount x100 Armor instead of GoldAll x2",async()=>{
+ const profile=parseAccountProfile({equipmentInventory:[
+  {id:"ChestArmor",slot:"Armor",name:"Chest x100",
+   bonusType:"ChestAmount",bonusAmount:"100"},
+  {id:"AllArmor",slot:"Armor",name:"All x2",
+   bonusType:"GoldAll",bonusAmount:"2"}
+ ]});
+ const execute=await workerHarness();
+ const {result}=execute("optimize",{...makeSettings(profile),
+  skillPoints:1000,comparePetScenarios:false});
+ assert.equal(result?.ok,true,result?.error);
+ assert.equal(result.gearSelection.selected.Armor.name,"Chest x100");
+ assert.ok(result.result.spent<=1000);
+ assert.ok(Number.isFinite(result.result.modeledScenario.totalLog10));
 });

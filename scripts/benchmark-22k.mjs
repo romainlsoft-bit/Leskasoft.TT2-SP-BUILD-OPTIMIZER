@@ -95,7 +95,8 @@ for(const {damage,gold} of compare){
    const {result,context,gearSelection,adjustedScore}=joint.best;
    const modeled=calculateModeledScenario(result,context,gearSelection);
    return {result,modeled,gearSelection,jointSearch:joint.search,
-    adjustedScore,scoreUpperBound:modeledCandidateUpperBound(result,adjustedScore)};
+    adjustedScore,scoreUpperBound:joint.best.scoreUpperBound,
+    boundUnresolved:joint.best.boundUnresolved===true};
   };
   const selection=pairSearch&&(damageCandidates.length||goldCandidates.length)?
    selectPetPair(damageCandidates,goldCandidates,evaluate,{maxPasses:3,

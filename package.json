@@ -9,6 +9,7 @@
     "check": "npm test && npm run check:data && npm run check:modules",
     "check:data": "node scripts/verify-data.mjs",
     "bench:22k": "node scripts/benchmark-22k.mjs --all",
+    "bench:issue30": "node scripts/benchmark-22k.mjs --all --sp 22600 && node scripts/benchmark-22k.mjs --all --sp 50000",
     "check:modules": "node scripts/verify-module-graph.mjs"
   },
   "engines": {
