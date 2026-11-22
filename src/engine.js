@@ -1,24 +1,26 @@
-import { skillInfo } from "../vendor/skills.js?v=20261120-simple-ui-r5";
-import {parseExportCounter} from "./import-numbers.js?v=20261120-simple-ui-r5";
-import { baseline } from "../vendor/qol-baseline.js?v=20261120-simple-ui-r5";
-import { optimizeExact } from "./solver-core.js?v=20261120-simple-ui-r5";
-import { scoreAtLevel } from "./effects.js?v=20261120-simple-ui-r5";
-import { parseAccountProfile } from "./account-profile.js?v=20261120-simple-ui-r5";
-import {extractFixedAccountPower,fixedAccountScore} from "./account-power.js?v=20261120-simple-ui-r5";
-import {accountDependencyGraph} from "./account-dependencies.js?v=20261120-simple-ui-r5";
-import {resolveSpellCaps} from "./spell-caps.js?v=20261120-simple-ui-r5";
-import {resolveSpellScenario,spellSelectionEvidence,SPELL_CAP_SKILLS,MULTICAST_SKILL_SPELLS,multicastSkillEvidence} from "./spell-scenarios.js?v=20261120-simple-ui-r5";
-import {ACTIVE_SPELL_CAPS} from "../vendor/active-spell-caps.js?v=20261120-simple-ui-r5";
-import {resolveManaEvidence} from "./mana-evidence.js?v=20261120-simple-ui-r5";
-import {accountSourceCoverage} from "./account-source-coverage.js?v=20261120-simple-ui-r5";
-import {monumentSeasonDayEvidence} from "./monument-season-day.js?v=20261120-simple-ui-r5";
-import {extractTimedSetPower} from "./account-set-bonuses.js?v=20261120-simple-ui-r5";
-import {resolvePermanentSetPower} from "./account-permanent-sets.js?v=20261120-simple-ui-r5";
-import {skillTreeSetAllocationEvidence} from "./skill-tree-set-effects.js?v=20261120-simple-ui-r5";
-import {resolveContractScenario} from "./contract-scenarios.js?v=20261120-simple-ui-r5";
-import {conditionalSkillEvidence} from "./conditional-skill-evidence.js?v=20261120-simple-ui-r5";
-import {lightningStrikeEvidence} from "./lightning-strike-evidence.js?v=20261120-simple-ui-r5";
-import {buildInvestmentAudit} from "./investment-audit.js?v=20261120-simple-ui-r5";
+import { skillInfo } from "../vendor/skills.js?v=20261122-push-target-r2";
+import {parseExportCounter} from "./import-numbers.js?v=20261122-push-target-r2";
+import {attackChannelEvidence,compareAttackChannels} from "./attack-channels.js?v=20261122-push-target-r2";
+import {resolvePushSkipTarget,verifyPushSkipTarget} from "./push-skip-target.js?v=20261122-push-target-r2";
+import { baseline } from "../vendor/qol-baseline.js?v=20261122-push-target-r2";
+import { optimizeExact } from "./solver-core.js?v=20261122-push-target-r2";
+import { scoreAtLevel } from "./effects.js?v=20261122-push-target-r2";
+import { parseAccountProfile } from "./account-profile.js?v=20261122-push-target-r2";
+import {extractFixedAccountPower,fixedAccountScore} from "./account-power.js?v=20261122-push-target-r2";
+import {accountDependencyGraph} from "./account-dependencies.js?v=20261122-push-target-r2";
+import {resolveSpellCaps} from "./spell-caps.js?v=20261122-push-target-r2";
+import {resolveSpellScenario,spellSelectionEvidence,SPELL_CAP_SKILLS,MULTICAST_SKILL_SPELLS,multicastSkillEvidence} from "./spell-scenarios.js?v=20261122-push-target-r2";
+import {ACTIVE_SPELL_CAPS} from "../vendor/active-spell-caps.js?v=20261122-push-target-r2";
+import {resolveManaEvidence} from "./mana-evidence.js?v=20261122-push-target-r2";
+import {accountSourceCoverage} from "./account-source-coverage.js?v=20261122-push-target-r2";
+import {monumentSeasonDayEvidence} from "./monument-season-day.js?v=20261122-push-target-r2";
+import {extractTimedSetPower} from "./account-set-bonuses.js?v=20261122-push-target-r2";
+import {resolvePermanentSetPower} from "./account-permanent-sets.js?v=20261122-push-target-r2";
+import {skillTreeSetAllocationEvidence} from "./skill-tree-set-effects.js?v=20261122-push-target-r2";
+import {resolveContractScenario} from "./contract-scenarios.js?v=20261122-push-target-r2";
+import {conditionalSkillEvidence} from "./conditional-skill-evidence.js?v=20261122-push-target-r2";
+import {lightningStrikeEvidence} from "./lightning-strike-evidence.js?v=20261122-push-target-r2";
+import {buildInvestmentAudit} from "./investment-audit.js?v=20261122-push-target-r2";
 
 export const GAME_VERSION = "8.4.0";
 export const DATASET_REVISION = "2026-09-18"; // SkillTreeInfo2.0.csv comparison
@@ -175,6 +177,12 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
     if(!Number.isInteger(lvl)||lvl<0||lvl>skillInfo[id].MaxLevel)throw new Error("Invalid minimum for "+skillInfo[id].Name);
     min[id]=Math.max(min[id],lvl);
   }
+  // Optional attack-specific source Stage Skip is a REAL constraint on
+  // talent levels. It is not converted into fictitious attack damage.
+  // The same mechanism works for all six damage builds and gold sources.
+  const pushSkipRequested=resolvePushSkipTarget(combatContext);
+  for(const [id,level] of Object.entries(pushSkipRequested.requiredLevels))
+    min[id]=Math.max(min[id],level);
   // A selected and modeled spell is a HARD loadout constraint. Its
   // unlock must not disappear while DP optimizes only marginal skill gains;
   // otherwise the final ledger loses a nonconstant baseline and DP bounds
@@ -218,6 +226,32 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
     scoreCache.set(id,scores);
   }
   const result=optimizeExact(skills,SP,(skill,level)=>scoreCache.get(skill.id)[level],"power",onProgress,{branchCache});
+  // Explain the existing additive skill proxy without pretending that
+  // a dominant coefficient establishes actual boss DPS. Same audit for
+  // ALL six damage builds and three gold choices, with no change to DP.
+  const skillAttribution=SKILL_IDS.filter(id=>result.levels[id]>0).map(id=>{
+    const before=current[id],after=result.levels[id],scores=scoreCache.get(id);
+    return {id,name:skillInfo[id].Name,branch:BRANCH_NAMES[skillInfo[id].Branch],
+      level:after,priorLevel:before,sourceBonusTypeA:skillInfo[id].BonusTypeA,
+      scoreLog10:scores[after],priorScoreLog10:scores[before],
+      changeLog10:scores[after]-scores[before],
+      conditionalSourceUnverified:id==="HelperBoost"||
+       ["ForbiddenContract","RoyalContract","TerrifyingPact",
+        "QuickFortune","PhilosophersFlux"].includes(id)};
+  });
+  const byBranch=Object.fromEntries(Object.values(BRANCH_NAMES).map(name=>[
+    name,skillAttribution.filter(row=>row.branch===name)
+     .reduce((sum,row)=>sum+row.scoreLog10,0)
+  ]));
+  const scoredTotal=skillAttribution.reduce((sum,row)=>sum+row.scoreLog10,0);
+  const modelAttribution={schema:"tt2-skill-model-attribution-v1",
+    entries:skillAttribution,byBranch,
+    top:[...skillAttribution].sort((a,b)=>b.scoreLog10-a.scoreLog10).slice(0,8),
+    scoredTotalLog10:scoredTotal,dpScoreLog10:result.score,
+    additiveReconstructionMatches:Math.abs(scoredTotal-result.score)<=
+     1e-7*Math.max(1,Math.abs(result.score)),
+    sourceOnly:true,gameplayCalibrationVerified:false,
+    optimizerScoreChanged:false};
   const points=spentPoints(result.levels);
   if(points>SP)throw new Error("Internal validation failed: allocation exceeds SP budget.");
   for(const item of skills){
@@ -275,7 +309,11 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
    scoreContext,{permanentSetPower,timedSetPower:timed});
   const seasonDayMonuments=monumentSeasonDayEvidence(dependencyReport.monuments,
    scoreContext);
+  const pushSkipTarget=verifyPushSkipTarget(pushSkipRequested,result.levels);
+  const attackChannels=attackChannelEvidence(scoreContext,result.levels);
+  const attackChannelChanges=compareAttackChannels(scoreContext,current,result.levels);
   return {...result,prior:current,spent:points,remaining:SP-points,changes,branchTotals,protectedSkills,investmentAudit,
+    attackChannels,attackChannelChanges,modelAttribution,pushSkipTarget,
     accountSourceCoverage:accountCoverage,monumentSeasonDay:seasonDayMonuments,
     selectedSpellUnlocks,spellBaselineInvariantUnderSkillOptimization:
      spellSelection.valid&&!spellCapEvidenceIsIncomplete,

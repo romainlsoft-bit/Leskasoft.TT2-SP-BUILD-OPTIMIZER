@@ -7,7 +7,7 @@
  * modifiers, skill-dependent mana regeneration, or actual activation.
  * ALWAYS diagnostic; never feed this output into the additive SP objective.
  */
-import {skillInfo} from "../vendor/skills.js?v=20261120-simple-ui-r5";
+import {skillInfo} from "../vendor/skills.js?v=20261122-push-target-r2";
 
 const IDS=Object.freeze(["ForbiddenContract","RoyalContract"]);
 const NUM=/^(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/;

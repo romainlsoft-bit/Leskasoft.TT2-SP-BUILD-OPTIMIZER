@@ -1,15 +1,15 @@
-import {optimizeBuild} from "./engine.js?v=20261120-simple-ui-r5";
-import {petSearchPlan,availablePets} from "./pet-scenarios.js?v=20261120-simple-ui-r5";
-import {calculateModeledScenario} from "./calculation-ledger.js?v=20261120-simple-ui-r5";
-import {selectPetPair} from "./pet-pair-search.js?v=20261120-simple-ui-r5";
+import {optimizeBuild} from "./engine.js?v=20261122-push-target-r2";
+import {petSearchPlan,availablePets} from "./pet-scenarios.js?v=20261122-push-target-r2";
+import {calculateModeledScenario} from "./calculation-ledger.js?v=20261122-push-target-r2";
+import {selectPetPair} from "./pet-pair-search.js?v=20261122-push-target-r2";
 import {bestEquipmentByCategory,gearSelectionEffects,petCandidateGearWeightEnvelope,
  enumerateOwnedGearAssignments}
- from "./equipment-scenarios.js?v=20261120-simple-ui-r5";
+ from "./equipment-scenarios.js?v=20261122-push-target-r2";
 import {refineCoupledGearAndSkills,enumerateJointGearAndSkills}
- from "./joint-candidate-search.js?v=20261120-simple-ui-r5";
-import {modeledCandidateUpperBound} from "./model-score-bounds.js?v=20261120-simple-ui-r5";
-import {proposeContractScenarioBuild} from "./contract-multi-scenarios.js?v=20261120-simple-ui-r5";
-import {rerankVisitedContractPetPairs} from "./contract-pet-rerank.js?v=20261120-simple-ui-r5";
+ from "./joint-candidate-search.js?v=20261122-push-target-r2";
+import {modeledCandidateUpperBound} from "./model-score-bounds.js?v=20261122-push-target-r2";
+import {proposeContractScenarioBuild} from "./contract-multi-scenarios.js?v=20261122-push-target-r2";
+import {rerankVisitedContractPetPairs} from "./contract-pet-rerank.js?v=20261122-push-target-r2";
 
 // Per-request cache: branch DP signatures must distinguish changes in pet,
 // equipment and the resulting Combat Techniques contribution.
@@ -56,11 +56,52 @@ self.onmessage=event=>{
     gearSelection:winning.gearSelection,jointSearch:refined.search,
     context:winning.context};
   };
+  // Compare the forced Stage Skip target to an unconstrained solve
+  // under the SAME final pet/gear context. This is run ONCE for the
+  // winner, not once per pet candidate. Report TWO feasible allocations
+  // and their old proxy scores; Stage Skip is never assigned a made-up
+  // log10 damage weight.
+  const withPushComparison=(choice,selected)=>{
+   const target=selected?.pushSkipTarget;
+   if(target?.enabled!==true)return selected;
+   if(choice.context?.contractMultiScenario?.enabled===true)
+    return {...selected,pushSkipComparison:{status:"not-comparable-with-contract-scenario"}};
+   const unforced=optimizeBuild({...choice.context,
+    pushAttackChannelId:"",pushSourceStageSkipTarget:0},undefined,cache);
+   const source=target.sourceSkillId,col=target.sourceColumn;
+   const sourceBefore=Number(
+    // Use the same source-row values already audited by the engine.
+    // No Stage Skip from equipment, sets or global stats is inferred.
+    unforced.attackChannels.channels.find(c=>c.id===target.attackChannelId)
+     ?.skip.find(x=>x.skillId===source&&x.kind==="stage")?.value??0
+   );
+   return {...selected,pushSkipComparison:{
+    schema:"tt2-source-skip-proxy-comparison-v1",
+    status:"compared-same-pet-gear-context",
+    attackChannelId:target.attackChannelId,
+    sourceSkillId:source,sourceColumn:col,
+    baselineScore:unforced.score,constrainedScore:selected.score,
+    scoreDifferenceLog10:selected.score-unforced.score,
+    baselineSourceStageSkip:sourceBefore,
+    constrainedSourceStageSkip:target.actualSourceStageSkip,
+    baselineBranchTotals:unforced.branchTotals,
+    constrainedBranchTotals:selected.branchTotals,
+    baselineLevels:unforced.levels,
+    baselineSP:unforced.spent,constrainedSP:selected.spent,
+    sameRequestedPetGearContext:true,
+    boundedGridMayChangeExactOrdering:
+     unforced.optimality?.certifiedExact!==true||
+     selected.optimality?.certifiedExact!==true,
+    comparesModeledSPProxyOnly:true,
+    scoreIsNotMeasuredCombatDps:true,stageGainPredicted:false
+   }};
+  };
   // Optional explicit scenario comparison only for the final chosen
   // pet/gear pair. Do NOT multiply the whole gear/pet search workload.
   const withContractDecision=choice=>{
    const context=choice.context||settings;
-   if(context.contractMultiScenario?.enabled!==true)return choice.result;
+   if(context.contractMultiScenario?.enabled!==true)
+    return withPushComparison(choice,choice.result);
    const selection=proposeContractScenarioBuild({
     settings:context,baseline:choice.result,gearSelection:choice.gearSelection,
     solve:opts=>optimizeBuild(opts,undefined,cache),
@@ -70,13 +111,13 @@ self.onmessage=event=>{
    // On unresolved or infeasible inputs, preserve the EXACT original
    // modeled result, including its score and existing maximum-mode choice.
    if(selection.selection.status!=="ranked")
-    return {...choice.result,contractMultiScenario:selection.selection};
+    return withPushComparison(choice,{...choice.result,contractMultiScenario:selection.selection});
    const winner=selection.result;
    // The returned result uses the conservative DP objective (the contract
    // source-only window gain never becomes an always-on skill multiplier).
    const modeledScenario=calculateModeledScenario(winner,{
     ...context,assumeContractsAtMax:false},choice.gearSelection);
-   return {...winner,modeledScenario,contractMultiScenario:selection.selection};
+   return withPushComparison(choice,{...winner,modeledScenario,contractMultiScenario:selection.selection});
   };
   if(type==="optimize-pet-scenarios"){
    const visitedPetPairs=[];
