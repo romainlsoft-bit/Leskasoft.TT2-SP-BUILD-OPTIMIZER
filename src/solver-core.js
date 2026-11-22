@@ -358,7 +358,12 @@ export function optimizeExact(skills, budget, scoreFor, _retiredMode="power", on
   // the grid optimum for budget floor(B/q)+branchCount. That is a rigorous
   // UPPER bound for the additive score model.
   const gridded=budget>gridThreshold;
-  const floorCosts=groups.map(g=>g.skills.reduce((sum,skill)=>sum+skill.costs[skill.min||0],0));
+  // Use the first truly feasible branch budget: required ancestors and
+  // tier gates cannot be inferred from individual skill minima alone.
+  const floorCosts=branchSolutions.map(solution=>
+    solution.values.findIndex(Number.isFinite));
+  if(floorCosts.some(cost=>cost<0))
+    throw new Error("Required minimum levels exceed your SP budget.");
   const floorTotal=floorCosts.reduce((sum,x)=>sum+x,0);
   if(floorTotal>budget)throw new Error("Required minimum levels exceed your SP budget.");
   // Work on ADDITIONAL points after mandatory minimums, making every coarse

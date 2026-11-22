@@ -6,11 +6,62 @@
  * conditional maximum-spell scenario, not proven active uptime.
  */
 import {spellInfo,spell_reductions} from "../vendor/spells.js?v=20261120-simple-ui-r5";
+import {skillInfo} from "../vendor/skills.js?v=20261120-simple-ui-r5";
 import {ACTIVE_SPELL_CAPS} from "../vendor/active-spell-caps.js?v=20261120-simple-ui-r5";
 import {resolveSpellCaps,spellTableIndex} from "./spell-caps.js?v=20261120-simple-ui-r5";
 import {positiveLog10} from "./account-artifacts.js?v=20261120-simple-ui-r5";
 const CATALOG_IDS=Object.keys(ACTIVE_SPELL_CAPS);
 const INDEX=new Map(CATALOG_IDS.map(id=>[id.toLowerCase(),id]));
+/**
+ * Proven spell-to-multicast links from TT2 8.4 skill BonusTypeA/B IDs.
+ * The optimistic spell-level hypothesis is not evidence of real uptime.
+ */
+export const MULTICAST_SKILL_SPELLS=Object.freeze({
+ BurstDamageMultiCastSkill:"BurstDamage",
+ TapBoostMultiCastSkill:"TapBoost",
+ DualPetMultiCast:"DualPet",
+ HelperBoostMultiCastSkill:"HelperBoost",
+ ClanShipVoltageMultiCastSkill:"ThunderVolley",
+ ShadowCloneMultiCastSkill:"ShadowClone",
+ GuidedBlade:"CritBoost",
+ StreamOfBladesMultiCastSkill:"StreamOfBlades",
+ TwilightGatheringMultiCastSkill:"TwilightFairy",
+ HandOfMidasMultiCastSkillBoost:"HandOfMidas"
+});
+export function multicastSkillEvidence(skillId,level,settings={}){
+ const spellId=MULTICAST_SKILL_SPELLS[skillId];
+ if(!spellId)return null;
+ const selection=spellSelectionEvidence(settings);
+ const spell=spellInfo[spellId];
+ const required=ACTIVE_SPELL_CAPS[spellId]?.required??"None";
+ const knownSelected=selection.valid&&selection.ids.includes(spellId);
+ const minimum=Number(settings.minimums?.[required]??0);
+ const retained=settings.preserveCurrent===true?Number(settings.currentLevels?.[required]??0):0;
+ const unlocked=required==="None"||minimum>0||retained>0;
+ const maxScenario=assumedMax(settings);
+ const row=skillInfo[skillId];
+ const baseCharges=Number(row?.["B"+level]??0);
+ const setCharges=Number(Boolean(settings.sets?.FB))+Number(Boolean(settings.sets?.FF));
+ const maximumCharges=baseCharges>0?baseCharges+setCharges:0;
+ const claimed=settings.multicastAvailableCharges?.[spellId];
+ const provided=claimed!==undefined&&claimed!==null;
+ const verifiedCharges=provided&&Number.isSafeInteger(Number(claimed))&&
+  Number(claimed)>=0;
+ const status=!selection.valid?"unknown-loadout":!knownSelected?"spell-absent":
+  !unlocked?"spell-locked":!maxScenario?"activation-unverified":
+  provided&&!verifiedCharges?"invalid-charge-evidence":"modeled";
+ const modeled=status==="modeled";
+ const charges=modeled?(verifiedCharges?
+  Math.min(maximumCharges,Number(claimed)):maximumCharges):0;
+ return {skillId,spellId,status,modeled,
+  maximumCharges,modeledCharges:charges,
+  actualChargesVerified:verifiedCharges,
+  sourceDurationSeconds:Number(spell?.Duration)||null,
+  sourceCooldownSeconds:Number(spell?.Cooldown)||null,
+  actualUptimeVerified:false,
+  dataTableVersion:"8.4.0"};
+}
+
 export const MAX_EQUIPPED_SPELLS=6;
 export const SPELL_CAP_SKILLS=Object.freeze({
  TwilightBell:["BurstDamage","TwilightFairy"],
@@ -166,8 +217,10 @@ export function resolveSpellScenario(settings={},levels={},capEvidence=null){
  const weight=Number(settings?.goldWeight);
  const weightedLog10=damageLog10+(Number.isFinite(weight)?weight:0)*goldLog10;
  const recommendation=recommendSourceSpellSlots(settings,levels,caps);
+ const multicast=Object.fromEntries(Object.keys(MULTICAST_SKILL_SPELLS)
+  .map(id=>[id,multicastSkillEvidence(id,Number(levels[id]??0),settings)]));
  return {schema:"tt2-spell-scenario-v1",selection,slots:selection.ids.length,
-  recommendation,
+  recommendation,multicast,
   sourceSpellCount:CATALOG_IDS.length,rows,bySpell,unsupported,
   damageLog10,goldLog10,weightedLog10,
   manaOneCast:selection.valid&&rows.length===selection.ids.length&&

@@ -1,4 +1,5 @@
 import { skillInfo } from "../vendor/skills.js?v=20261120-simple-ui-r5";
+import {parseExportCounter} from "./import-numbers.js?v=20261120-simple-ui-r5";
 import { baseline } from "../vendor/qol-baseline.js?v=20261120-simple-ui-r5";
 import { optimizeExact } from "./solver-core.js?v=20261120-simple-ui-r5";
 import { scoreAtLevel } from "./effects.js?v=20261120-simple-ui-r5";
@@ -6,7 +7,7 @@ import { parseAccountProfile } from "./account-profile.js?v=20261120-simple-ui-r
 import {extractFixedAccountPower,fixedAccountScore} from "./account-power.js?v=20261120-simple-ui-r5";
 import {accountDependencyGraph} from "./account-dependencies.js?v=20261120-simple-ui-r5";
 import {resolveSpellCaps} from "./spell-caps.js?v=20261120-simple-ui-r5";
-import {resolveSpellScenario,spellSelectionEvidence,SPELL_CAP_SKILLS} from "./spell-scenarios.js?v=20261120-simple-ui-r5";
+import {resolveSpellScenario,spellSelectionEvidence,SPELL_CAP_SKILLS,MULTICAST_SKILL_SPELLS,multicastSkillEvidence} from "./spell-scenarios.js?v=20261120-simple-ui-r5";
 import {ACTIVE_SPELL_CAPS} from "../vendor/active-spell-caps.js?v=20261120-simple-ui-r5";
 import {resolveManaEvidence} from "./mana-evidence.js?v=20261120-simple-ui-r5";
 import {accountSourceCoverage} from "./account-source-coverage.js?v=20261120-simple-ui-r5";
@@ -76,10 +77,15 @@ export function parseExport(source){
   const profile=parseAccountProfile(data);
   const stats=data.playerStats||data.stats||{};
   const skillPoints=stats["Skill Points Owned"]??stats.SkillPoints??data.SkillPoints;
+  const levels=levelsFrom(tree),spent=spentPoints(levels);
+  const declaredBudget=parseExportCounter(skillPoints,"Skill Points");
   return {
-    levels:levelsFrom(tree),
-    skillPoints:Number.isFinite(Number(skillPoints))?Number(skillPoints):null,
-    maxStage:Number(stats["Max Prestige Stage"]??stats.MaxStage??0)||0,
+    levels,
+    skillPoints:declaredBudget,
+    skillPointsSpent:spent,
+    budgetSource:declaredBudget===null?"inferred":"declared",
+    budgetInconsistent:declaredBudget!==null&&declaredBudget<spent,
+    maxStage:parseExportCounter(stats["Max Prestige Stage"]??stats.MaxStage,"Max Stage")??0,
     craftingPower:Number(stats["Crafting Power"]??stats.CP??1)||1,
     sets:ownedSetFlags(profile),
     setOwnershipKnown:profile.sections.equipmentSets.present,
@@ -136,6 +142,8 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
     Number.isFinite(activeFraction)&&activeFraction>=0&&activeFraction<=1;
   const uncertainSkills=[
     ...(spellCapEvidenceIsIncomplete?Object.keys(SPELL_CAP_SKILLS):[]),
+    ...Object.keys(MULTICAST_SKILL_SPELLS).filter(id=>
+      !multicastSkillEvidence(id,Math.max(1,current[id]),combatContext).modeled),
     ...(combatContext.assumeContractsAtMax||contractReallocationAllowed?[]:
       ["ForbiddenContract","RoyalContract","TerrifyingPact"]),
     ...(combatContext.assumeHaystActive?[]:["QuickFortune"]),
@@ -398,5 +406,7 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
     combatAssumptions:{hayst:combatContext.assumeHaystActive,
       snap:combatContext.assumeSnapActive,astralActivations,
       contractsAtMax:combatContext.assumeContractsAtMax},
-    model:"TT2 weighted log-damage/gold proxy; not a gameplay performance guarantee",gameVersion:GAME_VERSION};
+    model:"TT2 weighted log-damage/gold proxy; not a gameplay performance guarantee",
+    gameVersion:GAME_VERSION,importedGameVersion:settings.importedVersion??null,
+    sourceDataGameVersion:GAME_VERSION};
 }

@@ -5,6 +5,8 @@ export const SUPPORTED_LANGUAGES = ["en","fr","uk","ru"];
 export const NATIVE_LANGUAGE_NAMES = {en:"English",fr:"Français",uk:"Українська",ru:"Русский"};
 export const translations = {
 fr:{
+ "Imported Skill Points are lower than the cost of the imported skill tree. Correct the budget before optimizing.":"Le nombre de points de compétence déclaré est inférieur au coût de l’arbre importé. Corrigez le budget avant d’optimiser.",
+ "No SP budget in the export: initialized from the imported skill tree cost. You can adjust it.":"Aucun budget de points de compétence dans l’export : il a été estimé d’après le coût de l’arbre importé. Vous pouvez l’ajuster.",
   "Protected imported skills reserve {sp} SP ({percent}%): {skills}. Those SP were not freely re-optimized.":"Les compétences importées conservées immobilisent {sp} SP ({percent} %) : {skills}. Ces points n'ont pas été réoptimisés librement.",
   "Tactical Insight uses unverified hero-skill reduction weights. Warlord allocation should be checked against in-game Stats.":"Tactical Insight utilise des pondérations de compétences de héros non vérifiées. L'allocation Warlord doit être comparée aux statistiques du jeu.",
  "Monument enchantment what-if: +{delta} log10 versus the source-based conservative pool under an unverified stacking assumption. This bonus is NOT included in the SP score.":"Enchantements des monuments, simulation uniquement : +{delta} log10 par rapport au pool conservateur calculé selon une hypothèse de cumul non confirmée. Ce bonus n'est PAS intégré au score SP.",
@@ -298,6 +300,8 @@ fr:{
  "Free Tap Titans 2 skill tree optimizer for TT2 8.4. Optimize skill points for Clan Ship, Pet, Shadow Clone, Heavenly Strike, Dagger or Gold Gun. Import game data or configure manually.":"Optimiseur gratuit de compétences Tap Titans 2 version 8.4. Import des données ou configuration manuelle pour tous les types de builds."
 },
 uk:{
+ "Imported Skill Points are lower than the cost of the imported skill tree. Correct the budget before optimizing.":"Кількість очок навичок в експорті менша за вартість імпортованого дерева. Виправте бюджет перед оптимізацією.",
+ "No SP budget in the export: initialized from the imported skill tree cost. You can adjust it.":"В експорті немає бюджету очок навичок: його визначено за вартістю імпортованого дерева. Ви можете змінити значення.",
   "Protected imported skills reserve {sp} SP ({percent}%): {skills}. Those SP were not freely re-optimized.":"Збережені навички з імпорту утримують {sp} SP ({percent}%): {skills}. Ці очки не були вільно перерозподілені.",
   "Tactical Insight uses unverified hero-skill reduction weights. Warlord allocation should be checked against in-game Stats.":"Tactical Insight використовує неперевірені вагові коефіцієнти навичок героїв. Розподіл у Warlord слід порівняти зі статистикою гри.",
  "Monument enchantment what-if: +{delta} log10 versus the verified baseline under an unverified stacking assumption. This bonus is NOT included in the SP score.":"Зачарування монументів, лише припущення: +{delta} log10 відносно консервативного розрахункового пулу за неперевіреного правила сумування. Цей бонус НЕ враховано в оцінці SP.",
@@ -542,6 +546,8 @@ uk:{
  "Free Tap Titans 2 skill tree optimizer for TT2 8.4. Optimize skill points for Clan Ship, Pet, Shadow Clone, Heavenly Strike, Dagger or Gold Gun. Import game data or configure manually.":"Безкоштовний оптимізатор дерева навичок Tap Titans 2 версії 8.4. Імпорт даних або ручне налаштування для всіх збірок."
 },
 ru:{
+ "Imported Skill Points are lower than the cost of the imported skill tree. Correct the budget before optimizing.":"Число очков навыков в экспорте меньше стоимости импортированного дерева. Исправьте бюджет перед оптимизацией.",
+ "No SP budget in the export: initialized from the imported skill tree cost. You can adjust it.":"В экспорте нет бюджета очков навыков: он рассчитан по стоимости импортированного дерева. Вы можете изменить значение.",
   "Protected imported skills reserve {sp} SP ({percent}%): {skills}. Those SP were not freely re-optimized.":"Сохранённые импортированные навыки удерживают {sp} SP ({percent}%): {skills}. Эти очки не были свободно перераспределены.",
   "Tactical Insight uses unverified hero-skill reduction weights. Warlord allocation should be checked against in-game Stats.":"Tactical Insight использует непроверенные весовые коэффициенты навыков героев. Распределение Warlord нужно сравнить со статистикой игры.",
  "Monument enchantment what-if: +{delta} log10 versus the verified baseline under an unverified stacking assumption. This bonus is NOT included in the SP score.":"Чары монументов, только гипотеза: +{delta} log10 относительно консервативного расчётного пула при непроверенном правиле накопления. Этот бонус НЕ включён в оценку SP.",

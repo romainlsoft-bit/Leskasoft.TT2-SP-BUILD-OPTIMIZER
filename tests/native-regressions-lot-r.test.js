@@ -54,7 +54,8 @@ test("R optimizer exposes real per-rarity counted set effects without a second s
   power.countedEffectsApplied);
  assert.deepEqual(result.accountIntegration.permanentSetPower.ownedCounts,power.ownedCounts);
  assert.equal(result.accountIntegration.permanentSetPower.ownedRosterComplete,true);
- assert.equal(PROFILE_SECTION_NAMES.length,18);
+ assert.equal(PROFILE_SECTION_NAMES.length,19);
+ assert.equal(new Set(PROFILE_SECTION_NAMES).size,19);
  assert.equal(result.accountIntegration.releaseReady,false);
 });
 test("R source spell caps do not prove actual spell selection or uptime",()=>{

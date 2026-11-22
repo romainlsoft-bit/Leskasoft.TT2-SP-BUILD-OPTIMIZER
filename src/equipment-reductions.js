@@ -8,6 +8,7 @@
  * equipment effects deliberately remain unscored.
  */
 import {reductions} from "../vendor/reductions.js?v=20261120-simple-ui-r5";
+import {goldSourceReduction} from "./gold-source-reductions.js?v=20261120-simple-ui-r5";
 const DAMAGES=["Pet","Clan Ship","Shadow Clone","Heavenly Strike","Dagger","Gold Gun"];
 const GOLD_TYPES=["Fairy","HoG","Chesterson"];
 const UNIVERSAL=new Set(["AllDamage","BossDamage"]);
@@ -20,11 +21,7 @@ const PER_DAMAGE=Object.freeze({
  UltraDaggerDamage:"Dagger",DaggerDamage:"Dagger",
  GoldGunDamage:"Gold Gun"
 });
-const PER_GOLD=Object.freeze({
- FairyGold:"Fairy",
- GoldBoss:"HoG",
- ChestAmount:"Chesterson",GoldChesterson:"Chesterson"
-});
+const DIRECT_GOLD_EFFECTS=new Set(["FairyGold","GoldBoss","ChestAmount","GoldChesterson"]);
 const REDUCED=Object.freeze({
  TapDamage:"TapDmg",TapDmg:"TapDmg",
  AllHelperDamage:"AllHelperDmg",AllHeroDamage:"AllHelperDmg",HeroDamage:"AllHelperDmg"
@@ -37,12 +34,15 @@ export function equipmentEffectReduction(type,settings={}){
   weight:damage===PER_DAMAGE[type]?1:0,
   status:damage===PER_DAMAGE[type]?"direct":"inapplicable",
   source:"explicit-damage-family"};
- if(type==="GoldAll")return {weight,status:GOLD_TYPES.includes(gold)?"direct":"inapplicable",
-  source:"explicit-gold-family"};
- if(Object.hasOwn(PER_GOLD,type))return {
-  weight:gold===PER_GOLD[type]?weight:0,
-  status:gold===PER_GOLD[type]?"direct":"inapplicable",
-  source:"explicit-gold-family"};
+ if(type==="GoldAll"||DIRECT_GOLD_EFFECTS.has(type)){
+  const conversion=goldSourceReduction(type,gold);
+  const scoreWeight=GOLD_TYPES.includes(gold)?weight*conversion:0;
+  return {weight:scoreWeight,
+   status:scoreWeight>0?"direct":"inapplicable",
+   source:"shared-gold-source-reduction"};
+ }
+ if(type==="ChestersonGoldStageAmount")return {
+  weight:null,status:"unverified-duration",source:"chesterson-duration-not-gold-multiplier"};
  if(Object.hasOwn(REDUCED,type)){
   const key=REDUCED[type];
   const ratio=reductions[key]?.[damage];
