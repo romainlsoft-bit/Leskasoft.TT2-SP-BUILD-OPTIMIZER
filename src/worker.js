@@ -1,15 +1,16 @@
-import {optimizeBuild} from "./engine.js?v=20261122-boss-push-r1";
-import {petSearchPlan,availablePets} from "./pet-scenarios.js?v=20261122-boss-push-r1";
-import {calculateModeledScenario} from "./calculation-ledger.js?v=20261122-boss-push-r1";
-import {selectPetPair} from "./pet-pair-search.js?v=20261122-boss-push-r1";
+import {optimizeBuild} from "./engine.js?v=20261122-combat-window-r1";
+import {petSearchPlan,availablePets} from "./pet-scenarios.js?v=20261122-combat-window-r1";
+import {calculateModeledScenario} from "./calculation-ledger.js?v=20261122-combat-window-r1";
+import {selectPetPair} from "./pet-pair-search.js?v=20261122-combat-window-r1";
 import {bestEquipmentByCategory,gearSelectionEffects,petCandidateGearWeightEnvelope,
  enumerateOwnedGearAssignments}
- from "./equipment-scenarios.js?v=20261122-boss-push-r1";
+ from "./equipment-scenarios.js?v=20261122-combat-window-r1";
 import {refineCoupledGearAndSkills,enumerateJointGearAndSkills}
- from "./joint-candidate-search.js?v=20261122-boss-push-r1";
-import {modeledCandidateUpperBound} from "./model-score-bounds.js?v=20261122-boss-push-r1";
-import {proposeContractScenarioBuild} from "./contract-multi-scenarios.js?v=20261122-boss-push-r1";
-import {rerankVisitedContractPetPairs} from "./contract-pet-rerank.js?v=20261122-boss-push-r1";
+ from "./joint-candidate-search.js?v=20261122-combat-window-r1";
+import {modeledCandidateUpperBound} from "./model-score-bounds.js?v=20261122-combat-window-r1";
+import {proposeContractScenarioBuild} from "./contract-multi-scenarios.js?v=20261122-combat-window-r1";
+import {rerankVisitedContractPetPairs} from "./contract-pet-rerank.js?v=20261122-combat-window-r1";
+import {explorePushParetoFrontier} from "./push-frontier.js?v=20261122-combat-window-r1";
 
 // Per-request cache: branch DP signatures must distinguish changes in pet,
 // equipment and the resulting Combat Techniques contribution.
@@ -96,12 +97,28 @@ self.onmessage=event=>{
     scoreIsNotMeasuredCombatDps:true,stageGainPredicted:false
    }};
   };
+  // Optional, bounded Pareto alternatives are solved only once after
+  // choosing the real winning pet + gear context. The legacy winner and
+  // all observed boss damage remain untouched; additional trees are
+  // explicitly hypothetical and receive no copied measured hit.
+  const withPushFrontier=(choice,result)=>{
+   const context=choice.context||settings;
+   if(context.pushFrontierEnabled!==true)return result;
+   const fixed={...context,pushObservedAttackChannelId:null,
+    pushObservedHitDamage:null};
+   const alternate=explorePushParetoFrontier(fixed,{
+    maxConstrained:2,
+    baselineResult:result.pushSkipTarget?.enabled===false?result:null,
+    solve:opts=>optimizeBuild(opts,undefined,cache)
+   });
+   return {...result,pushFrontier:alternate};
+  };
   // Optional explicit scenario comparison only for the final chosen
   // pet/gear pair. Do NOT multiply the whole gear/pet search workload.
   const withContractDecision=choice=>{
    const context=choice.context||settings;
    if(context.contractMultiScenario?.enabled!==true)
-    return withPushComparison(choice,choice.result);
+    return withPushFrontier(choice,withPushComparison(choice,choice.result));
    const selection=proposeContractScenarioBuild({
     settings:context,baseline:choice.result,gearSelection:choice.gearSelection,
     solve:opts=>optimizeBuild(opts,undefined,cache),
@@ -111,13 +128,15 @@ self.onmessage=event=>{
    // On unresolved or infeasible inputs, preserve the EXACT original
    // modeled result, including its score and existing maximum-mode choice.
    if(selection.selection.status!=="ranked")
-    return withPushComparison(choice,{...choice.result,contractMultiScenario:selection.selection});
+    return withPushFrontier(choice,withPushComparison(choice,
+      {...choice.result,contractMultiScenario:selection.selection}));
    const winner=selection.result;
    // The returned result uses the conservative DP objective (the contract
    // source-only window gain never becomes an always-on skill multiplier).
    const modeledScenario=calculateModeledScenario(winner,{
     ...context,assumeContractsAtMax:false},choice.gearSelection);
-   return withPushComparison(choice,{...winner,modeledScenario,contractMultiScenario:selection.selection});
+   return withPushFrontier(choice,withPushComparison(choice,
+     {...winner,modeledScenario,contractMultiScenario:selection.selection}));
   };
   if(type==="optimize-pet-scenarios"){
    const visitedPetPairs=[];

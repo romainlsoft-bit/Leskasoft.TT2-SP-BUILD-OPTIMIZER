@@ -40,6 +40,13 @@ test("errors go to a visible, dismissible and accessible toast in all languages"
  }
  assert.match(css,/\.app-toast\{[\s\S]*position:fixed/);
  assert.match(css,/\.app-toast\[hidden\]\{display:none!important\}/);
+ // Same flat dark toast surface for errors and successes: no light top
+ // border or prominent colored left strip against the dark theme.
+ const container=css.match(/\.app-toast\s*\{([\s\S]*?)\}/)?.[1]??"";
+ assert.match(container,/border:0;/);
+ assert.doesNotMatch(container,/border-left|inset\s|border:\s*1px/);
+ const success=css.match(/\.app-toast\[data-kind="success"\]\s*\{([^}]*)\}/)?.[1]??"";
+ assert.doesNotMatch(success,/border(?:-left)?-color/);
  assert.ok(app.includes('if(type==="error")showToast(display)'));
  assert.ok(app.includes('$("toast-close").addEventListener("click",hideToast)'));
 });

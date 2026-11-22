@@ -1,5 +1,5 @@
-import {skillInfo} from "../vendor/skills.js?v=20261122-boss-push-r1";
-import {ACTIVE_SPELL_CAPS} from "../vendor/active-spell-caps.js?v=20261122-boss-push-r1";
+import {skillInfo} from "../vendor/skills.js?v=20261122-combat-window-r1";
+import {ACTIVE_SPELL_CAPS} from "../vendor/active-spell-caps.js?v=20261122-combat-window-r1";
 const SPELLS_BY_SKILL={
  TwilightBell:["BurstDamage","TwilightFairy"],
  SummonerAutoTap:["DualPet","TapBoost"],

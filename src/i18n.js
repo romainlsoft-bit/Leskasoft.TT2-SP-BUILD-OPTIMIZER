@@ -5,6 +5,16 @@ export const SUPPORTED_LANGUAGES = ["en","fr","uk","ru"];
 export const NATIVE_LANGUAGE_NAMES = {en:"English",fr:"Français",uk:"Українська",ru:"Русский"};
 export const translations = {
 fr:{
+ "Explore push alternatives (optional)":"Explorer des builds de push (facultatif)",
+ "Compare full SP allocations at different source Stage Skip levels. This costs extra calculations and does not predict stages or rank real boss damage.":"Compare plusieurs répartitions complètes de SP à différents niveaux de saut de stages. Les calculs sont plus longs et ne prédisent pas les stages ni les dégâts réels des boss.",
+ "Push alternatives":"Alternatives de push",
+ "Alternative allocation search was not available: {reason}":"La comparaison des allocations n’est pas disponible : {reason}",
+ "Source Stage Skip: {value}":"Saut de stages du talent : {value}",
+ "Modeled proxy score: {score} log10":"Score théorique du modèle : {score} log10",
+ "Spent SP: {sp}":"SP dépensés : {sp}",
+ "Alternative build export":"Export du build alternatif",
+ "Source Stage Skip versus the existing skill-score proxy, evaluated for this selected build and final pet/gear setup. These are non-dominated visited alternatives, not predicted stage gains. Extra optimizations are limited.":"Comparaison du saut de stages avec le score théorique actuel, pour le build et l’équipement/familier retenus. Ce sont les alternatives non dominées parmi celles explorées, pas des gains de stages prédits. Le nombre de calculs supplémentaires est limité.",
+ "Unresolved or infeasible alternatives: {count}":"Alternatives non résolues ou irréalisables : {count}",
  "Boss stage for the measured hit (defaults to Max stage)":"Étage du boss mesuré (par défaut : étage maximal)",
  "Boss push: measured hit (optional)":"Push : mesure d’un coup (facultatif)",
  "Enter one real hit from your current skill tree against a boss, with the buffs that were active. Scientific notation such as 1.23e30000 is accepted. It is not total DPS, and cannot be assumed to apply to the proposed build.":"Indiquez les dégâts d’un coup réellement mesuré avec votre arbre actuel contre un boss, dans les conditions d’activation observées. Notation scientifique acceptée (ex. 1.23e30000). Ce n’est pas le DPS total et cette mesure ne s’applique pas automatiquement au build proposé.",
@@ -345,6 +355,16 @@ fr:{
  "Free Tap Titans 2 skill tree optimizer for TT2 8.4. Optimize skill points for Clan Ship, Pet, Shadow Clone, Heavenly Strike, Dagger or Gold Gun. Import game data or configure manually.":"Optimiseur gratuit de compétences Tap Titans 2 version 8.4. Import des données ou configuration manuelle pour tous les types de builds."
 },
 uk:{
+ "Explore push alternatives (optional)":"Порівняти білди для push (необов’язково)",
+ "Compare full SP allocations at different source Stage Skip levels. This costs extra calculations and does not predict stages or rank real boss damage.":"Порівняйте повні розподіли SP з різними бонусами пропуску етапів. Це потребує додаткових обчислень і не прогнозує реальні етапи або шкоду по босу.",
+ "Push alternatives":"Альтернативи для push",
+ "Alternative allocation search was not available: {reason}":"Порівняння розподілів недоступне: {reason}",
+ "Source Stage Skip: {value}":"Пропуск етапів від навички: {value}",
+ "Modeled proxy score: {score} log10":"Теоретична оцінка моделі: {score} log10",
+ "Spent SP: {sp}":"Витрачено SP: {sp}",
+ "Alternative build export":"Експорт альтернативного білду",
+ "Source Stage Skip versus the existing skill-score proxy, evaluated for this selected build and final pet/gear setup. These are non-dominated visited alternatives, not predicted stage gains. Extra optimizations are limited.":"Порівняння пропуску етапів із поточною теоретичною оцінкою для вибраних білду, вихованців і спорядження. Показано недоміновані досліджені варіанти, а не прогноз приросту етапів. Кількість додаткових обчислень обмежена.",
+ "Unresolved or infeasible alternatives: {count}":"Невизначені або неможливі варіанти: {count}",
  "Boss stage for the measured hit (defaults to Max stage)":"Етап боса для виміряного удару (за замовчуванням — максимальний)",
  "Boss push: measured hit (optional)":"Push: виміряний удар (необов’язково)",
  "Enter one real hit from your current skill tree against a boss, with the buffs that were active. Scientific notation such as 1.23e30000 is accepted. It is not total DPS, and cannot be assumed to apply to the proposed build.":"Вкажіть шкоду одного фактично виміряного удару по босу з поточним деревом навичок і активними бонусами. Підтримується науковий запис, наприклад 1.23e30000. Це не загальний DPS і не шкода рекомендованого білду.",
@@ -636,6 +656,16 @@ uk:{
  "Free Tap Titans 2 skill tree optimizer for TT2 8.4. Optimize skill points for Clan Ship, Pet, Shadow Clone, Heavenly Strike, Dagger or Gold Gun. Import game data or configure manually.":"Безкоштовний оптимізатор дерева навичок Tap Titans 2 версії 8.4. Імпорт даних або ручне налаштування для всіх збірок."
 },
 ru:{
+ "Explore push alternatives (optional)":"Сравнить push-билды (необязательно)",
+ "Compare full SP allocations at different source Stage Skip levels. This costs extra calculations and does not predict stages or rank real boss damage.":"Сравните полные распределения SP с разными бонусами пропуска этапов. Это требует дополнительных вычислений и не прогнозирует реальные этапы или урон по боссу.",
+ "Push alternatives":"Альтернативы для push",
+ "Alternative allocation search was not available: {reason}":"Сравнение распределений недоступно: {reason}",
+ "Source Stage Skip: {value}":"Пропуск этапов от навыка: {value}",
+ "Modeled proxy score: {score} log10":"Теоретическая оценка модели: {score} log10",
+ "Spent SP: {sp}":"Потрачено SP: {sp}",
+ "Alternative build export":"Экспорт альтернативного билда",
+ "Source Stage Skip versus the existing skill-score proxy, evaluated for this selected build and final pet/gear setup. These are non-dominated visited alternatives, not predicted stage gains. Extra optimizations are limited.":"Сравнение пропуска этапов с текущей теоретической оценкой для выбранного билда, питомцев и снаряжения. Показаны недоминируемые исследованные варианты, а не прогноз прироста этапов. Число дополнительных вычислений ограничено.",
+ "Unresolved or infeasible alternatives: {count}":"Неопределённые или недоступные варианты: {count}",
  "Boss stage for the measured hit (defaults to Max stage)":"Этап босса для измеренного удара (по умолчанию — максимальный)",
  "Boss push: measured hit (optional)":"Push: измеренный удар (необязательно)",
  "Enter one real hit from your current skill tree against a boss, with the buffs that were active. Scientific notation such as 1.23e30000 is accepted. It is not total DPS, and cannot be assumed to apply to the proposed build.":"Укажите урон одного реально измеренного удара по боссу с текущим деревом навыков и активными бонусами. Поддерживается научная запись, например 1.23e30000. Это не общий DPS и не урон предлагаемого билда.",

@@ -1,4 +1,4 @@
-import {rankVisitedCandidateBounds} from "./model-score-bounds.js?v=20261122-boss-push-r1";
+import {rankVisitedCandidateBounds} from "./model-score-bounds.js?v=20261122-combat-window-r1";
 /**
  * Coordinate-wise search over the two actual active pet slots.
  *
