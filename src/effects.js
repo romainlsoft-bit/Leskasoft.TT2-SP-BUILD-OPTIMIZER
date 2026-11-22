@@ -64,6 +64,9 @@ function sourceSkillScoreAtLevel(id,level,settings){
       return petEquipmentCombatTechniquesIncrement(settings,level)
        +petCombatTechniquesIncrement(settings,level);
     case "HelperBoost":
+      // Sensitivity test: the community weight is not native-calibrated.
+      // Excluding it does NOT imply Tactical Insight has zero real value.
+      if(settings.excludeUnverifiedTacticalInsight===true)return 0;
       return r*lr(n=>Math.log10(1+A(n)));
     case "HelperDmgQTE": {
       // Astral Awakening damage is gained per tapped orb (up to five).
