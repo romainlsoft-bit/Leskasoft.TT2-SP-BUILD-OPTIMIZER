@@ -63,7 +63,7 @@ function engineError(message){
 }
 const iconMap={"Clan Ship":"⛵","Pet":"🐾","Shadow Clone":"◈","Heavenly Strike":"⚡","Dagger":"🗡","Gold Gun":"✦"};
 const branchColors={Knight:"#d77879",Summoner:"#edab66",Warlord:"#e7ca75",Sorcerer:"#86adf7",Rogue:"#7ad0a0",Alchemist:"#b595ed"};
-const fresh=()=>({damage:"Clan Ship",gold:"Fairy",skillPoints:0,maxStage:0,playstyle:"balanced",qol:"recommended",goldWeight:.7,craftingPower:1,timeToKill:8,sClone:30,sets:{},currentLevels:{},minimums:{},excluded:[],preserveCurrent:false,assumeHaystActive:false,assumeSnapActive:false,assumeContractsAtMax:false,astralActivations:0,mode:"power",accountProfile:null,selectedDamagePet:null,selectedGoldPet:null,comparePetScenarios:true,selectedEquipment:{},protectUnmodeledSkills:true,contractTimeline:null,contractMultiScenario:null,
+const fresh=()=>({damage:"Clan Ship",gold:"Fairy",skillPoints:0,maxStage:0,playstyle:"balanced",qol:"recommended",goldWeight:.7,craftingPower:1,timeToKill:8,sClone:30,sets:{},currentLevels:{},minimums:{},excluded:[],preserveCurrent:false,assumeHaystActive:false,assumeSnapActive:false,assumeContractsAtMax:false,astralActivations:0,mode:"power",accountProfile:null,selectedDamagePet:null,selectedGoldPet:null,comparePetScenarios:true,selectedEquipment:{},protectUnmodeledSkills:true,excludeUnverifiedTacticalInsight:false,contractTimeline:null,contractMultiScenario:null,
  importedVersion:null,budgetSource:"unset",budgetInconsistent:false,
  pushAttackChannelId:"",pushSourceStageSkipTarget:0,
  pushObservedAttackChannelId:"",pushObservedHitDamage:"",pushBossStage:null,
@@ -337,6 +337,7 @@ function fillInputs(){
  $("qol-mode").value=state.qol;
  $("preserve-current").checked=state.preserveCurrent;
  $("protect-unmodeled-skills").checked=state.protectUnmodeledSkills!==false;
+ $("exclude-unverified-tactical-insight").checked=state.excludeUnverifiedTacticalInsight===true;
  $("hayst-active").checked=state.assumeHaystActive===true;
  $("snap-active").checked=state.assumeSnapActive===true;
  $("astral-activations").value=state.astralActivations??0;
@@ -434,6 +435,7 @@ function readInputs(){
  state.qol=$("qol-mode").value;
  state.preserveCurrent=$("preserve-current").checked;
  state.protectUnmodeledSkills=$("protect-unmodeled-skills").checked;
+ state.excludeUnverifiedTacticalInsight=$("exclude-unverified-tactical-insight").checked;
  state.assumeHaystActive=$("hayst-active").checked;
  state.assumeSnapActive=$("snap-active").checked;
  state.pushAttackChannelId=$("push-attack-channel").value;
@@ -808,10 +810,12 @@ function renderModelAttribution(result){
   safe(numberText(x.level))+
   (x.conditionalSourceUnverified?" · "+safe(tr("Conditional or unverified model weight")):"")+
   "</span><strong>"+safe(x.scoreLog10.toFixed(2))+" log10</strong></div>");
+ const experimental=audit.tacticalInsightCommunityWeightExcluded===true?
+  "<p class='hint'>"+safe(tr("Experimental: the unverified community Tactical Insight coefficient was excluded from this allocation. This is a sensitivity comparison, not evidence of zero in-game benefit or a proven stronger build."))+"</p>":"";
  el.innerHTML="<summary>"+safe(tr("Why the proxy invests in these trees"))+
   "</summary><p class='hint'>"+
   safe(tr("Modeled skill contributions only; a high contribution is not proof of real combat power. The comparison does not alter the build."))+
-  "</p>"+branches.join("")+
+  "</p>"+experimental+branches.join("")+
   "<h4>"+safe(tr("Largest modeled talent contributions"))+"</h4>"+top.join("");
 }
 /** Keep both valid builds visible; never invent a damage-to-stage conversion. */
@@ -981,7 +985,7 @@ function renderResults(result,scroll=true){
 function sharePayload(){
  // Compact URL encoding; the exported skill tree itself is intentionally
  // not encrypted. Sharing the link discloses the included game settings.
- return {pushFrontier:state.pushFrontierEnabled===true,protect:state.protectUnmodeledSkills!==false,sp:state.skillPoints,st:state.maxStage,da:state.damage,go:state.gold,p:state.playstyle,q:state.qol,w:state.goldWeight,cp:state.craftingPower,tk:state.timeToKill,cl:state.sClone,cur:state.currentLevels,min:state.minimums,exc:state.excluded,keep:state.preserveCurrent,hay:state.assumeHaystActive,snap:state.assumeSnapActive,astral:state.astralActivations,attack:state.pushAttackChannelId,skip:state.pushSourceStageSkipTarget};
+ return {pushFrontier:state.pushFrontierEnabled===true,protect:state.protectUnmodeledSkills!==false,tiExperiment:state.excludeUnverifiedTacticalInsight===true,sp:state.skillPoints,st:state.maxStage,da:state.damage,go:state.gold,p:state.playstyle,q:state.qol,w:state.goldWeight,cp:state.craftingPower,tk:state.timeToKill,cl:state.sClone,cur:state.currentLevels,min:state.minimums,exc:state.excluded,keep:state.preserveCurrent,hay:state.assumeHaystActive,snap:state.assumeSnapActive,astral:state.astralActivations,attack:state.pushAttackChannelId,skip:state.pushSourceStageSkipTarget};
 }
 function decodeLink(){
  const hash=window.location.hash;
@@ -990,7 +994,7 @@ function decodeLink(){
   const payload=JSON.parse(decodeURIComponent(escape(atob(hash.slice(7)))));
   if(!payload||typeof payload!=="object")return;
   state={...fresh(),skillPoints:payload.sp??0,maxStage:payload.st??0,damage:payload.da??"Clan Ship",gold:payload.go??"Fairy",playstyle:payload.p??"balanced",qol:payload.q??"recommended",goldWeight:payload.w??.7,craftingPower:payload.cp??1,timeToKill:payload.tk??8,sClone:payload.cl??30,currentLevels:payload.cur||{},minimums:payload.min||{},excluded:Array.isArray(payload.exc)?payload.exc:[],preserveCurrent:Boolean(payload.keep),assumeHaystActive:payload.hay===true,
-    assumeSnapActive:payload.snap===true,assumeContractsAtMax:false,astralActivations:payload.astral??0,protectUnmodeledSkills:payload.protect!==false,
+    assumeSnapActive:payload.snap===true,assumeContractsAtMax:false,astralActivations:payload.astral??0,protectUnmodeledSkills:payload.protect!==false,excludeUnverifiedTacticalInsight:payload.tiExperiment===true,
     pushAttackChannelId:typeof payload.attack==="string"?payload.attack:"",
     pushSourceStageSkipTarget:payload.skip??0,
     pushFrontierEnabled:payload.pushFrontier===true,mode:"power"};
@@ -1042,7 +1046,7 @@ function initialize(){
   remember();
  });
  $("clear-minimums").addEventListener("click",()=>{state.minimums={};fillInputs();remember();});
- for(const id of ["skill-points","max-stage","gold-weight","crafting-power","time-to-kill","clone-level","qol-mode","preserve-current","protect-unmodeled-skills","hayst-active","snap-active","astral-activations","push-stage-skip-target","push-observed-damage","push-observed-stage","push-frontier-enabled"])$(id).addEventListener("change",()=>{
+ for(const id of ["skill-points","max-stage","gold-weight","crafting-power","time-to-kill","clone-level","qol-mode","preserve-current","protect-unmodeled-skills","exclude-unverified-tactical-insight","hayst-active","snap-active","astral-activations","push-stage-skip-target","push-observed-damage","push-observed-stage","push-frontier-enabled"])$(id).addEventListener("change",()=>{
   const was=state.maxStage;readInputs();
   if(id==="max-stage"&&was!==state.maxStage){state.pushObservedHitDamage="";$("push-observed-damage").value="";}
   remember();
