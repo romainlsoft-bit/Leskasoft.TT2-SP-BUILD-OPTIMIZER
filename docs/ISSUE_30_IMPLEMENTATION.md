@@ -61,11 +61,30 @@ sections, and the worker request intentionally passes through
 
 Targeted V8 execution in the GitHub-connected session confirmed the
 multicast, Flash Zip, gold conversion, grid, and upper-bound counterexamples.
-**Full Node tests, `npm run check:data`, `npm run check:modules`,
-the 18 damage/gold pairs at 22,600/50,000 SP, and the worker/browser
-integration have not been rerun locally**. These gates must pass before
-merge/deployment. The issue's prior baseline was 537/539, not a post-fix
-test result.
+
+### First full Windows qualification (user PowerShell logs, 2026-11-22)
+
+- `npm run check` reached **553 tests: 552 pass, 1 fail**. The failure
+  was an incorrect **test expectation** in
+  `#30: specialized multicast branches obey the identical spell context`:
+  the regression used Pet damage for Eventide Afterglow, but the pinned
+  reduction table grants that damage bonus to Shadow Clone and Heavenly
+  Strike and explicitly grants **zero** to Pet. The test now asserts
+  the positive applicable routes, the zero Pet route, and the modeled
+  spell/unlock evidence.
+- Because `npm run check` chains commands with `&&`, its
+  `check:data` and `check:modules` phases **did not run** on that attempt.
+- `npm run bench:issue30` completed **36/36 modeled scenarios**:
+  18 damage/gold combinations at 22,600 SP and 18 at 50,000 SP,
+  both summaries reporting `failed: 0` and `success: true`.
+  They ran without an account import and reported
+  `realPairEvaluations: 0`, so real pet-pair optimization and
+  in-game stage improvement were **not validated**.
+- The full Worker regression suite, including the 22,600 SP imported
+  spell loadout and Fairy armor duel, passed in this run.
+- **A clean rerun of `npm run check` on the corrected test commit is
+  still required** before merge/deployment. The previous pre-issue
+  baseline was 537/539.
 
 ## Remaining independent verification
 
@@ -92,5 +111,5 @@ The benchmark and live worker now both propagate `joint.best.scoreUpperBound`
 (the envelope of every visited equipment/CT score bound) instead of
 reconstructing the winning equipment bound. A 22,600-SP worker regression
 with the six selected 8.4.2 spells and the Pet/Fairy ×100/×2 armor duel
-are included. They have **not** been executed by the full Node test suite
-in this session.
+are included. Both passed in the first Windows full Node test run; the corrected
+multicast assertion requires a clean rerun.
