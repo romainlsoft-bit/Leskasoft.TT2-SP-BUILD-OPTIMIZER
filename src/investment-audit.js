@@ -5,7 +5,7 @@
  */
 import {skillInfo} from "../vendor/skills.js?v=20261123-boss-specials-r1";
 import {reductions} from "../vendor/reductions.js?v=20261123-boss-specials-r1";
-import {ACTIVE_SOURCE_SKILL_SPELLS} from "./spell-scenarios.js?v=20261123-boss-specials-r1";
+import {ACTIVE_SOURCE_SKILL_SPELLS,spellEffectScorable} from "./spell-scenarios.js?v=20261123-boss-specials-r1";
 
 export function sourceSpent(id,level,catalog=skillInfo){
  const row=catalog[id];
@@ -34,6 +34,8 @@ function protectedReason(id,settings){
  if(id==="MagnumOpus"&&settings.assumeMagnumOpusAtBoss!==true)
   return "magnum-opus-active-at-boss-unverified";
  if(id==="HelperDmgSkillBoost")return "war-cry-spell-not-confirmed-active";
+ if(id==="PetBonusBoost"&&!spellEffectScorable("TapBoost",settings))
+  return "ember-arts-fire-sword-spell-not-confirmed-active";
  if(id==="ClanShipVoltage")return "thunder-volley-spell-not-confirmed-active";
  if(id==="CriticalHit")return "dagger-mark-and-stream-of-blades-unconfirmed";
  if(id==="HelperInspiredWeaken")return "inspired-helper-activation-unverified";
