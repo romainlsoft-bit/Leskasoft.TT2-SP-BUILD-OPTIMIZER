@@ -1,4 +1,4 @@
-import {rankVisitedCandidateBounds,visitedScoreEnvelope} from "./model-score-bounds.js?v=20261123-native-adaptive-r1";
+import {rankVisitedCandidateBounds,visitedScoreEnvelope} from "./model-score-bounds.js?v=20261123-spell-score-r1";
 /**
  * Block-coordinate refinement between the ACTUAL equipped gear and the
  * optimized skill tree for one chosen pair of active pets.

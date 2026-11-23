@@ -9,8 +9,8 @@
  * Source catalog: pinned SkillTreeInfo2.0.csv via vendor/skills.js.
  * Skip mechanics: https://e9wiki.com/tt2/en/guides/stage-skip-and-titan-skip
  */
-import {skillInfo} from "../vendor/skills.js?v=20261123-native-adaptive-r1";
-import {spellSelectionEvidence} from "./spell-scenarios.js?v=20261123-native-adaptive-r1";
+import {skillInfo} from "../vendor/skills.js?v=20261123-spell-score-r1";
+import {spellSelectionEvidence} from "./spell-scenarios.js?v=20261123-spell-score-r1";
 
 // One source-specific channel per actual attack type, not one Pet-only rule.
 // "charged" and "conditional" mean the listed modifier does NOT establish

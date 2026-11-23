@@ -8,9 +8,9 @@
  * Neither Magnifier nor Treasure of Fergus directly multiplies the additive
  * pool. Missing/enchantment-ambiguous records are not silently completed.
  */
-import {ARTIFACT_CATALOG,SEASON_ARTIFACT_CATALOG} from "../vendor/account-catalog.js?v=20261123-native-adaptive-r1";
-import {additiveDamageEvidence} from "./account-damage-pools.js?v=20261123-native-adaptive-r1";
-import {positiveLog10} from "./account-artifacts.js?v=20261123-native-adaptive-r1";
+import {ARTIFACT_CATALOG,SEASON_ARTIFACT_CATALOG} from "../vendor/account-catalog.js?v=20261123-spell-score-r1";
+import {additiveDamageEvidence} from "./account-damage-pools.js?v=20261123-spell-score-r1";
+import {positiveLog10} from "./account-artifacts.js?v=20261123-spell-score-r1";
 export function artifactDerivedPower(profile,artifactEffects){
  if(!profile?.sections?.artifacts?.present)
   return {entries:[],ownedArtifactCount:null,ownedCountVerifiable:false,

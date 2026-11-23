@@ -10,6 +10,7 @@ test("import of another TT2 account invalidates all previous contract and select
   contractMultiScenario:{enabled:true,activeFraction:1,
    pactAtMaxDuringFundedTicks:true},
   assumeContractsAtMax:true,
+  assumeCoordinatedOffensiveActive:true,
   selectedDamagePet:"Pet33",selectedGoldPet:"Pet14",
   comparePetScenarios:false,selectedEquipment:{Sword:"SwordA"},
   currentLevels:{TerrifyingPact:22},
@@ -20,6 +21,7 @@ test("import of another TT2 account invalidates all previous contract and select
  assert.equal(saved.contractTimeline,null);
  assert.equal(saved.contractMultiScenario,null);
  assert.equal(saved.assumeContractsAtMax,false);
+ assert.equal(saved.assumeCoordinatedOffensiveActive,false);
  assert.equal(saved.selectedDamagePet,null);
  assert.equal(saved.selectedGoldPet,null);
  assert.equal(saved.comparePetScenarios,true);
