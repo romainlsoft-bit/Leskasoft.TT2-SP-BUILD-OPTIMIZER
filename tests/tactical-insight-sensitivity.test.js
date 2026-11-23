@@ -52,7 +52,7 @@ test("the optional sensitivity switch exists in every locale and refreshes modul
  for(const path of ["index.html","fr/index.html","uk/index.html","ru/index.html"]){
   const html=readFileSync(new URL("../"+path,import.meta.url),"utf8");
   assert.equal((html.match(/id="exclude-unverified-tactical-insight"/g)||[]).length,1,path);
-  assert.ok(html.includes("src/app.js?v=20261123-conditional-score-r1"),path);
+  assert.ok(html.includes("src/app.js?v=20261123-native-adaptive-r1"),path);
  }
  const app=readFileSync(new URL("../src/app.js",import.meta.url),"utf8");
  assert.match(app,/state\.excludeUnverifiedTacticalInsight=\$\("exclude-unverified-tactical-insight"\)\.checked/);

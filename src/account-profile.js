@@ -3,9 +3,9 @@
  * Only allowlisted mechanics fields are retained, without any identity data.
  * A present section is NOT necessarily modeled by the optimizer score.
  */
-import {HERO_CLASS_BY_ID} from "../vendor/hero-classes.js?v=20261123-conditional-score-r1";
-import {canonicalEquipmentSetId} from "./equipment-set-aliases.js?v=20261123-conditional-score-r1";
-import {parseFinalChanceEvidence} from "./conditional-probabilities.js?v=20261123-conditional-score-r1";
+import {HERO_CLASS_BY_ID} from "../vendor/hero-classes.js?v=20261123-native-adaptive-r1";
+import {canonicalEquipmentSetId} from "./equipment-set-aliases.js?v=20261123-native-adaptive-r1";
+import {parseFinalChanceEvidence} from "./conditional-probabilities.js?v=20261123-native-adaptive-r1";
 const SOURCE_SECTIONS=Object.freeze({
  artifacts:["artifacts","Artifacts","artifactLevels","ArtifactLevels"],
  gemstones:["gemstones","Gemstones","mysticGemstones","MysticGemstones"],
