@@ -4,10 +4,10 @@
  * A source multiplier is NOT an entire attack, a DPS or a Stage Skip.
  * Never transfer the player's observed hit to a different allocation.
  */
-import {sourcedDamageChannels} from "./attack-channels.js?v=20261123-conditional-score-r1";
-import {spellSelectionEvidence} from "./spell-scenarios.js?v=20261123-conditional-score-r1";
-import {skillInfo} from "../vendor/skills.js?v=20261123-conditional-score-r1";
-import {parseObservedHitLog10} from "./boss-push-evidence.js?v=20261123-conditional-score-r1";
+import {sourcedDamageChannels} from "./attack-channels.js?v=20261123-native-adaptive-r1";
+import {spellSelectionEvidence} from "./spell-scenarios.js?v=20261123-native-adaptive-r1";
+import {skillInfo} from "../vendor/skills.js?v=20261123-native-adaptive-r1";
+import {parseObservedHitLog10} from "./boss-push-evidence.js?v=20261123-native-adaptive-r1";
 
 const SCHEMA="tt2-84-native-attack-damage-frontier-v1";
 const finite=n=>typeof n==="number"&&Number.isFinite(n);

@@ -1,4 +1,4 @@
-import {HERO_ROSTER} from "../vendor/hero-roster.js?v=20261123-conditional-score-r1";
+import {HERO_ROSTER} from "../vendor/hero-roster.js?v=20261123-native-adaptive-r1";
 /**
  * TT2 date evidence. No player-entered dates and no inferred set ages.
  * A set is completed upon acquisition of its fifth distinct equipment slot.

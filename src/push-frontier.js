@@ -10,10 +10,10 @@
  * Opt-in: this can require up to four additional high-SP optimizations.
  */
 import {sourcedStageSkipChannels}
- from "./attack-channels.js?v=20261123-conditional-score-r1";
+ from "./attack-channels.js?v=20261123-native-adaptive-r1";
 import {stageSkipAtLevel}
- from "./push-skip-target.js?v=20261123-conditional-score-r1";
-import {skillInfo} from "../vendor/skills.js?v=20261123-conditional-score-r1";
+ from "./push-skip-target.js?v=20261123-native-adaptive-r1";
+import {skillInfo} from "../vendor/skills.js?v=20261123-native-adaptive-r1";
 
 const SCHEMA="tt2-source-skip-pareto-frontier-v1";
 const empty=(reason)=>({schema:SCHEMA,status:"unresolved",reason,

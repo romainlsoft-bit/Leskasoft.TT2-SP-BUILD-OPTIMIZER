@@ -9,9 +9,9 @@
  *
  * Source: pinned SkillTreeInfo2.0.csv via vendor/skills.js.
  */
-import {skillInfo} from "../vendor/skills.js?v=20261123-conditional-score-r1";
-import {sourcedStageSkipChannels} from "./attack-channels.js?v=20261123-conditional-score-r1";
-import {spellSelectionEvidence} from "./spell-scenarios.js?v=20261123-conditional-score-r1";
+import {skillInfo} from "../vendor/skills.js?v=20261123-native-adaptive-r1";
+import {sourcedStageSkipChannels} from "./attack-channels.js?v=20261123-native-adaptive-r1";
+import {spellSelectionEvidence} from "./spell-scenarios.js?v=20261123-native-adaptive-r1";
 
 const strictTarget=value=>{
  if(value===undefined||value===null||value==="")return 0;
