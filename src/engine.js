@@ -5,7 +5,7 @@ import {bossPushEvidence} from "./boss-push-evidence.js?v=20261123-boss-specials
 import {resolvePushSkipTarget,verifyPushSkipTarget} from "./push-skip-target.js?v=20261123-boss-specials-r1";
 import { baseline } from "../vendor/qol-baseline.js?v=20261123-boss-specials-r1";
 import { optimizeExact } from "./solver-core.js?v=20261123-boss-specials-r1";
-import { scoreAtLevel } from "./effects.js?v=20261123-boss-specials-r1&score=20261123-cadence-separated-r1&ember=20261123-ember-fire-sword-gate-r1&jackpot=20261123-native-jackpot-expectation-r1&mc=20261123-multicast-no-guessed-x10-r1";
+import { scoreAtLevel } from "./effects.js?v=20261123-boss-specials-r1&score=20261123-cadence-separated-r1&ember=20261123-ember-fire-sword-gate-r1&jackpot=20261123-native-jackpot-expectation-r1&mc=20261123-multicast-no-guessed-x10-r1&crit=20261124-cleaving-crit-event-r1";
 import { parseAccountProfile } from "./account-profile.js?v=20261123-boss-specials-r1";
 import {extractFixedAccountPower,fixedAccountScore} from "./account-power.js?v=20261123-boss-specials-r1";
 import {accountDependencyGraph} from "./account-dependencies.js?v=20261123-boss-specials-r1";
@@ -23,6 +23,7 @@ import {conditionalSkillEvidence} from "./conditional-skill-evidence.js?v=202611
 import {lightningStrikeEvidence} from "./lightning-strike-evidence.js?v=20261123-boss-specials-r1";
 import {buildInvestmentAudit} from "./investment-audit.js?v=20261123-boss-specials-r1";
 import {transmutationSourceEventEvidence} from "./transmutation-native.js?v=20261123-boss-specials-r1&jackpot=20261123-native-jackpot-expectation-r1";
+import {cleavingStrikeSourceEvidence} from "./cleaving-strike-native.js?v=20261123-boss-specials-r1&crit=20261124-cleaving-crit-event-r1";
 import {resolveTacticalInsightLocal} from "./tactical-insight-local.js?v=20261123-boss-specials-r1";
 import {tacticalInsightRecommendationSensitivity} from "./tactical-insight-sensitivity.js?v=20261123-boss-specials-r1&audit=20261123-ti-sensitivity-r1";
 
@@ -195,6 +196,10 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
     // Fairy has actually struck. The available stacks do not prove
     // Gloom activation, so protect already-invested source C levels.
     "TwilightGatheringMultiCastSkill",
+    // Cleaving Strike A = critical-hit damage, not universal damage.
+    // For non-HS sources, the account-wide critical probability is unknown.
+    // Keep their imported levels when applying a talent-only event model.
+    ...(combatContext.damage==="Heavenly Strike"?[]:["HeavyStrikes"]),
     "BossTimer","PoisonedBlade","KratosSummon","Transmutation",
     ...(combatContext.assumeSourceOnlyLightningStrike===true&&
       Number.isSafeInteger(combatContext.lightningStrikeHits)&&
@@ -287,7 +292,9 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
        ["ForbiddenContract","RoyalContract","TerrifyingPact",
         "QuickFortune","PhilosophersFlux","HelperDmgSkillBoost",
         "ClanShipVoltage","CriticalHit","HelperInspiredWeaken",
-        "Transmutation","TwilightGatheringMultiCastSkill"].includes(id)};
+        "Transmutation","TwilightGatheringMultiCastSkill",
+        ].includes(id)||
+       (id==="HeavyStrikes"&&scoreContext.damage!=="Heavenly Strike")};
   });
   const byBranch=Object.fromEntries(Object.values(BRANCH_NAMES).map(name=>[
     name,skillAttribution.filter(row=>row.branch===name)
@@ -315,6 +322,9 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
       multicastInventedTenfoldPerChargeRemoved:true,
       multicastGuessedMidasGoldTableRemoved:true,
       twilightGloomSpecialCNotScoredWithoutEvidence:true,
+      cleavingStrikeGuaranteedCritOnlyForHeavenlyStrike:true,
+      cleavingStrikeOtherBuildsUseSourceOnlyCritChance:true,
+      importedCriticalChanceNotUsedForAlternativeTrees:true,
       sourceSpellScoringBySkill:Object.fromEntries(
         Object.entries(ACTIVE_SOURCE_SKILL_SPELLS).map(([id,spell])=>
           [id,spellEffectScorable(spell,scoreContext)])),
@@ -393,6 +403,8 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
    dependencyReport.unmodeledEffects-newlyResolvedSetEffects);
   const jackpotSourceOnly=transmutationSourceEventEvidence(
    result.levels.Transmutation??0);
+  const criticalSourceOnly=cleavingStrikeSourceEvidence(
+   result.levels.HeavyStrikes??0,scoreContext.damage);
   const contractScenario=resolveContractScenario(result.levels,scoreContext);
   const conditionalSkills=conditionalSkillEvidence(result.levels,scoreContext);
   const lightningStrike=lightningStrikeEvidence(result.levels,scoreContext);
@@ -423,7 +435,7 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
     selectedSpellUnlocks,spellBaselineInvariantUnderSkillOptimization:
      spellSelection.valid&&!spellCapEvidenceIsIncomplete,
     spellCaps,spellScenario,manaEvidence,contractScenario,conditionalSkills,lightningStrike,
-    jackpotSourceOnly,
+    jackpotSourceOnly,criticalSourceOnly,
     accountIntegration:{
       skillTreeSetPower:{
        applied:skillTreeSetPower.applied,recognized:skillTreeSetPower.recognized,

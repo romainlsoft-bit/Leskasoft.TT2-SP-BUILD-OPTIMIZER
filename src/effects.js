@@ -15,6 +15,7 @@ import {contractSkillScore} from "./contract-scenarios.js?v=20261123-boss-specia
 import {tacticalInsightLocalScore} from "./tactical-insight-local.js?v=20261123-boss-specials-r1";
 import {transmutationSourceEventEvidence} from "./transmutation-native.js?v=20261123-boss-specials-r1&jackpot=20261123-native-jackpot-expectation-r1";
 import {nativeMulticastSkillScore} from "./multicast-native-score.js?v=20261123-boss-specials-r1&mc=20261123-multicast-no-guessed-x10-r1";
+import {cleavingStrikeSourceEvidence} from "./cleaving-strike-native.js?v=20261123-boss-specials-r1&crit=20261124-cleaving-crit-event-r1";
 
 const num=(v,fallback=0)=>{ const x=Number(v); return Number.isFinite(x)?x:fallback; };
 const lg=v=>Math.log10(num(v)>0?num(v):1);
@@ -38,6 +39,12 @@ function sourceSkillScoreAtLevel(id,level,settings){
     return nativeMulticastSkillScore(id,level,multicast,r).scoreLog10;
   }
   switch(id){
+    case "HeavyStrikes":
+      // Cleaving Strike A = CritDamage and B = additive CritChance.
+      // Only Heavenly Strike guarantees its critical hit; the other
+      // five builds must not score A as if every hit were critical.
+      // Use a source-only event expectation, not the old unconditional A.
+      return r*cleavingStrikeSourceEvidence(level,settings.damage).sourceExpectedLog10;
     case "PetBonusBoost":
       // Source A = permanent PetDamage. Source B = TapBoostSkillAmount:
       // Fire Sword damage, not unconditional pet damage. Only credit B
