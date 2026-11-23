@@ -50,6 +50,8 @@ function protectedReason(id,settings){
  if(id==="TwilightGatheringMultiCastSkill")
   return "twilight-gloom-target-activation-unverified";
  if(id==="Transmutation")return "jackpot-event-probability-not-verified-for-account";
+ if(id==="HeavyStrikes"&&settings.damage!=="Heavenly Strike")
+  return "cleaving-strike-critical-chance-not-verified-for-account";
  return "conditional-skill-effect-not-verified";
 }
 export function buildInvestmentAudit(levels={},settings={},protectedSkills=[],
