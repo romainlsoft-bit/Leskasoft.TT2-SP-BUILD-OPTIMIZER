@@ -5,6 +5,9 @@ export const SUPPORTED_LANGUAGES = ["en","fr","uk","ru"];
 export const NATIVE_LANGUAGE_NAMES = {en:"English",fr:"Français",uk:"Українська",ru:"Русский"};
 export const translations = {
 fr:{
+ "The selected attack talent is already at its native maximum; no stronger level can be explored.":"Le talent de cette attaque est déjà au niveau maximal : aucun niveau supérieur ne peut être exploré.",
+ "No stronger native attack level fits the source SP cost. No extra allocation was calculated.":"Aucun niveau supérieur de cette attaque n'entre dans le budget SP du talent. Aucun calcul supplémentaire n'a été effectué.",
+ "Some candidate levels could not meet actual skill-tree prerequisites or other minimums. Their native source cost alone is not enough.":"Certains niveaux candidats ne respectaient pas les prérequis de l'arbre ou les minimums imposés. Le coût SP du talent seul ne suffit pas.",
  "Explore push alternatives (optional)":"Explorer des builds de push (facultatif)",
  "Compare full SP allocations at different source Stage Skip levels. This costs extra calculations and does not predict stages or rank real boss damage.":"Compare plusieurs répartitions complètes de SP à différents niveaux de saut de stages. Les calculs sont plus longs et ne prédisent pas les stages ni les dégâts réels des boss.",
  "Push alternatives":"Alternatives de push",
@@ -355,6 +358,9 @@ fr:{
  "Free Tap Titans 2 skill tree optimizer for TT2 8.4. Optimize skill points for Clan Ship, Pet, Shadow Clone, Heavenly Strike, Dagger or Gold Gun. Import game data or configure manually.":"Optimiseur gratuit de compétences Tap Titans 2 version 8.4. Import des données ou configuration manuelle pour tous les types de builds."
 },
 uk:{
+ "The selected attack talent is already at its native maximum; no stronger level can be explored.":"Навичка вибраної атаки вже має максимальний рівень: вищий рівень недоступний.",
+ "No stronger native attack level fits the source SP cost. No extra allocation was calculated.":"Вищий рівень цієї атаки не вкладається в бюджет SP самої навички. Додаткових розподілів не обчислено.",
+ "Some candidate levels could not meet actual skill-tree prerequisites or other minimums. Their native source cost alone is not enough.":"Деякі запропоновані рівні не відповідають вимогам дерева навичок або мінімумам. Вартість самої навички в SP недостатня.",
  "Explore push alternatives (optional)":"Порівняти білди для push (необов’язково)",
  "Compare full SP allocations at different source Stage Skip levels. This costs extra calculations and does not predict stages or rank real boss damage.":"Порівняйте повні розподіли SP з різними бонусами пропуску етапів. Це потребує додаткових обчислень і не прогнозує реальні етапи або шкоду по босу.",
  "Push alternatives":"Альтернативи для push",
@@ -656,6 +662,9 @@ uk:{
  "Free Tap Titans 2 skill tree optimizer for TT2 8.4. Optimize skill points for Clan Ship, Pet, Shadow Clone, Heavenly Strike, Dagger or Gold Gun. Import game data or configure manually.":"Безкоштовний оптимізатор дерева навичок Tap Titans 2 версії 8.4. Імпорт даних або ручне налаштування для всіх збірок."
 },
 ru:{
+ "The selected attack talent is already at its native maximum; no stronger level can be explored.":"Навык выбранной атаки уже достиг максимального уровня: более высокий уровень недоступен.",
+ "No stronger native attack level fits the source SP cost. No extra allocation was calculated.":"Более высокий уровень этой атаки не укладывается в стоимость навыка в SP. Дополнительных распределений не рассчитано.",
+ "Some candidate levels could not meet actual skill-tree prerequisites or other minimums. Their native source cost alone is not enough.":"Некоторые предложенные уровни не выполнили требования дерева навыков или заданные минимумы. Одной стоимости навыка в SP недостаточно.",
  "Explore push alternatives (optional)":"Сравнить push-билды (необязательно)",
  "Compare full SP allocations at different source Stage Skip levels. This costs extra calculations and does not predict stages or rank real boss damage.":"Сравните полные распределения SP с разными бонусами пропуска этапов. Это требует дополнительных вычислений и не прогнозирует реальные этапы или урон по боссу.",
  "Push alternatives":"Альтернативы для push",
