@@ -15,9 +15,9 @@
  * A missing CP permits only an identified baseline LOWER BOUND at CP=1.
  * This must never be called the user's exact bonus or a game-stage estimate.
  */
-import {EQUIPMENT_SET_CATALOG} from "../vendor/account-catalog.js?v=20261122-ti-sensitivity-r1";
-import {resolveUniqueOwnership} from "./account-unique.js?v=20261122-ti-sensitivity-r1";
-import {positiveLog10} from "./account-artifacts.js?v=20261122-ti-sensitivity-r1";
+import {EQUIPMENT_SET_CATALOG} from "../vendor/account-catalog.js?v=20261123-native-attack-r1";
+import {resolveUniqueOwnership} from "./account-unique.js?v=20261123-native-attack-r1";
+import {positiveLog10} from "./account-artifacts.js?v=20261123-native-attack-r1";
 
 const DIRECT=new Set([
  "AllDamage","BossDamage","GoldAll","PetDamage","FairyGold",

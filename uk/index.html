@@ -16,7 +16,7 @@
 <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg"><link rel="stylesheet" href="../styles.css?v=20261122-toast-flat-r1">
 <title>Оптимізатор дерева навичок TT2 8.4 — безкоштовний калькулятор | Leskasoft</title>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Оптимізатор дерева навичок Tap Titans 2","description":"Калькулятор очок навичок Tap Titans 2: імпорт JSON, ручне введення, налаштування QoL та експорт збірки до 50 000 очок.","applicationCategory":"GameApplication","operatingSystem":"Any","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"url":"https://tap-titans.leskasoft.com/uk/","inLanguage":"uk","@id":"https://tap-titans.leskasoft.com/uk/#tool"}</script>
-<script type="module" src="../src/app.js?v=20261122-ti-sensitivity-r1" defer></script>
+<script type="module" src="../src/app.js?v=20261123-native-attack-r1" defer></script>
 </head>
 <body>
 <div class="site">
@@ -74,6 +74,9 @@
     <label>Мінімальний бонус пропуску від навички <input id="push-stage-skip-target" type="number" min="0" max="10000" step="1" inputmode="numeric" value="0"></label>
     <h3>Порівняти білди для push (необов’язково)</h3>
     <label class="toggle"><input type="checkbox" id="push-frontier-enabled"> Порівняйте повні розподіли SP з різними бонусами пропуску етапів. Це потребує додаткових обчислень і не прогнозує реальні етапи або шкоду по босу.</label>
+    <h3>Альтернативи за базовим множником атаки</h3>
+    <label>Атака для порівняння множника шкоди <select id="attack-damage-channel"></select></label>
+    <label class="toggle"><input type="checkbox" id="attack-damage-frontier-enabled"> Порівняти повні розподіли SP з різними рівнями підтвердженого множника атаки. Експериментально: без прогнозу DPS чи етапів.</label>
     <h3>Умови бою на найвищому етапі</h3>
     <p class="hint">Враховуйте тимчасові бонуси лише якщо можете застосувати їх проти найскладнішого боса. Неактивні ефекти та нуль — обережне припущення.</p>
     <label class="toggle"><input type="checkbox" id="hayst-active"> Hayst активний проти найскладнішого боса</label>

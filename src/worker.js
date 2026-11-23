@@ -1,16 +1,17 @@
-import {optimizeBuild} from "./engine.js?v=20261122-ti-sensitivity-r1";
-import {petSearchPlan,availablePets} from "./pet-scenarios.js?v=20261122-ti-sensitivity-r1";
-import {calculateModeledScenario} from "./calculation-ledger.js?v=20261122-ti-sensitivity-r1";
-import {selectPetPair} from "./pet-pair-search.js?v=20261122-ti-sensitivity-r1";
+import {optimizeBuild} from "./engine.js?v=20261123-native-attack-r1";
+import {petSearchPlan,availablePets} from "./pet-scenarios.js?v=20261123-native-attack-r1";
+import {calculateModeledScenario} from "./calculation-ledger.js?v=20261123-native-attack-r1";
+import {selectPetPair} from "./pet-pair-search.js?v=20261123-native-attack-r1";
 import {bestEquipmentByCategory,gearSelectionEffects,petCandidateGearWeightEnvelope,
  enumerateOwnedGearAssignments}
- from "./equipment-scenarios.js?v=20261122-ti-sensitivity-r1";
+ from "./equipment-scenarios.js?v=20261123-native-attack-r1";
 import {refineCoupledGearAndSkills,enumerateJointGearAndSkills}
- from "./joint-candidate-search.js?v=20261122-ti-sensitivity-r1";
-import {modeledCandidateUpperBound} from "./model-score-bounds.js?v=20261122-ti-sensitivity-r1";
-import {proposeContractScenarioBuild} from "./contract-multi-scenarios.js?v=20261122-ti-sensitivity-r1";
-import {rerankVisitedContractPetPairs} from "./contract-pet-rerank.js?v=20261122-ti-sensitivity-r1";
-import {explorePushParetoFrontier} from "./push-frontier.js?v=20261122-ti-sensitivity-r1";
+ from "./joint-candidate-search.js?v=20261123-native-attack-r1";
+import {modeledCandidateUpperBound} from "./model-score-bounds.js?v=20261123-native-attack-r1";
+import {proposeContractScenarioBuild} from "./contract-multi-scenarios.js?v=20261123-native-attack-r1";
+import {rerankVisitedContractPetPairs} from "./contract-pet-rerank.js?v=20261123-native-attack-r1";
+import {explorePushParetoFrontier} from "./push-frontier.js?v=20261123-native-attack-r1";
+import {exploreNativeAttackDamageFrontier} from "./attack-damage-frontier.js?v=20261123-native-attack-r1";
 
 // Per-request cache: branch DP signatures must distinguish changes in pet,
 // equipment and the resulting Combat Techniques contribution.
@@ -103,15 +104,29 @@ self.onmessage=event=>{
   // explicitly hypothetical and receive no copied measured hit.
   const withPushFrontier=(choice,result)=>{
    const context=choice.context||settings;
-   if(context.pushFrontierEnabled!==true)return result;
+   if(context.pushFrontierEnabled!==true&&
+      context.attackDamageFrontierEnabled!==true)return result;
    const fixed={...context,pushObservedAttackChannelId:null,
     pushObservedHitDamage:null};
-   const alternate=explorePushParetoFrontier(fixed,{
-    maxConstrained:2,
-    baselineResult:result.pushSkipTarget?.enabled===false?result:null,
-    solve:opts=>optimizeBuild(opts,undefined,cache)
-   });
-   return {...result,pushFrontier:alternate};
+   let extended=result;
+   if(context.pushFrontierEnabled===true){
+    const alternate=explorePushParetoFrontier(fixed,{
+     maxConstrained:2,
+     baselineResult:result.pushSkipTarget?.enabled===false?result:null,
+     solve:opts=>optimizeBuild(opts,undefined,cache)
+    });
+    extended={...extended,pushFrontier:alternate};
+   }
+   // Same final pets/gear and SP budget, no duplicated full equipment search.
+   // Each native modifier is compared for ONE attack, never converted to DPS.
+   if(context.attackDamageFrontierEnabled===true){
+    const sourceAlternatives=exploreNativeAttackDamageFrontier(fixed,{
+     maxConstrained:2,baselineResult:result,
+     solve:opts=>optimizeBuild(opts,undefined,cache)
+    });
+    extended={...extended,attackDamageFrontier:sourceAlternatives};
+   }
+   return extended;
   };
   // Optional explicit scenario comparison only for the final chosen
   // pet/gear pair. Do NOT multiply the whole gear/pet search workload.
