@@ -1,5 +1,5 @@
 import {SKILLS,SKILL_IDS,BRANCH_NAMES,PRESETS,DAMAGE_TYPES,GOLD_TYPES,GAME_VERSION,parseExport,exportBuild,spentPoints,ownedSetFlags} from "./engine.js?v=20261123-boss-specials-r1";
-import { t, localizeDocument, SUPPORTED_LANGUAGES } from "./i18n.js?v=20261123-boss-specials-r1";
+import { t, localizeDocument, SUPPORTED_LANGUAGES } from "./i18n.js?v=20261123-boss-specials-r1&ui=20261123-hide-observed-hit-r1";
 import { readClipboardText } from "./clipboard.js?v=20261123-boss-specials-r1";
 import {resetAccountDependentOptions} from "./import-session-reset.js?v=20261123-boss-specials-r1";
 import { profileCoverage } from "./account-profile.js?v=20261123-boss-specials-r1";
@@ -915,11 +915,11 @@ function renderBossPushEvidence(result){
    (recommended?" · "+safe(tr("Proposed source Stage Skip"))+": "+safe(recommended):"")+
    val+"</span></div>";
  });
- el.innerHTML="<summary>"+safe(tr("Boss HP and observed decisive attacks"))+
+ el.innerHTML="<summary>"+safe(tr("Boss HP and attack channels"))+
  "</summary><p>"+safe(tr("Unmodified boss HP at stage {stage}: 10^{power}",{
   stage:numberText(current.stage),power:fmt(current.unmodifiedBossHpLog10)}))+
  "</p><p class='hint'>"+safe(tr(
- "A single observed hit is compared with theoretical boss HP before HP reductions. Repeated hits, spell uptime, contracts and shared Stage Skip are not simulated. Your measured hit applies only to your current tree; it is never assigned to the proposed build."))+
+ "This panel compares theoretical boss HP and attack-talent Stage Skip sources. It does not measure hit damage or predict stage gains."))+
  "</p>"+rows.join("");
 }
 /** Optional competing SP allocations; Stage Skip is not a damage score. */
