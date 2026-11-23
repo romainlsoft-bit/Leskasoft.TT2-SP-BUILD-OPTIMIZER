@@ -48,3 +48,24 @@ prerequisites and all six damage / three gold settings.
 
 This correction changes *which skills receive proxy credit*; it does not
 assert a demonstrated gain in stages.
+
+## Flash Zip cooldown: opportunity is not guaranteed damage (23 Nov 2026)
+
+Flash Zip talent `BossDmgQTE` (Unity `PetBossQTEDamage`,
+`PetQTECooldownMult`) previously added `log10(after/before)` to the
+**damage/gold optimization objective** whenever a supplied boss-time window
+contained more theoretical QTE opportunities after the cooldown reduction.
+This improperly treated an opportunity to activate a charged attack as a
+confirmed damage-dealing hit (or a confirmed Heart of Gold payout).
+
+The optimizer now scores **only the source A per-activation multiplier**, and
+only under the existing explicit `assumeFlashZipAtBoss` condition. B remains
+available from the independent `cooldownFrequencyGainLog10` diagnostic;
+its output is not part of DPS, gold earned, kill probability or Stage Skip.
+The live attack frequency, available charges, exact hit timing, boss death
+and rewards are NOT established by the cooldown table. No new manual inputs.
+
+Count overflow or an invalid cooldown interval returns an unresolved count
+rather than `Infinity`. Regression tests cover Pet/HoG and all 18 damage /
+gold routes. The score is unchanged for default settings where the optional
+boss-special activation is not asserted and no cadence was previously scored.

@@ -12,7 +12,6 @@ import {lightningStrikeSkillScore} from "./lightning-strike-evidence.js?v=202611
 import {petCombatTechniquesIncrement,petEquipmentCombatTechniquesIncrement} from "./pet-scenarios.js?v=20261123-boss-specials-r1";
 import {skillTreeSetScore} from "./skill-tree-set-effects.js?v=20261123-boss-specials-r1";
 import {contractSkillScore} from "./contract-scenarios.js?v=20261123-boss-specials-r1";
-import {cooldownFrequencyGainLog10} from "./flash-zip.js?v=20261123-boss-specials-r1";
 import {tacticalInsightLocalScore} from "./tactical-insight-local.js?v=20261123-boss-specials-r1";
 
 const num=(v,fallback=0)=>{ const x=Number(v); return Number.isFinite(x)?x:fallback; };
@@ -52,12 +51,11 @@ function sourceSkillScoreAtLevel(id,level,settings){
       // an ordinary Pet attack or Lightning Burst. An assumed boss
       // burst has to be explicitly selected, not inferred from ownership.
       if(settings.assumeFlashZipAtBoss!==true)return 0;
-      // A is the QTE damage per activation. B < 1 is a shorter
-      // cooldown, never a damage penalty.
-      const cadence=cooldownFrequencyGainLog10(B(level),settings);
-      const heartOfGold=settings.gold==="HoG"?
-       goldWeight*cooldownFrequencyGainLog10(B(level),settings,"heartOfGold"):0;
-      return r*logA(level)+r*cadence+heartOfGold;
+      // A is per-activation burst damage. B is cooldown, not a damage
+      // multiplier. Even with a known time window and base cooldown, an
+      // extra *opportunity* does not prove another hit or gold collection.
+      // Report rate separately; never convert it into damage/gold proxy.
+      return r*logA(level);
     }
     case "HelperInspiredWeaken":
       // A = damage for *inspired* helpers; B = helper COUNT, not a
