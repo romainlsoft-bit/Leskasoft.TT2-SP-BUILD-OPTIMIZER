@@ -12,19 +12,19 @@ import {spawnSync} from "node:child_process";
 const root=resolve(dirname(fileURLToPath(import.meta.url)),"..");
 const text=path=>readFileSync(join(root,path),"utf8");
 const html=text("index.html");
-const match=html.match(/\bsrc=["']src\/app\.js\?v=([a-zA-Z0-9_-]+)["']/);
+const match=html.match(/\bsrc=["']src\/app\.js\?v=([a-zA-Z0-9_-]+)(?:&amp;[a-zA-Z0-9_-]+=[a-zA-Z0-9_-]+)*["']/);
 if(!match)throw new Error("Root entry must have a versioned app module");
 const release=match[1];
 const failures=[];
 const expect=(okay,message)=>{if(!okay)failures.push(message);};
 for(const page of ["index.html","fr/index.html","uk/index.html","ru/index.html"]){
- const pattern=/\bsrc=["'](?:\.\.\/)?src\/app\.js\?v=([a-zA-Z0-9_-]+)["']/;
+ const pattern=/\bsrc=["'](?:\.\.\/)?src\/app\.js\?v=([a-zA-Z0-9_-]+)(?:&amp;[a-zA-Z0-9_-]+=[a-zA-Z0-9_-]+)*["']/;
  const versions=text(page).match(pattern);
  expect(versions?.[1]===release,page+": stale or absent app version");
 }
 const files=readdirSync(join(root,"src")).filter(name=>name.endsWith(".js"))
  .map(name=>"src/"+name);
-const importRegex=/(?:\bfrom\s*|\bimport\s*|\bnew URL\(\s*)(["'])(\.{1,2}\/[^"'\s]+?\.js)(?:\?v=([a-zA-Z0-9_-]+))?\1/g;
+const importRegex=/(?:\bfrom\s*|\bimport\s*|\bnew URL\(\s*)(["'])(\.{1,2}\/[^"'\s]+?\.js)(?:\?v=([a-zA-Z0-9_-]+)((?:&[a-zA-Z0-9_-]+=[a-zA-Z0-9_-]+)*))?\1/g;
 const targets=new Map();
 let edges=0;
 for(const sourceFile of files){
@@ -32,7 +32,7 @@ for(const sourceFile of files){
  const matches=[...content.matchAll(importRegex)];
  for(const m of matches){
   edges++;
-  const [,quote,raw,version]=m;
+  const [,quote,raw,version,options]=m;
   const target=resolve(root,dirname(sourceFile),raw);
   expect(relative(root,target).split(sep)[0]!=="..",
    sourceFile+": escaping project root with "+raw);
@@ -41,7 +41,8 @@ for(const sourceFile of files){
    ", expected "+release);
   const key=relative(root,target);
   if(!targets.has(key))targets.set(key,new Set());
-  targets.get(key).add(version??"(unversioned)");
+  // ESM module identity includes the entire query string, not just v.
+  targets.get(key).add(version==null?"(unversioned)":version+(options||""));
  }
  const parsed=spawnSync(process.execPath,["--check",join(root,sourceFile)],{
   encoding:"utf8",timeout:20000,windowsHide:true

@@ -10,7 +10,7 @@ import {goldSourceReduction} from "../src/gold-source-reductions.js";
 import {fixedAccountScore} from "../src/account-power.js";
 import {parseAccountProfile} from "../src/account-profile.js";
 import {gearSelectionEffects} from "../src/equipment-scenarios.js";
-import {activationCountInWindow} from "../src/flash-zip.js";
+import {activationCountInWindow,cooldownFrequencyGainLog10} from "../src/flash-zip.js";
 import {optimizeExact} from "../src/solver-core.js";
 import {modeledCandidateUpperBound,rankVisitedCandidateBounds,visitedScoreEnvelope} from "../src/model-score-bounds.js";
 import {enumerateJointGearAndSkills} from "../src/joint-candidate-search.js";
@@ -194,9 +194,13 @@ test("#30: Flash Zip damage per activation cannot be penalized by faster cooldow
  assert.equal(activationCountInWindow(9.95,10,.993),2);
  near(scoreAtLevel("BossDmgQTE",1,{...confirmed,
   flashZipBaseCooldownSeconds:10,flashZipWindowSeconds:9.8}),reference);
+ // A faster cooldown creates an additional activation opportunity,
+ // not guaranteed additional boss damage from this talent.
  near(scoreAtLevel("BossDmgQTE",1,{...confirmed,
+  flashZipBaseCooldownSeconds:10,flashZipWindowSeconds:9.95}),reference);
+ near(cooldownFrequencyGainLog10(.993,{
   flashZipBaseCooldownSeconds:10,flashZipWindowSeconds:9.95}),
-  reference+Math.log10(2));
+  Math.log10(2));
  const hog={...confirmed,gold:"HoG",
   heartOfGoldBaseCooldownSeconds:10,heartOfGoldWindowSeconds:9.95};
  assert.ok(scoreAtLevel("BossDmgQTE",1,hog)>=reference);

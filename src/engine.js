@@ -5,7 +5,7 @@ import {bossPushEvidence} from "./boss-push-evidence.js?v=20261123-boss-specials
 import {resolvePushSkipTarget,verifyPushSkipTarget} from "./push-skip-target.js?v=20261123-boss-specials-r1";
 import { baseline } from "../vendor/qol-baseline.js?v=20261123-boss-specials-r1";
 import { optimizeExact } from "./solver-core.js?v=20261123-boss-specials-r1";
-import { scoreAtLevel } from "./effects.js?v=20261123-boss-specials-r1";
+import { scoreAtLevel } from "./effects.js?v=20261123-boss-specials-r1&score=20261123-cadence-separated-r1";
 import { parseAccountProfile } from "./account-profile.js?v=20261123-boss-specials-r1";
 import {extractFixedAccountPower,fixedAccountScore} from "./account-power.js?v=20261123-boss-specials-r1";
 import {accountDependencyGraph} from "./account-dependencies.js?v=20261123-boss-specials-r1";
@@ -304,6 +304,7 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
       nightmareSpecialAtBossAssumed:scoreContext.assumeNightmareAtBoss===true,
       magnumOpusActiveAtBossAssumed:scoreContext.assumeMagnumOpusAtBoss===true,
       specialAttemptRateNeverCountedAsHitDamage:true,
+      specialCooldownOpportunitiesNotAddedToDamageScore:true,
       thunderVolleySpecialHitAssumed:
         scoreContext.assumeThunderVolleySpecialHit===true,
       daggerMarkedTargetAssumed:

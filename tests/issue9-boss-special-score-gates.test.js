@@ -84,6 +84,7 @@ test("solver budgets and stage-attribution safeguards hold across eighteen route
   assert.equal(report.nightmareSpecialAtBossAssumed,false);
   assert.equal(report.magnumOpusActiveAtBossAssumed,false);
   assert.equal(report.specialAttemptRateNeverCountedAsHitDamage,true);
+  assert.equal(report.specialCooldownOpportunitiesNotAddedToDamageScore,true);
   assert.equal(result.modelAttribution.gameplayCalibrationVerified,false);
  }
 });

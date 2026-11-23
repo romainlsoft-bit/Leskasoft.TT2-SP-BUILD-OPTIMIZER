@@ -1,0 +1,46 @@
+name: TT2 source and solver validation
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      run_benchmarks:
+        description: "Run the expensive 22.6k / 50k SP benchmarks"
+        type: boolean
+        required: false
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tt2-validation-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Run full test suite and source/module checks
+        run: npm run check
+
+  benchmarks:
+    if: github.event_name == 'workflow_dispatch' && inputs.run_benchmarks
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Benchmark 22.6k and 50k SP on all 18 routes
+        run: npm run bench:issue30
+      - name: Benchmark source Stage Skip scenarios
+        run: npm run bench:push
