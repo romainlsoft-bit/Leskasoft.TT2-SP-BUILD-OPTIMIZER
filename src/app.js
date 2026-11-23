@@ -25,7 +25,7 @@ function setLocale(next){
  renderChoices();renderEditor($("skill-search").value);
  $("source-label").textContent=tr(state.sourceImported?"Imported from TT2":"Manual setup");
  renderAccountProfile();renderPetControls();renderPushStageSkipOptions();
- renderNativeAttackOptions();renderObservedAttackOptions();
+ renderNativeAttackOptions();
  $("result-mode").textContent=lastResult?(lastResult.solver==="bounded-grid-dp"?tr("Optimized · bounded grid"):tr("Optimized · exact DP")):tr("Ready when you are");
  if(lastResult)renderResults(lastResult,false);
  status(lastStatus.message,lastStatus.type,lastStatus.params);
@@ -66,7 +66,6 @@ const branchColors={Knight:"#d77879",Summoner:"#edab66",Warlord:"#e7ca75",Sorcer
 const fresh=()=>({damage:"Clan Ship",gold:"Fairy",skillPoints:0,maxStage:0,playstyle:"balanced",qol:"recommended",goldWeight:.7,craftingPower:1,timeToKill:8,sClone:30,sets:{},currentLevels:{},minimums:{},excluded:[],preserveCurrent:false,assumeCoordinatedOffensiveActive:false,assumeFlashZipAtBoss:false,assumeNightmareAtBoss:false,assumeMagnumOpusAtBoss:false,assumeHaystActive:false,assumeSnapActive:false,assumeContractsAtMax:false,astralActivations:0,mode:"power",accountProfile:null,selectedDamagePet:null,selectedGoldPet:null,comparePetScenarios:true,selectedEquipment:{},protectUnmodeledSkills:true,excludeUnverifiedTacticalInsight:false,tacticalInsightCalibration:null,contractTimeline:null,contractMultiScenario:null,
  importedVersion:null,budgetSource:"unset",budgetInconsistent:false,
  pushAttackChannelId:"",pushSourceStageSkipTarget:0,
- pushObservedAttackChannelId:"",pushObservedHitDamage:"",pushBossStage:null,
  pushFrontierEnabled:false,attackDamageFrontierEnabled:false,attackDamageChannelId:""});
 let state=fresh(),lastResult=null,lastScenarios=[],lastEquipment={},
  lastGearSelection=null,lastResolvedPets=null,lastRunContext=null,
@@ -329,18 +328,6 @@ function renderNativeAttackOptions(){
   " · "+safe(c.sourceSkillName)+"</option>").join("");
  select.value=state.attackDamageChannelId;
 }
-function renderObservedAttackOptions(){
- const select=$("push-observed-attack");
- const channels=attackChannelEvidence({...state},{}).channels.filter(x=>x.role!=="charged");
- const allowed=channels.some(x=>x.id===state.pushObservedAttackChannelId);
- if(state.pushObservedAttackChannelId&&!allowed){
-  state.pushObservedAttackChannelId="";
-  state.pushObservedHitDamage="";
- }
- select.innerHTML="<option value=''>"+safe(tr("No measurement"))+"</option>"+
-  channels.map(c=>"<option value='"+safe(c.id)+"'>"+safe(tr(c.label))+"</option>").join("");
- select.value=state.pushObservedAttackChannelId||"";
-}
 function fillInputs(){
  renderAccountProfile();renderPetControls();
  $("skill-points").value=state.skillPoints??"";
@@ -369,12 +356,10 @@ function fillInputs(){
  $("snap-active").checked=state.assumeSnapActive===true;
  $("astral-activations").value=state.astralActivations??0;
  renderPushStageSkipOptions();
- renderNativeAttackOptions();renderObservedAttackOptions();
+ renderNativeAttackOptions();
  $("attack-damage-frontier-enabled").checked=state.attackDamageFrontierEnabled===true;
  $("push-stage-skip-target").value=state.pushSourceStageSkipTarget??0;
  $("push-frontier-enabled").checked=state.pushFrontierEnabled===true;
- $("push-observed-damage").value=state.pushObservedHitDamage??"";
- $("push-observed-stage").value=state.pushBossStage??"";
  renderChoices();renderEditor($("skill-search").value);
 }
 function remember(){
@@ -399,9 +384,6 @@ function importRaw(raw){
  state.budgetInconsistent=parsed.budgetInconsistent;
  state.maxStage=parsed.maxStage;state.craftingPower=parsed.craftingPower;state.sets=parsed.sets;
  state.accountProfile=parsed.profile;
- // An observed hit belongs to the previous tree/buffs, never a new export.
- state.pushObservedAttackChannelId="";state.pushObservedHitDamage="";
- state.pushBossStage=null;
 
  state.sClone=state.sets.tFA?35:30;
  if(parsed.damage)state.damage=parsed.damage;
@@ -483,10 +465,6 @@ function readInputs(){
  state.pushFrontierEnabled=$("push-frontier-enabled").checked;
  state.attackDamageFrontierEnabled=$("attack-damage-frontier-enabled").checked;
  state.attackDamageChannelId=$("attack-damage-channel").value;
- state.pushObservedAttackChannelId=$("push-observed-attack").value;
- state.pushObservedHitDamage=$("push-observed-damage").value.trim();
- state.pushBossStage=$("push-observed-stage").value===""?null:
-  Number($("push-observed-stage").value);
  keepContractsConservative(state);
  state.mode="power";
  persist();
@@ -1114,9 +1092,11 @@ function decodeLink(){
  }catch(e){status("Could not load this shared build link.","error");}
 }
 function initialize(){
- try{const saved=JSON.parse(localStorage.getItem("tt2_skill_optimizer_v1")||"null");if(saved&&typeof saved==="object")state={...fresh(),...saved};}catch{}
- decodeLink();
- keepContractsConservative(state);
+ try{const saved=JSON.parse(localStorage.getItem("tt2_skill_optimizer_v1")||"null");if(saved&&typeof saved==="object")state={...fresh(),...saved};}catch{}  decodeLink();
+  delete state.pushObservedAttackChannelId;
+  delete state.pushObservedHitDamage;
+  delete state.pushBossStage;
+  keepContractsConservative(state);
  persist();
  // Old manual toggles or old shared links must never override the export.
  // No completed-set collection means unknown ownership, not zero owned in-game.
@@ -1140,10 +1120,9 @@ function initialize(){
  $("import-help-button").addEventListener("click",()=>importHelp.showModal());
  for(const id of ["import-help-close","import-help-done"])$(id).addEventListener("click",()=>importHelp.close());
  $("damage-choices").addEventListener("click",e=>{const b=e.target.closest("[data-damage]");if(b){state.damage=b.dataset.damage;state.tacticalInsightCalibration=null;fillInputs();remember();}});
- $("gold-choices").addEventListener("click",e=>{const b=e.target.closest("[data-gold]");if(b){state.gold=b.dataset.gold;state.tacticalInsightCalibration=null;state.pushObservedHitDamage="";fillInputs();remember();}});
+ $("gold-choices").addEventListener("click",e=>{const b=e.target.closest("[data-gold]");if(b){state.gold=b.dataset.gold;state.tacticalInsightCalibration=null;fillInputs();remember();}});
  $("push-attack-channel").addEventListener("change",()=>{readInputs();remember();});
  $("attack-damage-channel").addEventListener("change",()=>{readInputs();remember();});
- $("push-observed-attack").addEventListener("change",()=>{readInputs();remember();});
  $("playstyle-choices").addEventListener("click",e=>{const b=e.target.closest("[data-playstyle]");if(b)applyPreset(b.dataset.playstyle);});
  $("skill-search").addEventListener("input",e=>renderEditor(e.target.value));
  $("skill-editor").addEventListener("change",e=>{
@@ -1151,28 +1130,26 @@ function initialize(){
   if(!id)return;
   if(t.dataset.level){
    state.currentLevels[id]=Number(t.value);
-   state.pushObservedHitDamage="";$("push-observed-damage").value="";
   }
   if(t.dataset.minimum)state.minimums[id]=Number(t.value);
   if(t.dataset.exclude)state.excluded=t.checked?[...new Set([...state.excluded,id])]:state.excluded.filter(x=>x!==id);
   remember();
  });
  $("clear-minimums").addEventListener("click",()=>{state.minimums={};fillInputs();remember();});
- for(const id of ["skill-points","max-stage","gold-weight","crafting-power","time-to-kill","clone-level","qol-mode","preserve-current","protect-unmodeled-skills","exclude-unverified-tactical-insight","ti-cal-enabled","coordinated-offensive-active","flash-zip-at-boss","nightmare-at-boss","magnum-opus-at-boss","hayst-active","snap-active","astral-activations","push-stage-skip-target","push-observed-damage","push-observed-stage","push-frontier-enabled","attack-damage-frontier-enabled",
+ for(const id of ["skill-points","max-stage","gold-weight","crafting-power","time-to-kill","clone-level","qol-mode","preserve-current","protect-unmodeled-skills","exclude-unverified-tactical-insight","ti-cal-enabled","coordinated-offensive-active","flash-zip-at-boss","nightmare-at-boss","magnum-opus-at-boss","hayst-active","snap-active","astral-activations","push-stage-skip-target","push-frontier-enabled","attack-damage-frontier-enabled",
   "ti-cal-low-level","ti-cal-high-level","ti-cal-low-damage","ti-cal-high-damage","ti-cal-low-gold","ti-cal-high-gold"])$(id).addEventListener("change",()=>{
   if(id==="ti-cal-enabled"&&$(id).checked)
    $("exclude-unverified-tactical-insight").checked=false;
   if(id==="exclude-unverified-tactical-insight"&&$(id).checked)
    $("ti-cal-enabled").checked=false;
-  const was=state.maxStage;readInputs();
-  if(id==="max-stage"&&was!==state.maxStage){state.pushObservedHitDamage="";$("push-observed-damage").value="";}
+  readInputs();
   remember();
  });
  // Text fields emit "input" before their "change" event (on blur).
  // Cancel a running optimization immediately while the user edits; never
  // accept an old worker result against a half-edited budget or setting.
  for(const id of ["skill-points","max-stage","gold-weight",
-  "crafting-power","time-to-kill","clone-level","astral-activations","push-stage-skip-target","push-observed-damage","push-observed-stage",
+  "crafting-power","time-to-kill","clone-level","astral-activations","push-stage-skip-target",
   "ti-cal-low-level","ti-cal-high-level","ti-cal-low-damage","ti-cal-high-damage","ti-cal-low-gold","ti-cal-high-gold"]){
    $(id).addEventListener("input",()=>{if(worker){readInputs();remember();}});
  }
