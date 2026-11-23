@@ -14,12 +14,11 @@ import {skillTreeSetScore} from "./skill-tree-set-effects.js?v=20261123-boss-spe
 import {contractSkillScore} from "./contract-scenarios.js?v=20261123-boss-specials-r1";
 import {tacticalInsightLocalScore} from "./tactical-insight-local.js?v=20261123-boss-specials-r1";
 import {transmutationSourceEventEvidence} from "./transmutation-native.js?v=20261123-boss-specials-r1&jackpot=20261123-native-jackpot-expectation-r1";
+import {nativeMulticastSkillScore} from "./multicast-native-score.js?v=20261123-boss-specials-r1&mc=20261123-multicast-no-guessed-x10-r1";
 
 const num=(v,fallback=0)=>{ const x=Number(v); return Number.isFinite(x)?x:fallback; };
 const lg=v=>Math.log10(num(v)>0?num(v):1);
 const spellMap={TwilightBell:["BurstDamage","TwilightFairy"],SummonerAutoTap:["DualPet","TapBoost"],PhantomBlades:["CritBoost","StreamOfBlades"],AlchemistMastery:["HandOfMidas","GoldenMissile"]};
-const mcA=[1,100,10000,1000000,100000000,1000000000];
-const mcB=[1,10,100,1000,10000,50000];
 
 function sourceSkillScoreAtLevel(id,level,settings){
   if(level===0)return 0;
@@ -32,17 +31,11 @@ function sourceSkillScoreAtLevel(id,level,settings){
   const logA=n=>lg(A(n)),logB=n=>lg(B(n)),logC=n=>lg(C(n));
   const multicast=multicastSkillEvidence(id,level,settings);
   if(multicast){
-    if(!multicast.modeled||multicast.modeledCharges===0)return 0;
-    const count=multicast.modeledCharges;
-    if(id==="TwilightGatheringMultiCastSkill")
-      return r*(count*(1+logA(level))+logC(level));
-    if(id==="HandOfMidasMultiCastSkillBoost"){
-      const otherGold=settings.gold==="Chesterson"?0:1;
-      const idx=Math.max(0,Math.min(5,count));
-      return r*(lg(mcA[idx])+idx*logA(level))
-        +otherGold*goldWeight*lg(mcB[idx]);
-    }
-    return r*count*(1+logA(level));
+    // Only source A (per-cast stack multiplier) and the verified
+    // available stack count can enter this conditional score. The old
+    // arbitrary +1 log10 per charge, guessed Hand of Midas gold tables
+    // and unverified Twilight Gloom C were NOT sourced multipliers.
+    return nativeMulticastSkillScore(id,level,multicast,r).scoreLog10;
   }
   switch(id){
     case "PetBonusBoost":
