@@ -983,7 +983,16 @@ function renderNativeAttackFrontier(result){
  el.innerHTML="<summary>"+safe(tr("Attack damage alternatives"))+
   "</summary><p class='hint'>"+safe(tr(
    "Experimental comparison of a native multiplier for the selected attack versus the existing damage/gold proxy. These are different full SP allocations under the same pet, gear and account settings. No attack rate, uptime, real boss damage or stage gain has been inferred."))+
-  "</p>"+rows+"<p class='hint'>"+
+  "</p>"+rows+
+  (report.nativeSourceNotFurtherImproved?
+   "<p class='hint'>"+safe(tr(
+    report.alreadyAtNativeSourceMaximum?
+     "The selected attack talent is already at its native maximum; no stronger level can be explored.":
+     "No stronger native attack level fits the source SP cost. No extra allocation was calculated."))+"</p>":"")+
+  (report.attempted.some(x=>x.status.includes("infeasible"))?
+   "<p class='hint'>"+safe(tr(
+    "Some candidate levels could not meet actual skill-tree prerequisites or other minimums. Their native source cost alone is not enough."))+"</p>":"")+
+  "<p class='hint'>"+
   safe(tr("Different full allocations found: {value}",{
    value:report.changedTrees?tr("yes"):tr("no")}))+"</p>";
 }
