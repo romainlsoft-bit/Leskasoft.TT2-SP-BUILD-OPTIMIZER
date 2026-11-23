@@ -5,7 +5,7 @@ import {bossPushEvidence} from "./boss-push-evidence.js?v=20261123-boss-specials
 import {resolvePushSkipTarget,verifyPushSkipTarget} from "./push-skip-target.js?v=20261123-boss-specials-r1";
 import { baseline } from "../vendor/qol-baseline.js?v=20261123-boss-specials-r1";
 import { optimizeExact } from "./solver-core.js?v=20261123-boss-specials-r1";
-import { scoreAtLevel } from "./effects.js?v=20261123-boss-specials-r1&score=20261123-cadence-separated-r1&ember=20261123-ember-fire-sword-gate-r1";
+import { scoreAtLevel } from "./effects.js?v=20261123-boss-specials-r1&score=20261123-cadence-separated-r1&ember=20261123-ember-fire-sword-gate-r1&jackpot=20261123-native-jackpot-expectation-r1";
 import { parseAccountProfile } from "./account-profile.js?v=20261123-boss-specials-r1";
 import {extractFixedAccountPower,fixedAccountScore} from "./account-power.js?v=20261123-boss-specials-r1";
 import {accountDependencyGraph} from "./account-dependencies.js?v=20261123-boss-specials-r1";
@@ -22,6 +22,7 @@ import {resolveContractScenario} from "./contract-scenarios.js?v=20261123-boss-s
 import {conditionalSkillEvidence} from "./conditional-skill-evidence.js?v=20261123-boss-specials-r1";
 import {lightningStrikeEvidence} from "./lightning-strike-evidence.js?v=20261123-boss-specials-r1";
 import {buildInvestmentAudit} from "./investment-audit.js?v=20261123-boss-specials-r1";
+import {transmutationSourceEventEvidence} from "./transmutation-native.js?v=20261123-boss-specials-r1&jackpot=20261123-native-jackpot-expectation-r1";
 import {resolveTacticalInsightLocal} from "./tactical-insight-local.js?v=20261123-boss-specials-r1";
 import {tacticalInsightRecommendationSensitivity} from "./tactical-insight-sensitivity.js?v=20261123-boss-specials-r1&audit=20261123-ti-sensitivity-r1";
 
@@ -187,7 +188,10 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
     ...(astralActivations>0?[]:["HelperDmgQTE"]),
     ...(combatContext.equipmentPetCoverageComplete===true?[]:["CombatTechniques"]),
     ...(combatContext.assumeBossStunned?[]:["ClanShipStun"]),
-    "BossTimer","PoisonedBlade","KratosSummon",
+    // Jackpot rewards depend on actual account chance and gold event.
+    // Keep imported Transmutation SP while source-only expectation is
+    // an incomplete model, instead of silently resetting a useful skill.
+    "BossTimer","PoisonedBlade","KratosSummon","Transmutation",
     ...(combatContext.assumeSourceOnlyLightningStrike===true&&
       Number.isSafeInteger(combatContext.lightningStrikeHits)&&
       combatContext.lightningStrikeHits>=0&&
@@ -278,7 +282,8 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
       conditionalSourceUnverified:id==="HelperBoost"||
        ["ForbiddenContract","RoyalContract","TerrifyingPact",
         "QuickFortune","PhilosophersFlux","HelperDmgSkillBoost",
-        "ClanShipVoltage","CriticalHit","HelperInspiredWeaken"].includes(id)};
+        "ClanShipVoltage","CriticalHit","HelperInspiredWeaken",
+        "Transmutation"].includes(id)};
   });
   const byBranch=Object.fromEntries(Object.values(BRANCH_NAMES).map(name=>[
     name,skillAttribution.filter(row=>row.branch===name)
@@ -301,6 +306,8 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
         spellEffectScorable("StreamOfBlades",scoreContext),
       emberArtsFireSwordScoredOnlyWhenEquipped:
         spellEffectScorable("TapBoost",scoreContext),
+      transmutationIsConditionalEventExpectation:true,
+      transmutationDoesNotCreditFullJackpotAsAlwaysOn:true,
       sourceSpellScoringBySkill:Object.fromEntries(
         Object.entries(ACTIVE_SOURCE_SKILL_SPELLS).map(([id,spell])=>
           [id,spellEffectScorable(spell,scoreContext)])),
@@ -377,6 +384,8 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
    skillTreeSetPower.applied;
   const remainingUnmodeledEffects=Math.max(0,
    dependencyReport.unmodeledEffects-newlyResolvedSetEffects);
+  const jackpotSourceOnly=transmutationSourceEventEvidence(
+   result.levels.Transmutation??0);
   const contractScenario=resolveContractScenario(result.levels,scoreContext);
   const conditionalSkills=conditionalSkillEvidence(result.levels,scoreContext);
   const lightningStrike=lightningStrikeEvidence(result.levels,scoreContext);
@@ -407,6 +416,7 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
     selectedSpellUnlocks,spellBaselineInvariantUnderSkillOptimization:
      spellSelection.valid&&!spellCapEvidenceIsIncomplete,
     spellCaps,spellScenario,manaEvidence,contractScenario,conditionalSkills,lightningStrike,
+    jackpotSourceOnly,
     accountIntegration:{
       skillTreeSetPower:{
        applied:skillTreeSetPower.applied,recognized:skillTreeSetPower.recognized,

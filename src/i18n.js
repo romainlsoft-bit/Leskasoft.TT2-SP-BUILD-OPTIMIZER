@@ -5,6 +5,7 @@ export const SUPPORTED_LANGUAGES = ["en","fr","uk","ru"];
 export const NATIVE_LANGUAGE_NAMES = {en:"English",fr:"Français",uk:"Українська",ru:"Русский"};
 export const translations = {
 fr:{
+ "Transmutation Jackpot Gold is scored as a source-only chance-weighted gold event, not permanent All Gold. Your account's actual Jackpot chance and event mix are not verified.":"L’or Jackpot de Transmutation est évalué selon la probabilité issue du talent, pas comme un bonus permanent d’or général. La probabilité réelle de ton compte et la répartition des événements ne sont pas vérifiées.",
  "Tactical Insight: alternative SP allocation":"Tactical Insight : répartition alternative des SP",
  "The alternative is optimized with the unverified community Tactical Insight coefficient excluded. It keeps the same SP budget, pets, equipment and constraints; neither allocation is proven better in game.":"Cette alternative est optimisée sans le coefficient communautaire non vérifié de Tactical Insight. Elle conserve le budget SP, les familiers, l’équipement et les contraintes. Aucun des deux builds n’est prouvé meilleur en jeu.",
  "Alternative minus main build: {excluded} log10 without the TI coefficient; {community} log10 with it. These are proxy-score differences, not stages.":"Alternative moins build principal : {excluded} log10 sans le coefficient TI ; {community} log10 avec lui. Il s’agit de différences de score théorique, pas d’étages.",
@@ -369,6 +370,7 @@ fr:{
  "Free Tap Titans 2 skill tree optimizer for TT2 8.4. Optimize skill points for Clan Ship, Pet, Shadow Clone, Heavenly Strike, Dagger or Gold Gun. Import game data or configure manually.":"Optimiseur gratuit de compétences Tap Titans 2 version 8.4. Import des données ou configuration manuelle pour tous les types de builds."
 },
 uk:{
+ "Transmutation Jackpot Gold is scored as a source-only chance-weighted gold event, not permanent All Gold. Your account's actual Jackpot chance and event mix are not verified.":"Jackpot Gold від Transmutation оцінюється за шансом із даних навички, а не як постійний бонус до всього золота. Фактичний шанс Jackpot для вашого облікового запису й розподіл подій не перевірено.",
  "Tactical Insight: alternative SP allocation":"Tactical Insight: альтернативний розподіл очок навичок",
  "The alternative is optimized with the unverified community Tactical Insight coefficient excluded. It keeps the same SP budget, pets, equipment and constraints; neither allocation is proven better in game.":"Альтернативу оптимізовано без неперевіреного коефіцієнта спільноти Tactical Insight. Бюджет SP, вихованці, спорядження та обмеження залишаються незмінними. Жоден із двох білдів не доведено кращим у грі.",
  "Alternative minus main build: {excluded} log10 without the TI coefficient; {community} log10 with it. These are proxy-score differences, not stages.":"Альтернатива мінус основний білд: {excluded} log10 без коефіцієнта TI; {community} log10 з ним. Це різниця умовних оцінок, а не етапів.",
@@ -684,6 +686,7 @@ uk:{
  "Free Tap Titans 2 skill tree optimizer for TT2 8.4. Optimize skill points for Clan Ship, Pet, Shadow Clone, Heavenly Strike, Dagger or Gold Gun. Import game data or configure manually.":"Безкоштовний оптимізатор дерева навичок Tap Titans 2 версії 8.4. Імпорт даних або ручне налаштування для всіх збірок."
 },
 ru:{
+ "Transmutation Jackpot Gold is scored as a source-only chance-weighted gold event, not permanent All Gold. Your account's actual Jackpot chance and event mix are not verified.":"Jackpot Gold от Transmutation оценивается с учётом вероятности из данных навыка, а не как постоянный бонус ко всему золоту. Фактическая вероятность Jackpot и распределение событий аккаунта не проверены.",
  "Tactical Insight: alternative SP allocation":"Tactical Insight: альтернативное распределение очков навыков",
  "The alternative is optimized with the unverified community Tactical Insight coefficient excluded. It keeps the same SP budget, pets, equipment and constraints; neither allocation is proven better in game.":"Альтернатива оптимизирована без непроверенного коэффициента сообщества Tactical Insight. Бюджет SP, питомцы, снаряжение и ограничения сохранены. Ни один из двух билдов не доказан как лучший в игре.",
  "Alternative minus main build: {excluded} log10 without the TI coefficient; {community} log10 with it. These are proxy-score differences, not stages.":"Альтернатива минус основной билд: {excluded} log10 без коэффициента TI; {community} log10 с ним. Это разность модельных оценок, а не пройденных этапов.",
