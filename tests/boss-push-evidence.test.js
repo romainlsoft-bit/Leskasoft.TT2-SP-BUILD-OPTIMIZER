@@ -122,10 +122,15 @@ test("missing max stage is not interpreted as a zero-HP boss",()=>{
  assert.equal(b.bossPushCurrent,null);
  assert.equal(b.bossPushProposed,null);
 });
-test("localized pages contain the observed-hit controls exactly once",()=>{
+test("localized UI no longer requests a measured attack or hit damage",()=>{
  for(const p of ["index.html","fr/index.html","uk/index.html","ru/index.html"]){
   const s=readFileSync(new URL("../"+p,import.meta.url),"utf8");
-  assert.equal((s.match(/id="push-observed-attack"/g)||[]).length,1,p);
-  assert.equal((s.match(/id="push-observed-damage"/g)||[]).length,1,p);
+  for(const id of ["push-observed-attack","push-observed-stage","push-observed-damage"])
+   assert.ok(!s.includes('id="'+id+'"'),p+": "+id);
+  assert.ok(s.includes('id="push-attack-channel"'),p);
  }
+ const app=readFileSync(new URL("../src/app.js",import.meta.url),"utf8");
+ assert.ok(!app.includes('$("push-observed-'),"Removed DOM control remains referenced");
+ for(const key of ["pushObservedAttackChannelId","pushObservedHitDamage","pushBossStage"])
+  assert.ok(app.includes("delete state."+key+";"),"Outdated hit not discarded");
 });

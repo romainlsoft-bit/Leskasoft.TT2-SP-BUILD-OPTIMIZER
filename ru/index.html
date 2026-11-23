@@ -16,7 +16,7 @@
 <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg"><link rel="stylesheet" href="../styles.css?v=20261122-toast-flat-r1">
 <title>Оптимизатор дерева навыков TT2 8.4 — бесплатный калькулятор | Leskasoft</title>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Оптимизатор дерева навыков Tap Titans 2","description":"Калькулятор очков навыков Tap Titans 2: импорт JSON, ручной ввод, настройки QoL и экспорт билда до 50 000 очков.","applicationCategory":"GameApplication","operatingSystem":"Any","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"url":"https://tap-titans.leskasoft.com/ru/","inLanguage":"ru","@id":"https://tap-titans.leskasoft.com/ru/#tool"}</script>
-<script type="module" src="../src/app.js?v=20261123-boss-specials-r1" defer></script>
+<script type="module" src="../src/app.js?v=20261123-boss-specials-r1&amp;ui=20261123-hide-observed-hit-r1" defer></script>
 </head>
 <body>
 <div class="site">
@@ -63,11 +63,7 @@
       <label>Время убийства (с) <input id="time-to-kill" type="number" min=".1" step=".5" value="8"></label>
       <label>Уровень заклинания Теневого клона <input id="clone-level" type="number" min="1" max="35" step="1" value="30"></label>
     </div>
-    <h3>Push: измеренный удар (необязательно)</h3>
-    <p class="hint">Укажите урон одного реально измеренного удара по боссу с текущим деревом навыков и активными бонусами. Поддерживается научная запись, например 1.23e30000. Это не общий DPS и не урон предлагаемого билда.</p>
-    <label>Измеренная атака <select id="push-observed-attack"><option value="">Без измерения</option></select></label>
-    <label>Этап босса для измеренного удара (по умолчанию — максимальный) <input id="push-observed-stage" type="number" min="1" max="10000000" step="1" placeholder="Макс. этап"></label>
-    <label>Урон одного удара <input id="push-observed-damage" type="text" maxlength="90" inputmode="text" autocomplete="off" placeholder="1.23e30000"></label>
+
     <h3>Цель по пропуску этапов (необязательно)</h3>
     <p class="hint">Укажите желаемый бонус пропуска этапов от конкретной атаки. Оптимизатор закрепляет нужные уровни навыка и распределяет остальные SP. Это не общий пропуск этапов и не гарантированный прогресс: атака должна убить титана.</p>
     <label>Атака, дающая пропуск <select id="push-attack-channel"><option value="">Без цели</option></select></label>
