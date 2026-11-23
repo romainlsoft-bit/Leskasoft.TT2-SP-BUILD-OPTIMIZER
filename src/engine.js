@@ -23,6 +23,7 @@ import {conditionalSkillEvidence} from "./conditional-skill-evidence.js?v=202611
 import {lightningStrikeEvidence} from "./lightning-strike-evidence.js?v=20261123-boss-specials-r1";
 import {buildInvestmentAudit} from "./investment-audit.js?v=20261123-boss-specials-r1";
 import {resolveTacticalInsightLocal} from "./tactical-insight-local.js?v=20261123-boss-specials-r1";
+import {tacticalInsightRecommendationSensitivity} from "./tactical-insight-sensitivity.js?v=20261123-boss-specials-r1&audit=20261123-ti-sensitivity-r1";
 
 export const GAME_VERSION = "8.4.0";
 export const DATASET_REVISION = "2026-09-18"; // SkillTreeInfo2.0.csv comparison
@@ -323,6 +324,8 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
     tacticalInsightLocal:tiLocal.enabled?tiLocal:null,
     optimizerScoreChanged:tiLocal.enabled||
       settings.excludeUnverifiedTacticalInsight===true};
+  modelAttribution.tacticalInsightSensitivity=
+   tacticalInsightRecommendationSensitivity(current,result.levels,scoreContext);
   const points=spentPoints(result.levels);
   if(points>SP)throw new Error("Internal validation failed: allocation exceeds SP budget.");
   for(const item of skills){
