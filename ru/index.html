@@ -16,7 +16,7 @@
 <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg"><link rel="stylesheet" href="../styles.css?v=20261122-toast-flat-r1">
 <title>Оптимизатор дерева навыков TT2 8.4 — бесплатный калькулятор | Leskasoft</title>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Оптимизатор дерева навыков Tap Titans 2","description":"Калькулятор очков навыков Tap Titans 2: импорт JSON, ручной ввод, настройки QoL и экспорт билда до 50 000 очков.","applicationCategory":"GameApplication","operatingSystem":"Any","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"url":"https://tap-titans.leskasoft.com/ru/","inLanguage":"ru","@id":"https://tap-titans.leskasoft.com/ru/#tool"}</script>
-<script type="module" src="../src/app.js?v=20261122-ti-sensitivity-r1" defer></script>
+<script type="module" src="../src/app.js?v=20261123-native-attack-r1" defer></script>
 </head>
 <body>
 <div class="site">
@@ -74,6 +74,9 @@
     <label>Минимальный бонус пропуска от навыка <input id="push-stage-skip-target" type="number" min="0" max="10000" step="1" inputmode="numeric" value="0"></label>
     <h3>Сравнить push-билды (необязательно)</h3>
     <label class="toggle"><input type="checkbox" id="push-frontier-enabled"> Сравните полные распределения SP с разными бонусами пропуска этапов. Это требует дополнительных вычислений и не прогнозирует реальные этапы или урон по боссу.</label>
+    <h3>Альтернативы по базовому множителю атаки</h3>
+    <label>Атака для сравнения множителя урона <select id="attack-damage-channel"></select></label>
+    <label class="toggle"><input type="checkbox" id="attack-damage-frontier-enabled"> Сравнить полные распределения SP с разными значениями подтверждённого множителя атаки. Экспериментально: без прогноза DPS и этапов.</label>
     <h3>Условия боя на максимальном этапе</h3>
     <p class="hint">Учитывайте временные бонусы, только если можете использовать их против самого сложного босса. Неактивные эффекты и ноль — осторожное допущение.</p>
     <label class="toggle"><input type="checkbox" id="hayst-active"> Hayst активен против самого сложного босса</label>

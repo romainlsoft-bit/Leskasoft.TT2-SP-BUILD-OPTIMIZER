@@ -16,7 +16,7 @@
 <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg"><link rel="stylesheet" href="../styles.css?v=20261122-toast-flat-r1">
 <title>Optimiseur de compétences TT2 8.4 — Calculateur SP gratuit | Leskasoft</title>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Optimiseur d’arbre de compétences Tap Titans 2","description":"Optimisez vos points de compétences Tap Titans 2 : import JSON, saisie manuelle, confort de jeu (QoL) et export du build jusqu’à 50 000 SP.","applicationCategory":"GameApplication","operatingSystem":"Any","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"url":"https://tap-titans.leskasoft.com/fr/","inLanguage":"fr","@id":"https://tap-titans.leskasoft.com/fr/#tool"}</script>
-<script type="module" src="../src/app.js?v=20261122-ti-sensitivity-r1" defer></script>
+<script type="module" src="../src/app.js?v=20261123-native-attack-r1" defer></script>
 </head>
 <body>
 <div class="site">
@@ -74,6 +74,9 @@
     <label>Saut de stages minimal du talent <input id="push-stage-skip-target" type="number" min="0" max="10000" step="1" inputmode="numeric" value="0"></label>
     <h3>Explorer des builds de push (facultatif)</h3>
     <label class="toggle"><input type="checkbox" id="push-frontier-enabled"> Compare plusieurs répartitions complètes de SP à différents niveaux de saut de stages. Les calculs sont plus longs et ne prédisent pas les stages ni les dégâts réels des boss.</label>
+    <h3>Alternatives par dégâts natifs de l'attaque</h3>
+    <label>Attaque dont comparer le multiplicateur de dégâts natif <select id="attack-damage-channel"></select></label>
+    <label class="toggle"><input type="checkbox" id="attack-damage-frontier-enabled"> Explorer des allocations complètes de SP privilégiant le multiplicateur documenté de cette attaque. Expérimental : aucun DPS ni gain de stages n'est prédit.</label>
     <h3>Conditions de combat à l’étage maximal</h3>
     <p class="hint">Ne comptez les bonus temporaires que si vous pouvez les utiliser contre votre boss le plus difficile. Inactif/zéro est l’hypothèse prudente par défaut.</p>
     <label class="toggle"><input type="checkbox" id="hayst-active"> Hayst actif contre votre boss le plus difficile</label>

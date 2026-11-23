@@ -6,7 +6,7 @@
  * native exact stacking rule is NOT verified.  Do not turn the illustrated
  * value into fixed AllDamage, critical or gold bonuses automatically.
  */
-import {equipmentEffectReduction} from "./equipment-reductions.js?v=20261122-ti-sensitivity-r1";
+import {equipmentEffectReduction} from "./equipment-reductions.js?v=20261123-native-attack-r1";
 
 const ROUTES=Object.freeze({
  AllDamagePerSeasonDay:"AllDamage",

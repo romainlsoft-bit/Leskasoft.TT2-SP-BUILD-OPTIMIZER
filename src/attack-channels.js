@@ -9,8 +9,8 @@
  * Source catalog: pinned SkillTreeInfo2.0.csv via vendor/skills.js.
  * Skip mechanics: https://e9wiki.com/tt2/en/guides/stage-skip-and-titan-skip
  */
-import {skillInfo} from "../vendor/skills.js?v=20261122-ti-sensitivity-r1";
-import {spellSelectionEvidence} from "./spell-scenarios.js?v=20261122-ti-sensitivity-r1";
+import {skillInfo} from "../vendor/skills.js?v=20261123-native-attack-r1";
+import {spellSelectionEvidence} from "./spell-scenarios.js?v=20261123-native-attack-r1";
 
 // One source-specific channel per actual attack type, not one Pet-only rule.
 // "charged" and "conditional" mean the listed modifier does NOT establish
@@ -183,4 +183,26 @@ export function compareAttackChannels(settings,before={},after={}){
     sourceDamageModifierLog10Delta:delta,skip};
   }),
   stageGainPredicted:false,scoreChanged:false};
+}
+
+/** Native-tabulated direct modifiers for an explicitly selected killing
+ * attack. Do not offer charged states, skip-only paths, or conditional
+ * attacks with no verified activation. The B column of Thunder Volley is
+ * intentionally different from the A column of its source talent.
+ */
+export function sourcedDamageChannels(damage){
+ if(!Object.hasOwn(FIELDS,damage))
+  throw new RangeError("Unknown damage source: "+String(damage));
+ return FIELDS[damage].filter(spec=>
+  ["normal","burst"].includes(spec.role)&&spec.bonus).map(spec=>{
+   const [column,bonusType]=spec.bonus;
+   const row=skillInfo[spec.skill];
+   if(!row||row["BonusType"+column]!==bonusType)
+    throw new Error("Native attack channel source mismatch: "+spec.id);
+   return {id:spec.id,label:spec.label,role:spec.role,
+    sourceSkillId:spec.skill,sourceSkillName:row.Name,
+    sourceColumn:column,sourceBonusType:bonusType,
+    requiredSpell:spec.spell??null,
+    isNotCompleteAttackDps:true,activationUnverified:true};
+  });
 }

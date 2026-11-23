@@ -16,7 +16,7 @@
 <link rel="icon" type="image/svg+xml" href="assets/favicon.svg"><link rel="stylesheet" href="styles.css?v=20261122-toast-flat-r1">
 <title>TT2 Skill Tree Optimizer 8.4 — Free Skill Point Calculator | Leskasoft</title>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"TT2 Skill Tree Optimizer","description":"Tap Titans 2 skill tree optimizer with manual and JSON import, QoL preferences and 50,000 Skill Point support.","applicationCategory":"GameApplication","operatingSystem":"Any","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"url":"https://tap-titans.leskasoft.com/","inLanguage":"en","@id":"https://tap-titans.leskasoft.com/#tool"}</script>
-<script type="module" src="src/app.js?v=20261122-ti-sensitivity-r1" defer></script>
+<script type="module" src="src/app.js?v=20261123-native-attack-r1" defer></script>
 </head>
 <body>
 <div class="site">
@@ -74,6 +74,9 @@
     <label>Minimum source Stage Skip <input id="push-stage-skip-target" type="number" min="0" max="10000" step="1" inputmode="numeric" value="0"></label>
     <h3>Explore push alternatives (optional)</h3>
     <label class="toggle"><input type="checkbox" id="push-frontier-enabled"> Compare full SP allocations at different source Stage Skip levels. This costs extra calculations and does not predict stages or rank real boss damage.</label>
+    <h3>Native attack damage alternatives</h3>
+    <label>Attack whose native damage multiplier will be compared <select id="attack-damage-channel"></select></label>
+    <label class="toggle"><input type="checkbox" id="attack-damage-frontier-enabled"> Explore full SP allocations favoring that attack's tabulated damage multiplier. Experimental: not a measured DPS or stage prediction.</label>
     <h3>Push-limit combat conditions</h3>
     <p class="hint">Count temporary bonuses only when you can use them against your hardest boss. Inactive/zero is the conservative default.</p>
     <label class="toggle"><input type="checkbox" id="hayst-active"> Hayst active at your hardest boss</label>

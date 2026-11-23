@@ -1,14 +1,14 @@
-import {SKILLS,SKILL_IDS,BRANCH_NAMES,PRESETS,DAMAGE_TYPES,GOLD_TYPES,GAME_VERSION,parseExport,exportBuild,spentPoints,ownedSetFlags} from "./engine.js?v=20261122-ti-sensitivity-r1";
-import { t, localizeDocument, SUPPORTED_LANGUAGES } from "./i18n.js?v=20261122-ti-sensitivity-r1";
-import { readClipboardText } from "./clipboard.js?v=20261122-ti-sensitivity-r1";
-import {resetAccountDependentOptions} from "./import-session-reset.js?v=20261122-ti-sensitivity-r1";
-import { profileCoverage } from "./account-profile.js?v=20261122-ti-sensitivity-r1";
-import {petLevelEvidence} from "./account-pet-levels.js?v=20261122-ti-sensitivity-r1";
-import {resolveGemstoneEvidence} from "./account-gemstones.js?v=20261122-ti-sensitivity-r1";
-import {formatLogMultiplier} from "./account-power.js?v=20261122-ti-sensitivity-r1";
-import {availablePets,recommendPets} from "./pet-scenarios.js?v=20261122-ti-sensitivity-r1";
-import {bestEquipmentByCategory,EQUIPMENT_CATEGORIES} from "./equipment-scenarios.js?v=20261122-ti-sensitivity-r1";
-import {sourcedStageSkipChannels,attackChannelEvidence} from "./attack-channels.js?v=20261122-ti-sensitivity-r1";
+import {SKILLS,SKILL_IDS,BRANCH_NAMES,PRESETS,DAMAGE_TYPES,GOLD_TYPES,GAME_VERSION,parseExport,exportBuild,spentPoints,ownedSetFlags} from "./engine.js?v=20261123-native-attack-r1";
+import { t, localizeDocument, SUPPORTED_LANGUAGES } from "./i18n.js?v=20261123-native-attack-r1";
+import { readClipboardText } from "./clipboard.js?v=20261123-native-attack-r1";
+import {resetAccountDependentOptions} from "./import-session-reset.js?v=20261123-native-attack-r1";
+import { profileCoverage } from "./account-profile.js?v=20261123-native-attack-r1";
+import {petLevelEvidence} from "./account-pet-levels.js?v=20261123-native-attack-r1";
+import {resolveGemstoneEvidence} from "./account-gemstones.js?v=20261123-native-attack-r1";
+import {formatLogMultiplier} from "./account-power.js?v=20261123-native-attack-r1";
+import {availablePets,recommendPets} from "./pet-scenarios.js?v=20261123-native-attack-r1";
+import {bestEquipmentByCategory,EQUIPMENT_CATEGORIES} from "./equipment-scenarios.js?v=20261123-native-attack-r1";
+import {sourcedStageSkipChannels,sourcedDamageChannels,attackChannelEvidence} from "./attack-channels.js?v=20261123-native-attack-r1";
 const $=id=>document.getElementById(id);
 let locale="en";
 let lastStatus={message:"Import your account or enter your skill points to begin.",type:"",params:{}};
@@ -25,7 +25,7 @@ function setLocale(next){
  renderChoices();renderEditor($("skill-search").value);
  $("source-label").textContent=tr(state.sourceImported?"Imported from TT2":"Manual setup");
  renderAccountProfile();renderPetControls();renderPushStageSkipOptions();
- renderObservedAttackOptions();
+ renderNativeAttackOptions();renderObservedAttackOptions();
  $("result-mode").textContent=lastResult?(lastResult.solver==="bounded-grid-dp"?tr("Optimized · bounded grid"):tr("Optimized · exact DP")):tr("Ready when you are");
  if(lastResult)renderResults(lastResult,false);
  status(lastStatus.message,lastStatus.type,lastStatus.params);
@@ -67,7 +67,7 @@ const fresh=()=>({damage:"Clan Ship",gold:"Fairy",skillPoints:0,maxStage:0,plays
  importedVersion:null,budgetSource:"unset",budgetInconsistent:false,
  pushAttackChannelId:"",pushSourceStageSkipTarget:0,
  pushObservedAttackChannelId:"",pushObservedHitDamage:"",pushBossStage:null,
- pushFrontierEnabled:false});
+ pushFrontierEnabled:false,attackDamageFrontierEnabled:false,attackDamageChannelId:""});
 let state=fresh(),lastResult=null,lastScenarios=[],lastEquipment={},
  lastGearSelection=null,lastResolvedPets=null,lastRunContext=null,
  worker=null,calculationRevision=0;
@@ -314,6 +314,21 @@ function renderPushStageSkipOptions(){
    " · "+safe(SKILLS[c.sourceSkillId]?.Name||c.sourceSkillId)+"</option>").join("");
  select.value=state.pushAttackChannelId||"";
 }
+function renderNativeAttackOptions(){
+ const select=$("attack-damage-channel");
+ const channels=sourcedDamageChannels(state.damage);
+ const valid=channels.some(c=>c.id===state.attackDamageChannelId);
+ if(!valid){
+  // Never carry a Pet attack source into a Clan Ship or Dagger build.
+  const preferred=channels.find(c=>c.role==="burst"&&!c.requiredSpell)||
+   channels[0];
+  state.attackDamageChannelId=preferred?.id||"";
+ }
+ select.innerHTML=channels.map(c=>
+  "<option value='"+safe(c.id)+"'>"+safe(tr(c.label))+
+  " · "+safe(c.sourceSkillName)+"</option>").join("");
+ select.value=state.attackDamageChannelId;
+}
 function renderObservedAttackOptions(){
  const select=$("push-observed-attack");
  const channels=attackChannelEvidence({...state},{}).channels.filter(x=>x.role!=="charged");
@@ -342,7 +357,8 @@ function fillInputs(){
  $("snap-active").checked=state.assumeSnapActive===true;
  $("astral-activations").value=state.astralActivations??0;
  renderPushStageSkipOptions();
- renderObservedAttackOptions();
+ renderNativeAttackOptions();renderObservedAttackOptions();
+ $("attack-damage-frontier-enabled").checked=state.attackDamageFrontierEnabled===true;
  $("push-stage-skip-target").value=state.pushSourceStageSkipTarget??0;
  $("push-frontier-enabled").checked=state.pushFrontierEnabled===true;
  $("push-observed-damage").value=state.pushObservedHitDamage??"";
@@ -441,6 +457,8 @@ function readInputs(){
  state.pushAttackChannelId=$("push-attack-channel").value;
  state.pushSourceStageSkipTarget=$("push-stage-skip-target").value;
  state.pushFrontierEnabled=$("push-frontier-enabled").checked;
+ state.attackDamageFrontierEnabled=$("attack-damage-frontier-enabled").checked;
+ state.attackDamageChannelId=$("attack-damage-channel").value;
  state.pushObservedAttackChannelId=$("push-observed-attack").value;
  state.pushObservedHitDamage=$("push-observed-damage").value.trim();
  state.pushBossStage=$("push-observed-stage").value===""?null:
@@ -463,7 +481,7 @@ function optimize(){
  status("Checking prerequisites and calculating the best allocation for the chosen scoring model…");
  const revision=++calculationRevision;
  const requestContext=keepContractsConservative(structuredClone(state));
- const running=new Worker(new URL("./worker.js?v=20261122-ti-sensitivity-r1",import.meta.url),{type:"module"});
+ const running=new Worker(new URL("./worker.js?v=20261123-native-attack-r1",import.meta.url),{type:"module"});
  worker=running;
  running.onmessage=event=>{
    if(revision!==calculationRevision||worker!==running)return;
@@ -931,6 +949,44 @@ function renderPushFrontier(result){
   safe(tr("Unresolved or infeasible alternatives: {count}",{
    count:numberText(attempts)}))+"</p>";
 }
+/** Native multiplier vs original score, with no conversion to DPS/stages. */
+function renderNativeAttackFrontier(result){
+ let el=$("native-attack-frontier");
+ if(!el){
+  el=document.createElement("details");
+  el.id="native-attack-frontier";el.className="result-detail";
+  $("push-pareto-frontier").insertAdjacentElement("afterend",el);
+ }
+ const report=result.attackDamageFrontier;
+ if(!report){el.hidden=true;return;}
+ el.hidden=false;
+ if(report.status!=="explored"){
+  el.innerHTML="<summary>"+safe(tr("Attack damage alternatives"))+
+   "</summary><p class='hint'>"+safe(tr("Attack comparison unavailable: {reason}",{
+    reason:report.reason||report.status}))+"</p>";
+  return;
+ }
+ const rows=report.pareto.map(row=>{
+  const value=row.sourceNativeModifierLog10;
+  const modifier=value===null?tr("Talent not invested"):
+   "10^"+value.toFixed(2);
+  return "<div class='tree-row'><div><strong>"+
+   safe(tr("Native attack source modifier"))+": "+safe(modifier)+
+   "</strong> · "+safe(tr("Talent level"))+" "+safe(numberText(row.sourceSkillLevel))+
+   " · "+safe(tr("Modeled proxy score: {score} log10",{
+    score:row.scoreProxyLog10.toFixed(2)}))+
+   " · "+safe(tr("Spent SP: {sp}",{sp:numberText(row.spent)}))+
+   "<textarea readonly rows='3' class='export-json' aria-label='"+
+   safe(tr("Alternative build export"))+"'>"+
+   safe(exportBuild(row.levels))+"</textarea></div></div>";
+ }).join("");
+ el.innerHTML="<summary>"+safe(tr("Attack damage alternatives"))+
+  "</summary><p class='hint'>"+safe(tr(
+   "Experimental comparison of a native multiplier for the selected attack versus the existing damage/gold proxy. These are different full SP allocations under the same pet, gear and account settings. No attack rate, uptime, real boss damage or stage gain has been inferred."))+
+  "</p>"+rows+"<p class='hint'>"+
+  safe(tr("Different full allocations found: {value}",{
+   value:report.changedTrees?tr("yes"):tr("no")}))+"</p>";
+}
 function renderResults(result,scroll=true){
  $("empty-results").hidden=true;$("actual-results").hidden=false;if(scroll)$("results").scrollIntoView({behavior:"smooth",block:"start"});
  const bounded=result.optimality?.mode==="bounded-power";
@@ -977,6 +1033,7 @@ function renderResults(result,scroll=true){
  renderPushSkipComparison(result);
  renderBossPushEvidence(result);
  renderPushFrontier(result);
+ renderNativeAttackFrontier(result);
  $("full-tree").innerHTML=Object.entries(BRANCH_NAMES).map(([code,name])=>`<h4 class="group-title">${safe(tr(name))}</h4>`+SKILL_IDS.filter(id=>SKILLS[id].Branch===code&&result.levels[id]>0).map(id=>`<div class="tree-row"><span>${safe(SKILLS[id].Name)}</span><strong>${result.levels[id]}</strong></div>`).join("")).join("");
  $("delta-count").textContent="("+result.changes.length+")";
  $("diff-list").innerHTML=result.changes.length?result.changes.map(change=>`<div class="change-row"><span>${safe(change.name)}</span><span><small>${change.before} → ${change.after}</small> <strong class="${change.difference>=0?"plus":"minus"}">${change.difference>0?"+":""}${change.difference}</strong></span></div>`).join(""):"<p class='hint'>"+safe(tr("No skill-level changes."))+"</p>";
@@ -985,7 +1042,7 @@ function renderResults(result,scroll=true){
 function sharePayload(){
  // Compact URL encoding; the exported skill tree itself is intentionally
  // not encrypted. Sharing the link discloses the included game settings.
- return {pushFrontier:state.pushFrontierEnabled===true,protect:state.protectUnmodeledSkills!==false,tiExperiment:state.excludeUnverifiedTacticalInsight===true,sp:state.skillPoints,st:state.maxStage,da:state.damage,go:state.gold,p:state.playstyle,q:state.qol,w:state.goldWeight,cp:state.craftingPower,tk:state.timeToKill,cl:state.sClone,cur:state.currentLevels,min:state.minimums,exc:state.excluded,keep:state.preserveCurrent,hay:state.assumeHaystActive,snap:state.assumeSnapActive,astral:state.astralActivations,attack:state.pushAttackChannelId,skip:state.pushSourceStageSkipTarget};
+ return {pushFrontier:state.pushFrontierEnabled===true,attackDamageFrontier:state.attackDamageFrontierEnabled===true,attackDamageChannel:state.attackDamageChannelId,protect:state.protectUnmodeledSkills!==false,tiExperiment:state.excludeUnverifiedTacticalInsight===true,sp:state.skillPoints,st:state.maxStage,da:state.damage,go:state.gold,p:state.playstyle,q:state.qol,w:state.goldWeight,cp:state.craftingPower,tk:state.timeToKill,cl:state.sClone,cur:state.currentLevels,min:state.minimums,exc:state.excluded,keep:state.preserveCurrent,hay:state.assumeHaystActive,snap:state.assumeSnapActive,astral:state.astralActivations,attack:state.pushAttackChannelId,skip:state.pushSourceStageSkipTarget};
 }
 function decodeLink(){
  const hash=window.location.hash;
@@ -997,7 +1054,9 @@ function decodeLink(){
     assumeSnapActive:payload.snap===true,assumeContractsAtMax:false,astralActivations:payload.astral??0,protectUnmodeledSkills:payload.protect!==false,excludeUnverifiedTacticalInsight:payload.tiExperiment===true,
     pushAttackChannelId:typeof payload.attack==="string"?payload.attack:"",
     pushSourceStageSkipTarget:payload.skip??0,
-    pushFrontierEnabled:payload.pushFrontier===true,mode:"power"};
+    pushFrontierEnabled:payload.pushFrontier===true,
+    attackDamageFrontierEnabled:payload.attackDamageFrontier===true,
+    attackDamageChannelId:typeof payload.attackDamageChannel==="string"?payload.attackDamageChannel:"",mode:"power"};
   window.history.replaceState(null,"",window.location.pathname+window.location.search);
   status("Shared build settings loaded. Optimize to calculate a new recommendation.","success");
  }catch(e){status("Could not load this shared build link.","error");}
@@ -1031,6 +1090,7 @@ function initialize(){
  $("damage-choices").addEventListener("click",e=>{const b=e.target.closest("[data-damage]");if(b){state.damage=b.dataset.damage;fillInputs();remember();}});
  $("gold-choices").addEventListener("click",e=>{const b=e.target.closest("[data-gold]");if(b){state.gold=b.dataset.gold;state.pushObservedHitDamage="";fillInputs();remember();}});
  $("push-attack-channel").addEventListener("change",()=>{readInputs();remember();});
+ $("attack-damage-channel").addEventListener("change",()=>{readInputs();remember();});
  $("push-observed-attack").addEventListener("change",()=>{readInputs();remember();});
  $("playstyle-choices").addEventListener("click",e=>{const b=e.target.closest("[data-playstyle]");if(b)applyPreset(b.dataset.playstyle);});
  $("skill-search").addEventListener("input",e=>renderEditor(e.target.value));
@@ -1046,7 +1106,7 @@ function initialize(){
   remember();
  });
  $("clear-minimums").addEventListener("click",()=>{state.minimums={};fillInputs();remember();});
- for(const id of ["skill-points","max-stage","gold-weight","crafting-power","time-to-kill","clone-level","qol-mode","preserve-current","protect-unmodeled-skills","exclude-unverified-tactical-insight","hayst-active","snap-active","astral-activations","push-stage-skip-target","push-observed-damage","push-observed-stage","push-frontier-enabled"])$(id).addEventListener("change",()=>{
+ for(const id of ["skill-points","max-stage","gold-weight","crafting-power","time-to-kill","clone-level","qol-mode","preserve-current","protect-unmodeled-skills","exclude-unverified-tactical-insight","hayst-active","snap-active","astral-activations","push-stage-skip-target","push-observed-damage","push-observed-stage","push-frontier-enabled","attack-damage-frontier-enabled"])$(id).addEventListener("change",()=>{
   const was=state.maxStage;readInputs();
   if(id==="max-stage"&&was!==state.maxStage){state.pushObservedHitDamage="";$("push-observed-damage").value="";}
   remember();
