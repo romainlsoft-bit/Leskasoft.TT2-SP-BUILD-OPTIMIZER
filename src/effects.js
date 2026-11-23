@@ -13,6 +13,7 @@ import {petCombatTechniquesIncrement,petEquipmentCombatTechniquesIncrement} from
 import {skillTreeSetScore} from "./skill-tree-set-effects.js?v=20261123-boss-specials-r1";
 import {contractSkillScore} from "./contract-scenarios.js?v=20261123-boss-specials-r1";
 import {tacticalInsightLocalScore} from "./tactical-insight-local.js?v=20261123-boss-specials-r1";
+import {transmutationSourceEventEvidence} from "./transmutation-native.js?v=20261123-boss-specials-r1&jackpot=20261123-native-jackpot-expectation-r1";
 
 const num=(v,fallback=0)=>{ const x=Number(v); return Number.isFinite(x)?x:fallback; };
 const lg=v=>Math.log10(num(v)>0?num(v):1);
@@ -117,6 +118,14 @@ function sourceSkillScoreAtLevel(id,level,settings){
     case "LoadedDice":
       // Unlike Quick Fortune, B is unconditionally AllGold.
       return r*lr(logA)+goldWeight*lr(logB);
+    case "Transmutation":
+      // A = JackpotGold, B = JackpotGoldChance. This is a conditional
+      // eligible-event reward, NOT unconditional All Gold. With no
+      // verified account-level chance distribution for a proposed tree,
+      // score the source-only (B) expected-event scenario, not log10(A).
+      // Its report explicitly disclaims a verified in-game expectation.
+      return goldWeight*num(reductions.Transmutation?.[settings.gold])*
+       transmutationSourceEventEvidence(level).sourceOnlyExpectedGoldLog10;
     // Native BonusInfo declares these as mana capacity / regeneration
     // resources, not direct damage or gold. Historical 0.05 reduction
     // factors were QoL proxies without a verified damage conversion.

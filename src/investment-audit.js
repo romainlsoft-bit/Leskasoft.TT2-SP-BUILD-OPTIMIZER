@@ -47,6 +47,7 @@ function protectedReason(id,settings){
  if(id==="HelperDmgQTE"&&Number(settings.astralActivations??0)===0)
   return "astral-orb-activation-not-verified";
  if(id==="CritSkillBoost")return "lightning-strike-count-unverified";
+ if(id==="Transmutation")return "jackpot-event-probability-not-verified-for-account";
  return "conditional-skill-effect-not-verified";
 }
 export function buildInvestmentAudit(levels={},settings={},protectedSkills=[],
