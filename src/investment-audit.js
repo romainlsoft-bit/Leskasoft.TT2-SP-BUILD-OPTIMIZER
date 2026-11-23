@@ -3,9 +3,9 @@
  * This is a provenance/uncertainty diagnostic, never an alternative score.
  * Exact SP costs are from the independent TT2 8.4 Unity SkillTreeInfo2.0.
  */
-import {skillInfo} from "../vendor/skills.js?v=20261123-spell-score-r1";
-import {reductions} from "../vendor/reductions.js?v=20261123-spell-score-r1";
-import {ACTIVE_SOURCE_SKILL_SPELLS} from "./spell-scenarios.js?v=20261123-spell-score-r1";
+import {skillInfo} from "../vendor/skills.js?v=20261123-ti-measured-r1";
+import {reductions} from "../vendor/reductions.js?v=20261123-ti-measured-r1";
+import {ACTIVE_SOURCE_SKILL_SPELLS} from "./spell-scenarios.js?v=20261123-ti-measured-r1";
 
 export function sourceSpent(id,level,catalog=skillInfo){
  const row=catalog[id];

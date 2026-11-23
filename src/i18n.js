@@ -5,6 +5,8 @@ export const SUPPORTED_LANGUAGES = ["en","fr","uk","ru"];
 export const NATIVE_LANGUAGE_NAMES = {en:"English",fr:"Français",uk:"Українська",ru:"Русский"};
 export const translations = {
 fr:{
+ "Measured local Tactical Insight calibration: levels {low}–{high}, observed log10 damage gain {damage} and log10 gold gain {gold}. Native A is an interpolation coordinate only; no level outside this interval is eligible.":"Calibration locale mesurée de Tactical Insight : niveaux {low} à {high}, gain observé de dégâts log10 {damage} et d’or log10 {gold}. Le bonus natif A sert seulement à interpoler ; aucun niveau hors de cet intervalle n’est autorisé.",
+ "Shared build excludes private Tactical Insight measurements. Conservative TI exclusion is enabled.":"Le lien partagé n’inclut pas les mesures privées de Tactical Insight. Le coefficient TI est exclu par précaution.",
  "Coordinated Offensive active at boss: {status}.":"Coordinated Offensive actif contre le boss : {status}.",
  "The selected attack talent is already at its native maximum; no stronger level can be explored.":"Le talent de cette attaque est déjà au niveau maximal : aucun niveau supérieur ne peut être exploré.",
  "No stronger native attack level fits the source SP cost. No extra allocation was calculated.":"Aucun niveau supérieur de cette attaque n'entre dans le budget SP du talent. Aucun calcul supplémentaire n'a été effectué.",
@@ -359,6 +361,8 @@ fr:{
  "Free Tap Titans 2 skill tree optimizer for TT2 8.4. Optimize skill points for Clan Ship, Pet, Shadow Clone, Heavenly Strike, Dagger or Gold Gun. Import game data or configure manually.":"Optimiseur gratuit de compétences Tap Titans 2 version 8.4. Import des données ou configuration manuelle pour tous les types de builds."
 },
 uk:{
+ "Measured local Tactical Insight calibration: levels {low}–{high}, observed log10 damage gain {damage} and log10 gold gain {gold}. Native A is an interpolation coordinate only; no level outside this interval is eligible.":"Локальне калібрування Tactical Insight: рівні {low}–{high}, виміряний приріст шкоди log10 {damage} та золота log10 {gold}. Рідний бонус A використовується лише для інтерполяції; рівні за межами інтервалу недоступні.",
+ "Shared build excludes private Tactical Insight measurements. Conservative TI exclusion is enabled.":"Спільне посилання не містить приватних вимірів Tactical Insight. Консервативне виключення TI увімкнено.",
  "Coordinated Offensive active at boss: {status}.":"Coordinated Offensive активний проти боса: {status}.",
  "The selected attack talent is already at its native maximum; no stronger level can be explored.":"Навичка вибраної атаки вже має максимальний рівень: вищий рівень недоступний.",
  "No stronger native attack level fits the source SP cost. No extra allocation was calculated.":"Вищий рівень цієї атаки не вкладається в бюджет SP самої навички. Додаткових розподілів не обчислено.",
@@ -664,6 +668,8 @@ uk:{
  "Free Tap Titans 2 skill tree optimizer for TT2 8.4. Optimize skill points for Clan Ship, Pet, Shadow Clone, Heavenly Strike, Dagger or Gold Gun. Import game data or configure manually.":"Безкоштовний оптимізатор дерева навичок Tap Titans 2 версії 8.4. Імпорт даних або ручне налаштування для всіх збірок."
 },
 ru:{
+ "Measured local Tactical Insight calibration: levels {low}–{high}, observed log10 damage gain {damage} and log10 gold gain {gold}. Native A is an interpolation coordinate only; no level outside this interval is eligible.":"Локальная калибровка Tactical Insight: уровни {low}–{high}, измеренный прирост урона log10 {damage} и золота log10 {gold}. Базовый бонус A служит только для интерполяции; уровни вне диапазона недоступны.",
+ "Shared build excludes private Tactical Insight measurements. Conservative TI exclusion is enabled.":"Общая ссылка не содержит личных измерений Tactical Insight. Включено консервативное исключение TI.",
  "Coordinated Offensive active at boss: {status}.":"Coordinated Offensive активен против босса: {status}.",
  "The selected attack talent is already at its native maximum; no stronger level can be explored.":"Навык выбранной атаки уже достиг максимального уровня: более высокий уровень недоступен.",
  "No stronger native attack level fits the source SP cost. No extra allocation was calculated.":"Более высокий уровень этой атаки не укладывается в стоимость навыка в SP. Дополнительных распределений не рассчитано.",

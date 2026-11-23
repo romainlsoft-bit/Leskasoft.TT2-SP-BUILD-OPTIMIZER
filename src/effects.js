@@ -3,16 +3,17 @@
  * This is a damage/gold proxy, not a model of real farming speed or all
  * conditional cross-skill interactions. See docs/MATH_AUDIT.md.
  */
-import { skillInfo } from "../vendor/skills.js?v=20261123-spell-score-r1";
-import { reductions } from "../vendor/reductions.js?v=20261123-spell-score-r1";
-import { spellInfo, spell_reductions } from "../vendor/spells.js?v=20261123-spell-score-r1";
-import {spellTableIndex} from "./spell-caps.js?v=20261123-spell-score-r1";
-import {spellCapGainEligible,multicastSkillEvidence,spellEffectScorable,ACTIVE_SOURCE_SKILL_SPELLS} from "./spell-scenarios.js?v=20261123-spell-score-r1";
-import {lightningStrikeSkillScore} from "./lightning-strike-evidence.js?v=20261123-spell-score-r1";
-import {petCombatTechniquesIncrement,petEquipmentCombatTechniquesIncrement} from "./pet-scenarios.js?v=20261123-spell-score-r1";
-import {skillTreeSetScore} from "./skill-tree-set-effects.js?v=20261123-spell-score-r1";
-import {contractSkillScore} from "./contract-scenarios.js?v=20261123-spell-score-r1";
-import {cooldownFrequencyGainLog10} from "./flash-zip.js?v=20261123-spell-score-r1";
+import { skillInfo } from "../vendor/skills.js?v=20261123-ti-measured-r1";
+import { reductions } from "../vendor/reductions.js?v=20261123-ti-measured-r1";
+import { spellInfo, spell_reductions } from "../vendor/spells.js?v=20261123-ti-measured-r1";
+import {spellTableIndex} from "./spell-caps.js?v=20261123-ti-measured-r1";
+import {spellCapGainEligible,multicastSkillEvidence,spellEffectScorable,ACTIVE_SOURCE_SKILL_SPELLS} from "./spell-scenarios.js?v=20261123-ti-measured-r1";
+import {lightningStrikeSkillScore} from "./lightning-strike-evidence.js?v=20261123-ti-measured-r1";
+import {petCombatTechniquesIncrement,petEquipmentCombatTechniquesIncrement} from "./pet-scenarios.js?v=20261123-ti-measured-r1";
+import {skillTreeSetScore} from "./skill-tree-set-effects.js?v=20261123-ti-measured-r1";
+import {contractSkillScore} from "./contract-scenarios.js?v=20261123-ti-measured-r1";
+import {cooldownFrequencyGainLog10} from "./flash-zip.js?v=20261123-ti-measured-r1";
+import {tacticalInsightLocalScore} from "./tactical-insight-local.js?v=20261123-ti-measured-r1";
 
 const num=(v,fallback=0)=>{ const x=Number(v); return Number.isFinite(x)?x:fallback; };
 const lg=v=>Math.log10(num(v)>0?num(v):1);
@@ -77,11 +78,14 @@ function sourceSkillScoreAtLevel(id,level,settings){
       // benefit depends on which pet is used at boss / gold-collection time.
       return petEquipmentCombatTechniquesIncrement(settings,level)
        +petCombatTechniquesIncrement(settings,level);
-    case "HelperBoost":
+    case "HelperBoost": {
+      const measured=tacticalInsightLocalScore(level,settings);
+      if(measured!==null)return measured;
       // Sensitivity test: the community weight is not native-calibrated.
       // Excluding it does NOT imply Tactical Insight has zero real value.
       if(settings.excludeUnverifiedTacticalInsight===true)return 0;
       return r*lr(n=>Math.log10(1+A(n)));
+    }
     case "ClanQTE":
       // Coordinated Offensive boosts heroes only while the summoned
       // clanmate is active at the boss. Never assume permanent uptime.
