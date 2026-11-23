@@ -3,16 +3,16 @@
  * This is a damage/gold proxy, not a model of real farming speed or all
  * conditional cross-skill interactions. See docs/MATH_AUDIT.md.
  */
-import { skillInfo } from "../vendor/skills.js?v=20261123-native-attack-r1";
-import { reductions } from "../vendor/reductions.js?v=20261123-native-attack-r1";
-import { spellInfo, spell_reductions } from "../vendor/spells.js?v=20261123-native-attack-r1";
-import {spellTableIndex} from "./spell-caps.js?v=20261123-native-attack-r1";
-import {spellCapGainEligible,multicastSkillEvidence} from "./spell-scenarios.js?v=20261123-native-attack-r1";
-import {lightningStrikeSkillScore} from "./lightning-strike-evidence.js?v=20261123-native-attack-r1";
-import {petCombatTechniquesIncrement,petEquipmentCombatTechniquesIncrement} from "./pet-scenarios.js?v=20261123-native-attack-r1";
-import {skillTreeSetScore} from "./skill-tree-set-effects.js?v=20261123-native-attack-r1";
-import {contractSkillScore} from "./contract-scenarios.js?v=20261123-native-attack-r1";
-import {cooldownFrequencyGainLog10} from "./flash-zip.js?v=20261123-native-attack-r1";
+import { skillInfo } from "../vendor/skills.js?v=20261123-conditional-score-r1";
+import { reductions } from "../vendor/reductions.js?v=20261123-conditional-score-r1";
+import { spellInfo, spell_reductions } from "../vendor/spells.js?v=20261123-conditional-score-r1";
+import {spellTableIndex} from "./spell-caps.js?v=20261123-conditional-score-r1";
+import {spellCapGainEligible,multicastSkillEvidence,spellEffectScorable} from "./spell-scenarios.js?v=20261123-conditional-score-r1";
+import {lightningStrikeSkillScore} from "./lightning-strike-evidence.js?v=20261123-conditional-score-r1";
+import {petCombatTechniquesIncrement,petEquipmentCombatTechniquesIncrement} from "./pet-scenarios.js?v=20261123-conditional-score-r1";
+import {skillTreeSetScore} from "./skill-tree-set-effects.js?v=20261123-conditional-score-r1";
+import {contractSkillScore} from "./contract-scenarios.js?v=20261123-conditional-score-r1";
+import {cooldownFrequencyGainLog10} from "./flash-zip.js?v=20261123-conditional-score-r1";
 
 const num=(v,fallback=0)=>{ const x=Number(v); return Number.isFinite(x)?x:fallback; };
 const lg=v=>Math.log10(num(v)>0?num(v):1);
@@ -55,9 +55,23 @@ function sourceSkillScoreAtLevel(id,level,settings){
       return r*logA(level)+r*cadence+heartOfGold;
     }
     case "HelperInspiredWeaken":
+      // A = damage for *inspired* helpers; B = helper COUNT, not a
+      // second unconditional damage multiplier. Without confirmed inspired
+      // activation, do not award damage for an invisible effect.
+      return settings.assumeInspiredHelpersActive===true?r*lr(logA):0;
     case "ClanShipVoltage":
+      // A belongs to Thunder Volley, not an ordinary Clan Ship shot.
+      // B is explicitly SPECIAL-attack damage: never count its maximum
+      // on every shot. The special hit needs separate explicit evidence.
+      if(!spellEffectScorable("ThunderVolley",settings))return 0;
+      return r*lr(logA)+
+       (settings.assumeThunderVolleySpecialHit===true?r*lr(logB):0);
     case "CriticalHit":
-      return r*lr(n=>logA(n)+logB(n));
+      // A = Stream of Blades spell amount; B = target-marked Dagger
+      // damage. Neither is an always-on normal dagger multiplier.
+      return (spellEffectScorable("StreamOfBlades",settings)?
+        r*lr(logA):0)+
+       (settings.assumeDaggerTargetMarked===true?r*lr(logB):0);
     case "CombatTechniques":
       // Combat Techniques also raises active pet level; this conditional
       // benefit depends on which pet is used at boss / gold-collection time.
@@ -68,6 +82,10 @@ function sourceSkillScoreAtLevel(id,level,settings){
       // Excluding it does NOT imply Tactical Insight has zero real value.
       if(settings.excludeUnverifiedTacticalInsight===true)return 0;
       return r*lr(n=>Math.log10(1+A(n)));
+    case "HelperDmgSkillBoost":
+      // Heroic Might is a War Cry/HelperBoost *spell* boost. It was
+      // previously credited even when the spell was not equipped.
+      return spellEffectScorable("HelperBoost",settings)?r*lr(logA):0;
     case "HelperDmgQTE": {
       // Astral Awakening damage is gained per tapped orb (up to five).
       // Previously the optimizer silently assumed all five were activated.
@@ -109,7 +127,10 @@ function sourceSkillScoreAtLevel(id,level,settings){
       // maximum contract effects as passive, always-on multipliers.
       return contractSkillScore(id,level,settings);
     case "CloneDmg":
-      return r*lr(n=>logA(n)+Math.log10((4+B(n))/4));
+      // A is native Shadow Clone damage. B is attack RATE, not a
+      // damage multiplier. The old (4+B)/4 assumed an undocumented
+      // four-attacks/second baseline and silently guessed attack uptime.
+      return r*lr(logA);
     case "CritSkillBoost":
       return r*lightningStrikeSkillScore(level,settings);
     case "TerrifyingPact":
