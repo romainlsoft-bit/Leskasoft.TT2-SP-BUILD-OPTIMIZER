@@ -41,25 +41,23 @@ function sourceCost(row,level){
 }
 function targets(spec,baseline,budget,maxCount){
  const row=skillInfo[spec.sourceSkillId];
- const options=[];
+ const options=[],baseValue=nativeAttackModifierLog10(spec,baseline);
  for(let level=baseline+1;level<=Number(row.MaxLevel);level++){
   if(sourceCost(row,level)>budget)break;
   const value=nativeAttackModifierLog10(spec,level);
-  if(value===null)continue;
-  if(baseline>0&&value<=nativeAttackModifierLog10(spec,baseline)+1e-10)
-   continue;
-  options.push({level,log10:value});
+  if(value!==null&&(baseValue===null||value>baseValue+1e-10))
+   options.push({level,log10:value});
  }
- const count=Math.min(maxCount,options.length);
- // Sample source level/cost space; NEVER infer DPS or invent the value of SP.
- const result=[];
- for(let i=1;i<=count;i++){
-  const index=Math.min(options.length-1,
-   Math.max(0,Math.round(i*options.length/(count+1))-1));
-  if(!result.some(x=>x.level===options[index].level))
-   result.push(options[index]);
- }
- return result;
+ // The closest upgrade is the most likely to remain feasible under
+ // tier prerequisites; the farthest possible source-cost upgrade explores
+ // a genuinely different allocation. A previous 1/3,2/3 sampler could
+ // spend both solves on unreachable levels.
+ const selected=options.length===0?[]:
+  options.length===1?[options[0]]:
+  [options[0],options[options.length-1]];
+ return {options,selected:selected.slice(0,maxCount),
+  sourceCostReachableMaximum:options.at(-1)?.level??baseline,
+  alreadyAtNativeSourceMaximum:baseline>=Number(row.MaxLevel)};
 }
 function describe(id,result,spec,requiredLevel=null){
  const level=Number(result.levels?.[spec.sourceSkillId]??0);
@@ -101,6 +99,10 @@ export function exploreNativeAttackDamageFrontier(settings={},{
  const budget=Number(settings.skillPoints);
  if(!Number.isSafeInteger(budget)||budget<0||budget>50000)
   throw new RangeError("Invalid SP budget");
+ if(settings.contractMultiScenario?.enabled===true)
+  return unresolved("contract-scenario-requires-independent-baseline");
+ if(settings.assumeContractsAtMax===true)
+  return unresolved("unverified-contract-maximum-scenario");
  const common={...settings,attackDamageFrontierEnabled:false,
   pushObservedAttackChannelId:null,pushObservedHitDamage:null};
  // A baseline supplied by the actual winner can be reused because it has
@@ -109,7 +111,9 @@ export function exploreNativeAttackDamageFrontier(settings={},{
  const rows=[describe("original",base,spec)];
  const attempted=[];
  const baselineLevel=rows[0].sourceSkillLevel;
- for(const target of targets(spec,baselineLevel,budget,maxConstrained)){
+ const planned=targets(spec,baselineLevel,budget,maxConstrained);
+ const selected=planned.selected;
+ for(const target of selected){
   try{
    const desired={...common,minimums:{...common.minimums,
     [spec.sourceSkillId]:Math.max(
@@ -128,6 +132,34 @@ export function exploreNativeAttackDamageFrontier(settings={},{
    // A source-only cost can pass while real tiers/minima make it infeasible.
    attempted.push({level:target.level,status:"infeasible-or-solver-error",
     reason:String(e?.message??e).slice(0,200)});
+   // One optional bounded backoff probes a genuine intermediary level.
+   // Never retry the identical impossible ceiling or exceed three solves.
+   if(target===selected.at(-1)&&selected.length>1&&maxConstrained>=2){
+    const possible=planned.options.filter(x=>
+     x.level>selected[0].level&&x.level<target.level);
+    const middle=possible[Math.floor(possible.length/2)];
+    if(middle){
+     try{
+      const desired={...common,minimums:{...common.minimums,
+       [spec.sourceSkillId]:Math.max(
+        Number(common.minimums?.[spec.sourceSkillId]??0),middle.level)}};
+      const alternative=solve(desired);
+      const found=describe("native-level-"+middle.level,
+       alternative,spec,middle.level);
+      if(found.sourceSkillLevel<middle.level||
+         found.sourceNativeModifierLog10===null)
+       throw new Error("Constrained native level not available");
+      if(!rows.some(other=>other.sourceSkillLevel===found.sourceSkillLevel&&
+        other.scoreProxyLog10>=found.scoreProxyLog10-1e-8))
+       rows.push(found);
+      attempted.push({level:middle.level,status:"fallback-solved"});
+     }catch(err){
+      attempted.push({level:middle.level,
+       status:"fallback-infeasible-or-solver-error",
+       reason:String(err?.message??err).slice(0,200)});
+     }
+    }
+   }
   }
  }
  const marked=rows.map((entry,i)=>{
@@ -149,8 +181,14 @@ export function exploreNativeAttackDamageFrontier(settings={},{
   sourceAttackId:spec.id,sourceSkillId:spec.sourceSkillId,
   requiredSpell:spec.requiredSpell,spellLoadoutVerified:spells.valid,
   sourceDataVersion:"8.4.0",rows:marked,pareto,attempted,
-  changedTrees:marked.some(row=>row.id!=="original"&&
+  changedTrees:pareto.some(row=>row.id!=="original"&&
    Object.keys(row.levels).some(id=>row.levels[id]!==rows[0].levels[id])),
+  sourceCostReachableMaximum:planned.sourceCostReachableMaximum,
+  alreadyAtNativeSourceMaximum:planned.alreadyAtNativeSourceMaximum,
+  nativeSourceNotFurtherImproved:planned.options.length===0,
+  constrainedSolvesAttempted:attempted.filter(x=>
+   ["solved","infeasible-or-solver-error","fallback-solved",
+    "fallback-infeasible-or-solver-error"].includes(x.status)).length,
   comparisonWithinOneAttackOnly:true,
   directNativeMultiplierOnly:true,
   noAbsoluteHitDamageInferred:true,realAttackUptimeNotProven:true,
