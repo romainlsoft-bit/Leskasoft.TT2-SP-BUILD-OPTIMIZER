@@ -5,7 +5,7 @@ import {bossPushEvidence} from "./boss-push-evidence.js?v=20261123-boss-specials
 import {resolvePushSkipTarget,verifyPushSkipTarget} from "./push-skip-target.js?v=20261123-boss-specials-r1";
 import { baseline } from "../vendor/qol-baseline.js?v=20261123-boss-specials-r1";
 import { optimizeExact } from "./solver-core.js?v=20261123-boss-specials-r1";
-import { scoreAtLevel } from "./effects.js?v=20261123-boss-specials-r1&score=20261123-cadence-separated-r1";
+import { scoreAtLevel } from "./effects.js?v=20261123-boss-specials-r1&score=20261123-cadence-separated-r1&ember=20261123-ember-fire-sword-gate-r1";
 import { parseAccountProfile } from "./account-profile.js?v=20261123-boss-specials-r1";
 import {extractFixedAccountPower,fixedAccountScore} from "./account-power.js?v=20261123-boss-specials-r1";
 import {accountDependencyGraph} from "./account-dependencies.js?v=20261123-boss-specials-r1";
@@ -162,6 +162,9 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
     // The community score previously credited these spell effects even
     // when the relevant active spell was absent or the combat state unknown.
     ...(!selectedModeledSpell("HelperBoost")?["HelperDmgSkillBoost"]:[]),
+    // Preserve imported Ember Arts investments if their Fire Sword B
+    // component cannot be modeled, even though Pet Damage A is known.
+    ...(!selectedModeledSpell("TapBoost")?["PetBonusBoost"]:[]),
     // Unknown active spells cannot be silently removed from an imported tree.
     ...Object.entries(ACTIVE_SOURCE_SKILL_SPELLS)
       .filter(([,spell])=>!selectedModeledSpell(spell))
@@ -296,6 +299,8 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
         spellEffectScorable("ThunderVolley",scoreContext),
       streamOfBladesScoredOnlyWhenSelected:
         spellEffectScorable("StreamOfBlades",scoreContext),
+      emberArtsFireSwordScoredOnlyWhenEquipped:
+        spellEffectScorable("TapBoost",scoreContext),
       sourceSpellScoringBySkill:Object.fromEntries(
         Object.entries(ACTIVE_SOURCE_SKILL_SPELLS).map(([id,spell])=>
           [id,spellEffectScorable(spell,scoreContext)])),

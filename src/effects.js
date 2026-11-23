@@ -45,7 +45,12 @@ function sourceSkillScoreAtLevel(id,level,settings){
   }
   switch(id){
     case "PetBonusBoost":
-      return r*lr(logA)+num(reductions.TapDmg?.[settings.damage])*lr(logB);
+      // Source A = permanent PetDamage. Source B = TapBoostSkillAmount:
+      // Fire Sword damage, not unconditional pet damage. Only credit B
+      // when the real six-slot loadout verifies Fire Sword in the
+      // current maximum-spell scenario. Never infer passive uptime.
+      return r*lr(logA)+(spellEffectScorable("TapBoost",settings)?
+       num(reductions.TapDmg?.[settings.damage])*lr(logB):0);
     case "BossDmgQTE": {
       // Flash Zip A applies only to the charged pet boss QTE, not to
       // an ordinary Pet attack or Lightning Burst. An assumed boss

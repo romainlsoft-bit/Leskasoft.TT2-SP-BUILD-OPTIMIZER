@@ -1,4 +1,4 @@
-import {optimizeBuild} from "./engine.js?v=20261123-boss-specials-r1&score=20261123-cadence-separated-r1&audit=20261123-ti-sensitivity-r1";
+import {optimizeBuild} from "./engine.js?v=20261123-boss-specials-r1&score=20261123-cadence-separated-r1&audit=20261123-ti-sensitivity-r1&ember=20261123-ember-fire-sword-gate-r1";
 import {petSearchPlan,availablePets} from "./pet-scenarios.js?v=20261123-boss-specials-r1";
 import {calculateModeledScenario} from "./calculation-ledger.js?v=20261123-boss-specials-r1";
 import {selectPetPair} from "./pet-pair-search.js?v=20261123-boss-specials-r1";
