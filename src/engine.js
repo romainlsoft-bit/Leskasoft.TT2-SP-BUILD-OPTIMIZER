@@ -5,7 +5,7 @@ import {bossPushEvidence} from "./boss-push-evidence.js?v=20261123-boss-specials
 import {resolvePushSkipTarget,verifyPushSkipTarget} from "./push-skip-target.js?v=20261123-boss-specials-r1";
 import { baseline } from "../vendor/qol-baseline.js?v=20261123-boss-specials-r1";
 import { optimizeExact } from "./solver-core.js?v=20261123-boss-specials-r1";
-import { scoreAtLevel } from "./effects.js?v=20261123-boss-specials-r1&score=20261123-cadence-separated-r1&ember=20261123-ember-fire-sword-gate-r1&jackpot=20261123-native-jackpot-expectation-r1";
+import { scoreAtLevel } from "./effects.js?v=20261123-boss-specials-r1&score=20261123-cadence-separated-r1&ember=20261123-ember-fire-sword-gate-r1&jackpot=20261123-native-jackpot-expectation-r1&mc=20261123-multicast-no-guessed-x10-r1";
 import { parseAccountProfile } from "./account-profile.js?v=20261123-boss-specials-r1";
 import {extractFixedAccountPower,fixedAccountScore} from "./account-power.js?v=20261123-boss-specials-r1";
 import {accountDependencyGraph} from "./account-dependencies.js?v=20261123-boss-specials-r1";
@@ -191,6 +191,10 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
     // Jackpot rewards depend on actual account chance and gold event.
     // Keep imported Transmutation SP while source-only expectation is
     // an incomplete model, instead of silently resetting a useful skill.
+    // Twilight multicast C = Gloom damage only when a Twilight
+    // Fairy has actually struck. The available stacks do not prove
+    // Gloom activation, so protect already-invested source C levels.
+    "TwilightGatheringMultiCastSkill",
     "BossTimer","PoisonedBlade","KratosSummon","Transmutation",
     ...(combatContext.assumeSourceOnlyLightningStrike===true&&
       Number.isSafeInteger(combatContext.lightningStrikeHits)&&
@@ -283,7 +287,7 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
        ["ForbiddenContract","RoyalContract","TerrifyingPact",
         "QuickFortune","PhilosophersFlux","HelperDmgSkillBoost",
         "ClanShipVoltage","CriticalHit","HelperInspiredWeaken",
-        "Transmutation"].includes(id)};
+        "Transmutation","TwilightGatheringMultiCastSkill"].includes(id)};
   });
   const byBranch=Object.fromEntries(Object.values(BRANCH_NAMES).map(name=>[
     name,skillAttribution.filter(row=>row.branch===name)
@@ -308,6 +312,9 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
         spellEffectScorable("TapBoost",scoreContext),
       transmutationIsConditionalEventExpectation:true,
       transmutationDoesNotCreditFullJackpotAsAlwaysOn:true,
+      multicastInventedTenfoldPerChargeRemoved:true,
+      multicastGuessedMidasGoldTableRemoved:true,
+      twilightGloomSpecialCNotScoredWithoutEvidence:true,
       sourceSpellScoringBySkill:Object.fromEntries(
         Object.entries(ACTIVE_SOURCE_SKILL_SPELLS).map(([id,spell])=>
           [id,spellEffectScorable(spell,scoreContext)])),
