@@ -12,6 +12,7 @@ import {proposeContractScenarioBuild} from "./contract-multi-scenarios.js?v=2026
 import {rerankVisitedContractPetPairs} from "./contract-pet-rerank.js?v=20261123-boss-specials-r1";
 import {explorePushParetoFrontier} from "./push-frontier.js?v=20261123-boss-specials-r1";
 import {exploreNativeAttackDamageFrontier} from "./attack-damage-frontier.js?v=20261123-boss-specials-r1";
+import {exploreTacticalInsightAlternative} from "./ti-alternative.js?v=20261123-boss-specials-r1&alt=20261123-ti-second-tree-r1";
 
 // Per-request cache: branch DP signatures must distinguish changes in pet,
 // equipment and the resulting Combat Techniques contribution.
@@ -128,12 +129,23 @@ self.onmessage=event=>{
    }
    return extended;
   };
+  // At most ONE additional SP solve after the final pet/gear choice,
+  // and only when the preceding TI audit finds a fragile ranking.
+  // Never rerun pet or gear search for the alternative.
+  const withTIAlternative=(choice,result)=>{
+   const context=choice.context||settings;
+   const report=exploreTacticalInsightAlternative(context,result,{
+    solve:opts=>optimizeBuild(opts,undefined,cache)
+   });
+   return {...result,tacticalInsightAlternative:report};
+  };
   // Optional explicit scenario comparison only for the final chosen
   // pet/gear pair. Do NOT multiply the whole gear/pet search workload.
   const withContractDecision=choice=>{
    const context=choice.context||settings;
    if(context.contractMultiScenario?.enabled!==true)
-    return withPushFrontier(choice,withPushComparison(choice,choice.result));
+    return withTIAlternative(choice,
+     withPushFrontier(choice,withPushComparison(choice,choice.result)));
    const selection=proposeContractScenarioBuild({
     settings:context,baseline:choice.result,gearSelection:choice.gearSelection,
     solve:opts=>optimizeBuild(opts,undefined,cache),
@@ -143,15 +155,17 @@ self.onmessage=event=>{
    // On unresolved or infeasible inputs, preserve the EXACT original
    // modeled result, including its score and existing maximum-mode choice.
    if(selection.selection.status!=="ranked")
-    return withPushFrontier(choice,withPushComparison(choice,
-      {...choice.result,contractMultiScenario:selection.selection}));
+    return withTIAlternative(choice,
+      withPushFrontier(choice,withPushComparison(choice,
+       {...choice.result,contractMultiScenario:selection.selection})));
    const winner=selection.result;
    // The returned result uses the conservative DP objective (the contract
    // source-only window gain never becomes an always-on skill multiplier).
    const modeledScenario=calculateModeledScenario(winner,{
     ...context,assumeContractsAtMax:false},choice.gearSelection);
-   return withPushFrontier(choice,withPushComparison(choice,
-     {...winner,modeledScenario,contractMultiScenario:selection.selection}));
+   return withTIAlternative(choice,
+     withPushFrontier(choice,withPushComparison(choice,
+      {...winner,modeledScenario,contractMultiScenario:selection.selection})));
   };
   if(type==="optimize-pet-scenarios"){
    const visitedPetPairs=[];

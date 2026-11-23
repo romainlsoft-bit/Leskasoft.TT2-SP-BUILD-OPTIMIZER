@@ -1,5 +1,5 @@
 import {SKILLS,SKILL_IDS,BRANCH_NAMES,PRESETS,DAMAGE_TYPES,GOLD_TYPES,GAME_VERSION,parseExport,exportBuild,spentPoints,ownedSetFlags} from "./engine.js?v=20261123-boss-specials-r1&score=20261123-cadence-separated-r1&audit=20261123-ti-sensitivity-r1";
-import { t, localizeDocument, SUPPORTED_LANGUAGES } from "./i18n.js?v=20261123-boss-specials-r1&ui=20261123-hide-observed-hit-r1&audit=20261123-ti-sensitivity-r1";
+import { t, localizeDocument, SUPPORTED_LANGUAGES } from "./i18n.js?v=20261123-boss-specials-r1&ui=20261123-hide-observed-hit-r1&audit=20261123-ti-sensitivity-r1&alt=20261123-ti-second-tree-r1";
 import { readClipboardText } from "./clipboard.js?v=20261123-boss-specials-r1";
 import {resetAccountDependentOptions} from "./import-session-reset.js?v=20261123-boss-specials-r1";
 import { profileCoverage } from "./account-profile.js?v=20261123-boss-specials-r1";
@@ -483,7 +483,7 @@ function optimize(){
  status("Checking prerequisites and calculating the best allocation for the chosen scoring model…");
  const revision=++calculationRevision;
  const requestContext=keepContractsConservative(structuredClone(state));
- const running=new Worker(new URL("./worker.js?v=20261123-boss-specials-r1&score=20261123-cadence-separated-r1&audit=20261123-ti-sensitivity-r1",import.meta.url),{type:"module"});
+ const running=new Worker(new URL("./worker.js?v=20261123-boss-specials-r1&score=20261123-cadence-separated-r1&audit=20261123-ti-sensitivity-r1&alt=20261123-ti-second-tree-r1",import.meta.url),{type:"module"});
  worker=running;
  running.onmessage=event=>{
    if(revision!==calculationRevision||worker!==running)return;
@@ -850,11 +850,24 @@ function renderModelAttribution(result){
     "Warning: the proposed allocation only wins under the unverified Tactical Insight coefficient. Compare both trees in the game's Stats panel before applying it."))+"</p>":"")+
   "<p class='hint'>"+safe(tr(
    "This compares two existing trees only, without reoptimizing or predicting stages. Other uncertain skills remain unchanged."))+"</p>":"";
+ const alt=result.tacticalInsightAlternative;
+ const altView=alt?.status==="explored"?
+  "<h4>"+safe(tr("Tactical Insight: alternative SP allocation"))+"</h4>"+
+  "<p class='hint'>"+safe(tr(
+   "The alternative is optimized with the unverified community Tactical Insight coefficient excluded. It keeps the same SP budget, pets, equipment and constraints; neither allocation is proven better in game."))+"</p>"+
+  "<p>"+safe(tr(
+   "Alternative minus main build: {excluded} log10 without the TI coefficient; {community} log10 with it. These are proxy-score differences, not stages.",{
+    excluded:alt.excludedTI.alternativeMinusOriginalLog10.toFixed(3),
+    community:alt.community.alternativeMinusOriginalLog10.toFixed(3)
+   }))+"</p>"+
+  "<label>"+safe(tr("Alternative build JSON (copy to compare in game)"))+
+  "<textarea readonly rows='5' class='export-json' aria-label='Alternative TI build JSON'>"+
+  safe(exportBuild(alt.levels))+"</textarea></label>":"";
  el.innerHTML="<summary>"+safe(tr("Why the proxy invests in these trees"))+
   "</summary><p class='hint'>"+
   safe(tr("Modeled skill contributions only; a high contribution is not proof of real combat power. The comparison does not alter the build."))+
   "</p>"+experimental+sensitivity+branches.join("")+
-  "<h4>"+safe(tr("Largest modeled talent contributions"))+"</h4>"+top.join("");
+  "<h4>"+safe(tr("Largest modeled talent contributions"))+"</h4>"+top.join()+altView;
 }
 /** Keep both valid builds visible; never invent a damage-to-stage conversion. */
 function renderPushSkipComparison(result){

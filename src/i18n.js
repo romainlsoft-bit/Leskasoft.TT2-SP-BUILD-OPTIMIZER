@@ -5,6 +5,10 @@ export const SUPPORTED_LANGUAGES = ["en","fr","uk","ru"];
 export const NATIVE_LANGUAGE_NAMES = {en:"English",fr:"Français",uk:"Українська",ru:"Русский"};
 export const translations = {
 fr:{
+ "Tactical Insight: alternative SP allocation":"Tactical Insight : répartition alternative des SP",
+ "The alternative is optimized with the unverified community Tactical Insight coefficient excluded. It keeps the same SP budget, pets, equipment and constraints; neither allocation is proven better in game.":"Cette alternative est optimisée sans le coefficient communautaire non vérifié de Tactical Insight. Elle conserve le budget SP, les familiers, l’équipement et les contraintes. Aucun des deux builds n’est prouvé meilleur en jeu.",
+ "Alternative minus main build: {excluded} log10 without the TI coefficient; {community} log10 with it. These are proxy-score differences, not stages.":"Alternative moins build principal : {excluded} log10 sans le coefficient TI ; {community} log10 avec lui. Il s’agit de différences de score théorique, pas d’étages.",
+ "Alternative build JSON (copy to compare in game)":"JSON du build alternatif (à copier pour comparer en jeu)",
  "Tactical Insight sensitivity: proposed minus current is {community} log10 with the community coefficient, versus {excluded} log10 without that coefficient.":"Sensibilité à Tactical Insight : différence proposé − actuel de {community} log10 avec le coefficient communautaire, contre {excluded} log10 sans ce coefficient.",
  "Warning: the proposed allocation only wins under the unverified Tactical Insight coefficient. Compare both trees in the game's Stats panel before applying it.":"Attention : l'allocation proposée n'est meilleure qu'avec le coefficient Tactical Insight non vérifié. Compare les deux arbres dans l'écran Stats du jeu avant de l'appliquer.",
  "This compares two existing trees only, without reoptimizing or predicting stages. Other uncertain skills remain unchanged.":"Cette analyse compare seulement les deux arbres existants, sans recalculer d'allocation ni prédire des stages. Les autres talents incertains restent inchangés.",
@@ -365,6 +369,10 @@ fr:{
  "Free Tap Titans 2 skill tree optimizer for TT2 8.4. Optimize skill points for Clan Ship, Pet, Shadow Clone, Heavenly Strike, Dagger or Gold Gun. Import game data or configure manually.":"Optimiseur gratuit de compétences Tap Titans 2 version 8.4. Import des données ou configuration manuelle pour tous les types de builds."
 },
 uk:{
+ "Tactical Insight: alternative SP allocation":"Tactical Insight: альтернативний розподіл очок навичок",
+ "The alternative is optimized with the unverified community Tactical Insight coefficient excluded. It keeps the same SP budget, pets, equipment and constraints; neither allocation is proven better in game.":"Альтернативу оптимізовано без неперевіреного коефіцієнта спільноти Tactical Insight. Бюджет SP, вихованці, спорядження та обмеження залишаються незмінними. Жоден із двох білдів не доведено кращим у грі.",
+ "Alternative minus main build: {excluded} log10 without the TI coefficient; {community} log10 with it. These are proxy-score differences, not stages.":"Альтернатива мінус основний білд: {excluded} log10 без коефіцієнта TI; {community} log10 з ним. Це різниця умовних оцінок, а не етапів.",
+ "Alternative build JSON (copy to compare in game)":"JSON альтернативного білду (скопіюйте для порівняння в грі)",
  "Tactical Insight sensitivity: proposed minus current is {community} log10 with the community coefficient, versus {excluded} log10 without that coefficient.":"Чутливість до Tactical Insight: різниця між запропонованим і поточним деревом становить {community} log10 із коефіцієнтом спільноти та {excluded} log10 без нього.",
  "Warning: the proposed allocation only wins under the unverified Tactical Insight coefficient. Compare both trees in the game's Stats panel before applying it.":"Увага: запропонований розподіл кращий лише за неперевіреного коефіцієнта Tactical Insight. Перед застосуванням порівняйте обидва дерева у вікні Stats гри.",
  "This compares two existing trees only, without reoptimizing or predicting stages. Other uncertain skills remain unchanged.":"Це лише порівняння двох наявних дерев без повторної оптимізації та прогнозу етапів. Інші невизначені навички залишаються без змін.",
@@ -676,6 +684,10 @@ uk:{
  "Free Tap Titans 2 skill tree optimizer for TT2 8.4. Optimize skill points for Clan Ship, Pet, Shadow Clone, Heavenly Strike, Dagger or Gold Gun. Import game data or configure manually.":"Безкоштовний оптимізатор дерева навичок Tap Titans 2 версії 8.4. Імпорт даних або ручне налаштування для всіх збірок."
 },
 ru:{
+ "Tactical Insight: alternative SP allocation":"Tactical Insight: альтернативное распределение очков навыков",
+ "The alternative is optimized with the unverified community Tactical Insight coefficient excluded. It keeps the same SP budget, pets, equipment and constraints; neither allocation is proven better in game.":"Альтернатива оптимизирована без непроверенного коэффициента сообщества Tactical Insight. Бюджет SP, питомцы, снаряжение и ограничения сохранены. Ни один из двух билдов не доказан как лучший в игре.",
+ "Alternative minus main build: {excluded} log10 without the TI coefficient; {community} log10 with it. These are proxy-score differences, not stages.":"Альтернатива минус основной билд: {excluded} log10 без коэффициента TI; {community} log10 с ним. Это разность модельных оценок, а не пройденных этапов.",
+ "Alternative build JSON (copy to compare in game)":"JSON альтернативного билда (скопируйте для сравнения в игре)",
  "Tactical Insight sensitivity: proposed minus current is {community} log10 with the community coefficient, versus {excluded} log10 without that coefficient.":"Чувствительность к Tactical Insight: разница между предлагаемым и текущим деревом — {community} log10 с коэффициентом сообщества и {excluded} log10 без него.",
  "Warning: the proposed allocation only wins under the unverified Tactical Insight coefficient. Compare both trees in the game's Stats panel before applying it.":"Внимание: предложенное распределение лучше только при непроверенном коэффициенте Tactical Insight. Перед применением сравните оба дерева в разделе Stats игры.",
  "This compares two existing trees only, without reoptimizing or predicting stages. Other uncertain skills remain unchanged.":"Сравниваются только два существующих дерева, без повторной оптимизации и прогноза уровней. Остальные неопределённые навыки остаются без изменений.",
