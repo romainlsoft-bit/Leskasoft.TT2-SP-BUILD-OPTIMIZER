@@ -12,6 +12,7 @@ export function resetAccountDependentOptions(state){
  state.contractTimeline=null;
  state.contractMultiScenario=null;
  state.assumeContractsAtMax=false;
+ state.assumeCoordinatedOffensiveActive=false;
  state.selectedDamagePet=null;
  state.selectedGoldPet=null;
  state.comparePetScenarios=true;

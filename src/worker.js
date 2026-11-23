@@ -1,17 +1,17 @@
-import {optimizeBuild} from "./engine.js?v=20261123-native-adaptive-r1";
-import {petSearchPlan,availablePets} from "./pet-scenarios.js?v=20261123-native-adaptive-r1";
-import {calculateModeledScenario} from "./calculation-ledger.js?v=20261123-native-adaptive-r1";
-import {selectPetPair} from "./pet-pair-search.js?v=20261123-native-adaptive-r1";
+import {optimizeBuild} from "./engine.js?v=20261123-spell-score-r1";
+import {petSearchPlan,availablePets} from "./pet-scenarios.js?v=20261123-spell-score-r1";
+import {calculateModeledScenario} from "./calculation-ledger.js?v=20261123-spell-score-r1";
+import {selectPetPair} from "./pet-pair-search.js?v=20261123-spell-score-r1";
 import {bestEquipmentByCategory,gearSelectionEffects,petCandidateGearWeightEnvelope,
  enumerateOwnedGearAssignments}
- from "./equipment-scenarios.js?v=20261123-native-adaptive-r1";
+ from "./equipment-scenarios.js?v=20261123-spell-score-r1";
 import {refineCoupledGearAndSkills,enumerateJointGearAndSkills}
- from "./joint-candidate-search.js?v=20261123-native-adaptive-r1";
-import {modeledCandidateUpperBound} from "./model-score-bounds.js?v=20261123-native-adaptive-r1";
-import {proposeContractScenarioBuild} from "./contract-multi-scenarios.js?v=20261123-native-adaptive-r1";
-import {rerankVisitedContractPetPairs} from "./contract-pet-rerank.js?v=20261123-native-adaptive-r1";
-import {explorePushParetoFrontier} from "./push-frontier.js?v=20261123-native-adaptive-r1";
-import {exploreNativeAttackDamageFrontier} from "./attack-damage-frontier.js?v=20261123-native-adaptive-r1";
+ from "./joint-candidate-search.js?v=20261123-spell-score-r1";
+import {modeledCandidateUpperBound} from "./model-score-bounds.js?v=20261123-spell-score-r1";
+import {proposeContractScenarioBuild} from "./contract-multi-scenarios.js?v=20261123-spell-score-r1";
+import {rerankVisitedContractPetPairs} from "./contract-pet-rerank.js?v=20261123-spell-score-r1";
+import {explorePushParetoFrontier} from "./push-frontier.js?v=20261123-spell-score-r1";
+import {exploreNativeAttackDamageFrontier} from "./attack-damage-frontier.js?v=20261123-spell-score-r1";
 
 // Per-request cache: branch DP signatures must distinguish changes in pet,
 // equipment and the resulting Combat Techniques contribution.

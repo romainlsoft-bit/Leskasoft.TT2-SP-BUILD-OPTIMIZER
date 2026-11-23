@@ -2,11 +2,11 @@
  * TT2 8.4: source-backed weapon sets, per-hero weapon boosters and
  * conditional effects. Per-hero DPS requires verified ascensions/levels.
  */
-import {heroWeaponEvidence} from "./account-temporal.js?v=20261123-native-adaptive-r1";
-import {HERO_CLASS_BY_ID} from "../vendor/hero-classes.js?v=20261123-native-adaptive-r1";
-import {heroLevelEvidence} from "./hero-levels.js?v=20261123-native-adaptive-r1";
-import {equipmentSetAliasEvidence} from "./equipment-set-aliases.js?v=20261123-native-adaptive-r1";
-import {ARTIFACT_CATALOG,EQUIPMENT_SET_CATALOG} from "../vendor/account-catalog.js?v=20261123-native-adaptive-r1";
+import {heroWeaponEvidence} from "./account-temporal.js?v=20261123-spell-score-r1";
+import {HERO_CLASS_BY_ID} from "../vendor/hero-classes.js?v=20261123-spell-score-r1";
+import {heroLevelEvidence} from "./hero-levels.js?v=20261123-spell-score-r1";
+import {equipmentSetAliasEvidence} from "./equipment-set-aliases.js?v=20261123-spell-score-r1";
+import {ARTIFACT_CATALOG,EQUIPMENT_SET_CATALOG} from "../vendor/account-catalog.js?v=20261123-spell-score-r1";
 const BOOST_IDS=["Artifact71","Artifact91","Artifact92","Artifact93"];
 function artifactFactor(id,profile,effects){
  const info=ARTIFACT_CATALOG[id];

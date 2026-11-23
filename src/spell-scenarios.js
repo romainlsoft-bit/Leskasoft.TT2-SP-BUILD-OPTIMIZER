@@ -5,11 +5,11 @@
  * Game Hive spell selection, skill cap source rows. This is a
  * conditional maximum-spell scenario, not proven active uptime.
  */
-import {spellInfo,spell_reductions} from "../vendor/spells.js?v=20261123-native-adaptive-r1";
-import {skillInfo} from "../vendor/skills.js?v=20261123-native-adaptive-r1";
-import {ACTIVE_SPELL_CAPS} from "../vendor/active-spell-caps.js?v=20261123-native-adaptive-r1";
-import {resolveSpellCaps,spellTableIndex} from "./spell-caps.js?v=20261123-native-adaptive-r1";
-import {positiveLog10} from "./account-artifacts.js?v=20261123-native-adaptive-r1";
+import {spellInfo,spell_reductions} from "../vendor/spells.js?v=20261123-spell-score-r1";
+import {skillInfo} from "../vendor/skills.js?v=20261123-spell-score-r1";
+import {ACTIVE_SPELL_CAPS} from "../vendor/active-spell-caps.js?v=20261123-spell-score-r1";
+import {resolveSpellCaps,spellTableIndex} from "./spell-caps.js?v=20261123-spell-score-r1";
+import {positiveLog10} from "./account-artifacts.js?v=20261123-spell-score-r1";
 const CATALOG_IDS=Object.keys(ACTIVE_SPELL_CAPS);
 const INDEX=new Map(CATALOG_IDS.map(id=>[id.toLowerCase(),id]));
 /**
@@ -63,6 +63,18 @@ export function multicastSkillEvidence(skillId,level,settings={}){
 }
 
 export const MAX_EQUIPPED_SPELLS=6;
+/** Native skill bonuses gated by a selected active spell. A source entry
+ * does not prove that the spell is equipped, charged or active at the boss.
+ */
+export const ACTIVE_SOURCE_SKILL_SPELLS=Object.freeze({
+ FireTapSkillBoost:"TapBoost",
+ CritSkillBoostDmg:"CritBoost",
+ Backstab:"CritBoost",
+ TwilightGathering:"TwilightFairy",
+ TwilightBell:"TwilightFairy",
+ DualPetBoost:"DualPet",
+ MidasSkillBoost:"HandOfMidas"
+});
 export const SPELL_CAP_SKILLS=Object.freeze({
  TwilightBell:["BurstDamage","TwilightFairy"],
  SummonerAutoTap:["DualPet","TapBoost"],

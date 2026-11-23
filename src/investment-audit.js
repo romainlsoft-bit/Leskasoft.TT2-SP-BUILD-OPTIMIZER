@@ -3,8 +3,9 @@
  * This is a provenance/uncertainty diagnostic, never an alternative score.
  * Exact SP costs are from the independent TT2 8.4 Unity SkillTreeInfo2.0.
  */
-import {skillInfo} from "../vendor/skills.js?v=20261123-native-adaptive-r1";
-import {reductions} from "../vendor/reductions.js?v=20261123-native-adaptive-r1";
+import {skillInfo} from "../vendor/skills.js?v=20261123-spell-score-r1";
+import {reductions} from "../vendor/reductions.js?v=20261123-spell-score-r1";
+import {ACTIVE_SOURCE_SKILL_SPELLS} from "./spell-scenarios.js?v=20261123-spell-score-r1";
 
 export function sourceSpent(id,level,catalog=skillInfo){
  const row=catalog[id];
@@ -22,6 +23,10 @@ export function sourceSpent(id,level,catalog=skillInfo){
  return points;
 }
 function protectedReason(id,settings){
+ if(Object.hasOwn(ACTIVE_SOURCE_SKILL_SPELLS,id))
+  return "required-active-spell-not-verified";
+ if(id==="ClanQTE"&&settings.assumeCoordinatedOffensiveActive!==true)
+  return "coordinated-offensive-activation-not-verified";
  if(id==="HelperDmgSkillBoost")return "war-cry-spell-not-confirmed-active";
  if(id==="ClanShipVoltage")return "thunder-volley-spell-not-confirmed-active";
  if(id==="CriticalHit")return "dagger-mark-and-stream-of-blades-unconfirmed";

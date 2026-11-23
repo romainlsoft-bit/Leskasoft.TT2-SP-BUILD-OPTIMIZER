@@ -2,7 +2,7 @@
  * These entries are not unconditional direct damage multipliers.
  * No formulas copied from the former community reduction matrix.
  */
-import {skillInfo} from "../vendor/skills.js?v=20261123-native-adaptive-r1";
+import {skillInfo} from "../vendor/skills.js?v=20261123-spell-score-r1";
 
 export const CONDITIONAL_SKILL_SOURCES=Object.freeze({"ClanShipStun":{"name":"Anchoring Shot","primary":"ClanShipStunDamage","condition":"stunned-target","source":"BonusInfo: bonus only while the target is stunned"},"BossTimer":{"name":"Dimensional Shift","primary":"ShadowCloneAllSkillBoost","condition":"shadow-clone-active","source":"BonusInfo: spell boost only while Shadow Clone is active"},"PoisonedBlade":{"name":"Poison Edge","primary":"UltraDaggerPoisonBoost","condition":"dagger-poison-applied","source":"BonusInfo: additive percent poison bonus; no 1+10*A conversion"},"KratosSummon":{"name":"Sprouting Salts","primary":"KratosMonsterBonusAmount","condition":"kratos-sprout-stacks","source":"BonusInfo: special-titan stack mechanics, no permanent AllDamage"}});
 export function conditionalSkillEvidence(levels={},settings={}){
