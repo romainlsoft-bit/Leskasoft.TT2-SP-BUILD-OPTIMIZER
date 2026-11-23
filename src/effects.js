@@ -3,17 +3,17 @@
  * This is a damage/gold proxy, not a model of real farming speed or all
  * conditional cross-skill interactions. See docs/MATH_AUDIT.md.
  */
-import { skillInfo } from "../vendor/skills.js?v=20261123-ti-measured-r1";
-import { reductions } from "../vendor/reductions.js?v=20261123-ti-measured-r1";
-import { spellInfo, spell_reductions } from "../vendor/spells.js?v=20261123-ti-measured-r1";
-import {spellTableIndex} from "./spell-caps.js?v=20261123-ti-measured-r1";
-import {spellCapGainEligible,multicastSkillEvidence,spellEffectScorable,ACTIVE_SOURCE_SKILL_SPELLS} from "./spell-scenarios.js?v=20261123-ti-measured-r1";
-import {lightningStrikeSkillScore} from "./lightning-strike-evidence.js?v=20261123-ti-measured-r1";
-import {petCombatTechniquesIncrement,petEquipmentCombatTechniquesIncrement} from "./pet-scenarios.js?v=20261123-ti-measured-r1";
-import {skillTreeSetScore} from "./skill-tree-set-effects.js?v=20261123-ti-measured-r1";
-import {contractSkillScore} from "./contract-scenarios.js?v=20261123-ti-measured-r1";
-import {cooldownFrequencyGainLog10} from "./flash-zip.js?v=20261123-ti-measured-r1";
-import {tacticalInsightLocalScore} from "./tactical-insight-local.js?v=20261123-ti-measured-r1";
+import { skillInfo } from "../vendor/skills.js?v=20261123-boss-specials-r1";
+import { reductions } from "../vendor/reductions.js?v=20261123-boss-specials-r1";
+import { spellInfo, spell_reductions } from "../vendor/spells.js?v=20261123-boss-specials-r1";
+import {spellTableIndex} from "./spell-caps.js?v=20261123-boss-specials-r1";
+import {spellCapGainEligible,multicastSkillEvidence,spellEffectScorable,ACTIVE_SOURCE_SKILL_SPELLS} from "./spell-scenarios.js?v=20261123-boss-specials-r1";
+import {lightningStrikeSkillScore} from "./lightning-strike-evidence.js?v=20261123-boss-specials-r1";
+import {petCombatTechniquesIncrement,petEquipmentCombatTechniquesIncrement} from "./pet-scenarios.js?v=20261123-boss-specials-r1";
+import {skillTreeSetScore} from "./skill-tree-set-effects.js?v=20261123-boss-specials-r1";
+import {contractSkillScore} from "./contract-scenarios.js?v=20261123-boss-specials-r1";
+import {cooldownFrequencyGainLog10} from "./flash-zip.js?v=20261123-boss-specials-r1";
+import {tacticalInsightLocalScore} from "./tactical-insight-local.js?v=20261123-boss-specials-r1";
 
 const num=(v,fallback=0)=>{ const x=Number(v); return Number.isFinite(x)?x:fallback; };
 const lg=v=>Math.log10(num(v)>0?num(v):1);
@@ -48,6 +48,10 @@ function sourceSkillScoreAtLevel(id,level,settings){
     case "PetBonusBoost":
       return r*lr(logA)+num(reductions.TapDmg?.[settings.damage])*lr(logB);
     case "BossDmgQTE": {
+      // Flash Zip A applies only to the charged pet boss QTE, not to
+      // an ordinary Pet attack or Lightning Burst. An assumed boss
+      // burst has to be explicitly selected, not inferred from ownership.
+      if(settings.assumeFlashZipAtBoss!==true)return 0;
       // A is the QTE damage per activation. B < 1 is a shorter
       // cooldown, never a damage penalty.
       const cadence=cooldownFrequencyGainLog10(B(level),settings);
@@ -134,6 +138,15 @@ function sourceSkillScoreAtLevel(id,level,settings){
       // Damage, gold and mana assumptions are source-specific. Never treat
       // maximum contract effects as passive, always-on multipliers.
       return contractSkillScore(id,level,settings);
+    case "PuppetMaster":
+      // A = Shadow Clone Nightmare Damage on a special attempt.
+      // B is special-attempt RATE, not an unconditional hit multiplier.
+      // Never credit Nightmare Damage on ordinary Shadow Clone hits.
+      return settings.assumeNightmareAtBoss===true?r*lr(logA):0;
+    case "MagnumOpus":
+      // A is damage only while Magnum Opus is charged and activated.
+      // Gold Gun's ordinary shots do not inherit this amount at boss.
+      return settings.assumeMagnumOpusAtBoss===true?r*lr(logA):0;
     case "CloneDmg":
       // A is native Shadow Clone damage. B is attack RATE, not a
       // damage multiplier. The old (4+B)/4 assumed an undocumented

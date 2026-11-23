@@ -3,9 +3,9 @@
  * This is a provenance/uncertainty diagnostic, never an alternative score.
  * Exact SP costs are from the independent TT2 8.4 Unity SkillTreeInfo2.0.
  */
-import {skillInfo} from "../vendor/skills.js?v=20261123-ti-measured-r1";
-import {reductions} from "../vendor/reductions.js?v=20261123-ti-measured-r1";
-import {ACTIVE_SOURCE_SKILL_SPELLS} from "./spell-scenarios.js?v=20261123-ti-measured-r1";
+import {skillInfo} from "../vendor/skills.js?v=20261123-boss-specials-r1";
+import {reductions} from "../vendor/reductions.js?v=20261123-boss-specials-r1";
+import {ACTIVE_SOURCE_SKILL_SPELLS} from "./spell-scenarios.js?v=20261123-boss-specials-r1";
 
 export function sourceSpent(id,level,catalog=skillInfo){
  const row=catalog[id];
@@ -27,6 +27,12 @@ function protectedReason(id,settings){
   return "required-active-spell-not-verified";
  if(id==="ClanQTE"&&settings.assumeCoordinatedOffensiveActive!==true)
   return "coordinated-offensive-activation-not-verified";
+ if(id==="BossDmgQTE"&&settings.assumeFlashZipAtBoss!==true)
+  return "flash-zip-charged-boss-qte-unverified";
+ if(id==="PuppetMaster"&&settings.assumeNightmareAtBoss!==true)
+  return "shadow-clone-nightmare-special-attempt-unverified";
+ if(id==="MagnumOpus"&&settings.assumeMagnumOpusAtBoss!==true)
+  return "magnum-opus-active-at-boss-unverified";
  if(id==="HelperDmgSkillBoost")return "war-cry-spell-not-confirmed-active";
  if(id==="ClanShipVoltage")return "thunder-volley-spell-not-confirmed-active";
  if(id==="CriticalHit")return "dagger-mark-and-stream-of-blades-unconfirmed";

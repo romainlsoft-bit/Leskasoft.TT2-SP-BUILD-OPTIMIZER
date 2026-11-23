@@ -11,6 +11,9 @@ test("import of another TT2 account invalidates all previous contract and select
    pactAtMaxDuringFundedTicks:true},
   assumeContractsAtMax:true,
   assumeCoordinatedOffensiveActive:true,
+  assumeFlashZipAtBoss:true,
+  assumeNightmareAtBoss:true,
+  assumeMagnumOpusAtBoss:true,
   tacticalInsightCalibration:{enabled:true,lowerLevel:12,upperLevel:16},
   selectedDamagePet:"Pet33",selectedGoldPet:"Pet14",
   comparePetScenarios:false,selectedEquipment:{Sword:"SwordA"},
@@ -23,6 +26,9 @@ test("import of another TT2 account invalidates all previous contract and select
  assert.equal(saved.contractMultiScenario,null);
  assert.equal(saved.assumeContractsAtMax,false);
  assert.equal(saved.assumeCoordinatedOffensiveActive,false);
+ assert.equal(saved.assumeFlashZipAtBoss,false);
+ assert.equal(saved.assumeNightmareAtBoss,false);
+ assert.equal(saved.assumeMagnumOpusAtBoss,false);
  assert.equal(saved.tacticalInsightCalibration,null);
  assert.equal(saved.selectedDamagePet,null);
  assert.equal(saved.selectedGoldPet,null);

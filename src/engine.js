@@ -1,28 +1,28 @@
-import { skillInfo } from "../vendor/skills.js?v=20261123-ti-measured-r1";
-import {parseExportCounter} from "./import-numbers.js?v=20261123-ti-measured-r1";
-import {attackChannelEvidence,compareAttackChannels} from "./attack-channels.js?v=20261123-ti-measured-r1";
-import {bossPushEvidence} from "./boss-push-evidence.js?v=20261123-ti-measured-r1";
-import {resolvePushSkipTarget,verifyPushSkipTarget} from "./push-skip-target.js?v=20261123-ti-measured-r1";
-import { baseline } from "../vendor/qol-baseline.js?v=20261123-ti-measured-r1";
-import { optimizeExact } from "./solver-core.js?v=20261123-ti-measured-r1";
-import { scoreAtLevel } from "./effects.js?v=20261123-ti-measured-r1";
-import { parseAccountProfile } from "./account-profile.js?v=20261123-ti-measured-r1";
-import {extractFixedAccountPower,fixedAccountScore} from "./account-power.js?v=20261123-ti-measured-r1";
-import {accountDependencyGraph} from "./account-dependencies.js?v=20261123-ti-measured-r1";
-import {resolveSpellCaps} from "./spell-caps.js?v=20261123-ti-measured-r1";
-import {resolveSpellScenario,spellSelectionEvidence,spellEffectScorable,SPELL_CAP_SKILLS,MULTICAST_SKILL_SPELLS,ACTIVE_SOURCE_SKILL_SPELLS,multicastSkillEvidence} from "./spell-scenarios.js?v=20261123-ti-measured-r1";
-import {ACTIVE_SPELL_CAPS} from "../vendor/active-spell-caps.js?v=20261123-ti-measured-r1";
-import {resolveManaEvidence} from "./mana-evidence.js?v=20261123-ti-measured-r1";
-import {accountSourceCoverage} from "./account-source-coverage.js?v=20261123-ti-measured-r1";
-import {monumentSeasonDayEvidence} from "./monument-season-day.js?v=20261123-ti-measured-r1";
-import {extractTimedSetPower} from "./account-set-bonuses.js?v=20261123-ti-measured-r1";
-import {resolvePermanentSetPower} from "./account-permanent-sets.js?v=20261123-ti-measured-r1";
-import {skillTreeSetAllocationEvidence} from "./skill-tree-set-effects.js?v=20261123-ti-measured-r1";
-import {resolveContractScenario} from "./contract-scenarios.js?v=20261123-ti-measured-r1";
-import {conditionalSkillEvidence} from "./conditional-skill-evidence.js?v=20261123-ti-measured-r1";
-import {lightningStrikeEvidence} from "./lightning-strike-evidence.js?v=20261123-ti-measured-r1";
-import {buildInvestmentAudit} from "./investment-audit.js?v=20261123-ti-measured-r1";
-import {resolveTacticalInsightLocal} from "./tactical-insight-local.js?v=20261123-ti-measured-r1";
+import { skillInfo } from "../vendor/skills.js?v=20261123-boss-specials-r1";
+import {parseExportCounter} from "./import-numbers.js?v=20261123-boss-specials-r1";
+import {attackChannelEvidence,compareAttackChannels} from "./attack-channels.js?v=20261123-boss-specials-r1";
+import {bossPushEvidence} from "./boss-push-evidence.js?v=20261123-boss-specials-r1";
+import {resolvePushSkipTarget,verifyPushSkipTarget} from "./push-skip-target.js?v=20261123-boss-specials-r1";
+import { baseline } from "../vendor/qol-baseline.js?v=20261123-boss-specials-r1";
+import { optimizeExact } from "./solver-core.js?v=20261123-boss-specials-r1";
+import { scoreAtLevel } from "./effects.js?v=20261123-boss-specials-r1";
+import { parseAccountProfile } from "./account-profile.js?v=20261123-boss-specials-r1";
+import {extractFixedAccountPower,fixedAccountScore} from "./account-power.js?v=20261123-boss-specials-r1";
+import {accountDependencyGraph} from "./account-dependencies.js?v=20261123-boss-specials-r1";
+import {resolveSpellCaps} from "./spell-caps.js?v=20261123-boss-specials-r1";
+import {resolveSpellScenario,spellSelectionEvidence,spellEffectScorable,SPELL_CAP_SKILLS,MULTICAST_SKILL_SPELLS,ACTIVE_SOURCE_SKILL_SPELLS,multicastSkillEvidence} from "./spell-scenarios.js?v=20261123-boss-specials-r1";
+import {ACTIVE_SPELL_CAPS} from "../vendor/active-spell-caps.js?v=20261123-boss-specials-r1";
+import {resolveManaEvidence} from "./mana-evidence.js?v=20261123-boss-specials-r1";
+import {accountSourceCoverage} from "./account-source-coverage.js?v=20261123-boss-specials-r1";
+import {monumentSeasonDayEvidence} from "./monument-season-day.js?v=20261123-boss-specials-r1";
+import {extractTimedSetPower} from "./account-set-bonuses.js?v=20261123-boss-specials-r1";
+import {resolvePermanentSetPower} from "./account-permanent-sets.js?v=20261123-boss-specials-r1";
+import {skillTreeSetAllocationEvidence} from "./skill-tree-set-effects.js?v=20261123-boss-specials-r1";
+import {resolveContractScenario} from "./contract-scenarios.js?v=20261123-boss-specials-r1";
+import {conditionalSkillEvidence} from "./conditional-skill-evidence.js?v=20261123-boss-specials-r1";
+import {lightningStrikeEvidence} from "./lightning-strike-evidence.js?v=20261123-boss-specials-r1";
+import {buildInvestmentAudit} from "./investment-audit.js?v=20261123-boss-specials-r1";
+import {resolveTacticalInsightLocal} from "./tactical-insight-local.js?v=20261123-boss-specials-r1";
 
 export const GAME_VERSION = "8.4.0";
 export const DATASET_REVISION = "2026-09-18"; // SkillTreeInfo2.0.csv comparison
@@ -122,7 +122,10 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
     assumeSnapActive:settings.assumeSnapActive===true,
     assumeContractsAtMax:settings.assumeContractsAtMax===true,
     assumeBossStunned:settings.assumeBossStunned===true,
-    assumeCoordinatedOffensiveActive:settings.assumeCoordinatedOffensiveActive===true};
+    assumeCoordinatedOffensiveActive:settings.assumeCoordinatedOffensiveActive===true,
+    assumeFlashZipAtBoss:settings.assumeFlashZipAtBoss===true,
+    assumeNightmareAtBoss:settings.assumeNightmareAtBoss===true,
+    assumeMagnumOpusAtBoss:settings.assumeMagnumOpusAtBoss===true};
   // Parse and validate controlled, source-specific local observations once.
   // When absent, preserve historical community/exclusion options unchanged.
   const tiLocal=resolveTacticalInsightLocal(settings);
@@ -163,6 +166,9 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
       .filter(([,spell])=>!selectedModeledSpell(spell))
       .map(([id])=>id),
     ...(combatContext.assumeCoordinatedOffensiveActive===true?[]:["ClanQTE"]),
+    ...(combatContext.assumeFlashZipAtBoss===true?[]:["BossDmgQTE"]),
+    ...(combatContext.assumeNightmareAtBoss===true?[]:["PuppetMaster"]),
+    ...(combatContext.assumeMagnumOpusAtBoss===true?[]:["MagnumOpus"]),
     ...(!selectedModeledSpell("ThunderVolley")?["ClanShipVoltage"]:[]),
     ...(!selectedModeledSpell("StreamOfBlades")&&
       combatContext.assumeDaggerTargetMarked!==true?["CriticalHit"]:[]),
@@ -294,6 +300,10 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
           [id,spellEffectScorable(spell,scoreContext)])),
       coordinatedOffensiveActiveAssumed:
         scoreContext.assumeCoordinatedOffensiveActive===true,
+      flashZipChargedAtBossAssumed:scoreContext.assumeFlashZipAtBoss===true,
+      nightmareSpecialAtBossAssumed:scoreContext.assumeNightmareAtBoss===true,
+      magnumOpusActiveAtBossAssumed:scoreContext.assumeMagnumOpusAtBoss===true,
+      specialAttemptRateNeverCountedAsHitDamage:true,
       thunderVolleySpecialHitAssumed:
         scoreContext.assumeThunderVolleySpecialHit===true,
       daggerMarkedTargetAssumed:
@@ -514,6 +524,9 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
     combatAssumptions:{hayst:combatContext.assumeHaystActive,
       snap:combatContext.assumeSnapActive,
       coordinatedOffensive:combatContext.assumeCoordinatedOffensiveActive,
+      flashZipAtBoss:combatContext.assumeFlashZipAtBoss,
+      nightmareAtBoss:combatContext.assumeNightmareAtBoss,
+      magnumOpusAtBoss:combatContext.assumeMagnumOpusAtBoss,
       astralActivations,
       contractsAtMax:combatContext.assumeContractsAtMax},
     model:"TT2 weighted log-damage/gold proxy; not a gameplay performance guarantee",

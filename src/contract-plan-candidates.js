@@ -4,7 +4,7 @@
  * The 2/3 Pact step is an SP SEARCH GRID heuristic, never a sourced damage
  * multiplier or a claim about uptime. This module has no scoring side effects.
  */
-import {skillInfo} from "../vendor/skills.js?v=20261123-ti-measured-r1";
+import {skillInfo} from "../vendor/skills.js?v=20261123-boss-specials-r1";
 const IDS=Object.freeze(["ForbiddenContract","RoyalContract","TerrifyingPact"]);
 const valid=(x)=>Number.isSafeInteger(Number(x))&&Number(x)>=0;
 export function contractInvestmentPlans(currentLevels={},seedLevels={},minimums={},policy={}){

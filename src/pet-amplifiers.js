@@ -5,9 +5,9 @@
  * Raw pet-attack damage, equipment pet bonuses and seasonal Pet bonuses
  * are separate mechanics, never replaced by these four artifacts.
  */
-import {ARTIFACT_CATALOG} from "../vendor/account-catalog.js?v=20261123-ti-measured-r1";
-import {calculatePermanentArtifactEffects} from "./account-artifacts.js?v=20261123-ti-measured-r1";
-import {resolveGemstoneEvidence} from "./account-gemstones.js?v=20261123-ti-measured-r1";
+import {ARTIFACT_CATALOG} from "../vendor/account-catalog.js?v=20261123-boss-specials-r1";
+import {calculatePermanentArtifactEffects} from "./account-artifacts.js?v=20261123-boss-specials-r1";
+import {resolveGemstoneEvidence} from "./account-gemstones.js?v=20261123-boss-specials-r1";
 const TYPES=Object.freeze({
  Legacy:Object.freeze({damage:"LegacyPetDamageEffect",gold:"LegacyPetGoldEffect"}),
  Exotic:Object.freeze({damage:"ExoticPetDamageEffect",gold:"ExoticPetGoldEffect"})

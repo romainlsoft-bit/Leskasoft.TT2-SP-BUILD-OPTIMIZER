@@ -13,8 +13,8 @@
  * Never extrapolate outside the measured levels. The optimizer must enforce
  * [lowerLevel, upperLevel] as a hard local-calibration scope.
  */
-import {skillInfo} from "../vendor/skills.js?v=20261123-ti-measured-r1";
-import {parseObservedHitLog10} from "./boss-push-evidence.js?v=20261123-ti-measured-r1";
+import {skillInfo} from "../vendor/skills.js?v=20261123-boss-specials-r1";
+import {parseObservedHitLog10} from "./boss-push-evidence.js?v=20261123-boss-specials-r1";
 const SKILL="HelperBoost";
 const row=skillInfo[SKILL];
 const maximum=Number(row.MaxLevel);

@@ -110,7 +110,7 @@ test("four locales expose the measured-input controls and private measurements a
   const html=readFileSync(new URL("../"+path,import.meta.url),"utf8");
   for(const id of ids)
    assert.equal((html.match(new RegExp('id="'+id+'"',"g"))||[]).length,1,path+"/"+id);
-  assert.ok(html.includes("src/app.js?v=20261123-ti-measured-r1"),path);
+  assert.ok(html.includes("src/app.js?v=20261123-boss-specials-r1"),path);
  }
  const app=readFileSync(new URL("../src/app.js",import.meta.url),"utf8");
  assert.match(app,/state\.tacticalInsightCalibration=\$\("ti-cal-enabled"\)\.checked/);
