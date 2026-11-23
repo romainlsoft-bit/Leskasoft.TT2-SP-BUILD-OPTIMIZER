@@ -120,3 +120,62 @@ test("native comparison is exposed in four languages and the final worker",()=>{
  assert.match(worker,/exploreNativeAttackDamageFrontier\(fixed,/);
  assert.match(worker,/maxConstrained:2,baselineResult:result/);
 });
+
+test("native modifier probing tries the closest feasible upgrade before an ambitious tier",()=>{
+ const source=sourcedDamageChannels("Pet").find(x=>x.id==="lightning-burst");
+ const requested=[];
+ const baseline={levels:{PetQTE:1},spent:1,
+  branchTotals:{Summoner:1},score:100,
+  optimality:{upperBound:100,mode:"exact"}};
+ const solve=settings=>{
+  const level=Number(settings.minimums?.PetQTE??1);
+  requested.push(level);
+  if(level>8)throw new Error("Unreachable tier prerequisite");
+  return {levels:{PetQTE:level},spent:level,
+   branchTotals:{Summoner:level},score:100-level,
+   optimality:{upperBound:100-level,mode:"exact"}};
+ };
+ const report=exploreNativeAttackDamageFrontier({
+  damage:"Pet",gold:"Fairy",skillPoints:5000,
+  attackDamageFrontierEnabled:true,attackDamageChannelId:source.id
+ },{solve,baselineResult:baseline,maxConstrained:2});
+ assert.equal(report.status,"explored");
+ assert.equal(requested[0],2,"closest native level must be tested first");
+ assert.ok(report.rows.some(row=>row.sourceSkillLevel===2));
+ assert.ok(report.attempted.length>=2);
+ assert.ok(requested.length<=3,"a failed ambitious level gets at most one backoff");
+ assert.ok(report.constrainedSolvesAttempted<=3);
+ assert.equal(report.stageGainPredicted,false);
+});
+
+test("native attack already maximized does not waste another expensive DP solve",()=>{
+ const source=sourcedDamageChannels("Pet").find(x=>x.id==="lightning-burst");
+ const max=Number(skillInfo[source.sourceSkillId].MaxLevel);
+ const baseline={levels:{[source.sourceSkillId]:max},
+  spent:100,branchTotals:{Summoner:100},score:100,
+  optimality:{upperBound:100,mode:"exact"}};
+ const report=exploreNativeAttackDamageFrontier({
+  damage:"Pet",gold:"Fairy",skillPoints:50000,
+  attackDamageFrontierEnabled:true,attackDamageChannelId:source.id
+ },{baselineResult:baseline,solve:()=>{
+  throw new Error("source already maximal; never run solver");
+ }});
+ assert.equal(report.status,"explored");
+ assert.equal(report.alreadyAtNativeSourceMaximum,true);
+ assert.equal(report.nativeSourceNotFurtherImproved,true);
+ assert.equal(report.constrainedSolvesAttempted,0);
+ assert.equal(report.rows.length,1);
+});
+
+test("native comparison refuses contract objectives with incompatible baseline scenarios",()=>{
+ const source=sourcedDamageChannels("Pet")[0];
+ for(const extra of [{contractMultiScenario:{enabled:true}},
+                    {assumeContractsAtMax:true}]){
+  const report=exploreNativeAttackDamageFrontier({
+   damage:"Pet",gold:"Fairy",skillPoints:100,
+   attackDamageFrontierEnabled:true,attackDamageChannelId:source.id,...extra
+  },{solve:()=>{throw new Error("Must not reuse unrelated baseline");}});
+  assert.equal(report.status,"unresolved");
+  assert.match(report.reason,/contract/);
+ }
+});
