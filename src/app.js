@@ -1092,11 +1092,13 @@ function decodeLink(){
  }catch(e){status("Could not load this shared build link.","error");}
 }
 function initialize(){
- try{const saved=JSON.parse(localStorage.getItem("tt2_skill_optimizer_v1")||"null");if(saved&&typeof saved==="object")state={...fresh(),...saved};}catch{}  decodeLink();
-  delete state.pushObservedAttackChannelId;
-  delete state.pushObservedHitDamage;
-  delete state.pushBossStage;
-  keepContractsConservative(state);
+ try{const saved=JSON.parse(localStorage.getItem("tt2_skill_optimizer_v1")||"null");if(saved&&typeof saved==="object")state={...fresh(),...saved};}catch{}
+ decodeLink();
+ // Retired UI settings from previous sessions must not influence diagnostics.
+ delete state.pushObservedAttackChannelId;
+ delete state.pushObservedHitDamage;
+ delete state.pushBossStage;
+ keepContractsConservative(state);
  persist();
  // Old manual toggles or old shared links must never override the export.
  // No completed-set collection means unknown ownership, not zero owned in-game.
