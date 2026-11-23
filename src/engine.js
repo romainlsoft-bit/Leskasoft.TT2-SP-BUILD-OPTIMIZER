@@ -1,27 +1,27 @@
-import { skillInfo } from "../vendor/skills.js?v=20261123-native-attack-r1";
-import {parseExportCounter} from "./import-numbers.js?v=20261123-native-attack-r1";
-import {attackChannelEvidence,compareAttackChannels} from "./attack-channels.js?v=20261123-native-attack-r1";
-import {bossPushEvidence} from "./boss-push-evidence.js?v=20261123-native-attack-r1";
-import {resolvePushSkipTarget,verifyPushSkipTarget} from "./push-skip-target.js?v=20261123-native-attack-r1";
-import { baseline } from "../vendor/qol-baseline.js?v=20261123-native-attack-r1";
-import { optimizeExact } from "./solver-core.js?v=20261123-native-attack-r1";
-import { scoreAtLevel } from "./effects.js?v=20261123-native-attack-r1";
-import { parseAccountProfile } from "./account-profile.js?v=20261123-native-attack-r1";
-import {extractFixedAccountPower,fixedAccountScore} from "./account-power.js?v=20261123-native-attack-r1";
-import {accountDependencyGraph} from "./account-dependencies.js?v=20261123-native-attack-r1";
-import {resolveSpellCaps} from "./spell-caps.js?v=20261123-native-attack-r1";
-import {resolveSpellScenario,spellSelectionEvidence,SPELL_CAP_SKILLS,MULTICAST_SKILL_SPELLS,multicastSkillEvidence} from "./spell-scenarios.js?v=20261123-native-attack-r1";
-import {ACTIVE_SPELL_CAPS} from "../vendor/active-spell-caps.js?v=20261123-native-attack-r1";
-import {resolveManaEvidence} from "./mana-evidence.js?v=20261123-native-attack-r1";
-import {accountSourceCoverage} from "./account-source-coverage.js?v=20261123-native-attack-r1";
-import {monumentSeasonDayEvidence} from "./monument-season-day.js?v=20261123-native-attack-r1";
-import {extractTimedSetPower} from "./account-set-bonuses.js?v=20261123-native-attack-r1";
-import {resolvePermanentSetPower} from "./account-permanent-sets.js?v=20261123-native-attack-r1";
-import {skillTreeSetAllocationEvidence} from "./skill-tree-set-effects.js?v=20261123-native-attack-r1";
-import {resolveContractScenario} from "./contract-scenarios.js?v=20261123-native-attack-r1";
-import {conditionalSkillEvidence} from "./conditional-skill-evidence.js?v=20261123-native-attack-r1";
-import {lightningStrikeEvidence} from "./lightning-strike-evidence.js?v=20261123-native-attack-r1";
-import {buildInvestmentAudit} from "./investment-audit.js?v=20261123-native-attack-r1";
+import { skillInfo } from "../vendor/skills.js?v=20261123-conditional-score-r1";
+import {parseExportCounter} from "./import-numbers.js?v=20261123-conditional-score-r1";
+import {attackChannelEvidence,compareAttackChannels} from "./attack-channels.js?v=20261123-conditional-score-r1";
+import {bossPushEvidence} from "./boss-push-evidence.js?v=20261123-conditional-score-r1";
+import {resolvePushSkipTarget,verifyPushSkipTarget} from "./push-skip-target.js?v=20261123-conditional-score-r1";
+import { baseline } from "../vendor/qol-baseline.js?v=20261123-conditional-score-r1";
+import { optimizeExact } from "./solver-core.js?v=20261123-conditional-score-r1";
+import { scoreAtLevel } from "./effects.js?v=20261123-conditional-score-r1";
+import { parseAccountProfile } from "./account-profile.js?v=20261123-conditional-score-r1";
+import {extractFixedAccountPower,fixedAccountScore} from "./account-power.js?v=20261123-conditional-score-r1";
+import {accountDependencyGraph} from "./account-dependencies.js?v=20261123-conditional-score-r1";
+import {resolveSpellCaps} from "./spell-caps.js?v=20261123-conditional-score-r1";
+import {resolveSpellScenario,spellSelectionEvidence,spellEffectScorable,SPELL_CAP_SKILLS,MULTICAST_SKILL_SPELLS,multicastSkillEvidence} from "./spell-scenarios.js?v=20261123-conditional-score-r1";
+import {ACTIVE_SPELL_CAPS} from "../vendor/active-spell-caps.js?v=20261123-conditional-score-r1";
+import {resolveManaEvidence} from "./mana-evidence.js?v=20261123-conditional-score-r1";
+import {accountSourceCoverage} from "./account-source-coverage.js?v=20261123-conditional-score-r1";
+import {monumentSeasonDayEvidence} from "./monument-season-day.js?v=20261123-conditional-score-r1";
+import {extractTimedSetPower} from "./account-set-bonuses.js?v=20261123-conditional-score-r1";
+import {resolvePermanentSetPower} from "./account-permanent-sets.js?v=20261123-conditional-score-r1";
+import {skillTreeSetAllocationEvidence} from "./skill-tree-set-effects.js?v=20261123-conditional-score-r1";
+import {resolveContractScenario} from "./contract-scenarios.js?v=20261123-conditional-score-r1";
+import {conditionalSkillEvidence} from "./conditional-skill-evidence.js?v=20261123-conditional-score-r1";
+import {lightningStrikeEvidence} from "./lightning-strike-evidence.js?v=20261123-conditional-score-r1";
+import {buildInvestmentAudit} from "./investment-audit.js?v=20261123-conditional-score-r1";
 
 export const GAME_VERSION = "8.4.0";
 export const DATASET_REVISION = "2026-09-18"; // SkillTreeInfo2.0.csv comparison
@@ -143,8 +143,20 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
     settings.contractTimeline?.enabled===true&&
     policy.activeFraction!==""&&policy.activeFraction!=null&&
     Number.isFinite(activeFraction)&&activeFraction>=0&&activeFraction<=1;
+  const maximumSpellsAssumed=combatContext.assumeMaxSpells===true||
+    (combatContext.assumeMaxSpells!==false&&Number(combatContext.maxStage)>=15000);
+  const selectedModeledSpell=id=>maximumSpellsAssumed&&
+    spellSelection.valid&&spellSelection.ids.includes(id);
   const uncertainSkills=[
     ...(spellCapEvidenceIsIncomplete?Object.keys(SPELL_CAP_SKILLS):[]),
+    // The community score previously credited these spell effects even
+    // when the relevant active spell was absent or the combat state unknown.
+    ...(!selectedModeledSpell("HelperBoost")?["HelperDmgSkillBoost"]:[]),
+    ...(!selectedModeledSpell("ThunderVolley")?["ClanShipVoltage"]:[]),
+    ...(!selectedModeledSpell("StreamOfBlades")&&
+      combatContext.assumeDaggerTargetMarked!==true?["CriticalHit"]:[]),
+    ...(combatContext.assumeInspiredHelpersActive===true?[]:
+      ["HelperInspiredWeaken"]),
     ...Object.keys(MULTICAST_SKILL_SPELLS).filter(id=>
       !multicastSkillEvidence(id,Math.max(1,current[id]),combatContext).modeled),
     ...(combatContext.assumeContractsAtMax||contractReallocationAllowed?[]:
@@ -238,7 +250,8 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
       changeLog10:scores[after]-scores[before],
       conditionalSourceUnverified:id==="HelperBoost"||
        ["ForbiddenContract","RoyalContract","TerrifyingPact",
-        "QuickFortune","PhilosophersFlux"].includes(id)};
+        "QuickFortune","PhilosophersFlux","HelperDmgSkillBoost",
+        "ClanShipVoltage","CriticalHit","HelperInspiredWeaken"].includes(id)};
   });
   const byBranch=Object.fromEntries(Object.values(BRANCH_NAMES).map(name=>[
     name,skillAttribution.filter(row=>row.branch===name)
@@ -252,6 +265,24 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
     additiveReconstructionMatches:Math.abs(scoredTotal-result.score)<=
      1e-7*Math.max(1,Math.abs(result.score)),
     sourceOnly:true,gameplayCalibrationVerified:false,
+    nativeConditionalScoringGuards:{
+      schema:"tt2-84-native-conditional-guards-v1",
+      warCryScoredOnlyWhenSelected:spellEffectScorable("HelperBoost",scoreContext),
+      thunderVolleyScoredOnlyWhenSelected:
+        spellEffectScorable("ThunderVolley",scoreContext),
+      streamOfBladesScoredOnlyWhenSelected:
+        spellEffectScorable("StreamOfBlades",scoreContext),
+      thunderVolleySpecialHitAssumed:
+        scoreContext.assumeThunderVolleySpecialHit===true,
+      daggerMarkedTargetAssumed:
+        scoreContext.assumeDaggerTargetMarked===true,
+      inspiredHelpersActiveAssumed:
+        scoreContext.assumeInspiredHelpersActive===true,
+      heroInspiredCountNotMultipliedIntoDamage:true,
+      shadowCloneAttackRateNotConvertedToDamage:true,
+      nativeDamageSourceTablesVersion:GAME_VERSION,
+      verifiedRealStageImprovement:false
+    },
     tacticalInsightCommunityWeightExcluded:settings.excludeUnverifiedTacticalInsight===true,
     optimizerScoreChanged:settings.excludeUnverifiedTacticalInsight===true};
   const points=spentPoints(result.levels);

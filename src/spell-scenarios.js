@@ -5,11 +5,11 @@
  * Game Hive spell selection, skill cap source rows. This is a
  * conditional maximum-spell scenario, not proven active uptime.
  */
-import {spellInfo,spell_reductions} from "../vendor/spells.js?v=20261123-native-attack-r1";
-import {skillInfo} from "../vendor/skills.js?v=20261123-native-attack-r1";
-import {ACTIVE_SPELL_CAPS} from "../vendor/active-spell-caps.js?v=20261123-native-attack-r1";
-import {resolveSpellCaps,spellTableIndex} from "./spell-caps.js?v=20261123-native-attack-r1";
-import {positiveLog10} from "./account-artifacts.js?v=20261123-native-attack-r1";
+import {spellInfo,spell_reductions} from "../vendor/spells.js?v=20261123-conditional-score-r1";
+import {skillInfo} from "../vendor/skills.js?v=20261123-conditional-score-r1";
+import {ACTIVE_SPELL_CAPS} from "../vendor/active-spell-caps.js?v=20261123-conditional-score-r1";
+import {resolveSpellCaps,spellTableIndex} from "./spell-caps.js?v=20261123-conditional-score-r1";
+import {positiveLog10} from "./account-artifacts.js?v=20261123-conditional-score-r1";
 const CATALOG_IDS=Object.keys(ACTIVE_SPELL_CAPS);
 const INDEX=new Map(CATALOG_IDS.map(id=>[id.toLowerCase(),id]));
 /**
@@ -108,21 +108,27 @@ export function spellSelectionEvidence(settings={}){
 }
 const assumedMax=settings=>settings?.assumeMaxSpells===true||
  (settings?.assumeMaxSpells!==false&&Number(settings?.maxStage)>=15000);
-export function spellCapGainEligible(skillId,spellId,settings={}){
+/** Skill-specific effects of an equipped active spell have the SAME gate
+ * as skill-dependent spell-cap benefits. A merely owned/unlocked spell is
+ * not proof that it fills one of the six active slots or is active at boss.
+ * The unlock of an SP-gated spell must already be a guaranteed minimum.
+ */
+export function spellEffectScorable(spellId,settings={}){
  const selection=spellSelectionEvidence(settings);
  if(!selection.valid||!selection.ids.includes(spellId)||!assumedMax(settings))
   return false;
- if(!SPELL_CAP_SKILLS[skillId]?.includes(spellId))return false;
  const requirement=ACTIVE_SPELL_CAPS[spellId]?.required;
  if(!requirement)return false;
  if(requirement==="None")return true;
- // The separable SP solver must not award a conditional bonus based
- // on another branch it *might* buy later. Require a proven minimum.
  const minimum=Number(settings?.minimums?.[requirement]??0);
  const retained=settings?.preserveCurrent===true?
   Number(settings?.currentLevels?.[requirement]??0):0;
  return (Number.isSafeInteger(minimum)&&minimum>0)||
   (Number.isSafeInteger(retained)&&retained>0);
+}
+export function spellCapGainEligible(skillId,spellId,settings={}){
+ return SPELL_CAP_SKILLS[skillId]?.includes(spellId)===true&&
+  spellEffectScorable(spellId,settings);
 }
 const sourcedNonnegative=value=>{
  if(value===null||value===undefined||value==="")return null;
