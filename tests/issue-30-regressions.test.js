@@ -185,16 +185,19 @@ test("#30: Pet/Fairy gear chooses verified ChestAmount over weaker GoldAll",()=>
  assert.equal(hog.selected.Armor.name,"All x2");
 });
 test("#30: Flash Zip damage per activation cannot be penalized by faster cooldown",()=>{
- const reference=scoreAtLevel("BossDmgQTE",1,pet);
+ // Flash Zip is a charged boss QTE, not passive damage.
+ assert.equal(scoreAtLevel("BossDmgQTE",1,pet),0);
+ const confirmed={...pet,assumeFlashZipAtBoss:true};
+ const reference=scoreAtLevel("BossDmgQTE",1,confirmed);
  near(reference,Math.log10(2));
  assert.equal(activationCountInWindow(9.8,10,.993),1);
  assert.equal(activationCountInWindow(9.95,10,.993),2);
- near(scoreAtLevel("BossDmgQTE",1,{...pet,
+ near(scoreAtLevel("BossDmgQTE",1,{...confirmed,
   flashZipBaseCooldownSeconds:10,flashZipWindowSeconds:9.8}),reference);
- near(scoreAtLevel("BossDmgQTE",1,{...pet,
+ near(scoreAtLevel("BossDmgQTE",1,{...confirmed,
   flashZipBaseCooldownSeconds:10,flashZipWindowSeconds:9.95}),
   reference+Math.log10(2));
- const hog={...pet,gold:"HoG",
+ const hog={...confirmed,gold:"HoG",
   heartOfGoldBaseCooldownSeconds:10,heartOfGoldWindowSeconds:9.95};
  assert.ok(scoreAtLevel("BossDmgQTE",1,hog)>=reference);
 });

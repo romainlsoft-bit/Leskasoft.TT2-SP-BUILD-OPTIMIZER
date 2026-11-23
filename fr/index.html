@@ -16,7 +16,7 @@
 <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg"><link rel="stylesheet" href="../styles.css?v=20261122-toast-flat-r1">
 <title>Optimiseur de compétences TT2 8.4 — Calculateur SP gratuit | Leskasoft</title>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Optimiseur d’arbre de compétences Tap Titans 2","description":"Optimisez vos points de compétences Tap Titans 2 : import JSON, saisie manuelle, confort de jeu (QoL) et export du build jusqu’à 50 000 SP.","applicationCategory":"GameApplication","operatingSystem":"Any","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"url":"https://tap-titans.leskasoft.com/fr/","inLanguage":"fr","@id":"https://tap-titans.leskasoft.com/fr/#tool"}</script>
-<script type="module" src="../src/app.js?v=20261123-ti-measured-r1" defer></script>
+<script type="module" src="../src/app.js?v=20261123-boss-specials-r1" defer></script>
 </head>
 <body>
 <div class="site">
@@ -83,6 +83,9 @@
     <label class="toggle"><input type="checkbox" id="snap-active"> Snap actif contre votre boss le plus difficile</label>
     <label>Orbes Astral Awakening activés (0–5) <input type="number" id="astral-activations" min="0" max="5" step="1" inputmode="numeric" value="0"></label>
     <label class="toggle"><input type="checkbox" id="coordinated-offensive-active"> Coordinated Offensive actif contre le boss (ne compter ses dégâts de héros que dans ce cas)</label>
+    <label class="toggle"><input type="checkbox" id="flash-zip-at-boss"> Flash Zip est chargé et frappe le boss le plus difficile (dégâts de la QTE Pet Boss)</label>
+    <label class="toggle"><input type="checkbox" id="nightmare-at-boss"> Shadow Clone déclenche Nightmare Damage contre le boss le plus difficile (tentatives spéciales uniquement)</label>
+    <label class="toggle"><input type="checkbox" id="magnum-opus-at-boss"> Magnum Opus est chargé et actif contre le boss le plus difficile (pas les tirs ordinaires du Gold Gun)</label>
     <label class="toggle"><input type="checkbox" id="preserve-current">Conserver les niveaux actuels comme minimums</label>
     <label class="toggle"><input type="checkbox" id="protect-unmodeled-skills" checked> Conserver les compétences conditionnelles existantes lorsque leurs effets ne sont pas modélisés (recommandé)</label>
     <label class="toggle"><input type="checkbox" id="exclude-unverified-tactical-insight"> Expérimental : exclure du calcul SP le coefficient communautaire non vérifié de Tactical Insight (sa valeur réelle n'est pas considérée comme nulle)</label>

@@ -5,8 +5,8 @@
  * Bare numeric "Chance" fields have ambiguous units (0.5 vs 50%) and
  * are never silently normalized. No proc rate is inferred from skills.
  */
-import {skillInfo} from "../vendor/skills.js?v=20261123-ti-measured-r1";
-import {positiveLog10} from "./account-artifacts.js?v=20261123-ti-measured-r1";
+import {skillInfo} from "../vendor/skills.js?v=20261123-boss-specials-r1";
+import {positiveLog10} from "./account-artifacts.js?v=20261123-boss-specials-r1";
 
 // These are the 8.4 SkillTreeInfo2.0.csv B effects expressed as fractions:
 // Cleaving Strike, Transmutation, Love Potion (NOT Ambush, whose B is

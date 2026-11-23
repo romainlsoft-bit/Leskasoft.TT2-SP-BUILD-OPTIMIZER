@@ -114,7 +114,7 @@ test("native comparison is exposed in four languages and the final worker",()=>{
   const html=readFileSync(new URL("../"+path,import.meta.url),"utf8");
   assert.equal((html.match(/id="attack-damage-channel"/g)||[]).length,1,path);
   assert.equal((html.match(/id="attack-damage-frontier-enabled"/g)||[]).length,1,path);
-  assert.ok(html.includes("src/app.js?v=20261123-ti-measured-r1"));
+  assert.ok(html.includes("src/app.js?v=20261123-boss-specials-r1"));
  }
  const worker=readFileSync(new URL("../src/worker.js",import.meta.url),"utf8");
  assert.match(worker,/exploreNativeAttackDamageFrontier\(fixed,/);

@@ -11,10 +11,10 @@
  * confirms their hit magnitudes EXCLUDE those effects. No double-counting.
  */
 import {bossPushEvidence,parseObservedHitLog10}
- from "./boss-push-evidence.js?v=20261123-ti-measured-r1";
+ from "./boss-push-evidence.js?v=20261123-boss-specials-r1";
 import {simulateContractTimeline}
- from "./contract-timeline.js?v=20261123-ti-measured-r1";
-import {skillInfo} from "../vendor/skills.js?v=20261123-ti-measured-r1";
+ from "./contract-timeline.js?v=20261123-boss-specials-r1";
+import {skillInfo} from "../vendor/skills.js?v=20261123-boss-specials-r1";
 
 const MAX_EVENTS=512;
 const MAX_WINDOW_SECONDS=3600;

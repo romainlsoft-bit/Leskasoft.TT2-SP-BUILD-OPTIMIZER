@@ -10,7 +10,7 @@
  * repeated attacks, contract duration, true boss HP modifiers or stage gain).
  * A talent's source modifier is NOT an absolute hit damage.
  */
-import {attackChannelEvidence} from "./attack-channels.js?v=20261123-ti-measured-r1";
+import {attackChannelEvidence} from "./attack-channels.js?v=20261123-boss-specials-r1";
 
 const LOG10_12=Math.log10(1.2);
 const LOG10_138=Math.log10(1.38);

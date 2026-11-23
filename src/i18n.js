@@ -5,6 +5,7 @@ export const SUPPORTED_LANGUAGES = ["en","fr","uk","ru"];
 export const NATIVE_LANGUAGE_NAMES = {en:"English",fr:"Français",uk:"Українська",ru:"Русский"};
 export const translations = {
 fr:{
+ "Boss specials: Flash Zip {fz}; Nightmare {nm}; Magnum Opus {mo}.":"Attaques spéciales contre le boss : Flash Zip {fz} ; Nightmare {nm} ; Magnum Opus {mo}.",
  "Measured local Tactical Insight calibration: levels {low}–{high}, observed log10 damage gain {damage} and log10 gold gain {gold}. Native A is an interpolation coordinate only; no level outside this interval is eligible.":"Calibration locale mesurée de Tactical Insight : niveaux {low} à {high}, gain observé de dégâts log10 {damage} et d’or log10 {gold}. Le bonus natif A sert seulement à interpoler ; aucun niveau hors de cet intervalle n’est autorisé.",
  "Shared build excludes private Tactical Insight measurements. Conservative TI exclusion is enabled.":"Le lien partagé n’inclut pas les mesures privées de Tactical Insight. Le coefficient TI est exclu par précaution.",
  "Coordinated Offensive active at boss: {status}.":"Coordinated Offensive actif contre le boss : {status}.",
@@ -361,6 +362,7 @@ fr:{
  "Free Tap Titans 2 skill tree optimizer for TT2 8.4. Optimize skill points for Clan Ship, Pet, Shadow Clone, Heavenly Strike, Dagger or Gold Gun. Import game data or configure manually.":"Optimiseur gratuit de compétences Tap Titans 2 version 8.4. Import des données ou configuration manuelle pour tous les types de builds."
 },
 uk:{
+ "Boss specials: Flash Zip {fz}; Nightmare {nm}; Magnum Opus {mo}.":"Спеціальні атаки проти боса: Flash Zip {fz}; Nightmare {nm}; Magnum Opus {mo}.",
  "Measured local Tactical Insight calibration: levels {low}–{high}, observed log10 damage gain {damage} and log10 gold gain {gold}. Native A is an interpolation coordinate only; no level outside this interval is eligible.":"Локальне калібрування Tactical Insight: рівні {low}–{high}, виміряний приріст шкоди log10 {damage} та золота log10 {gold}. Рідний бонус A використовується лише для інтерполяції; рівні за межами інтервалу недоступні.",
  "Shared build excludes private Tactical Insight measurements. Conservative TI exclusion is enabled.":"Спільне посилання не містить приватних вимірів Tactical Insight. Консервативне виключення TI увімкнено.",
  "Coordinated Offensive active at boss: {status}.":"Coordinated Offensive активний проти боса: {status}.",
@@ -668,6 +670,7 @@ uk:{
  "Free Tap Titans 2 skill tree optimizer for TT2 8.4. Optimize skill points for Clan Ship, Pet, Shadow Clone, Heavenly Strike, Dagger or Gold Gun. Import game data or configure manually.":"Безкоштовний оптимізатор дерева навичок Tap Titans 2 версії 8.4. Імпорт даних або ручне налаштування для всіх збірок."
 },
 ru:{
+ "Boss specials: Flash Zip {fz}; Nightmare {nm}; Magnum Opus {mo}.":"Специальные атаки против босса: Flash Zip {fz}; Nightmare {nm}; Magnum Opus {mo}.",
  "Measured local Tactical Insight calibration: levels {low}–{high}, observed log10 damage gain {damage} and log10 gold gain {gold}. Native A is an interpolation coordinate only; no level outside this interval is eligible.":"Локальная калибровка Tactical Insight: уровни {low}–{high}, измеренный прирост урона log10 {damage} и золота log10 {gold}. Базовый бонус A служит только для интерполяции; уровни вне диапазона недоступны.",
  "Shared build excludes private Tactical Insight measurements. Conservative TI exclusion is enabled.":"Общая ссылка не содержит личных измерений Tactical Insight. Включено консервативное исключение TI.",
  "Coordinated Offensive active at boss: {status}.":"Coordinated Offensive активен против босса: {status}.",
