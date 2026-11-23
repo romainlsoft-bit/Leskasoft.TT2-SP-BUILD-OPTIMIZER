@@ -16,7 +16,7 @@
 <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg"><link rel="stylesheet" href="../styles.css?v=20261122-toast-flat-r1">
 <title>Оптимизатор дерева навыков TT2 8.4 — бесплатный калькулятор | Leskasoft</title>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Оптимизатор дерева навыков Tap Titans 2","description":"Калькулятор очков навыков Tap Titans 2: импорт JSON, ручной ввод, настройки QoL и экспорт билда до 50 000 очков.","applicationCategory":"GameApplication","operatingSystem":"Any","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"url":"https://tap-titans.leskasoft.com/ru/","inLanguage":"ru","@id":"https://tap-titans.leskasoft.com/ru/#tool"}</script>
-<script type="module" src="../src/app.js?v=20261123-spell-score-r1" defer></script>
+<script type="module" src="../src/app.js?v=20261123-ti-measured-r1" defer></script>
 </head>
 <body>
 <div class="site">
@@ -86,6 +86,19 @@
     <label class="toggle"><input type="checkbox" id="preserve-current">Сохранить текущие уровни как минимальные</label>
     <label class="toggle"><input type="checkbox" id="protect-unmodeled-skills" checked> Сохранять имеющиеся условные навыки, если модель не учитывает их эффект (рекомендуется)</label>
     <label class="toggle"><input type="checkbox" id="exclude-unverified-tactical-insight"> Эксперимент: исключить непроверенный коэффициент сообщества для Tactical Insight из расчёта SP (реальная польза навыка не считается нулевой)</label>
+    <details class="result-detail">
+     <summary>Tactical Insight — калибровка по двум измерениям Stats (необязательно)</summary>
+     <p class="hint">Введите два значения Stats в игре с одинаковой экипировкой, питомцами, заклинаниями и бонусами; меняется только уровень Tactical Insight. Укажите урон и золото для этого билда. Допускается 1.23e30000. Оптимизация ограничена уровнями между измерениями. Данные остаются на устройстве и не попадают в общие ссылки.</p>
+     <label class="toggle"><input type="checkbox" id="ti-cal-enabled"> Использовать мои измерения Tactical Insight для этого билда</label>
+     <div class="options-grid">
+      <label>Нижний уровень Tactical Insight <input type="number" id="ti-cal-low-level" min="0" max="30" step="1" inputmode="numeric" placeholder="10"></label>
+      <label>Верхний уровень Tactical Insight <input type="number" id="ti-cal-high-level" min="0" max="30" step="1" inputmode="numeric" placeholder="15"></label>
+      <label>Урон Stats на нижнем уровне <input type="text" id="ti-cal-low-damage" inputmode="decimal" placeholder="1.23e30000"></label>
+      <label>Урон Stats на верхнем уровне <input type="text" id="ti-cal-high-damage" inputmode="decimal" placeholder="2.45e30000"></label>
+      <label>Золото Stats на нижнем уровне <input type="text" id="ti-cal-low-gold" inputmode="decimal" placeholder="1.23e29000"></label>
+      <label>Золото Stats на верхнем уровне <input type="text" id="ti-cal-high-gold" inputmode="decimal" placeholder="1.56e29000"></label>
+     </div>
+    </details>
     <h3>Отдельные навыки</h3>
     <p class="hint">Укажите текущий уровень для сравнения. Задайте обязательный минимум. Исключённые навыки не получат дополнительные очки.</p>
     <div class="skill-filter"><input type="search" id="skill-search" placeholder="Поиск навыка или дерева…" aria-label="Поиск навыков"><button type="button" class="btn tiny secondary" id="clear-minimums">Очистить минимумы</button></div>

@@ -16,7 +16,7 @@
 <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg"><link rel="stylesheet" href="../styles.css?v=20261122-toast-flat-r1">
 <title>Optimiseur de compétences TT2 8.4 — Calculateur SP gratuit | Leskasoft</title>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Optimiseur d’arbre de compétences Tap Titans 2","description":"Optimisez vos points de compétences Tap Titans 2 : import JSON, saisie manuelle, confort de jeu (QoL) et export du build jusqu’à 50 000 SP.","applicationCategory":"GameApplication","operatingSystem":"Any","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"url":"https://tap-titans.leskasoft.com/fr/","inLanguage":"fr","@id":"https://tap-titans.leskasoft.com/fr/#tool"}</script>
-<script type="module" src="../src/app.js?v=20261123-spell-score-r1" defer></script>
+<script type="module" src="../src/app.js?v=20261123-ti-measured-r1" defer></script>
 </head>
 <body>
 <div class="site">
@@ -86,6 +86,19 @@
     <label class="toggle"><input type="checkbox" id="preserve-current">Conserver les niveaux actuels comme minimums</label>
     <label class="toggle"><input type="checkbox" id="protect-unmodeled-skills" checked> Conserver les compétences conditionnelles existantes lorsque leurs effets ne sont pas modélisés (recommandé)</label>
     <label class="toggle"><input type="checkbox" id="exclude-unverified-tactical-insight"> Expérimental : exclure du calcul SP le coefficient communautaire non vérifié de Tactical Insight (sa valeur réelle n'est pas considérée comme nulle)</label>
+    <details class="result-detail">
+     <summary>Tactical Insight — calibration par mesures Stats (facultatif)</summary>
+     <p class="hint">Saisissez deux relevés de l'écran Stats du jeu avec les mêmes équipements, familiers, sorts et bonus ; seul le niveau de Tactical Insight doit changer. Renseignez les dégâts et l'or de ce build. La notation 1.23e30000 est acceptée. L'optimisation se limite aux niveaux entre les deux mesures. Ces données restent sur cet appareil et sont omises des liens partagés.</p>
+     <label class="toggle"><input type="checkbox" id="ti-cal-enabled"> Utiliser ma calibration mesurée de Tactical Insight pour ce build</label>
+     <div class="options-grid">
+      <label>Niveau inférieur de Tactical Insight <input type="number" id="ti-cal-low-level" min="0" max="30" step="1" inputmode="numeric" placeholder="10"></label>
+      <label>Niveau supérieur de Tactical Insight <input type="number" id="ti-cal-high-level" min="0" max="30" step="1" inputmode="numeric" placeholder="15"></label>
+      <label>Dégâts Stats au niveau inférieur <input type="text" id="ti-cal-low-damage" inputmode="decimal" placeholder="1.23e30000"></label>
+      <label>Dégâts Stats au niveau supérieur <input type="text" id="ti-cal-high-damage" inputmode="decimal" placeholder="2.45e30000"></label>
+      <label>Or Stats au niveau inférieur <input type="text" id="ti-cal-low-gold" inputmode="decimal" placeholder="1.23e29000"></label>
+      <label>Or Stats au niveau supérieur <input type="text" id="ti-cal-high-gold" inputmode="decimal" placeholder="1.56e29000"></label>
+     </div>
+    </details>
     <h3>Compétences individuelles</h3>
     <p class="hint">Renseignez votre niveau actuel pour la comparaison. Imposez un niveau minimal si nécessaire. Les compétences exclues ne recevront aucun SP supplémentaire.</p>
     <div class="skill-filter"><input type="search" id="skill-search" placeholder="Rechercher une compétence ou un arbre…" aria-label="Rechercher des compétences"><button type="button" class="btn tiny secondary" id="clear-minimums">Effacer les minimums</button></div>

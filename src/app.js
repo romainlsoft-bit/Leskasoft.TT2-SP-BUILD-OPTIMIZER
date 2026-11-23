@@ -1,14 +1,14 @@
-import {SKILLS,SKILL_IDS,BRANCH_NAMES,PRESETS,DAMAGE_TYPES,GOLD_TYPES,GAME_VERSION,parseExport,exportBuild,spentPoints,ownedSetFlags} from "./engine.js?v=20261123-spell-score-r1";
-import { t, localizeDocument, SUPPORTED_LANGUAGES } from "./i18n.js?v=20261123-spell-score-r1";
-import { readClipboardText } from "./clipboard.js?v=20261123-spell-score-r1";
-import {resetAccountDependentOptions} from "./import-session-reset.js?v=20261123-spell-score-r1";
-import { profileCoverage } from "./account-profile.js?v=20261123-spell-score-r1";
-import {petLevelEvidence} from "./account-pet-levels.js?v=20261123-spell-score-r1";
-import {resolveGemstoneEvidence} from "./account-gemstones.js?v=20261123-spell-score-r1";
-import {formatLogMultiplier} from "./account-power.js?v=20261123-spell-score-r1";
-import {availablePets,recommendPets} from "./pet-scenarios.js?v=20261123-spell-score-r1";
-import {bestEquipmentByCategory,EQUIPMENT_CATEGORIES} from "./equipment-scenarios.js?v=20261123-spell-score-r1";
-import {sourcedStageSkipChannels,sourcedDamageChannels,attackChannelEvidence} from "./attack-channels.js?v=20261123-spell-score-r1";
+import {SKILLS,SKILL_IDS,BRANCH_NAMES,PRESETS,DAMAGE_TYPES,GOLD_TYPES,GAME_VERSION,parseExport,exportBuild,spentPoints,ownedSetFlags} from "./engine.js?v=20261123-ti-measured-r1";
+import { t, localizeDocument, SUPPORTED_LANGUAGES } from "./i18n.js?v=20261123-ti-measured-r1";
+import { readClipboardText } from "./clipboard.js?v=20261123-ti-measured-r1";
+import {resetAccountDependentOptions} from "./import-session-reset.js?v=20261123-ti-measured-r1";
+import { profileCoverage } from "./account-profile.js?v=20261123-ti-measured-r1";
+import {petLevelEvidence} from "./account-pet-levels.js?v=20261123-ti-measured-r1";
+import {resolveGemstoneEvidence} from "./account-gemstones.js?v=20261123-ti-measured-r1";
+import {formatLogMultiplier} from "./account-power.js?v=20261123-ti-measured-r1";
+import {availablePets,recommendPets} from "./pet-scenarios.js?v=20261123-ti-measured-r1";
+import {bestEquipmentByCategory,EQUIPMENT_CATEGORIES} from "./equipment-scenarios.js?v=20261123-ti-measured-r1";
+import {sourcedStageSkipChannels,sourcedDamageChannels,attackChannelEvidence} from "./attack-channels.js?v=20261123-ti-measured-r1";
 const $=id=>document.getElementById(id);
 let locale="en";
 let lastStatus={message:"Import your account or enter your skill points to begin.",type:"",params:{}};
@@ -63,7 +63,7 @@ function engineError(message){
 }
 const iconMap={"Clan Ship":"⛵","Pet":"🐾","Shadow Clone":"◈","Heavenly Strike":"⚡","Dagger":"🗡","Gold Gun":"✦"};
 const branchColors={Knight:"#d77879",Summoner:"#edab66",Warlord:"#e7ca75",Sorcerer:"#86adf7",Rogue:"#7ad0a0",Alchemist:"#b595ed"};
-const fresh=()=>({damage:"Clan Ship",gold:"Fairy",skillPoints:0,maxStage:0,playstyle:"balanced",qol:"recommended",goldWeight:.7,craftingPower:1,timeToKill:8,sClone:30,sets:{},currentLevels:{},minimums:{},excluded:[],preserveCurrent:false,assumeCoordinatedOffensiveActive:false,assumeHaystActive:false,assumeSnapActive:false,assumeContractsAtMax:false,astralActivations:0,mode:"power",accountProfile:null,selectedDamagePet:null,selectedGoldPet:null,comparePetScenarios:true,selectedEquipment:{},protectUnmodeledSkills:true,excludeUnverifiedTacticalInsight:false,contractTimeline:null,contractMultiScenario:null,
+const fresh=()=>({damage:"Clan Ship",gold:"Fairy",skillPoints:0,maxStage:0,playstyle:"balanced",qol:"recommended",goldWeight:.7,craftingPower:1,timeToKill:8,sClone:30,sets:{},currentLevels:{},minimums:{},excluded:[],preserveCurrent:false,assumeCoordinatedOffensiveActive:false,assumeHaystActive:false,assumeSnapActive:false,assumeContractsAtMax:false,astralActivations:0,mode:"power",accountProfile:null,selectedDamagePet:null,selectedGoldPet:null,comparePetScenarios:true,selectedEquipment:{},protectUnmodeledSkills:true,excludeUnverifiedTacticalInsight:false,tacticalInsightCalibration:null,contractTimeline:null,contractMultiScenario:null,
  importedVersion:null,budgetSource:"unset",budgetInconsistent:false,
  pushAttackChannelId:"",pushSourceStageSkipTarget:0,
  pushObservedAttackChannelId:"",pushObservedHitDamage:"",pushBossStage:null,
@@ -353,6 +353,14 @@ function fillInputs(){
  $("preserve-current").checked=state.preserveCurrent;
  $("protect-unmodeled-skills").checked=state.protectUnmodeledSkills!==false;
  $("exclude-unverified-tactical-insight").checked=state.excludeUnverifiedTacticalInsight===true;
+ const calibration=state.tacticalInsightCalibration||{};
+ $("ti-cal-enabled").checked=calibration.enabled===true;
+ for(const [key,id] of [["lowerLevel","ti-cal-low-level"],
+  ["upperLevel","ti-cal-high-level"],
+  ["lowerDamage","ti-cal-low-damage"],["upperDamage","ti-cal-high-damage"],
+  ["lowerGold","ti-cal-low-gold"],["upperGold","ti-cal-high-gold"]]){
+  $(id).value=calibration[key]??"";
+ }
  $("coordinated-offensive-active").checked=state.assumeCoordinatedOffensiveActive===true;
  $("hayst-active").checked=state.assumeHaystActive===true;
  $("snap-active").checked=state.assumeSnapActive===true;
@@ -453,6 +461,14 @@ function readInputs(){
  state.preserveCurrent=$("preserve-current").checked;
  state.protectUnmodeledSkills=$("protect-unmodeled-skills").checked;
  state.excludeUnverifiedTacticalInsight=$("exclude-unverified-tactical-insight").checked;
+ state.tacticalInsightCalibration=$("ti-cal-enabled").checked?{
+  enabled:true,damage:state.damage,gold:state.gold,
+  lowerLevel:$("ti-cal-low-level").value,upperLevel:$("ti-cal-high-level").value,
+  lowerDamage:$("ti-cal-low-damage").value.trim(),
+  upperDamage:$("ti-cal-high-damage").value.trim(),
+  lowerGold:$("ti-cal-low-gold").value.trim(),
+  upperGold:$("ti-cal-high-gold").value.trim()
+ }:null;
  state.assumeCoordinatedOffensiveActive=$("coordinated-offensive-active").checked;
  state.assumeHaystActive=$("hayst-active").checked;
  state.assumeSnapActive=$("snap-active").checked;
@@ -483,7 +499,7 @@ function optimize(){
  status("Checking prerequisites and calculating the best allocation for the chosen scoring model…");
  const revision=++calculationRevision;
  const requestContext=keepContractsConservative(structuredClone(state));
- const running=new Worker(new URL("./worker.js?v=20261123-spell-score-r1",import.meta.url),{type:"module"});
+ const running=new Worker(new URL("./worker.js?v=20261123-ti-measured-r1",import.meta.url),{type:"module"});
  worker=running;
  running.onmessage=event=>{
    if(revision!==calculationRevision||worker!==running)return;
@@ -830,7 +846,13 @@ function renderModelAttribution(result){
   safe(numberText(x.level))+
   (x.conditionalSourceUnverified?" · "+safe(tr("Conditional or unverified model weight")):"")+
   "</span><strong>"+safe(x.scoreLog10.toFixed(2))+" log10</strong></div>");
- const experimental=audit.tacticalInsightCommunityWeightExcluded===true?
+ const ti=audit.tacticalInsightLocal;
+ const experimental=ti?.enabled===true?
+  "<p class='hint'>"+safe(tr(
+   "Measured local Tactical Insight calibration: levels {low}–{high}, observed log10 damage gain {damage} and log10 gold gain {gold}. Native A is an interpolation coordinate only; no level outside this interval is eligible.",{
+    low:numberText(ti.lowerLevel),high:numberText(ti.upperLevel),
+    damage:ti.damageGainLog10.toFixed(3),gold:ti.goldGainLog10.toFixed(3)}))+"</p>":
+  audit.tacticalInsightCommunityWeightExcluded===true?
   "<p class='hint'>"+safe(tr("Experimental: the unverified community Tactical Insight coefficient was excluded from this allocation. This is a sensitivity comparison, not evidence of zero in-game benefit or a proven stronger build."))+"</p>":"";
  el.innerHTML="<summary>"+safe(tr("Why the proxy invests in these trees"))+
   "</summary><p class='hint'>"+
@@ -1054,9 +1076,12 @@ function renderResults(result,scroll=true){
  $("export-json").value=exportBuild(result.levels);
 }
 function sharePayload(){
+ // Local TT2 Stats observations are deliberately NOT placed in a shared URL.
+ // A recipient gets the reversible conservative TI exclusion, never
+ // a fictitious re-creation of the measured allocation.
  // Compact URL encoding; the exported skill tree itself is intentionally
  // not encrypted. Sharing the link discloses the included game settings.
- return {pushFrontier:state.pushFrontierEnabled===true,attackDamageFrontier:state.attackDamageFrontierEnabled===true,attackDamageChannel:state.attackDamageChannelId,protect:state.protectUnmodeledSkills!==false,co:state.assumeCoordinatedOffensiveActive===true,tiExperiment:state.excludeUnverifiedTacticalInsight===true,sp:state.skillPoints,st:state.maxStage,da:state.damage,go:state.gold,p:state.playstyle,q:state.qol,w:state.goldWeight,cp:state.craftingPower,tk:state.timeToKill,cl:state.sClone,cur:state.currentLevels,min:state.minimums,exc:state.excluded,keep:state.preserveCurrent,hay:state.assumeHaystActive,snap:state.assumeSnapActive,astral:state.astralActivations,attack:state.pushAttackChannelId,skip:state.pushSourceStageSkipTarget};
+ return {pushFrontier:state.pushFrontierEnabled===true,attackDamageFrontier:state.attackDamageFrontierEnabled===true,attackDamageChannel:state.attackDamageChannelId,protect:state.protectUnmodeledSkills!==false,co:state.assumeCoordinatedOffensiveActive===true,tiExperiment:state.excludeUnverifiedTacticalInsight===true||state.tacticalInsightCalibration?.enabled===true,tiMeasurementOmitted:state.tacticalInsightCalibration?.enabled===true,sp:state.skillPoints,st:state.maxStage,da:state.damage,go:state.gold,p:state.playstyle,q:state.qol,w:state.goldWeight,cp:state.craftingPower,tk:state.timeToKill,cl:state.sClone,cur:state.currentLevels,min:state.minimums,exc:state.excluded,keep:state.preserveCurrent,hay:state.assumeHaystActive,snap:state.assumeSnapActive,astral:state.astralActivations,attack:state.pushAttackChannelId,skip:state.pushSourceStageSkipTarget};
 }
 function decodeLink(){
  const hash=window.location.hash;
@@ -1072,7 +1097,9 @@ function decodeLink(){
     attackDamageFrontierEnabled:payload.attackDamageFrontier===true,
     attackDamageChannelId:typeof payload.attackDamageChannel==="string"?payload.attackDamageChannel:"",mode:"power"};
   window.history.replaceState(null,"",window.location.pathname+window.location.search);
-  status("Shared build settings loaded. Optimize to calculate a new recommendation.","success");
+  status(payload.tiMeasurementOmitted===true?
+   "Shared build excludes private Tactical Insight measurements. Conservative TI exclusion is enabled.":
+   "Shared build settings loaded. Optimize to calculate a new recommendation.","success");
  }catch(e){status("Could not load this shared build link.","error");}
 }
 function initialize(){
@@ -1101,8 +1128,8 @@ function initialize(){
  const importHelp=$("import-help-dialog");
  $("import-help-button").addEventListener("click",()=>importHelp.showModal());
  for(const id of ["import-help-close","import-help-done"])$(id).addEventListener("click",()=>importHelp.close());
- $("damage-choices").addEventListener("click",e=>{const b=e.target.closest("[data-damage]");if(b){state.damage=b.dataset.damage;fillInputs();remember();}});
- $("gold-choices").addEventListener("click",e=>{const b=e.target.closest("[data-gold]");if(b){state.gold=b.dataset.gold;state.pushObservedHitDamage="";fillInputs();remember();}});
+ $("damage-choices").addEventListener("click",e=>{const b=e.target.closest("[data-damage]");if(b){state.damage=b.dataset.damage;state.tacticalInsightCalibration=null;fillInputs();remember();}});
+ $("gold-choices").addEventListener("click",e=>{const b=e.target.closest("[data-gold]");if(b){state.gold=b.dataset.gold;state.tacticalInsightCalibration=null;state.pushObservedHitDamage="";fillInputs();remember();}});
  $("push-attack-channel").addEventListener("change",()=>{readInputs();remember();});
  $("attack-damage-channel").addEventListener("change",()=>{readInputs();remember();});
  $("push-observed-attack").addEventListener("change",()=>{readInputs();remember();});
@@ -1120,7 +1147,12 @@ function initialize(){
   remember();
  });
  $("clear-minimums").addEventListener("click",()=>{state.minimums={};fillInputs();remember();});
- for(const id of ["skill-points","max-stage","gold-weight","crafting-power","time-to-kill","clone-level","qol-mode","preserve-current","protect-unmodeled-skills","exclude-unverified-tactical-insight","coordinated-offensive-active","hayst-active","snap-active","astral-activations","push-stage-skip-target","push-observed-damage","push-observed-stage","push-frontier-enabled","attack-damage-frontier-enabled"])$(id).addEventListener("change",()=>{
+ for(const id of ["skill-points","max-stage","gold-weight","crafting-power","time-to-kill","clone-level","qol-mode","preserve-current","protect-unmodeled-skills","exclude-unverified-tactical-insight","ti-cal-enabled","coordinated-offensive-active","hayst-active","snap-active","astral-activations","push-stage-skip-target","push-observed-damage","push-observed-stage","push-frontier-enabled","attack-damage-frontier-enabled",
+  "ti-cal-low-level","ti-cal-high-level","ti-cal-low-damage","ti-cal-high-damage","ti-cal-low-gold","ti-cal-high-gold"])$(id).addEventListener("change",()=>{
+  if(id==="ti-cal-enabled"&&$(id).checked)
+   $("exclude-unverified-tactical-insight").checked=false;
+  if(id==="exclude-unverified-tactical-insight"&&$(id).checked)
+   $("ti-cal-enabled").checked=false;
   const was=state.maxStage;readInputs();
   if(id==="max-stage"&&was!==state.maxStage){state.pushObservedHitDamage="";$("push-observed-damage").value="";}
   remember();
@@ -1129,7 +1161,8 @@ function initialize(){
  // Cancel a running optimization immediately while the user edits; never
  // accept an old worker result against a half-edited budget or setting.
  for(const id of ["skill-points","max-stage","gold-weight",
-  "crafting-power","time-to-kill","clone-level","astral-activations","push-stage-skip-target","push-observed-damage","push-observed-stage"]){
+  "crafting-power","time-to-kill","clone-level","astral-activations","push-stage-skip-target","push-observed-damage","push-observed-stage",
+  "ti-cal-low-level","ti-cal-high-level","ti-cal-low-damage","ti-cal-high-damage","ti-cal-low-gold","ti-cal-high-gold"]){
    $(id).addEventListener("input",()=>{if(worker){readInputs();remember();}});
  }
  $("skill-editor").addEventListener("input",e=>{

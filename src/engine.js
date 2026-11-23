@@ -1,27 +1,28 @@
-import { skillInfo } from "../vendor/skills.js?v=20261123-spell-score-r1";
-import {parseExportCounter} from "./import-numbers.js?v=20261123-spell-score-r1";
-import {attackChannelEvidence,compareAttackChannels} from "./attack-channels.js?v=20261123-spell-score-r1";
-import {bossPushEvidence} from "./boss-push-evidence.js?v=20261123-spell-score-r1";
-import {resolvePushSkipTarget,verifyPushSkipTarget} from "./push-skip-target.js?v=20261123-spell-score-r1";
-import { baseline } from "../vendor/qol-baseline.js?v=20261123-spell-score-r1";
-import { optimizeExact } from "./solver-core.js?v=20261123-spell-score-r1";
-import { scoreAtLevel } from "./effects.js?v=20261123-spell-score-r1";
-import { parseAccountProfile } from "./account-profile.js?v=20261123-spell-score-r1";
-import {extractFixedAccountPower,fixedAccountScore} from "./account-power.js?v=20261123-spell-score-r1";
-import {accountDependencyGraph} from "./account-dependencies.js?v=20261123-spell-score-r1";
-import {resolveSpellCaps} from "./spell-caps.js?v=20261123-spell-score-r1";
-import {resolveSpellScenario,spellSelectionEvidence,spellEffectScorable,SPELL_CAP_SKILLS,MULTICAST_SKILL_SPELLS,ACTIVE_SOURCE_SKILL_SPELLS,multicastSkillEvidence} from "./spell-scenarios.js?v=20261123-spell-score-r1";
-import {ACTIVE_SPELL_CAPS} from "../vendor/active-spell-caps.js?v=20261123-spell-score-r1";
-import {resolveManaEvidence} from "./mana-evidence.js?v=20261123-spell-score-r1";
-import {accountSourceCoverage} from "./account-source-coverage.js?v=20261123-spell-score-r1";
-import {monumentSeasonDayEvidence} from "./monument-season-day.js?v=20261123-spell-score-r1";
-import {extractTimedSetPower} from "./account-set-bonuses.js?v=20261123-spell-score-r1";
-import {resolvePermanentSetPower} from "./account-permanent-sets.js?v=20261123-spell-score-r1";
-import {skillTreeSetAllocationEvidence} from "./skill-tree-set-effects.js?v=20261123-spell-score-r1";
-import {resolveContractScenario} from "./contract-scenarios.js?v=20261123-spell-score-r1";
-import {conditionalSkillEvidence} from "./conditional-skill-evidence.js?v=20261123-spell-score-r1";
-import {lightningStrikeEvidence} from "./lightning-strike-evidence.js?v=20261123-spell-score-r1";
-import {buildInvestmentAudit} from "./investment-audit.js?v=20261123-spell-score-r1";
+import { skillInfo } from "../vendor/skills.js?v=20261123-ti-measured-r1";
+import {parseExportCounter} from "./import-numbers.js?v=20261123-ti-measured-r1";
+import {attackChannelEvidence,compareAttackChannels} from "./attack-channels.js?v=20261123-ti-measured-r1";
+import {bossPushEvidence} from "./boss-push-evidence.js?v=20261123-ti-measured-r1";
+import {resolvePushSkipTarget,verifyPushSkipTarget} from "./push-skip-target.js?v=20261123-ti-measured-r1";
+import { baseline } from "../vendor/qol-baseline.js?v=20261123-ti-measured-r1";
+import { optimizeExact } from "./solver-core.js?v=20261123-ti-measured-r1";
+import { scoreAtLevel } from "./effects.js?v=20261123-ti-measured-r1";
+import { parseAccountProfile } from "./account-profile.js?v=20261123-ti-measured-r1";
+import {extractFixedAccountPower,fixedAccountScore} from "./account-power.js?v=20261123-ti-measured-r1";
+import {accountDependencyGraph} from "./account-dependencies.js?v=20261123-ti-measured-r1";
+import {resolveSpellCaps} from "./spell-caps.js?v=20261123-ti-measured-r1";
+import {resolveSpellScenario,spellSelectionEvidence,spellEffectScorable,SPELL_CAP_SKILLS,MULTICAST_SKILL_SPELLS,ACTIVE_SOURCE_SKILL_SPELLS,multicastSkillEvidence} from "./spell-scenarios.js?v=20261123-ti-measured-r1";
+import {ACTIVE_SPELL_CAPS} from "../vendor/active-spell-caps.js?v=20261123-ti-measured-r1";
+import {resolveManaEvidence} from "./mana-evidence.js?v=20261123-ti-measured-r1";
+import {accountSourceCoverage} from "./account-source-coverage.js?v=20261123-ti-measured-r1";
+import {monumentSeasonDayEvidence} from "./monument-season-day.js?v=20261123-ti-measured-r1";
+import {extractTimedSetPower} from "./account-set-bonuses.js?v=20261123-ti-measured-r1";
+import {resolvePermanentSetPower} from "./account-permanent-sets.js?v=20261123-ti-measured-r1";
+import {skillTreeSetAllocationEvidence} from "./skill-tree-set-effects.js?v=20261123-ti-measured-r1";
+import {resolveContractScenario} from "./contract-scenarios.js?v=20261123-ti-measured-r1";
+import {conditionalSkillEvidence} from "./conditional-skill-evidence.js?v=20261123-ti-measured-r1";
+import {lightningStrikeEvidence} from "./lightning-strike-evidence.js?v=20261123-ti-measured-r1";
+import {buildInvestmentAudit} from "./investment-audit.js?v=20261123-ti-measured-r1";
+import {resolveTacticalInsightLocal} from "./tactical-insight-local.js?v=20261123-ti-measured-r1";
 
 export const GAME_VERSION = "8.4.0";
 export const DATASET_REVISION = "2026-09-18"; // SkillTreeInfo2.0.csv comparison
@@ -122,6 +123,10 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
     assumeContractsAtMax:settings.assumeContractsAtMax===true,
     assumeBossStunned:settings.assumeBossStunned===true,
     assumeCoordinatedOffensiveActive:settings.assumeCoordinatedOffensiveActive===true};
+  // Parse and validate controlled, source-specific local observations once.
+  // When absent, preserve historical community/exclusion options unchanged.
+  const tiLocal=resolveTacticalInsightLocal(settings);
+  combatContext.resolvedTacticalInsightLocal=tiLocal;
   const current=levelsFrom(settings.currentLevels||{});
   const min=Object.fromEntries(SKILL_IDS.map(id=>[id,settings.preserveCurrent?current[id]:0]));
   // Protect current investments that the proxy deliberately scores as zero
@@ -196,6 +201,10 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
     if(!Number.isInteger(lvl)||lvl<0||lvl>skillInfo[id].MaxLevel)throw new Error("Invalid minimum for "+skillInfo[id].Name);
     min[id]=Math.max(min[id],lvl);
   }
+  // A two-point observed TI scenario is only justified WITHIN its
+  // measured interval. The lower level's SP cost is a real hard minimum.
+  if(tiLocal.enabled)
+    min.HelperBoost=Math.max(min.HelperBoost,tiLocal.lowerLevel);
   // Optional attack-specific source Stage Skip is a REAL constraint on
   // talent levels. It is not converted into fictitious attack damage.
   // The same mechanism works for all six damage builds and gold sources.
@@ -226,7 +235,9 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
   if(spentPoints(min)>SP)throw new Error("The required QoL or minimum skills cost more SP than available. Disable automatic QoL or lower constraints.");
   const skills=SKILL_IDS.map(id=>{
     const s=skillInfo[id],maxStage=Number(settings.maxStage||0);
-    const max=maxStage&&maxStage<Number(s.S0)?0:Number(s.MaxLevel);
+    const sourceMax=maxStage&&maxStage<Number(s.S0)?0:Number(s.MaxLevel);
+    const max=id==="HelperBoost"&&tiLocal.enabled?
+      Math.min(sourceMax,tiLocal.upperLevel):sourceMax;
     if(min[id]>max)throw new Error(s.Name+" cannot reach the required minimum at your current stage.");
     return {id,branch:s.Branch,parent:s.TalentReq,spReq:Number(s.SPReq),min:min[id],max,excluded:settings.excluded?.includes(id)||false,costs:COSTS[id]};
   });
@@ -294,8 +305,13 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
       nativeDamageSourceTablesVersion:GAME_VERSION,
       verifiedRealStageImprovement:false
     },
-    tacticalInsightCommunityWeightExcluded:settings.excludeUnverifiedTacticalInsight===true,
-    optimizerScoreChanged:settings.excludeUnverifiedTacticalInsight===true};
+    tacticalInsightCommunityWeightExcluded:tiLocal.enabled||
+      settings.excludeUnverifiedTacticalInsight===true,
+    tacticalInsightMode:tiLocal.enabled?"measured-local":
+      settings.excludeUnverifiedTacticalInsight===true?"excluded":"community",
+    tacticalInsightLocal:tiLocal.enabled?tiLocal:null,
+    optimizerScoreChanged:tiLocal.enabled||
+      settings.excludeUnverifiedTacticalInsight===true};
   const points=spentPoints(result.levels);
   if(points>SP)throw new Error("Internal validation failed: allocation exceeds SP budget.");
   for(const item of skills){

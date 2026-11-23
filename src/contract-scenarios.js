@@ -12,8 +12,8 @@
  * that a user's mana can sustain the effect. The game drain rises over time.
  * No invented mana regen, proc rate, uptime or ramp duration.
  */
-import {skillInfo} from "../vendor/skills.js?v=20261123-spell-score-r1";
-import {contractNativeTickSchedule} from "./contract-native-ticks.js?v=20261123-spell-score-r1";
+import {skillInfo} from "../vendor/skills.js?v=20261123-ti-measured-r1";
+import {contractNativeTickSchedule} from "./contract-native-ticks.js?v=20261123-ti-measured-r1";
 
 const CONTRACTS=Object.freeze(["ForbiddenContract","RoyalContract"]);
 const CONTRACT_SKILLS=Object.freeze([...CONTRACTS,"TerrifyingPact"]);
