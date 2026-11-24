@@ -5,7 +5,7 @@ import {bossPushEvidence} from "./boss-push-evidence.js?v=20261123-boss-specials
 import {resolvePushSkipTarget,verifyPushSkipTarget} from "./push-skip-target.js?v=20261123-boss-specials-r1";
 import { baseline } from "../vendor/qol-baseline.js?v=20261123-boss-specials-r1";
 import { optimizeExact } from "./solver-core.js?v=20261123-boss-specials-r1";
-import { scoreAtLevel } from "./effects.js?v=20261123-boss-specials-r1&score=20261123-cadence-separated-r1&ember=20261123-ember-fire-sword-gate-r1&jackpot=20261123-native-jackpot-expectation-r1&mc=20261123-multicast-no-guessed-x10-r1&crit=20261124-cleaving-crit-event-r1";
+import { scoreAtLevel } from "./effects.js?v=20261123-boss-specials-r1&score=20261123-cadence-separated-r1&ember=20261123-ember-fire-sword-gate-r1&jackpot=20261123-native-jackpot-expectation-r1&mc=20261123-multicast-no-guessed-x10-r1&crit=20261124-cleaving-crit-event-r1&ambush=20261124-ambush-conditional-gold-r1";
 import { parseAccountProfile } from "./account-profile.js?v=20261123-boss-specials-r1";
 import {extractFixedAccountPower,fixedAccountScore} from "./account-power.js?v=20261123-boss-specials-r1";
 import {accountDependencyGraph} from "./account-dependencies.js?v=20261123-boss-specials-r1";
@@ -24,6 +24,7 @@ import {lightningStrikeEvidence} from "./lightning-strike-evidence.js?v=20261123
 import {buildInvestmentAudit} from "./investment-audit.js?v=20261123-boss-specials-r1";
 import {transmutationSourceEventEvidence} from "./transmutation-native.js?v=20261123-boss-specials-r1&jackpot=20261123-native-jackpot-expectation-r1";
 import {cleavingStrikeSourceEvidence} from "./cleaving-strike-native.js?v=20261123-boss-specials-r1&crit=20261124-cleaving-crit-event-r1";
+import {ambushSourceEventEvidence} from "./ambush-native-score.js?v=20261123-boss-specials-r1&ambush=20261124-ambush-conditional-gold-r1";
 import {resolveTacticalInsightLocal} from "./tactical-insight-local.js?v=20261123-boss-specials-r1";
 import {tacticalInsightRecommendationSensitivity} from "./tactical-insight-sensitivity.js?v=20261123-boss-specials-r1&audit=20261123-ti-sensitivity-r1";
 
@@ -200,6 +201,9 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
     // For non-HS sources, the account-wide critical probability is unknown.
     // Keep their imported levels when applying a talent-only event model.
     ...(combatContext.damage==="Heavenly Strike"?[]:["HeavyStrikes"]),
+    // The player's actual multiple-Titan encounter frequency is unknown.
+    // Do not erase an imported Ambush investment from a source-only model.
+    "MultiMonsters",
     "BossTimer","PoisonedBlade","KratosSummon","Transmutation",
     ...(combatContext.assumeSourceOnlyLightningStrike===true&&
       Number.isSafeInteger(combatContext.lightningStrikeHits)&&
@@ -293,6 +297,7 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
         "QuickFortune","PhilosophersFlux","HelperDmgSkillBoost",
         "ClanShipVoltage","CriticalHit","HelperInspiredWeaken",
         "Transmutation","TwilightGatheringMultiCastSkill",
+        "MultiMonsters",
         ].includes(id)||
        (id==="HeavyStrikes"&&scoreContext.damage!=="Heavenly Strike")};
   });
@@ -325,6 +330,8 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
       cleavingStrikeGuaranteedCritOnlyForHeavenlyStrike:true,
       cleavingStrikeOtherBuildsUseSourceOnlyCritChance:true,
       importedCriticalChanceNotUsedForAlternativeTrees:true,
+      ambushGoldNotCreditedOnEveryChestersonEvent:true,
+      ambushMaximumTitanCountNotUsedAsEncounterChance:true,
       sourceSpellScoringBySkill:Object.fromEntries(
         Object.entries(ACTIVE_SOURCE_SKILL_SPELLS).map(([id,spell])=>
           [id,spellEffectScorable(spell,scoreContext)])),
@@ -405,6 +412,8 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
    result.levels.Transmutation??0);
   const criticalSourceOnly=cleavingStrikeSourceEvidence(
    result.levels.HeavyStrikes??0,scoreContext.damage);
+  const ambushSourceOnly=ambushSourceEventEvidence(
+   result.levels.MultiMonsters??0);
   const contractScenario=resolveContractScenario(result.levels,scoreContext);
   const conditionalSkills=conditionalSkillEvidence(result.levels,scoreContext);
   const lightningStrike=lightningStrikeEvidence(result.levels,scoreContext);
@@ -435,7 +444,7 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
     selectedSpellUnlocks,spellBaselineInvariantUnderSkillOptimization:
      spellSelection.valid&&!spellCapEvidenceIsIncomplete,
     spellCaps,spellScenario,manaEvidence,contractScenario,conditionalSkills,lightningStrike,
-    jackpotSourceOnly,criticalSourceOnly,
+    jackpotSourceOnly,criticalSourceOnly,ambushSourceOnly,
     accountIntegration:{
       skillTreeSetPower:{
        applied:skillTreeSetPower.applied,recognized:skillTreeSetPower.recognized,
