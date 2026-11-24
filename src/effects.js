@@ -16,6 +16,7 @@ import {tacticalInsightLocalScore} from "./tactical-insight-local.js?v=20261123-
 import {transmutationSourceEventEvidence} from "./transmutation-native.js?v=20261123-boss-specials-r1&jackpot=20261123-native-jackpot-expectation-r1";
 import {nativeMulticastSkillScore} from "./multicast-native-score.js?v=20261123-boss-specials-r1&mc=20261123-multicast-no-guessed-x10-r1";
 import {cleavingStrikeSourceEvidence} from "./cleaving-strike-native.js?v=20261123-boss-specials-r1&crit=20261124-cleaving-crit-event-r1";
+import {ambushSourceEventEvidence} from "./ambush-native-score.js?v=20261123-boss-specials-r1&ambush=20261124-ambush-conditional-gold-r1";
 
 const num=(v,fallback=0)=>{ const x=Number(v); return Number.isFinite(x)?x:fallback; };
 const lg=v=>Math.log10(num(v)>0?num(v):1);
@@ -118,6 +119,12 @@ function sourceSkillScoreAtLevel(id,level,settings){
     case "LoadedDice":
       // Unlike Quick Fortune, B is unconditionally AllGold.
       return r*lr(logA)+goldWeight*lr(logB);
+    case "MultiMonsters":
+      // Ambush A = multiple-Titan gold, not general Chesterson gold.
+      // The native B is a group-size CAP, not an event probability.
+      // Use only the guide's documented base 1% multi-Titan chance
+      // as a clearly labeled source-only conditional expectation.
+      return r*ambushSourceEventEvidence(level).sourceOnlyExpectedGoldLog10;
     case "Transmutation":
       // A = JackpotGold, B = JackpotGoldChance. This is a conditional
       // eligible-event reward, NOT unconditional All Gold. With no

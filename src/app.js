@@ -1,4 +1,4 @@
-import {SKILLS,SKILL_IDS,BRANCH_NAMES,PRESETS,DAMAGE_TYPES,GOLD_TYPES,GAME_VERSION,parseExport,exportBuild,spentPoints,ownedSetFlags} from "./engine.js?v=20261123-boss-specials-r1&score=20261123-cadence-separated-r1&audit=20261123-ti-sensitivity-r1&ember=20261123-ember-fire-sword-gate-r1&jackpot=20261123-native-jackpot-expectation-r1&mc=20261123-multicast-no-guessed-x10-r1&crit=20261124-cleaving-crit-event-r1";
+import {SKILLS,SKILL_IDS,BRANCH_NAMES,PRESETS,DAMAGE_TYPES,GOLD_TYPES,GAME_VERSION,parseExport,exportBuild,spentPoints,ownedSetFlags} from "./engine.js?v=20261123-boss-specials-r1&score=20261123-cadence-separated-r1&audit=20261123-ti-sensitivity-r1&ember=20261123-ember-fire-sword-gate-r1&jackpot=20261123-native-jackpot-expectation-r1&mc=20261123-multicast-no-guessed-x10-r1&crit=20261124-cleaving-crit-event-r1&ambush=20261124-ambush-conditional-gold-r1";
 import { t, localizeDocument, SUPPORTED_LANGUAGES } from "./i18n.js?v=20261123-boss-specials-r1&ui=20261123-hide-observed-hit-r1&audit=20261123-ti-sensitivity-r1&alt=20261123-ti-second-tree-r1";
 import { readClipboardText } from "./clipboard.js?v=20261123-boss-specials-r1";
 import {resetAccountDependentOptions} from "./import-session-reset.js?v=20261123-boss-specials-r1";
@@ -483,7 +483,7 @@ function optimize(){
  status("Checking prerequisites and calculating the best allocation for the chosen scoring model…");
  const revision=++calculationRevision;
  const requestContext=keepContractsConservative(structuredClone(state));
- const running=new Worker(new URL("./worker.js?v=20261123-boss-specials-r1&score=20261123-cadence-separated-r1&audit=20261123-ti-sensitivity-r1&alt=20261123-ti-second-tree-r1&ember=20261123-ember-fire-sword-gate-r1&jackpot=20261123-native-jackpot-expectation-r1&mc=20261123-multicast-no-guessed-x10-r1&crit=20261124-cleaving-crit-event-r1",import.meta.url),{type:"module"});
+ const running=new Worker(new URL("./worker.js?v=20261123-boss-specials-r1&score=20261123-cadence-separated-r1&audit=20261123-ti-sensitivity-r1&alt=20261123-ti-second-tree-r1&ember=20261123-ember-fire-sword-gate-r1&jackpot=20261123-native-jackpot-expectation-r1&mc=20261123-multicast-no-guessed-x10-r1&crit=20261124-cleaving-crit-event-r1&ambush=20261124-ambush-conditional-gold-r1",import.meta.url),{type:"module"});
  worker=running;
  running.onmessage=event=>{
    if(revision!==calculationRevision||worker!==running)return;
@@ -866,12 +866,15 @@ function renderModelAttribution(result){
  const critNotice=Number(result.criticalSourceOnly?.level??0)>0&&
   result.criticalSourceOnly.guaranteedByHeavenlyStrike!==true?
   "<p class='hint'>"+safe(tr("Cleaving Strike critical damage is chance-weighted for non-Heavenly Strike builds using its native talent chance, not guaranteed on every attack. This is a source-only estimate: the account's total critical chance and actual hit eligibility are unverified."))+"</p>":"";
+ const ambushNotice=Number(result.ambushSourceOnly?.level??0)>0&&
+  result.modelAttribution?.gold==="Chesterson"?
+  "<p class='hint'>"+safe(tr("Ambush Multiple Titan Gold is conditional on encountering a multi-Titan group. The proxy uses only the documented 1% base group chance; your real chance, spawn distribution and other modifiers are not verified. Max Multiple Titan Count is not a probability."))+"</p>":"";
  const jackpotNotice=Number(result.jackpotSourceOnly?.level??0)>0?
   "<p class='hint'>"+safe(tr("Transmutation Jackpot Gold is scored as a source-only chance-weighted gold event, not permanent All Gold. Your account's actual Jackpot chance and event mix are not verified."))+"</p>":"";
  el.innerHTML="<summary>"+safe(tr("Why the proxy invests in these trees"))+
   "</summary><p class='hint'>"+
   safe(tr("Modeled skill contributions only; a high contribution is not proof of real combat power. The comparison does not alter the build."))+
-  "</p>"+experimental+sensitivity+jackpotNotice+critNotice+branches.join("")+
+  "</p>"+experimental+sensitivity+jackpotNotice+critNotice+ambushNotice+branches.join("")+
   "<h4>"+safe(tr("Largest modeled talent contributions"))+"</h4>"+top.join()+altView;
 }
 /** Keep both valid builds visible; never invent a damage-to-stage conversion. */
