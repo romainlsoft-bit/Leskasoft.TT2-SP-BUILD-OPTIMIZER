@@ -90,16 +90,18 @@ test("Seasonal Transcendent pets, plus all permanent Legacy/Exotic, are recogniz
  assert.equal(Object.keys(PETS).length,30);
  assert.equal(Object.keys(TRANSCENDENT_PETS).length,15);
  assert.equal(Object.keys(ALL_PETS).length,45);
+ const historical=availablePets(p,new Date("2026-11-20T12:00:00Z"));
+ assert.ok(historical.some(x=>x.id==="SeasonalPet7"&&x.tier==="Transcendent"&&x.level===260));
  const present=availablePets(p);
- assert.ok(present.some(x=>x.id==="SeasonalPet7"&&x.tier==="Transcendent"&&x.level===260));
+ assert.ok(!present.some(x=>x.tier==="Transcendent"));
  assert.ok(present.some(x=>x.id==="Pet20"&&x.tier==="Exotic"));
  assert.ok(present.some(x=>x.id==="Pet1"&&x.tier==="Legacy"));
  assert.ok(!present.some(x=>x.id==="SeasonalPet1"));
  const settings={damage:"Pet",gold:"Fairy",goldWeight:0.7,accountProfile:p,sets:{}};
- assert.equal(recommendPets(p,settings,"damage",3)[0].id,"SeasonalPet7");
- assert.equal(recommendPets(p,settings,"gold",3)[0].id,"SeasonalPet2");
- assert.ok(petCombatTechniquesIncrement({...settings,selectedDamagePet:"SeasonalPet7",
-  selectedGoldPet:"SeasonalPet2"},30)>0);
+ assert.ok(recommendPets(p,settings,"damage",3).every(x=>!x.id.startsWith("SeasonalPet")));
+ assert.ok(recommendPets(p,settings,"gold",3).every(x=>!x.id.startsWith("SeasonalPet")));
+ assert.equal(petCombatTechniquesIncrement({...settings,selectedDamagePet:"SeasonalPet7",
+  selectedGoldPet:"SeasonalPet2"},30),0);
 });
 test("Transcendent improvements every five levels, permanent every twenty",()=>{
  const seasonal=TRANSCENDENT_PETS.SeasonalPet7;

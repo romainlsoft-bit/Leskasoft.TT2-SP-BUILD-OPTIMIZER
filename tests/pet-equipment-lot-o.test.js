@@ -20,12 +20,12 @@ const near=(a,b,label)=>assert.ok(
  Math.abs(a-b)<=1e-8*Math.max(1,Math.abs(a),Math.abs(b)),
  label+": "+a+" vs "+b);
 
-test("Legacy and Transcendent All Hero and Tap passives route through all 18 damage/gold contexts",()=>{
+test("Postseason permanent All Hero and Tap passives route through all 18 damage/gold contexts",()=>{
  const p=parseAccountProfile({petLevels:{Pet2:100,Pet13:100,SeasonalPet3:40,SeasonalPet4:40}});
  const passive=petPassiveEvidence(p);
  assert.ok(passive.byType.AllHelperDamage>0&&passive.byType.TapDamage>0);
- assert.equal(passive.seasonalImported,2);
- assert.equal(passive.seasonalDirect,2);
+ assert.equal(passive.seasonalImported,0);
+ assert.equal(passive.seasonalDirect,0);
  const power=extractFixedAccountPower(p);
  for(const damage of DAMAGE_TYPES)for(const gold of GOLD_TYPES){
   const s=cfg(p,damage,gold);
@@ -47,7 +47,7 @@ test("Active Hero pets and fractional Gold Gun Tap candidates are eligible, unow
  const s=cfg(p,"Gold Gun","Fairy");
  assert.ok(petCandidateEnvelope(s,"Pet2","damage"));
  assert.ok(petCandidateEnvelope(s,"Pet13","damage"));
- assert.ok(petCandidateEnvelope(s,"SeasonalPet3","damage"));
+ assert.equal(petCandidateEnvelope(s,"SeasonalPet3","damage"),null);
  assert.equal(petCandidateEnvelope(s,"Pet14","damage"),null);
  // Level 100 has a complete passive bonus (official Game Hive FAQ).
  assert.equal(petSlotScore({...s,selectedDamagePet:"Pet2"},"Pet2","damage"),0);
@@ -61,11 +61,10 @@ test("Active Hero pets and fractional Gold Gun Tap candidates are eligible, unow
 test("A seasonal equipment pet alone affects its matching gear primary",()=>{
  const p=parseAccountProfile({petLevels:{SeasonalPet6:100},equipmentInventory:[helmet]});
  const amplifier=equipmentPrimaryAmplifiers(p,cfg(p)).bySlot.Helmet;
- assert.ok(amplifier.petLog10>0);
- assert.deepEqual(amplifier.petSources.map(x=>x.id),["SeasonalPet6"]);
- assert.equal(amplifier.petSources[0].tier,"Transcendent");
+ assert.equal(amplifier.petLog10,0);
+ assert.deepEqual(amplifier.petSources,[]);
  const gear=gearSelectionEffects(p,cfg(p));
- assert.equal(gear.petPrimarySourcesCount,1);
+ assert.equal(gear.petPrimarySourcesCount,0);
  near(gear.selected.Helmet.primaryAmplifierLog10,amplifier.log10,
   "primary only");
 });
@@ -76,7 +75,7 @@ test("The exotic and seasonal pets sharing HelmetBoost each count once, never on
  const both=parseAccountProfile({petLevels:{Pet27:100,SeasonalPet6:100},equipmentInventory:[helmet]});
  const amp=p=>equipmentPrimaryAmplifiers(p,cfg(p)).bySlot.Helmet;
  near(amp(both).petLog10,amp(a).petLog10+amp(b).petLog10,"distinct source logs");
- assert.deepEqual(amp(both).petSources.map(x=>x.id).sort(),["Pet27","SeasonalPet6"]);
+ assert.deepEqual(amp(both).petSources.map(x=>x.id).sort(),["Pet27"]);
 });
 
 test("Rune Heart and explicit EquipmentPetEffect gemstone amplify documented exotic pet, not unverified seasonal cross stack",()=>{
@@ -88,10 +87,10 @@ test("Rune Heart and explicit EquipmentPetEffect gemstone amplify documented exo
  const before=equipmentPrimaryAmplifiers(plain).bySlot.Helmet;
  const after=equipmentPrimaryAmplifiers(amplified).bySlot.Helmet;
  const byId=(report,id)=>report.petSources.find(x=>x.id===id).passiveLog10;
- near(byId(after,"SeasonalPet6"),byId(before,"SeasonalPet6"),
-  "no unverified seasonal Rune×Gemstone cross stack");
+ assert.equal(before.petSources.some(x=>x.id==="SeasonalPet6"),false);
+ assert.equal(after.petSources.some(x=>x.id==="SeasonalPet6"),false);
  assert.ok(byId(after,"Pet27")>byId(before,"Pet27"));
- assert.ok(after.unknown.some(x=>x.reason==="seasonal-equipment-pet-rune-stack-unverified"));
+ assert.equal(after.unknown.some(x=>x.reason==="seasonal-equipment-pet-rune-stack-unverified"),false);
 });
 
 test("Conflicted, missing and unowned pets never create speculative candidates",()=>{
@@ -112,7 +111,7 @@ test("Gemstone 1e9999 equipment effect stays finite and does not become direct A
  assert.equal(fixed.damageLog10,0);
  const amp=equipmentPrimaryAmplifiers(p,cfg(p)).bySlot.Helmet;
  assert.ok(amp.gemstoneLog10>=9999);
- assert.equal(amp.petSources.length,2);
+ assert.equal(amp.petSources.length,1);
 });
 
 test("Permanent Drunken Hammer Tap Damage is reduced by the same source coefficient as a pet",()=>{

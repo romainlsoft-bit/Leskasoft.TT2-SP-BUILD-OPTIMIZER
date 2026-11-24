@@ -55,14 +55,15 @@ test("Transcendent 8.4 regression remains valid with multi-level screening",()=>
   SeasonalPet7:260,SeasonalPet11:240,SeasonalPet12:180,SeasonalPet1:0
  }});
  const cfg=input(profile);
- assert.equal(availablePets(profile).length,7);
+ assert.equal(availablePets(profile).length,3);
+ assert.ok(availablePets(profile).every(p=>!p.id.startsWith("SeasonalPet")));
  const damage=recommendPets(profile,cfg,"damage",3),
   gold=recommendPets(profile,cfg,"gold",3);
- assert.equal(damage[0].id,"SeasonalPet7");
- assert.equal(gold[0].id,"SeasonalPet2");
+ assert.equal(damage[0].id,"Pet1");
+ assert.ok(gold.every(x=>!x.id.startsWith("SeasonalPet")));
  assert.ok(damage.every(x=>x.samples.length>=3&&x.screeningOnly));
- assert.equal(damage.length,3);
- assert.equal(gold.length,3);
+ assert.equal(damage.length,1);
+ assert.equal(gold.length,2);
 });
 
 test("invalid or missing pet account evidence never creates a screening bonus",()=>{

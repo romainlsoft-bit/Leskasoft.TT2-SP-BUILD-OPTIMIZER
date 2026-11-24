@@ -1,4 +1,5 @@
 import {HERO_ROSTER} from "../vendor/hero-roster.js?v=20261123-boss-specials-r1";
+import {currentPostSeasonMode,POST_SEASON13_UTC} from "./current-season-policy.js?v=20261123-boss-specials-r1&season=20261124-end-season13-r1";
 /**
  * TT2 date evidence. No player-entered dates and no inferred set ages.
  * A set is completed upon acquisition of its fifth distinct equipment slot.
@@ -10,8 +11,9 @@ export const OFFICIAL_TRANSCENDENCE_STARTS=Object.freeze({
  "13":"2026-08-12" // Game Hive DevLog #231, August 11, 2026
 });
 // E9 is a COMMUNITY calendar, NOT a developer-confirmed end timestamp.
-// Interpret "Ends Nov 24" conservatively as the WHOLE day inclusive,
-// and require a fresh season export from Nov 25 00:00 UTC onward.
+// On Nov 24 the in-game season was reported ended. The website now
+// excludes old-season power from that day's start; this is NOT a
+// developer-confirmed precise server rollover timestamp.
 // https://e9wiki.com/tt2/en (checked 2026-11-20)
 export const ESTIMATED_TRANSCENDENCE_ENDS=Object.freeze({
  "13":"2026-11-24"
@@ -44,12 +46,14 @@ export function resolveTranscendenceAge(profile,at=new Date()){
  // but never silently carry a possibly obsolete season's multipliers
  // indefinitely into later seasons.
  const endExclusive=estimatedEndDate?
-  Date.parse(estimatedEndDate+"T00:00:00Z")+DAY_MS:null;
+  Date.parse(POST_SEASON13_UTC):null;
  const estimatedSeasonEnded=endExclusive!==null&&
   Number.isFinite(now)&&now>=endExclusive;
+ const betweenSeasons=currentPostSeasonMode(at);
  return {days,
   source:days===null?null:fromExport?"export":"official-season-calendar",
   season:season||null,estimatedEndDate,estimatedSeasonEnded,
+  betweenSeasons,mainGameStageCap:180000,
   endDateSource:estimatedEndDate?"community-e9wiki-unofficial":null,
   expirationOfficiallyConfirmed:false};
 }

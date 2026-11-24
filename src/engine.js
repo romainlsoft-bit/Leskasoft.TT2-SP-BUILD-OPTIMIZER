@@ -5,17 +5,17 @@ import {bossPushEvidence} from "./boss-push-evidence.js?v=20261123-boss-specials
 import {resolvePushSkipTarget,verifyPushSkipTarget} from "./push-skip-target.js?v=20261123-boss-specials-r1";
 import { baseline } from "../vendor/qol-baseline.js?v=20261123-boss-specials-r1";
 import { optimizeExact } from "./solver-core.js?v=20261123-boss-specials-r1";
-import { scoreAtLevel } from "./effects.js?v=20261123-boss-specials-r1&score=20261123-cadence-separated-r1&ember=20261123-ember-fire-sword-gate-r1&jackpot=20261123-native-jackpot-expectation-r1&mc=20261123-multicast-no-guessed-x10-r1&crit=20261124-cleaving-crit-event-r1&ambush=20261124-ambush-conditional-gold-r1";
+import { scoreAtLevel } from "./effects.js?v=20261123-boss-specials-r1&season=20261124-end-season13-r1&score=20261123-cadence-separated-r1&ember=20261123-ember-fire-sword-gate-r1&jackpot=20261123-native-jackpot-expectation-r1&mc=20261123-multicast-no-guessed-x10-r1&crit=20261124-cleaving-crit-event-r1&ambush=20261124-ambush-conditional-gold-r1";
 import { parseAccountProfile } from "./account-profile.js?v=20261123-boss-specials-r1";
-import {extractFixedAccountPower,fixedAccountScore} from "./account-power.js?v=20261123-boss-specials-r1";
-import {accountDependencyGraph} from "./account-dependencies.js?v=20261123-boss-specials-r1";
+import {extractFixedAccountPower,fixedAccountScore} from "./account-power.js?v=20261123-boss-specials-r1&season=20261124-end-season13-r1";
+import {accountDependencyGraph} from "./account-dependencies.js?v=20261123-boss-specials-r1&season=20261124-end-season13-r1";
 import {resolveSpellCaps} from "./spell-caps.js?v=20261123-boss-specials-r1";
 import {resolveSpellScenario,spellSelectionEvidence,spellEffectScorable,SPELL_CAP_SKILLS,MULTICAST_SKILL_SPELLS,ACTIVE_SOURCE_SKILL_SPELLS,multicastSkillEvidence} from "./spell-scenarios.js?v=20261123-boss-specials-r1";
 import {ACTIVE_SPELL_CAPS} from "../vendor/active-spell-caps.js?v=20261123-boss-specials-r1";
 import {resolveManaEvidence} from "./mana-evidence.js?v=20261123-boss-specials-r1";
-import {accountSourceCoverage} from "./account-source-coverage.js?v=20261123-boss-specials-r1";
-import {monumentSeasonDayEvidence} from "./monument-season-day.js?v=20261123-boss-specials-r1";
-import {extractTimedSetPower} from "./account-set-bonuses.js?v=20261123-boss-specials-r1";
+import {accountSourceCoverage} from "./account-source-coverage.js?v=20261123-boss-specials-r1&season=20261124-end-season13-r1";
+import {monumentSeasonDayEvidence} from "./monument-season-day.js?v=20261123-boss-specials-r1&season=20261124-end-season13-r1";
+import {extractTimedSetPower} from "./account-set-bonuses.js?v=20261123-boss-specials-r1&season=20261124-end-season13-r1";
 import {resolvePermanentSetPower} from "./account-permanent-sets.js?v=20261123-boss-specials-r1";
 import {skillTreeSetAllocationEvidence} from "./skill-tree-set-effects.js?v=20261123-boss-specials-r1";
 import {resolveContractScenario} from "./contract-scenarios.js?v=20261123-boss-specials-r1";
@@ -26,7 +26,9 @@ import {transmutationSourceEventEvidence} from "./transmutation-native.js?v=2026
 import {cleavingStrikeSourceEvidence} from "./cleaving-strike-native.js?v=20261123-boss-specials-r1&crit=20261124-cleaving-crit-event-r1";
 import {ambushSourceEventEvidence} from "./ambush-native-score.js?v=20261123-boss-specials-r1&ambush=20261124-ambush-conditional-gold-r1";
 import {resolveTacticalInsightLocal} from "./tactical-insight-local.js?v=20261123-boss-specials-r1";
-import {tacticalInsightRecommendationSensitivity} from "./tactical-insight-sensitivity.js?v=20261123-boss-specials-r1&audit=20261123-ti-sensitivity-r1";
+import {capCurrentMaxStage,CURRENT_MAIN_GAME_STAGE_CAP} from "./current-season-policy.js?v=20261123-boss-specials-r1&season=20261124-end-season13-r1";
+export {capCurrentMaxStage,CURRENT_MAIN_GAME_STAGE_CAP};
+import {tacticalInsightRecommendationSensitivity} from "./tactical-insight-sensitivity.js?v=20261123-boss-specials-r1&season=20261124-end-season13-r1&audit=20261123-ti-sensitivity-r1";
 
 export const GAME_VERSION = "8.4.0";
 export const DATASET_REVISION = "2026-09-18"; // SkillTreeInfo2.0.csv comparison
@@ -93,7 +95,8 @@ export function parseExport(source){
     skillPointsSpent:spent,
     budgetSource:declaredBudget===null?"inferred":"declared",
     budgetInconsistent:declaredBudget!==null&&declaredBudget<spent,
-    maxStage:parseExportCounter(stats["Max Prestige Stage"]??stats.MaxStage,"Max Stage")??0,
+    maxStage:capCurrentMaxStage(parseExportCounter(
+     stats["Max Prestige Stage"]??stats.MaxStage,"Max Stage")??0),
     craftingPower:Number(stats["Crafting Power"]??stats.CP??1)||1,
     sets:ownedSetFlags(profile),
     setOwnershipKnown:profile.sections.equipmentSets.present,
@@ -113,6 +116,9 @@ export function qosFloors(damage,gold,SP){
   return keys.length?{...presets[String(keys[0])]}:{};
 }
 export function optimizeBuild(settings,onProgress,branchCache=null){
+  // An old imported maximum (e.g. a 250k Transcendence stage) is NOT
+  // the current stage cap. Enforce 180k even in direct worker/API calls.
+  settings={...settings,maxStage:capCurrentMaxStage(settings.maxStage)};
   const SP=Number(settings.skillPoints), goldWeight=Number(settings.goldWeight);
   if(!Number.isSafeInteger(SP)||SP<0||SP>50000)throw new Error("Enter 0–50,000 Skill Points.");
   if(!DAMAGE_TYPES.includes(settings.damage))throw new Error("Select a damage source.");
@@ -437,7 +443,9 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
   const bossPushProposed=hasBossStage?
    bossPushEvidence({...scoreContext,pushObservedAttackChannelId:null,
     pushObservedHitDamage:null},result.levels):null;
-  return {...result,prior:current,spent:points,remaining:SP-points,changes,branchTotals,protectedSkills,investmentAudit,
+  return {...result,prior:current,spent:points,remaining:SP-points,
+     effectiveMaxStage:scoreContext.maxStage,mainGameStageCap:CURRENT_MAIN_GAME_STAGE_CAP,
+     changes,branchTotals,protectedSkills,investmentAudit,
     attackChannels,attackChannelChanges,modelAttribution,pushSkipTarget,
     bossPushCurrent,bossPushProposed,
     accountSourceCoverage:accountCoverage,monumentSeasonDay:seasonDayMonuments,

@@ -15,14 +15,14 @@
  */
 import {ACCOUNT_SCALING} from "../vendor/account-scaling.js?v=20261123-boss-specials-r1";
 import {clanScrollEvidence} from "./account-scrolls.js?v=20261123-boss-specials-r1";
-import {heroProgressionEvidence} from "./hero-progression.js?v=20261123-boss-specials-r1";
+import {heroProgressionEvidence} from "./hero-progression.js?v=20261123-boss-specials-r1&season=20261124-end-season13-r1";
 import {equipmentEffectReduction} from "./equipment-reductions.js?v=20261123-boss-specials-r1";
 import {goldSourceReduction} from "./gold-source-reductions.js?v=20261123-boss-specials-r1";
 import {ARTIFACT_CATALOG} from "../vendor/account-catalog.js?v=20261123-boss-specials-r1";
 import {calculatePermanentArtifactEffects} from "./account-artifacts.js?v=20261123-boss-specials-r1";
-import {resolveMonumentEvidence} from "./account-monuments.js?v=20261123-boss-specials-r1";
+import {resolveMonumentEvidence} from "./account-monuments.js?v=20261123-boss-specials-r1&season=20261124-end-season13-r1";
 import {monumentDerivedPower} from "./account-monument-derived.js?v=20261123-boss-specials-r1";
-import {petPassiveEvidence} from "./pet-scenarios.js?v=20261123-boss-specials-r1";
+import {petPassiveEvidence} from "./pet-scenarios.js?v=20261123-boss-specials-r1&season=20261124-end-season13-r1";
 import {artifactDerivedPower} from "./account-artifact-derived.js?v=20261123-boss-specials-r1";
 import {mergeTitanResearch,resourceResearchEvidence} from "./account-research-resources.js?v=20261123-boss-specials-r1";
 import {resolveGemstoneEvidence} from "./account-gemstones.js?v=20261123-boss-specials-r1";

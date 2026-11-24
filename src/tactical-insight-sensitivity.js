@@ -7,7 +7,7 @@
  * Other unverified effects and the spell/pet context are held unchanged.
  */
 import {skillInfo} from "../vendor/skills.js?v=20261123-boss-specials-r1";
-import {scoreAtLevel} from "./effects.js?v=20261123-boss-specials-r1&score=20261123-cadence-separated-r1&ember=20261123-ember-fire-sword-gate-r1&jackpot=20261123-native-jackpot-expectation-r1&mc=20261123-multicast-no-guessed-x10-r1&crit=20261124-cleaving-crit-event-r1&ambush=20261124-ambush-conditional-gold-r1";
+import {scoreAtLevel} from "./effects.js?v=20261123-boss-specials-r1&season=20261124-end-season13-r1&score=20261123-cadence-separated-r1&ember=20261123-ember-fire-sword-gate-r1&jackpot=20261123-native-jackpot-expectation-r1&mc=20261123-multicast-no-guessed-x10-r1&crit=20261124-cleaving-crit-event-r1&ambush=20261124-ambush-conditional-gold-r1";
 import {sourceSpent} from "./investment-audit.js?v=20261123-boss-specials-r1";
 
 const SKILL_IDS=Object.keys(skillInfo);

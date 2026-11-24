@@ -1,3 +1,8 @@
+// Rechecked 2026-11-24 against rawrzcookie/TT2_CSV/csv/PetInfo.csv,
+// Git blob c6f367e2ec38d7348c44974edde7de3c679ce300.
+// All 30 permanent Legacy/Exotic pet IDs, bonus types and coefficients match.
+// No new permanent pet was present; do not add seasonal pets to this catalog.
+// These permanent pets remain usable after Transcendence season 13.
 // Static fields from rawrzcookie/TT2_CSV/csv/PetInfo.csv (TT2 8.4)
 // https://github.com/rawrzcookie/TT2_CSV/blob/main/csv/PetInfo.csv
 export const PETS=Object.freeze({

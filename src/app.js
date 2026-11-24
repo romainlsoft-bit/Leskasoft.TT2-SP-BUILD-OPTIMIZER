@@ -1,13 +1,13 @@
-import {SKILLS,SKILL_IDS,BRANCH_NAMES,PRESETS,DAMAGE_TYPES,GOLD_TYPES,GAME_VERSION,parseExport,exportBuild,spentPoints,ownedSetFlags} from "./engine.js?v=20261123-boss-specials-r1&score=20261123-cadence-separated-r1&audit=20261123-ti-sensitivity-r1&ember=20261123-ember-fire-sword-gate-r1&jackpot=20261123-native-jackpot-expectation-r1&mc=20261123-multicast-no-guessed-x10-r1&crit=20261124-cleaving-crit-event-r1&ambush=20261124-ambush-conditional-gold-r1";
-import { t, localizeDocument, SUPPORTED_LANGUAGES } from "./i18n.js?v=20261123-boss-specials-r1&ui=20261123-hide-observed-hit-r1&audit=20261123-ti-sensitivity-r1&alt=20261123-ti-second-tree-r1";
+import {SKILLS,SKILL_IDS,BRANCH_NAMES,PRESETS,DAMAGE_TYPES,GOLD_TYPES,GAME_VERSION,parseExport,exportBuild,spentPoints,ownedSetFlags,capCurrentMaxStage,CURRENT_MAIN_GAME_STAGE_CAP} from "./engine.js?v=20261123-boss-specials-r1&season=20261124-end-season13-r1&score=20261123-cadence-separated-r1&audit=20261123-ti-sensitivity-r1&ember=20261123-ember-fire-sword-gate-r1&jackpot=20261123-native-jackpot-expectation-r1&mc=20261123-multicast-no-guessed-x10-r1&crit=20261124-cleaving-crit-event-r1&ambush=20261124-ambush-conditional-gold-r1";
+import { t, localizeDocument, SUPPORTED_LANGUAGES } from "./i18n.js?v=20261123-boss-specials-r1&season=20261124-end-season13-r1&ui=20261123-hide-observed-hit-r1&audit=20261123-ti-sensitivity-r1&alt=20261123-ti-second-tree-r1";
 import { readClipboardText } from "./clipboard.js?v=20261123-boss-specials-r1";
 import {resetAccountDependentOptions} from "./import-session-reset.js?v=20261123-boss-specials-r1";
 import { profileCoverage } from "./account-profile.js?v=20261123-boss-specials-r1";
-import {petLevelEvidence} from "./account-pet-levels.js?v=20261123-boss-specials-r1";
+import {petLevelEvidence} from "./account-pet-levels.js?v=20261123-boss-specials-r1&season=20261124-end-season13-r1";
 import {resolveGemstoneEvidence} from "./account-gemstones.js?v=20261123-boss-specials-r1";
-import {formatLogMultiplier} from "./account-power.js?v=20261123-boss-specials-r1";
-import {availablePets,recommendPets} from "./pet-scenarios.js?v=20261123-boss-specials-r1";
-import {bestEquipmentByCategory,EQUIPMENT_CATEGORIES} from "./equipment-scenarios.js?v=20261123-boss-specials-r1";
+import {formatLogMultiplier} from "./account-power.js?v=20261123-boss-specials-r1&season=20261124-end-season13-r1";
+import {availablePets,recommendPets} from "./pet-scenarios.js?v=20261123-boss-specials-r1&season=20261124-end-season13-r1";
+import {bestEquipmentByCategory,EQUIPMENT_CATEGORIES} from "./equipment-scenarios.js?v=20261123-boss-specials-r1&season=20261124-end-season13-r1";
 import {sourcedStageSkipChannels,sourcedDamageChannels,attackChannelEvidence} from "./attack-channels.js?v=20261123-boss-specials-r1";
 const $=id=>document.getElementById(id);
 let locale="en";
@@ -331,6 +331,8 @@ function renderNativeAttackOptions(){
 function fillInputs(){
  renderAccountProfile();renderPetControls();
  $("skill-points").value=state.skillPoints??"";
+ state.maxStage=capCurrentMaxStage(state.maxStage);
+ $("max-stage").max=CURRENT_MAIN_GAME_STAGE_CAP;
  $("max-stage").value=state.maxStage||"";
  $("gold-weight").value=state.goldWeight;
  $("crafting-power").value=state.craftingPower;
@@ -437,7 +439,7 @@ function readInputs(){
   state.budgetSource="manual";state.budgetInconsistent=false;
  }
  state.skillPoints=manuallyEntered;
- state.maxStage=Number($("max-stage").value)||0;
+ state.maxStage=capCurrentMaxStage($("max-stage").value);
  state.goldWeight=Number($("gold-weight").value);
  state.craftingPower=Number($("crafting-power").value);
  state.timeToKill=Number($("time-to-kill").value);
@@ -483,7 +485,7 @@ function optimize(){
  status("Checking prerequisites and calculating the best allocation for the chosen scoring model…");
  const revision=++calculationRevision;
  const requestContext=keepContractsConservative(structuredClone(state));
- const running=new Worker(new URL("./worker.js?v=20261123-boss-specials-r1&score=20261123-cadence-separated-r1&audit=20261123-ti-sensitivity-r1&alt=20261123-ti-second-tree-r1&ember=20261123-ember-fire-sword-gate-r1&jackpot=20261123-native-jackpot-expectation-r1&mc=20261123-multicast-no-guessed-x10-r1&crit=20261124-cleaving-crit-event-r1&ambush=20261124-ambush-conditional-gold-r1",import.meta.url),{type:"module"});
+ const running=new Worker(new URL("./worker.js?v=20261123-boss-specials-r1&season=20261124-end-season13-r1&score=20261123-cadence-separated-r1&audit=20261123-ti-sensitivity-r1&alt=20261123-ti-second-tree-r1&ember=20261123-ember-fire-sword-gate-r1&jackpot=20261123-native-jackpot-expectation-r1&mc=20261123-multicast-no-guessed-x10-r1&crit=20261124-cleaving-crit-event-r1&ambush=20261124-ambush-conditional-gold-r1",import.meta.url),{type:"module"});
  worker=running;
  running.onmessage=event=>{
    if(revision!==calculationRevision||worker!==running)return;
@@ -638,7 +640,8 @@ function renderAccountIntegration(result){
     "The Crafting Power from the account export overrides a conflicting form value.");
  }
  const monuments=coverage.monuments;
- if(monuments&&(monuments.identified>0||monuments.unknownIds>0||
+ if(monuments&&!sourceCoverage?.seasonCalendar?.betweenSeasons&&
+    (monuments.identified>0||monuments.unknownIds>0||
     monuments.truncatedSections?.length)){
   panel.textContent+=" "+tr("Monuments (season {season}): {known} recognized, {scored} primary/count effects scored. Additive Monument Damage: {damage} from {components} eligible monuments, included only once as a conservative All Damage baseline. Enchantment multipliers are not guessed; neither these values nor the proxy are stage predictions.",{
    season:monuments.season??tr("not verifiable from this export"),
@@ -690,9 +693,9 @@ function renderAccountIntegration(result){
     regen:mana.exportedFinalManaRegenPerSecond===null?
      tr("not verifiable from this export"):numberText(mana.exportedFinalManaRegenPerSecond)});
  const sourceCoverage=result.accountSourceCoverage;
- if(sourceCoverage?.seasonCalendar?.estimatedSeasonEnded)
+ if(sourceCoverage?.seasonCalendar?.betweenSeasons)
   panel.textContent+=" "+tr(
-   "The season-13 export may now be obsolete: a community calendar lists November 24, 2026 as the last day. Old-season monuments and Transcendent pets are excluded conservatively from November 25 UTC; import a current game export. This end date is not confirmed by Game Hive.");
+   "Transcendence season 13 has ended. Archived monuments and Transcendent pets are excluded from calculations, even if an old import still lists them. Current maximum stage: 180,000. Only permanent pets count until the next season is verified.");
  if(sourceCoverage){
   const system=id=>sourceCoverage.systems.find(x=>x.id===id);
   const desc=id=>{
@@ -710,13 +713,14 @@ function renderAccountIntegration(result){
     "Clan Technology is recognized as a clan-wide system, but its exported effects cannot yet be independently verified or added to the SP score.":"Clan Technology is not included in this export; its clan-wide effects remain unknown.");
  }
  const monumentEnchant=result.accountIntegration?.monuments;
- if(monumentEnchant?.omittedEnchantmentBoosts>0&&
+ if(!sourceCoverage?.seasonCalendar?.betweenSeasons&&
+    monumentEnchant?.omittedEnchantmentBoosts>0&&
     Number.isFinite(monumentEnchant.hypotheticalEnchantmentDeltaLog10))
   panel.textContent+=" "+tr(
    "Monument enchantment what-if: +{delta} log10 versus the source-based conservative pool under an unverified stacking assumption. This bonus is NOT included in the SP score.",{
     delta:monumentEnchant.hypotheticalEnchantmentDeltaLog10.toFixed(2)});
  const seasonDay=result.monumentSeasonDay;
- if(seasonDay?.totalEntries>0)
+ if(!sourceCoverage?.seasonCalendar?.betweenSeasons&&seasonDay?.totalEntries>0)
   panel.textContent+=" "+tr(
    "Season-day monuments: {count} source effects identified, {calculable} illustrative compounded examples; none is silently credited as guaranteed damage. Season changes reset monuments.",{
     count:numberText(seasonDay.totalEntries),
@@ -1111,7 +1115,7 @@ function decodeLink(){
  try{
   const payload=JSON.parse(decodeURIComponent(escape(atob(hash.slice(7)))));
   if(!payload||typeof payload!=="object")return;
-  state={...fresh(),skillPoints:payload.sp??0,maxStage:payload.st??0,damage:payload.da??"Clan Ship",gold:payload.go??"Fairy",playstyle:payload.p??"balanced",qol:payload.q??"recommended",goldWeight:payload.w??.7,craftingPower:payload.cp??1,timeToKill:payload.tk??8,sClone:payload.cl??30,currentLevels:payload.cur||{},minimums:payload.min||{},excluded:Array.isArray(payload.exc)?payload.exc:[],preserveCurrent:Boolean(payload.keep),assumeHaystActive:payload.hay===true,
+  state={...fresh(),skillPoints:payload.sp??0,maxStage:capCurrentMaxStage(payload.st??0),damage:payload.da??"Clan Ship",gold:payload.go??"Fairy",playstyle:payload.p??"balanced",qol:payload.q??"recommended",goldWeight:payload.w??.7,craftingPower:payload.cp??1,timeToKill:payload.tk??8,sClone:payload.cl??30,currentLevels:payload.cur||{},minimums:payload.min||{},excluded:Array.isArray(payload.exc)?payload.exc:[],preserveCurrent:Boolean(payload.keep),assumeHaystActive:payload.hay===true,
     assumeSnapActive:payload.snap===true,assumeCoordinatedOffensiveActive:payload.co===true,assumeFlashZipAtBoss:payload.fz===true,assumeNightmareAtBoss:payload.nm===true,assumeMagnumOpusAtBoss:payload.mo===true,assumeContractsAtMax:false,astralActivations:payload.astral??0,protectUnmodeledSkills:payload.protect!==false,excludeUnverifiedTacticalInsight:payload.tiExperiment===true,
     pushAttackChannelId:typeof payload.attack==="string"?payload.attack:"",
     pushSourceStageSkipTarget:payload.skip??0,
@@ -1131,6 +1135,13 @@ function initialize(){
  delete state.pushObservedAttackChannelId;
  delete state.pushObservedHitDamage;
  delete state.pushBossStage;
+ state.maxStage=capCurrentMaxStage(state.maxStage);
+ // Previous seasonal pet choices must not outlive the reset.
+ const activePetIds=new Set(availablePets(state.accountProfile).map(p=>p.id));
+ if(state.selectedDamagePet&&!activePetIds.has(state.selectedDamagePet))
+  state.selectedDamagePet=null;
+ if(state.selectedGoldPet&&!activePetIds.has(state.selectedGoldPet))
+  state.selectedGoldPet=null;
  keepContractsConservative(state);
  persist();
  // Old manual toggles or old shared links must never override the export.

@@ -32,12 +32,13 @@ test("ID + localized pet display name at an identical level is one passive",()=>
  assert.equal(evidence.levels.Pet20,100);
  assert.equal(evidence.levels.SeasonalPet7,120);
  assert.equal(petLevelEvidence(p),evidence,"profile snapshot must use cache");
- assert.equal(availablePets(p).length,3);
+ assert.equal(availablePets(p).length,2);
+ assert.ok(availablePets(p).every(x=>!x.id.startsWith("SeasonalPet")));
  const passive=petPassiveEvidence(p);
- assert.equal(passive.imported,3);
+ assert.equal(passive.imported,2);
  assert.equal(passive.duplicateMirrors,3);
  const direct=extractFixedAccountPower(p);
- assert.equal(direct.petPassives.imported,3);
+ assert.equal(direct.petPassives.imported,2);
  assert.equal(direct.petPassives.rejectedLevels,0);
 });
 

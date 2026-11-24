@@ -14,8 +14,11 @@ const ROUTES=Object.freeze({
 });
 const finite=x=>typeof x==="number"&&Number.isFinite(x);
 export function monumentSeasonDayEvidence(monuments,settings={}){
- const rows=(monuments?.entries||[]).filter(x=>x.perSeasonDay===true);
- const days=monuments?.seasonDays;
+ // Archived monuments are not current account diagnostics between
+ // seasons, even when an old export still retains the records.
+ const rows=monuments?.betweenSeasons?[]:
+  (monuments?.entries||[]).filter(x=>x.perSeasonDay===true);
+ const days=monuments?.betweenSeasons?null:monuments?.seasonDays;
  const validDays=Number.isSafeInteger(days)&&days>=0;
  const entries=rows.map(row=>{
   const route=ROUTES[row.type]||null;
