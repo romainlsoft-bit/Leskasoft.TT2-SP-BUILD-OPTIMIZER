@@ -6,7 +6,7 @@
  * legacy category, conflicting mirrored rows, or an unknown season.
  */
 import {SEASON_ARTIFACT_CATALOG} from "../vendor/account-catalog.js?v=20261123-boss-specials-r1";
-import {resolveTranscendenceAge} from "./account-temporal.js?v=20261123-boss-specials-r1";
+import {resolveTranscendenceAge} from "./account-temporal.js?v=20261123-boss-specials-r1&season=20261124-end-season13-r1";
 import {computeArtifactEffect,isDirectBonusType,positiveLog10} from "./account-artifacts.js?v=20261123-boss-specials-r1";
 import {resolvePermanentSetPower} from "./account-permanent-sets.js?v=20261123-boss-specials-r1";
 
@@ -80,6 +80,7 @@ export function resolveMonumentEvidence(profile,at=new Date()){
   const count=counted&&countVerified?sets.ownedCounts[counted.kind]:null;
   const blocked=conflict?"ignored-conflicting-export-records":
    wrongSeason?"ignored-wrong-transcendence-season":
+   age.betweenSeasons?"ignored-post-season13-reset":
    age.estimatedSeasonEnded?"ignored-estimated-expired-transcendence":
    truncation.length?"ignored-truncated-monument-export":
    level===null?"ignored-missing-or-invalid-level":
@@ -121,7 +122,8 @@ export function resolveMonumentEvidence(profile,at=new Date()){
    enchantmentMult:info.enchantmentMult,
    // A separate, additive All Monument Damage contribution exists even
    // when the monument's MAIN effect depends on another gameplay state.
-   damageEligible:!conflict&&!wrongSeason&&!age.estimatedSeasonEnded&&
+   damageEligible:!conflict&&!wrongSeason&&!age.betweenSeasons&&
+    !age.estimatedSeasonEnded&&
     !truncation.length&&level!==null&&categoryAllowed&&seasonKnown,
    formulaStatus,appliedToScore});
  }
@@ -140,9 +142,11 @@ export function resolveMonumentEvidence(profile,at=new Date()){
   seasonDays:age.days,season:age.season,
   estimatedEndDate:age.estimatedEndDate,
   estimatedSeasonEnded:age.estimatedSeasonEnded,
+  betweenSeasons:age.betweenSeasons,
   endDateSource:age.endDateSource,
   expirationOfficiallyConfirmed:false,
-  seasonVerified:categories!==null&&!age.estimatedSeasonEnded,
+  seasonVerified:categories!==null&&!age.estimatedSeasonEnded&&
+   !age.betweenSeasons,
   countedSetEffects:entries.filter(x=>x.countedSetKind!==null),
   computed:entries.filter(x=>x.log10!==null).length,
   modeled:entries.filter(x=>x.appliedToScore).length,complete:false};

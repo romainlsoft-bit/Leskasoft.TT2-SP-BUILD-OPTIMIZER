@@ -4,19 +4,24 @@
  * We rank each slot separately and do not build a 3x3 Cartesian product.
  * Scores are log10 proxies, not predictions of stages gained.
  */
-import {PETS} from "../vendor/pets.js?v=20261123-boss-specials-r1";
-import {TRANSCENDENT_PETS} from "../vendor/transcendent-pets.js?v=20261123-boss-specials-r1";
+import {PETS} from "../vendor/pets.js?v=20261123-boss-specials-r1&season=20261124-end-season13-r1";
+import {TRANSCENDENT_PETS} from "../vendor/transcendent-pets.js?v=20261123-boss-specials-r1&season=20261124-end-season13-r1";
 
 export const ALL_PETS=Object.freeze({...PETS,...TRANSCENDENT_PETS});
 import {skillInfo} from "../vendor/skills.js?v=20261123-boss-specials-r1";
 import {equipmentEffectReduction} from "./equipment-reductions.js?v=20261123-boss-specials-r1";
 import {EQUIPMENT_SET_CATALOG} from "../vendor/account-catalog.js?v=20261123-boss-specials-r1";
 import {petTier,petArtifactAmplifiers,logPassivePetMultiplier,verifiedEquipmentPetAmplifierTarget} from "./pet-amplifiers.js?v=20261123-boss-specials-r1";
-import {petLevelEvidence} from "./account-pet-levels.js?v=20261123-boss-specials-r1";
-import {resolveTranscendenceAge} from "./account-temporal.js?v=20261123-boss-specials-r1";
+import {petLevelEvidence} from "./account-pet-levels.js?v=20261123-boss-specials-r1&season=20261124-end-season13-r1";
+import {resolveTranscendenceAge} from "./account-temporal.js?v=20261123-boss-specials-r1&season=20261124-end-season13-r1";
 export {petTier,petArtifactAmplifiers,logPassivePetMultiplier,verifiedEquipmentPetAmplifierTarget} from "./pet-amplifiers.js?v=20261123-boss-specials-r1";
 const finite=v=>{const n=Number(v);return Number.isFinite(n)?n:0;};
-// Official Game Hive DevLog #231: only these 10 Transcendent pets
+// Game Hive DevLog #231: these ten were available in season 13.
+ // Current status after season 13: NO seasonal pet is eligible.
+ // Verified 2026-11-24: all 30 permanent rows match PetInfo.csv,
+ // all 15 seasonal rows match EndgamePetInfo.csv (rawrzcookie/TT2_CSV).
+ // Historical roster retained for source parity and pre-reset fixtures.
+ // Official Game Hive DevLog #231: only these 10 Transcendent pets
 // belong to season 13, not all 15 historical pets in the CSV.
 export const OFFICIAL_SEASON13_PET_ROSTER=Object.freeze([
  "Brushleaf","Clawsette","Daisy","Lemon","Lullabye",
@@ -26,10 +31,16 @@ const season13=new Set(OFFICIAL_SEASON13_PET_ROSTER);
 const petLevels=(profile,at=new Date())=>{
  const raw=petLevelEvidence(profile).levels;
  const season=resolveTranscendenceAge(profile,at);
- // With no season metadata, preserve the raw positive-pet evidence,
- // explicitly without claiming that the historical season is verified.
- if(!season.season)return raw;
+ // Between seasons NO Transcendent pet survives, even when an imported
+ // save omits its season number. The permanent pets still work normally.
  const filtered={...raw};
+ if(season.betweenSeasons){
+  for(const id of Object.keys(TRANSCENDENT_PETS))delete filtered[id];
+  return filtered;
+ }
+ // Historical explicit-date fixtures can still inspect older exports,
+ // but the current default is permanent-only after the rollover.
+ if(!season.season)return raw;
  for(const pet of Object.values(TRANSCENDENT_PETS)){
   const allowed=season.season==="13"&&!season.estimatedSeasonEnded&&
    season13.has(pet.name);

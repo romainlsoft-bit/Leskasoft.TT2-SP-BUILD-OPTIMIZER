@@ -9,7 +9,7 @@
  * visible but unscored until their conversion to build power is verified.
  */
 import {EQUIPMENT_SET_CATALOG} from "../vendor/account-catalog.js?v=20261123-boss-specials-r1";
-import {resolveSetCompletionDates} from "./account-temporal.js?v=20261123-boss-specials-r1";
+import {resolveSetCompletionDates} from "./account-temporal.js?v=20261123-boss-specials-r1&season=20261124-end-season13-r1";
 
 const DIRECT_TYPES=new Set([
  "AllDamage","GoldAll","PetDamage","FairyGold","ChestAmount","UltraDaggerDamage",

@@ -2,7 +2,7 @@
  * TT2 8.4: source-backed weapon sets, per-hero weapon boosters and
  * conditional effects. Per-hero DPS requires verified ascensions/levels.
  */
-import {heroWeaponEvidence} from "./account-temporal.js?v=20261123-boss-specials-r1";
+import {heroWeaponEvidence} from "./account-temporal.js?v=20261123-boss-specials-r1&season=20261124-end-season13-r1";
 import {HERO_CLASS_BY_ID} from "../vendor/hero-classes.js?v=20261123-boss-specials-r1";
 import {heroLevelEvidence} from "./hero-levels.js?v=20261123-boss-specials-r1";
 import {equipmentSetAliasEvidence} from "./equipment-set-aliases.js?v=20261123-boss-specials-r1";

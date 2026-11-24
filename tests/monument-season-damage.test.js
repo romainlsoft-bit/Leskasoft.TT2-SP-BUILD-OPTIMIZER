@@ -63,7 +63,7 @@ test("monument damage additive sum matches two comparable 8.4 source components"
  assert.equal(derived.entries.length,1);
  assert.equal(derived.entries[0].bonusType,"AllDamage");
  assert.equal(derived.entries[0].appliedToScore,true);
- const power=extractFixedAccountPower(profile);
+ const power=extractFixedAccountPower(profile,NOW);
  assert.equal(power.entries.filter(x=>x.system==="monumentDamage").length,1);
  assert.ok(close(power.byType.AllDamage,derived.poolLog10));
  assert.equal(row(monuments,"SeasonalArtifact36").appliedToScore,true);
@@ -83,7 +83,7 @@ test("enchantments have separate main and Monument Damage factors, not two score
  assert.ok(pool.monuments.candidateEnchantedPoolLog10>
   pool.monuments.unenchantedPoolLog10);
  assert.ok(close(derived.poolLog10,pool.monuments.unenchantedPoolLog10));
- const power=extractFixedAccountPower(profile);
+ const power=extractFixedAccountPower(profile,NOW);
  assert.equal(power.entries.filter(x=>x.system==="monumentDamage").length,1);
  assert.equal(power.monumentEffects.enchantmentMultIncluded,false);
  assert.equal(power.monumentEffects.additiveDamageConservative,true);
@@ -187,7 +187,7 @@ test("number-of-completed-set monuments need an exact unlocked roster",()=>{
  assert.equal(guild.appliedToScore,true);
  assert.ok(close(guild.log10,guild.baseEffectLog10*2));
  assert.ok(close(cobra.log10,cobra.baseEffectLog10));
- const power=extractFixedAccountPower(present.profile);
+ const power=extractFixedAccountPower(present.profile,NOW);
  assert.ok(power.byType.GoldAll>0);
  assert.ok(power.byType.AllDamage>0);
  const absent=evidence(raw);
@@ -220,10 +220,9 @@ test("all 18 damage/gold combinations route ONE additive Monument Damage score",
    SeasonalArtifact30:{level:12,enchanted:false}
   }});
  const base=extractFixedAccountPower(profile);
- assert.equal(base.entries.filter(x=>x.system==="monumentDamage").length,1);
- assert.equal(base.monumentEffects.countedSetApplied,2);
- assert.equal(base.monumentEffects.additiveDamageApplied,true);
- const pool=base.monumentEffects.additiveDamageLog10;
+ assert.equal(base.entries.filter(x=>x.system==="monumentDamage").length,0);
+ assert.equal(base.monumentEffects.countedSetApplied,0);
+ assert.equal(base.monumentEffects.additiveDamageApplied,false);
  for(const damage of DAMAGE_TYPES)for(const gold of GOLD_TYPES){
   const settings={accountProfile:profile,damage,gold,goldWeight:.7,
    skillPoints:30,qol:"none",sets:{},minimums:{},currentLevels:{},
@@ -243,8 +242,8 @@ test("all 18 damage/gold combinations route ONE additive Monument Damage score",
   assert.ok(close(optimized.fixedAccount.goldLog10,expected.goldLog10),
    damage+"/"+gold+" gold");
   assert.ok(close(optimized.fixedAccount.weightedLog10,expected.weightedLog10));
-  assert.equal(optimized.accountIntegration.monuments.additiveDamageApplied,true);
-  assert.ok(optimized.fixedAccount.damageLog10>=pool);
+  assert.equal(optimized.accountIntegration.monuments.additiveDamageApplied,false);
+  assert.equal(optimized.accountIntegration.monuments.scored,0);
   assert.equal(optimized.accountIntegration.releaseReady,false);
   assert.ok(Number.isFinite(optimized.accountAdjustedScore));
  }

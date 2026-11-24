@@ -9,9 +9,9 @@
  * Only aggregate counts, no player names, IDs, raw exports or inventories
  * appear in the returned user-facing report.
  */
-import {fixedAccountScore} from "./account-power.js?v=20261123-boss-specials-r1";
+import {fixedAccountScore} from "./account-power.js?v=20261123-boss-specials-r1&season=20261124-end-season13-r1";
 import {clanTechnologyEvidence} from "./account-clan-technology.js?v=20261123-boss-specials-r1";
-import {resolveTranscendenceAge} from "./account-temporal.js?v=20261123-boss-specials-r1";
+import {resolveTranscendenceAge} from "./account-temporal.js?v=20261123-boss-specials-r1&season=20261124-end-season13-r1";
 // A subsystem may report unresolved dependent effects under a DIFFERENT
 // namespace than its scored source rows. Keep their counts on the same
 // system instead of presenting an over-optimistic coverage dashboard.
@@ -122,6 +122,8 @@ export function accountSourceCoverage(profile,power,settings={},extra={}){
    return {season:age.season,
     estimatedEndDate:age.estimatedEndDate,
     estimatedSeasonEnded:age.estimatedSeasonEnded,
+    betweenSeasons:age.betweenSeasons,
+    mainGameStageCap:age.mainGameStageCap,
     endDateSource:age.endDateSource,
     expirationOfficiallyConfirmed:false};
   })(),

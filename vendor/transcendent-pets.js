@@ -1,3 +1,8 @@
+// Rechecked 2026-11-24 against rawrzcookie/TT2_CSV/csv/EndgamePetInfo.csv,
+// Git blob 7d0b47e117a5dadaf2b6774394874791690c83f6.
+// All 15 archived Transcendent pet IDs/coefficients match. These are not
+// CURRENT eligible pets after the season-13 reset: keep only as catalog
+// provenance and for historical imports, never as guaranteed account power.
 /**
  * Transcendent seasonal pets, from EndgamePetInfo.csv. They appear in TT2
  * exports as SeasonalPet1..SeasonalPet15. Their bonus improves every 5

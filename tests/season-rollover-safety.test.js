@@ -7,8 +7,8 @@ import {extractFixedAccountPower} from "../src/account-power.js";
 import {availablePets,petPassiveEvidence,OFFICIAL_SEASON13_PET_ROSTER}
  from "../src/pet-scenarios.js";
 
-const before=new Date("2026-11-24T23:59:59.000Z");
-const after=new Date("2026-11-25T00:00:00.000Z");
+const before=new Date("2026-11-23T23:59:59.000Z");
+const after=new Date("2026-11-24T00:00:00.000Z");
 const season13=parseAccountProfile({
  playerStats:{"Transcendence Season":13},
  petLevels:{Pet1:150,SeasonalPet1:80,SeasonalPet2:60,SeasonalPet5:40},
@@ -24,6 +24,8 @@ test("Game Hive start and community-only end are separately attributed",()=>{
  assert.equal(b.estimatedSeasonEnded,false);
  assert.equal(a.estimatedSeasonEnded,true);
  assert.equal(a.expirationOfficiallyConfirmed,false);
+ assert.equal(b.betweenSeasons,false);
+ assert.equal(a.betweenSeasons,true);
 });
 test("archived season-13 monument primaries and additive damage do not leak after estimated rollover",()=>{
  const b=resolveMonumentEvidence(season13,before);
@@ -35,7 +37,7 @@ test("archived season-13 monument primaries and additive damage do not leak afte
  assert.equal(original.damageEligible,true);
  assert.equal(stale.damageEligible,false);
  assert.equal(stale.appliedToScore,false);
- assert.equal(stale.formulaStatus,"ignored-estimated-expired-transcendence");
+ assert.equal(stale.formulaStatus,"ignored-post-season13-reset");
 });
 test("only Game Hive's ten season-13 pets count, and none persists past the estimated end",()=>{
  assert.equal(OFFICIAL_SEASON13_PET_ROSTER.length,10);
@@ -52,7 +54,7 @@ test("only Game Hive's ten season-13 pets count, and none persists past the esti
 });
 test("same account profile is recached each UTC day, dropping outdated season-13 multipliers",()=>{
  const x=extractFixedAccountPower(season13,before);
- const sameDay=extractFixedAccountPower(season13,new Date("2026-11-24T12:00:00Z"));
+ const sameDay=extractFixedAccountPower(season13,new Date("2026-11-23T12:00:00Z"));
  const y=extractFixedAccountPower(season13,after);
  assert.equal(x,sameDay);
  assert.notEqual(x,y);
