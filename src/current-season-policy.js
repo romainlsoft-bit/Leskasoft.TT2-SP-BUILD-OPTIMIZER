@@ -22,7 +22,7 @@ export const CURRENT_PET_SOURCE_PROVENANCE=Object.freeze({
  transcendentPetInfoGitSha:"7d0b47e117a5dadaf2b6774394874791690c83f6",
  catalogVerifiedOn:"2026-11-24",
  source:"rawrzcookie/TT2_CSV:csv/PetInfo.csv and csv/EndgamePetInfo.csv",
- currentSelection:"season-14; seasonal power requires season-14 export and verified roster"
+ currentSelection:"season-14: positive levels in a season-14 export are provisional; ten-pet roster unverified"
 });
 
 export function currentPostSeasonMode(at=new Date()){
