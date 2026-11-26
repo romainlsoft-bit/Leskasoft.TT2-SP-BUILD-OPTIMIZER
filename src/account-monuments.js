@@ -6,13 +6,20 @@
  * legacy category, conflicting mirrored rows, or an unknown season.
  */
 import {SEASON_ARTIFACT_CATALOG} from "../vendor/account-catalog.js?v=20261123-boss-specials-r1";
+import {SEASON14_ARTIFACT_CATALOG,SEASON14_MONUMENT_SOURCE_SHA} from "../vendor/season14-monuments.js?v=20261126-season14-r2";
 import {resolveTranscendenceAge} from "./account-temporal.js?v=20261123-boss-specials-r1&season=20261126-season14-r1";
 import {computeArtifactEffect,isDirectBonusType,positiveLog10} from "./account-artifacts.js?v=20261123-boss-specials-r1";
 import {resolvePermanentSetPower} from "./account-permanent-sets.js?v=20261123-boss-specials-r1";
 
-const BY_ID=new Map(Object.values(SEASON_ARTIFACT_CATALOG).flatMap(item=>[
+const catalogForSeason=season=>season==="14"?
+ SEASON14_ARTIFACT_CATALOG:SEASON_ARTIFACT_CATALOG;
+const indexForCatalog=catalog=>new Map(Object.values(catalog).flatMap(item=>[
  [item.id.toLowerCase(),item.id],[item.name.toLowerCase(),item.id]
 ]));
+const BY_SEASON=Object.freeze({
+ "13":indexForCatalog(SEASON_ARTIFACT_CATALOG),
+ "14":indexForCatalog(SEASON14_ARTIFACT_CATALOG)
+});
 export const OFFICIAL_MONUMENT_CATEGORIES=Object.freeze({
  "13":Object.freeze(["Celestial","Viper","Arcanas"]),
  "14":Object.freeze(["Celestial","Viper","Pirate"])
@@ -44,6 +51,8 @@ function unique(values){
  */
 export function resolveMonumentEvidence(profile,at=new Date()){
  const age=resolveTranscendenceAge(profile,at);
+ const catalog=catalogForSeason(age.season);
+ const byId=BY_SEASON[age.season]||new Map();
  const group=new Map(),unknown=[];
  const truncation=["monuments","seasonArtifacts"].filter(
   section=>profile?.sections?.[section]?.truncated===true);
@@ -51,7 +60,7 @@ export function resolveMonumentEvidence(profile,at=new Date()){
  for(const section of ["monuments","seasonArtifacts"]){
   for(const item of profile?.sections?.[section]?.records||[]){
    if(item.salvaged===true||item.owned===false){explicitlyUnowned++;continue;}
-   const id=BY_ID.get(String(item.id||"").trim().toLowerCase());
+   const id=byId.get(String(item.id||"").trim().toLowerCase());
    if(!id){unknown.push({section,id:item.id,reason:"unknown-monument-id"});continue;}
    if(!group.has(id))group.set(id,[]);
    group.get(id).push({section,item});
@@ -61,7 +70,7 @@ export function resolveMonumentEvidence(profile,at=new Date()){
  const sets=resolvePermanentSetPower(profile);
  const entries=[];
  for(const [id,items] of group){
-  const info=SEASON_ARTIFACT_CATALOG[id];
+  const info=catalog[id];
   const levels=unique(items.map(x=>x.item.level));
   const enchants=unique(items.map(x=>x.item.enchanted));
   const seasons=unique(items.map(x=>x.item.season));
@@ -71,7 +80,7 @@ export function resolveMonumentEvidence(profile,at=new Date()){
   const level=conflict?null:safeLevel(levels[0],info.maxLevel);
   const perSeasonDay=info.bonusType.includes("PerSeasonDay");
   const categoryAllowed=categories?
-   categories.includes(info.category):info.isActive;
+   categories.includes(info.category)&&info.isActive:info.isActive;
   const seasonKnown=categories!==null;
   const enchantKnown=enchants.length===1;
   const enchanted=enchantKnown?enchants[0]==="true":null;
@@ -79,12 +88,8 @@ export function resolveMonumentEvidence(profile,at=new Date()){
   const counted=COUNTED[info.bonusType]||null;
   const countVerified=!counted||sets.ownedRosterComplete===true;
   const count=counted&&countVerified?sets.ownedCounts[counted.kind]:null;
-  // Embedded Unity data is season-13 calibrated: do not numerically score
-  // season-14 monument values until the season-14 CSV is verified.
-  const numericCatalogUnverified=age.season==="14";
   const blocked=conflict?"ignored-conflicting-export-records":
    wrongSeason?"ignored-wrong-transcendence-season":
-   numericCatalogUnverified?"unverified-season14-monument-coefficients":
    age.betweenSeasons?"ignored-post-season13-reset":
    age.estimatedSeasonEnded?"ignored-estimated-expired-transcendence":
    truncation.length?"ignored-truncated-monument-export":
@@ -127,7 +132,7 @@ export function resolveMonumentEvidence(profile,at=new Date()){
    enchantmentMult:info.enchantmentMult,
    // A separate, additive All Monument Damage contribution exists even
    // when the monument's MAIN effect depends on another gameplay state.
-   damageEligible:!conflict&&!wrongSeason&&!numericCatalogUnverified&&!age.betweenSeasons&&
+   damageEligible:!conflict&&!wrongSeason&&!age.betweenSeasons&&
     !age.estimatedSeasonEnded&&
     !truncation.length&&level!==null&&categoryAllowed&&seasonKnown,
    formulaStatus,appliedToScore});
@@ -135,8 +140,9 @@ export function resolveMonumentEvidence(profile,at=new Date()){
  entries.sort((a,b)=>Number(a.id.slice("SeasonalArtifact".length))-
   Number(b.id.slice("SeasonalArtifact".length)));
  return {entries,unknown,truncatedSections:truncation,explicitlyUnowned,
-  catalogCount:Object.keys(SEASON_ARTIFACT_CATALOG).length,
-  activeInCatalog:Object.values(SEASON_ARTIFACT_CATALOG).filter(x=>x.isActive).length,
+  catalogCount:Object.keys(catalog).length,
+  catalogSourceSha:age.season==="14"?SEASON14_MONUMENT_SOURCE_SHA:null,
+  activeInCatalog:Object.values(catalog).filter(x=>x.isActive).length,
   importedRecords:[...group.values()].reduce((sum,x)=>sum+x.length,0),
   recognized:entries.length,
   conflicts:entries.filter(x=>["ignored-conflicting-export-records",
@@ -150,7 +156,7 @@ export function resolveMonumentEvidence(profile,at=new Date()){
   betweenSeasons:age.betweenSeasons,
   endDateSource:age.endDateSource,
   expirationOfficiallyConfirmed:false,
-  seasonVerified:categories!==null&&age.season!=="14"&&!age.estimatedSeasonEnded&&
+  seasonVerified:categories!==null&&!age.estimatedSeasonEnded&&
    !age.betweenSeasons,
   countedSetEffects:entries.filter(x=>x.countedSetKind!==null),
   computed:entries.filter(x=>x.log10!==null).length,
