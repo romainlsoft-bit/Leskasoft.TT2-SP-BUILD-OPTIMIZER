@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
-import {SUPPORTED_LANGUAGES, translations, t} from "../src/i18n.js";
+import {SUPPORTED_LANGUAGES, translations, t} from "./helpers/i18n-all.js";
 
 const html=readFileSync(new URL("../index.html",import.meta.url),"utf8");
 const css=readFileSync(new URL("../styles.css",import.meta.url),"utf8");
