@@ -26,7 +26,7 @@ const cfg=(p,extra={})=>({
  accountProfile:p,...extra
 });
 test("V: HS can choose owned Soot and seasonal Lemon as ACTIVE CritDamage pets",()=>{
- const p=parseAccountProfile({petLevels:{
+ const p=parseAccountProfile({playerStats:{"Transcendence Season":14},petLevels:{
   Pet17:75,SeasonalPet8:75,Pet1:150,Pet6:150
  }});
  const hs=cfg(p),pet=cfg(p,{damage:"Pet"});
