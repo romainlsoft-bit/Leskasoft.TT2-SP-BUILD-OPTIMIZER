@@ -1045,12 +1045,13 @@ function renderResults(result,scroll=true){
  $("export-json").value=exportBuild(result.levels);
 }
 function sharePayload(){
- // Local TT2 Stats observations are deliberately NOT placed in a shared URL.
- // A recipient gets the reversible conservative TI exclusion, never
- // a fictitious re-creation of the measured allocation.
- // Compact URL encoding; the exported skill tree itself is intentionally
- // not encrypted. Sharing the link discloses the included game settings.
- return {pushFrontier:state.pushFrontierEnabled===true,attackDamageFrontier:state.attackDamageFrontierEnabled===true,attackDamageChannel:state.attackDamageChannelId,protect:state.protectUnmodeledSkills!==false,co:state.assumeCoordinatedOffensiveActive===true,fz:state.assumeFlashZipAtBoss===true,nm:state.assumeNightmareAtBoss===true,mo:state.assumeMagnumOpusAtBoss===true,tiExperiment:state.excludeUnverifiedTacticalInsight===true||state.tacticalInsightCalibration?.enabled===true,tiMeasurementOmitted:state.tacticalInsightCalibration?.enabled===true,sp:state.skillPoints,st:state.maxStage,ss:(state.stageSeason===14||String(state.accountProfile?.stats?.transcendenceSeason)==="14")?14:null,da:state.damage,go:state.gold,p:state.playstyle,q:state.qol,w:state.goldWeight,cp:state.craftingPower,tk:state.timeToKill,cl:state.sClone,cur:state.currentLevels,min:state.minimums,exc:state.excluded,keep:state.preserveCurrent,hay:state.assumeHaystActive,snap:state.assumeSnapActive,astral:state.astralActivations,attack:state.pushAttackChannelId,skip:state.pushSourceStageSkipTarget};
+ // Only editable public preferences are shareable; hidden assumptions are fixed.
+ return {sp:state.skillPoints,st:state.maxStage,
+  ss:(state.stageSeason===14||String(state.accountProfile?.stats?.transcendenceSeason)==="14")?14:null,
+  da:state.damage,go:state.gold,p:state.playstyle,q:state.qol,
+  w:state.goldWeight,cp:state.craftingPower,tk:state.timeToKill,cl:state.sClone,
+  cur:state.currentLevels,min:state.minimums,exc:state.excluded,
+  keep:state.preserveCurrent,protect:state.protectUnmodeledSkills!==false};
 }
 function decodeLink(){
  const hash=window.location.hash;
@@ -1058,22 +1059,25 @@ function decodeLink(){
  try{
   const payload=JSON.parse(decodeURIComponent(escape(atob(hash.slice(7)))));
   if(!payload||typeof payload!=="object")return;
-  state={...fresh(),skillPoints:payload.sp??0,stageSeason:payload.ss===14?14:null,maxStage:capCurrentMaxStage(payload.st??0,null,payload.ss===14),damage:payload.da??"Clan Ship",gold:payload.go??"Fairy",playstyle:payload.p??"balanced",qol:payload.q??"recommended",goldWeight:payload.w??.7,craftingPower:payload.cp??1,timeToKill:payload.tk??8,sClone:payload.cl??30,currentLevels:payload.cur||{},minimums:payload.min||{},excluded:Array.isArray(payload.exc)?payload.exc:[],preserveCurrent:Boolean(payload.keep),assumeHaystActive:payload.hay===true,
-    assumeSnapActive:payload.snap===true,assumeCoordinatedOffensiveActive:payload.co===true,assumeFlashZipAtBoss:payload.fz===true,assumeNightmareAtBoss:payload.nm===true,assumeMagnumOpusAtBoss:payload.mo===true,assumeContractsAtMax:false,astralActivations:payload.astral??0,protectUnmodeledSkills:payload.protect!==false,excludeUnverifiedTacticalInsight:payload.tiExperiment===true,
-    pushAttackChannelId:typeof payload.attack==="string"?payload.attack:"",
-    pushSourceStageSkipTarget:payload.skip??0,
-    pushFrontierEnabled:payload.pushFrontier===true,
-    attackDamageFrontierEnabled:payload.attackDamageFrontier===true,
-    attackDamageChannelId:typeof payload.attackDamageChannel==="string"?payload.attackDamageChannel:"",mode:"power"};
+  state=publicOptimizationSettings({...fresh(),
+   skillPoints:payload.sp??0,stageSeason:payload.ss===14?14:null,
+   maxStage:capCurrentMaxStage(payload.st??0,null,payload.ss===14),
+   damage:payload.da??"Clan Ship",gold:payload.go??"Fairy",
+   playstyle:payload.p??"balanced",qol:payload.q??"recommended",
+   goldWeight:payload.w??.7,craftingPower:payload.cp??1,
+   timeToKill:payload.tk??8,sClone:payload.cl??30,
+   currentLevels:payload.cur||{},minimums:payload.min||{},
+   excluded:Array.isArray(payload.exc)?payload.exc:[],
+   preserveCurrent:Boolean(payload.keep),
+   protectUnmodeledSkills:payload.protect!==false,mode:"power"});
   window.history.replaceState(null,"",window.location.pathname+window.location.search);
-  status(payload.tiMeasurementOmitted===true?
-   "Shared build excludes private Tactical Insight measurements. Conservative TI exclusion is enabled.":
-   "Shared build settings loaded. Optimize to calculate a new recommendation.","success");
+  status("Shared build settings loaded. Optimize to calculate a new recommendation.","success");
  }catch(e){status("Could not load this shared build link.","error");}
 }
 function initialize(){
  try{const saved=JSON.parse(localStorage.getItem("tt2_skill_optimizer_v1")||"null");if(saved&&typeof saved==="object")state={...fresh(),...saved};}catch{}
  decodeLink();
+ state=publicOptimizationSettings(state);
  // Retired UI settings from previous sessions must not influence diagnostics.
  delete state.pushObservedAttackChannelId;
  delete state.pushObservedHitDamage;
