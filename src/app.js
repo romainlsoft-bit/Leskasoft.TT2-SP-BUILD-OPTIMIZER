@@ -1,3 +1,4 @@
+import {publicOptimizationSettings} from "./public-optimization-policy.js?v=20261123-boss-specials-r1";
 import {SKILLS,SKILL_IDS,BRANCH_NAMES,PRESETS,DAMAGE_TYPES,GOLD_TYPES,GAME_VERSION,parseExport,exportBuild,spentPoints,ownedSetFlags,capCurrentMaxStage,CURRENT_MAIN_GAME_STAGE_CAP} from "./engine.js?v=20261123-boss-specials-r1&season=20261126-season14-r1&score=20261123-cadence-separated-r1&audit=20261123-ti-sensitivity-r1&ember=20261123-ember-fire-sword-gate-r1&jackpot=20261123-native-jackpot-expectation-r1&mc=20261123-multicast-no-guessed-x10-r1&crit=20261124-cleaving-crit-event-r1&ambush=20261124-ambush-conditional-gold-r1";
 import { t, localizeDocument, SUPPORTED_LANGUAGES } from "./i18n.js?v=20261123-boss-specials-r1&season=20261126-season14-r1&ui=20261123-hide-observed-hit-r1&audit=20261123-ti-sensitivity-r1&alt=20261123-ti-second-tree-r1";
 import { readClipboardText } from "./clipboard.js?v=20261123-boss-specials-r1";
@@ -8,7 +9,7 @@ import {resolveGemstoneEvidence} from "./account-gemstones.js?v=20261123-boss-sp
 import {formatLogMultiplier} from "./account-power.js?v=20261123-boss-specials-r1&season=20261126-season14-r1";
 import {availablePets,recommendPets} from "./pet-scenarios.js?v=20261123-boss-specials-r1&season=20261126-season14-r1";
 import {bestEquipmentByCategory,EQUIPMENT_CATEGORIES} from "./equipment-scenarios.js?v=20261123-boss-specials-r1&season=20261126-season14-r1";
-import {sourcedStageSkipChannels,sourcedDamageChannels,attackChannelEvidence} from "./attack-channels.js?v=20261123-boss-specials-r1";
+import {attackChannelEvidence} from "./attack-channels.js?v=20261123-boss-specials-r1";
 const $=id=>document.getElementById(id);
 let locale="en";
 let lastStatus={message:"Import your account or enter your skill points to begin.",type:"",params:{}};
@@ -24,8 +25,7 @@ function setLocale(next){
  if(leskasoft)leskasoft.href="https://www.leskasoft.fr/"+locale;
  renderChoices();renderEditor($("skill-search").value);
  $("source-label").textContent=tr(state.sourceImported?"Imported from TT2":"Manual setup");
- renderAccountProfile();renderPetControls();renderPushStageSkipOptions();
- renderNativeAttackOptions();
+ renderAccountProfile();renderPetControls();
  $("result-mode").textContent=lastResult?(lastResult.solver==="bounded-grid-dp"?tr("Optimized · bounded grid"):tr("Optimized · exact DP")):tr("Ready when you are");
  if(lastResult)renderResults(lastResult,false);
  status(lastStatus.message,lastStatus.type,lastStatus.params);
@@ -63,12 +63,12 @@ function engineError(message){
 }
 const iconMap={"Clan Ship":"⛵","Pet":"🐾","Shadow Clone":"◈","Heavenly Strike":"⚡","Dagger":"🗡","Gold Gun":"✦"};
 const branchColors={Knight:"#d77879",Summoner:"#edab66",Warlord:"#e7ca75",Sorcerer:"#86adf7",Rogue:"#7ad0a0",Alchemist:"#b595ed"};
-const fresh=()=>({damage:"Clan Ship",gold:"Fairy",skillPoints:0,maxStage:0,stageSeason:null,playstyle:"balanced",qol:"recommended",goldWeight:.7,craftingPower:1,timeToKill:8,sClone:30,sets:{},currentLevels:{},minimums:{},excluded:[],preserveCurrent:false,assumeCoordinatedOffensiveActive:false,assumeFlashZipAtBoss:false,assumeNightmareAtBoss:false,assumeMagnumOpusAtBoss:false,assumeHaystActive:false,assumeSnapActive:false,assumeContractsAtMax:false,astralActivations:0,mode:"power",accountProfile:null,selectedDamagePet:null,selectedGoldPet:null,comparePetScenarios:true,selectedEquipment:{},protectUnmodeledSkills:true,excludeUnverifiedTacticalInsight:false,tacticalInsightCalibration:null,contractTimeline:null,contractMultiScenario:null,
+const fresh=()=>({damage:"Clan Ship",gold:"Fairy",skillPoints:0,maxStage:0,stageSeason:null,playstyle:"balanced",qol:"recommended",goldWeight:.7,craftingPower:1,timeToKill:8,sClone:30,sets:{},currentLevels:{},minimums:{},excluded:[],preserveCurrent:false,assumeCoordinatedOffensiveActive:true,assumeFlashZipAtBoss:true,assumeNightmareAtBoss:true,assumeMagnumOpusAtBoss:true,assumeHaystActive:true,assumeSnapActive:true,assumeContractsAtMax:false,astralActivations:5,mode:"power",accountProfile:null,selectedDamagePet:null,selectedGoldPet:null,comparePetScenarios:false,selectedEquipment:{},protectUnmodeledSkills:true,excludeUnverifiedTacticalInsight:false,tacticalInsightCalibration:null,contractTimeline:null,contractMultiScenario:null,
  importedVersion:null,budgetSource:"unset",budgetInconsistent:false,
  pushAttackChannelId:"",pushSourceStageSkipTarget:0,
  pushFrontierEnabled:false,attackDamageFrontierEnabled:false,attackDamageChannelId:""});
 let manualCurrentStageConfirmed=false;
-let state=fresh(),lastResult=null,lastScenarios=[],lastEquipment={},
+let state=publicOptimizationSettings(fresh()),lastResult=null,lastScenarios=[],lastEquipment={},
  lastGearSelection=null,lastResolvedPets=null,lastRunContext=null,
  worker=null,calculationRevision=0;
 // Public recommendations must ignore obsolete speculative contract settings.
@@ -183,7 +183,6 @@ function renderPetControls(){
    const target=event.target,id=target.id;
    if(id==="pet-damage-select")state.selectedDamagePet=target.value||null;
    else if(id==="pet-gold-select")state.selectedGoldPet=target.value||null;
-   else if(id==="pet-compare")state.comparePetScenarios=target.checked;
    else if(target.dataset.gearSlot){
     state.selectedEquipment={...state.selectedEquipment,
      [target.dataset.gearSlot]:target.value||null};
@@ -206,9 +205,7 @@ function renderPetControls(){
   };
   html+='<p class="hint">'+safe(tr("A damage pet and a gold pet are selected together. Automatic slots search eligible owned pets; named choices stay fixed."))+'</p>'
    +'<div class="field-grid"><label>'+safe(tr("Damage pet"))+'<select id="pet-damage-select">'+renderOptions("damage",state.selectedDamagePet)+'</select></label>'
-   +'<label>'+safe(tr("Gold pet"))+'<select id="pet-gold-select">'+renderOptions("gold",state.selectedGoldPet)+'</select></label></div>'
-   +'<label class="toggle"><input id="pet-compare" type="checkbox" '+(state.comparePetScenarios?"checked":"")+'>'+
-     safe(tr("Compare automatic pet choices"))+'</label>';
+   +'<label>'+safe(tr("Gold pet"))+'<select id="pet-gold-select">'+renderOptions("gold",state.selectedGoldPet)+'</select></label></div>';
  }
  if(hasGear){
   html+='<h3>'+safe(tr("Equipment candidates"))+'</h3>'
@@ -303,35 +300,6 @@ function renderEquipmentRecommendations(){
  el.innerHTML=heading+petLine+winner+alternatives;
 }
 
-function renderPushStageSkipOptions(){
- const select=$("push-attack-channel");
- const channels=sourcedStageSkipChannels(state.damage);
- const eligible=channels.some(c=>c.id===state.pushAttackChannelId);
- if(state.pushAttackChannelId&&!eligible){
-  // Never import a channel-specific target into an unrelated build.
-  state.pushAttackChannelId="";
-  state.pushSourceStageSkipTarget=0;
- }
- select.innerHTML="<option value=''>"+safe(tr("No target"))+"</option>"+
-  channels.map(c=>"<option value='"+safe(c.id)+"'>"+safe(tr(c.label))+
-   " · "+safe(SKILLS[c.sourceSkillId]?.Name||c.sourceSkillId)+"</option>").join("");
- select.value=state.pushAttackChannelId||"";
-}
-function renderNativeAttackOptions(){
- const select=$("attack-damage-channel");
- const channels=sourcedDamageChannels(state.damage);
- const valid=channels.some(c=>c.id===state.attackDamageChannelId);
- if(!valid){
-  // Never carry a Pet attack source into a Clan Ship or Dagger build.
-  const preferred=channels.find(c=>c.role==="burst"&&!c.requiredSpell)||
-   channels[0];
-  state.attackDamageChannelId=preferred?.id||"";
- }
- select.innerHTML=channels.map(c=>
-  "<option value='"+safe(c.id)+"'>"+safe(tr(c.label))+
-  " · "+safe(c.sourceSkillName)+"</option>").join("");
- select.value=state.attackDamageChannelId;
-}
 function fillInputs(){
  renderAccountProfile();renderPetControls();
  $("skill-points").value=state.skillPoints??"";
@@ -350,27 +318,6 @@ function fillInputs(){
  $("qol-mode").value=state.qol;
  $("preserve-current").checked=state.preserveCurrent;
  $("protect-unmodeled-skills").checked=state.protectUnmodeledSkills!==false;
- $("exclude-unverified-tactical-insight").checked=state.excludeUnverifiedTacticalInsight===true;
- const calibration=state.tacticalInsightCalibration||{};
- $("ti-cal-enabled").checked=calibration.enabled===true;
- for(const [key,id] of [["lowerLevel","ti-cal-low-level"],
-  ["upperLevel","ti-cal-high-level"],
-  ["lowerDamage","ti-cal-low-damage"],["upperDamage","ti-cal-high-damage"],
-  ["lowerGold","ti-cal-low-gold"],["upperGold","ti-cal-high-gold"]]){
-  $(id).value=calibration[key]??"";
- }
- $("coordinated-offensive-active").checked=state.assumeCoordinatedOffensiveActive===true;
- $("flash-zip-at-boss").checked=state.assumeFlashZipAtBoss===true;
- $("nightmare-at-boss").checked=state.assumeNightmareAtBoss===true;
- $("magnum-opus-at-boss").checked=state.assumeMagnumOpusAtBoss===true;
- $("hayst-active").checked=state.assumeHaystActive===true;
- $("snap-active").checked=state.assumeSnapActive===true;
- $("astral-activations").value=state.astralActivations??0;
- renderPushStageSkipOptions();
- renderNativeAttackOptions();
- $("attack-damage-frontier-enabled").checked=state.attackDamageFrontierEnabled===true;
- $("push-stage-skip-target").value=state.pushSourceStageSkipTarget??0;
- $("push-frontier-enabled").checked=state.pushFrontierEnabled===true;
  renderChoices();renderEditor($("skill-search").value);
 }
 function remember(){
@@ -461,26 +408,7 @@ function readInputs(){
  state.qol=$("qol-mode").value;
  state.preserveCurrent=$("preserve-current").checked;
  state.protectUnmodeledSkills=$("protect-unmodeled-skills").checked;
- state.excludeUnverifiedTacticalInsight=$("exclude-unverified-tactical-insight").checked;
- state.tacticalInsightCalibration=$("ti-cal-enabled").checked?{
-  enabled:true,damage:state.damage,gold:state.gold,
-  lowerLevel:$("ti-cal-low-level").value,upperLevel:$("ti-cal-high-level").value,
-  lowerDamage:$("ti-cal-low-damage").value.trim(),
-  upperDamage:$("ti-cal-high-damage").value.trim(),
-  lowerGold:$("ti-cal-low-gold").value.trim(),
-  upperGold:$("ti-cal-high-gold").value.trim()
- }:null;
- state.assumeCoordinatedOffensiveActive=$("coordinated-offensive-active").checked;
- state.assumeFlashZipAtBoss=$("flash-zip-at-boss").checked;
- state.assumeNightmareAtBoss=$("nightmare-at-boss").checked;
- state.assumeMagnumOpusAtBoss=$("magnum-opus-at-boss").checked;
- state.assumeHaystActive=$("hayst-active").checked;
- state.assumeSnapActive=$("snap-active").checked;
- state.pushAttackChannelId=$("push-attack-channel").value;
- state.pushSourceStageSkipTarget=$("push-stage-skip-target").value;
- state.pushFrontierEnabled=$("push-frontier-enabled").checked;
- state.attackDamageFrontierEnabled=$("attack-damage-frontier-enabled").checked;
- state.attackDamageChannelId=$("attack-damage-channel").value;
+ Object.assign(state,publicOptimizationSettings(state));
  keepContractsConservative(state);
  state.mode="power";
  persist();
@@ -498,7 +426,7 @@ function optimize(){
  button.disabled=false;button.textContent=tr("Cancel optimization");
  status("Checking prerequisites and calculating the best allocation for the chosen scoring model…");
  const revision=++calculationRevision;
- const requestContext=keepContractsConservative(structuredClone(state));
+ const requestContext=publicOptimizationSettings(keepContractsConservative(structuredClone(state)));
  const running=new Worker(new URL("./worker.js?v=20261123-boss-specials-r1&season=20261126-season14-r1&score=20261123-cadence-separated-r1&audit=20261123-ti-sensitivity-r1&alt=20261123-ti-second-tree-r1&ember=20261123-ember-fire-sword-gate-r1&jackpot=20261123-native-jackpot-expectation-r1&mc=20261123-multicast-no-guessed-x10-r1&crit=20261124-cleaving-crit-event-r1&ambush=20261124-ambush-conditional-gold-r1",import.meta.url),{type:"module"});
  worker=running;
  running.onmessage=event=>{
@@ -534,8 +462,7 @@ function optimize(){
    {detail:event.message||"unknown error"});
   running.terminate();worker=null;
  };
- const compare=requestContext.comparePetScenarios&&
-  availablePets(requestContext.accountProfile).length>0;
+ const compare=false; // No pet-pair comparisons from the public UI.
  running.postMessage({type:compare?"optimize-pet-scenarios":"optimize",
   settings:requestContext});
 }
@@ -1182,10 +1109,8 @@ function initialize(){
  const importHelp=$("import-help-dialog");
  $("import-help-button").addEventListener("click",()=>importHelp.showModal());
  for(const id of ["import-help-close","import-help-done"])$(id).addEventListener("click",()=>importHelp.close());
- $("damage-choices").addEventListener("click",e=>{const b=e.target.closest("[data-damage]");if(b){state.damage=b.dataset.damage;state.tacticalInsightCalibration=null;fillInputs();remember();}});
- $("gold-choices").addEventListener("click",e=>{const b=e.target.closest("[data-gold]");if(b){state.gold=b.dataset.gold;state.tacticalInsightCalibration=null;fillInputs();remember();}});
- $("push-attack-channel").addEventListener("change",()=>{readInputs();remember();});
- $("attack-damage-channel").addEventListener("change",()=>{readInputs();remember();});
+ $("damage-choices").addEventListener("click",e=>{const b=e.target.closest("[data-damage]");if(b){state.damage=b.dataset.damage;fillInputs();remember();}});
+ $("gold-choices").addEventListener("click",e=>{const b=e.target.closest("[data-gold]");if(b){state.gold=b.dataset.gold;fillInputs();remember();}});
  $("playstyle-choices").addEventListener("click",e=>{const b=e.target.closest("[data-playstyle]");if(b)applyPreset(b.dataset.playstyle);});
  $("skill-search").addEventListener("input",e=>renderEditor(e.target.value));
  $("skill-editor").addEventListener("change",e=>{
@@ -1199,22 +1124,15 @@ function initialize(){
   remember();
  });
  $("clear-minimums").addEventListener("click",()=>{state.minimums={};fillInputs();remember();});
- for(const id of ["skill-points","max-stage","gold-weight","crafting-power","time-to-kill","clone-level","qol-mode","preserve-current","protect-unmodeled-skills","exclude-unverified-tactical-insight","ti-cal-enabled","coordinated-offensive-active","flash-zip-at-boss","nightmare-at-boss","magnum-opus-at-boss","hayst-active","snap-active","astral-activations","push-stage-skip-target","push-frontier-enabled","attack-damage-frontier-enabled",
-  "ti-cal-low-level","ti-cal-high-level","ti-cal-low-damage","ti-cal-high-damage","ti-cal-low-gold","ti-cal-high-gold"])$(id).addEventListener("change",()=>{
-  if(id==="ti-cal-enabled"&&$(id).checked)
-   $("exclude-unverified-tactical-insight").checked=false;
-  if(id==="exclude-unverified-tactical-insight"&&$(id).checked)
-   $("ti-cal-enabled").checked=false;
-  readInputs();
-  remember();
+ for(const id of ["skill-points","max-stage","gold-weight","crafting-power",
+  "time-to-kill","clone-level","qol-mode","preserve-current",
+  "protect-unmodeled-skills"])$(id).addEventListener("change",()=>{
+  readInputs();remember();
  });
- // Text fields emit "input" before their "change" event (on blur).
- // Cancel a running optimization immediately while the user edits; never
- // accept an old worker result against a half-edited budget or setting.
+ // Cancel an ongoing optimization as soon as the settings change.
  for(const id of ["skill-points","max-stage","gold-weight",
-  "crafting-power","time-to-kill","clone-level","astral-activations","push-stage-skip-target",
-  "ti-cal-low-level","ti-cal-high-level","ti-cal-low-damage","ti-cal-high-damage","ti-cal-low-gold","ti-cal-high-gold"]){
-   $(id).addEventListener("input",()=>{if(worker){readInputs();remember();}});
+  "crafting-power","time-to-kill","clone-level"]){
+  $(id).addEventListener("input",()=>{if(worker){readInputs();remember();}});
  }
  $("skill-editor").addEventListener("input",e=>{
   if(!worker)return;
