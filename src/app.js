@@ -125,7 +125,7 @@ function renderEditor(filter=""){
  }).join("");
  if(!matches.length)$("skill-editor").innerHTML="<p class='hint'>"+safe(tr("No skills match your search."))+"</p>";
 }
-const SEASON14_NOTICE="Transcendence season 14 started 26 November 2026. Only positive Transcendent pet levels from a season-14 account export are considered (the official ten-pet rotation is not yet verified). Season-14 monument coefficients remain excluded from scoring until independently verified. Stage 180,000 is the Transcendence entry threshold, not a seasonal maximum.";
+const SEASON14_NOTICE="Transcendence season 14 began 26 November 2026. The ten eligible Transcendent pets and the 52 monument records use the season-14 game-data variant; only owned pets and monuments from a season-14 account export contribute. Stage 180,000 is the Transcendence entry threshold, not a seasonal maximum. Some conditional effects remain unmodeled.";
 function renderAccountProfile(){
  let el=$("account-profile-summary");
  if(!el){
