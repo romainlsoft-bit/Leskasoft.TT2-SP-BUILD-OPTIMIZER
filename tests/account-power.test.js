@@ -430,7 +430,7 @@ test("uncapped monuments preserve scientific levels and inactive monuments do no
   SeasonalArtifact2:{level:"1e9999"},SeasonalArtifact22:{level:3}}});
  const m=resolveMonumentEvidence(p);
  assert.equal(m.entries.find(x=>x.id==="SeasonalArtifact2").level,"1e9999");
- assert.equal(m.entries.find(x=>x.id==="SeasonalArtifact22").formulaStatus,"inactive-in-8.4-catalog");
+ assert.equal(m.entries.find(x=>x.id==="SeasonalArtifact22").formulaStatus,"unknown-season-category");
  assert.equal(m.modeled,0);
 });
 
@@ -528,7 +528,7 @@ test("monuments retain genuine boolean enchantment state and unknown season bloc
  assert.equal(u.modeled,0);
  const missing=parseAccountProfile({playerStats:{"Transcendence Season":13},
   monuments:{SeasonalArtifact34:{level:100}}});
- assert.equal(resolveMonumentEvidence(missing).entries[0].formulaStatus,"unknown-enchantment-state");
+ assert.equal(resolveMonumentEvidence(missing,new Date("2026-11-17T00:00:00Z")).entries[0].formulaStatus,"unknown-enchantment-state");
 });
 
 test("artifact damage is a separate linear pool, not repeated main artifact multiplier",()=>{
