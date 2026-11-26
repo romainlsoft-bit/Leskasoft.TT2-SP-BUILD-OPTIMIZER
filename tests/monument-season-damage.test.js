@@ -157,7 +157,7 @@ test("truncated sections reject main and additive monument scores",()=>{
  assert.equal(monuments.truncatedSections.length,1);
  assert.equal(monuments.modeled,0);
  assert.equal(derived.entries.length,0);
- assert.equal(extractFixedAccountPower(profile).entries
+ assert.equal(extractFixedAccountPower(profile,NOW).entries
   .filter(x=>["monuments","monumentDamage"].includes(x.system)).length,0);
 });
 test("per-season-day main effects are not unconditional despite known season age",()=>{
@@ -209,20 +209,29 @@ test("source scientific extremes are guarded and never produce Infinity/NaN",()=
  assert.equal(derived.rejected.length,1);
  assert.equal(derived.excludedComponents,1);
 });
-test("all 18 damage/gold combinations route ONE additive Monument Damage score",()=>{
+for(const scenario of [
+ {name:"active season 13",at:NOW,season:13,expected:1},
+ {name:"between seasons",at:new Date("2026-11-25T12:00:00Z"),season:13,expected:0},
+ {name:"expired season 13",at:new Date("2026-11-26T12:00:00Z"),season:13,expected:0},
+ {name:"active season 14",at:new Date("2026-11-26T12:00:00Z"),season:14,expected:1}
+])test(`all 18 damage/gold combinations: ${scenario.name} routes ${scenario.expected} additive Monument Damage pool`,(t)=>{
+ t.mock.timers.enable({apis:["Date"],now:scenario.at});
  const profile=parseAccountProfile({Version:"8.4.0",
-  playerStats:{"Transcendence Season":13},
+  playerStats:{"Transcendence Season":scenario.season},
   equipmentSets:["Mech","Blacksmith"],
-  monuments:{
+  monuments:scenario.season===14?{
+   SeasonalArtifact1:{level:20,enchanted:false},
+   SeasonalArtifact2:{level:100,enchanted:false}
+  }:{
    SeasonalArtifact34:{level:100,enchanted:false},
    SeasonalArtifact36:{level:100,enchanted:true},
    SeasonalArtifact23:{level:12,enchanted:false},
    SeasonalArtifact30:{level:12,enchanted:false}
   }});
  const base=extractFixedAccountPower(profile);
- assert.equal(base.entries.filter(x=>x.system==="monumentDamage").length,0);
- assert.equal(base.monumentEffects.countedSetApplied,0);
- assert.equal(base.monumentEffects.additiveDamageApplied,false);
+ assert.equal(base.entries.filter(x=>x.system==="monumentDamage").length,scenario.expected);
+ assert.equal(base.monumentEffects.countedSetApplied,scenario.season===13&&scenario.expected===1?2:0);
+ assert.equal(base.monumentEffects.additiveDamageApplied,scenario.expected===1);
  for(const damage of DAMAGE_TYPES)for(const gold of GOLD_TYPES){
   const settings={accountProfile:profile,damage,gold,goldWeight:.7,
    skillPoints:30,qol:"none",sets:{},minimums:{},currentLevels:{},
@@ -242,8 +251,8 @@ test("all 18 damage/gold combinations route ONE additive Monument Damage score",
   assert.ok(close(optimized.fixedAccount.goldLog10,expected.goldLog10),
    damage+"/"+gold+" gold");
   assert.ok(close(optimized.fixedAccount.weightedLog10,expected.weightedLog10));
-  assert.equal(optimized.accountIntegration.monuments.additiveDamageApplied,false);
-  assert.equal(optimized.accountIntegration.monuments.scored,0);
+  assert.equal(optimized.accountIntegration.monuments.additiveDamageApplied,scenario.expected===1);
+  assert.equal(optimized.accountIntegration.monuments.scored,base.monumentEffects.scored);
   assert.equal(optimized.accountIntegration.releaseReady,false);
   assert.ok(Number.isFinite(optimized.accountAdjustedScore));
  }
