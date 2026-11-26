@@ -28,6 +28,9 @@ export const OFFICIAL_SEASON13_PET_ROSTER=Object.freeze([
  "Owlivia","Quippy","Scaly","Sonara","Watson"
 ]);
 const season13=new Set(OFFICIAL_SEASON13_PET_ROSTER);
+// The season-14 official roster has not yet been source-verified.
+// Accept only positive pet levels from an export explicitly stamped 14;
+// never resurrect season-13 local storage or infer ownership from CSV flags.
 const petLevels=(profile,at=new Date())=>{
  const raw=petLevelEvidence(profile).levels;
  const season=resolveTranscendenceAge(profile,at);
@@ -40,10 +43,14 @@ const petLevels=(profile,at=new Date())=>{
  }
  // Historical explicit-date fixtures can still inspect older exports,
  // but the current default is permanent-only after the rollover.
- if(!season.season)return raw;
+ if(!season.season){
+  for(const id of Object.keys(TRANSCENDENT_PETS))delete filtered[id];
+  return filtered;
+ }
  for(const pet of Object.values(TRANSCENDENT_PETS)){
-  const allowed=season.season==="13"&&!season.estimatedSeasonEnded&&
-   season13.has(pet.name);
+  const allowed=!season.estimatedSeasonEnded&&(
+   (season.season==="13"&&season13.has(pet.name))||
+   season.season==="14");
   if(!allowed)delete filtered[pet.id];
  }
  return filtered;
