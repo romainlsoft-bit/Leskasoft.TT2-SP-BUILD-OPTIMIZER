@@ -150,8 +150,9 @@ test("frontend displays only the extra build JSON; no hit damage entry or Action
  const app=readFileSync(new URL("../src/app.js",import.meta.url),"utf8");
  const worker=readFileSync(new URL("../src/worker.js",import.meta.url),"utf8");
  assert.match(worker,/exploreTacticalInsightAlternative\(context,result,/);
- assert.match(app,/exportBuild\(alt\.levels\)/);
- assert.match(app,/alt\?\.status==="explored"/);
+ const details=readFileSync(new URL("../src/result-details-ui.js",import.meta.url),"utf8");
+  assert.match(details,/exportBuild\(alt\.levels\)/);
+ assert.match(details,/alt\?\.status==="explored"/);
  assert.doesNotMatch(app,/push-observed-damage/);
  for(const path of ["index.html","fr/index.html","uk/index.html","ru/index.html"]){
   const html=readFileSync(new URL("../"+path,import.meta.url),"utf8");
