@@ -24,7 +24,7 @@ for(const page of ["index.html","fr/index.html","uk/index.html","ru/index.html"]
 }
 const files=readdirSync(join(root,"src")).filter(name=>name.endsWith(".js"))
  .map(name=>"src/"+name);
-const importRegex=/(?:\bfrom\s*|\bimport\s*|\bnew URL\(\s*)(["'])(\.{1,2}\/[^"'\s]+?\.js)(?:\?v=([a-zA-Z0-9_-]+)((?:&[a-zA-Z0-9_-]+=[a-zA-Z0-9_-]+)*))?\1/g;
+const importRegex=/(?:\bfrom\s*|\bimport\s*(?:\(\s*)?|\bnew URL\(\s*)(["'])(\.{1,2}\/[^"'\s]+?\.js)(?:\?v=([a-zA-Z0-9_-]+)((?:&[a-zA-Z0-9_-]+=[a-zA-Z0-9_-]+)*))?\1/g;
 const targets=new Map();
 let edges=0;
 for(const sourceFile of files){
