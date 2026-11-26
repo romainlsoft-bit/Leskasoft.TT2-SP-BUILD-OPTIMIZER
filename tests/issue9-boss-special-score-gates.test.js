@@ -88,23 +88,23 @@ test("solver budgets and stage-attribution safeguards hold across eighteen route
   assert.equal(result.modelAttribution.gameplayCalibrationVerified,false);
  }
 });
-test("special boss assumptions are reset when importing another account",()=>{
+test("special boss assumptions remain enabled when importing another account",()=>{
  const state={assumeFlashZipAtBoss:true,assumeNightmareAtBoss:true,
   assumeMagnumOpusAtBoss:true};
  resetAccountDependentOptions(state);
- for(const spec of cases)assert.equal(state[spec.flag],false,spec.flag);
+ for(const spec of cases)assert.equal(state[spec.flag],true,spec.flag);
 });
-test("UI and shared builds keep the conditions distinct in all four languages",()=>{
+test("all four languages hide the retired toggles and shared links cannot revive them",()=>{
  for(const path of ["index.html","fr/index.html","uk/index.html","ru/index.html"]){
   const html=readFileSync(new URL("../"+path,import.meta.url),"utf8");
   for(const spec of cases)
-   assert.equal((html.match(new RegExp('id="'+spec.ui+'"',"g"))||[]).length,1,
+   assert.equal((html.match(new RegExp('id="'+spec.ui+'"',"g"))||[]).length,0,
     path+"/"+spec.ui);
   assert.ok(html.includes("src/app.js?v=20261123-boss-specials-r1"));
  }
  const app=readFileSync(new URL("../src/app.js",import.meta.url),"utf8");
  for(const spec of cases)
-  assert.ok(app.includes('state.'+spec.flag+'=$("'+spec.ui+'").checked'));
+  assert.ok(!app.includes('state.'+spec.flag+'=$("'+spec.ui+'").checked'));
  for(const code of ["fz","nm","mo"])
-  assert.match(app,new RegExp("payload\\."+code+"===true"));
+  assert.doesNotMatch(app,new RegExp("payload\\."+code+"===true"));
 });
