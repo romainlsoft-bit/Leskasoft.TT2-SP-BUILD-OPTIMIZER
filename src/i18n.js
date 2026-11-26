@@ -1269,6 +1269,9 @@ translations.ru["Cannot share a build with invalid or excessive settings. Check 
 translations.fr["Your imported account and preferences may be stored in this browser. You can erase them here."]="Votre compte importé et vos préférences peuvent être conservés dans ce navigateur. Vous pouvez les effacer ici.";
 translations.uk["Your imported account and preferences may be stored in this browser. You can erase them here."]="Імпортований обліковий запис і налаштування можуть зберігатися у цьому браузері. Тут їх можна видалити.";
 translations.ru["Your imported account and preferences may be stored in this browser. You can erase them here."]="Импортированный аккаунт и настройки могут храниться в этом браузере. Здесь их можно удалить.";
+translations.fr["Erase saved TT2 data"]="Effacer les données TT2 enregistrées";
+translations.uk["Erase saved TT2 data"]="Видалити збережені дані TT2";
+translations.ru["Erase saved TT2 data"]="Удалить сохранённые данные TT2";
 export function t(message, lang="en", parameters={}){
   const selected=SUPPORTED_LANGUAGES.includes(lang)?lang:"en";
   const value=translations[selected]?.[message] ?? message;
