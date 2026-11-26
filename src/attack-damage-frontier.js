@@ -90,8 +90,10 @@ export function exploreNativeAttackDamageFrontier(settings={},{
  const spec=choices.find(x=>x.id===settings.attackDamageChannelId);
  if(!spec)return unresolved("choose-native-damage-attack");
  const spells=spellSelectionEvidence(settings);
- if(spec.requiredSpell&&spells.valid&&
-    !spells.ids.includes(spec.requiredSpell))
+ if(spec.requiredSpell&&(
+   (Array.isArray(settings.selectedSpells)&&
+    !settings.selectedSpells.includes(spec.requiredSpell))||
+   (spells.valid&&!spells.ids.includes(spec.requiredSpell))))
   return unresolved("required-attack-spell-not-equipped");
  if(typeof solve!=="function")throw new TypeError("A solve callback is required");
  if(!Number.isSafeInteger(maxConstrained)||maxConstrained<1||maxConstrained>3)
