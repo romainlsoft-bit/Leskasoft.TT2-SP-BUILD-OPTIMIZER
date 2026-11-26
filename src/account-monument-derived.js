@@ -4,7 +4,7 @@
  * Never add each additive component as its own multiplicative AllDamage.
  */
 import {SEASON_ARTIFACT_CATALOG} from "../vendor/account-catalog.js?v=20261123-boss-specials-r1";
-import {SEASON14_ARTIFACT_CATALOG} from "../vendor/season14-monuments.js?v=20261126-season14-r2";
+import {SEASON14_ARTIFACT_CATALOG} from "../vendor/season14-monuments.js?v=20261123-boss-specials-r1";
 import {additiveDamageEvidence} from "./account-damage-pools.js?v=20261123-boss-specials-r1";
 
 export function monumentDerivedPower(profile,monuments){
