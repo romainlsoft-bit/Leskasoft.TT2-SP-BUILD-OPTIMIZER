@@ -67,6 +67,7 @@ const fresh=()=>({damage:"Clan Ship",gold:"Fairy",skillPoints:0,maxStage:0,plays
  importedVersion:null,budgetSource:"unset",budgetInconsistent:false,
  pushAttackChannelId:"",pushSourceStageSkipTarget:0,
  pushFrontierEnabled:false,attackDamageFrontierEnabled:false,attackDamageChannelId:""});
+let manualCurrentStageConfirmed=false;
 let state=fresh(),lastResult=null,lastScenarios=[],lastEquipment={},
  lastGearSelection=null,lastResolvedPets=null,lastRunContext=null,
  worker=null,calculationRevision=0;
@@ -331,8 +332,13 @@ function renderNativeAttackOptions(){
 function fillInputs(){
  renderAccountProfile();renderPetControls();
  $("skill-points").value=state.skillPoints??"";
- state.maxStage=capCurrentMaxStage(state.maxStage);
- $("max-stage").max=CURRENT_MAIN_GAME_STAGE_CAP;
+ state.maxStage=capCurrentMaxStage(
+  state.maxStage,state.accountProfile,manualCurrentStageConfirmed);
+ const season=Number(state.accountProfile?.stats?.transcendenceSeason);
+ const season14Started=Date.now()>=Date.parse("2026-11-26T00:00:00.000Z");
+ if(season14Started&&(!state.accountProfile||season===14))
+  $("max-stage").removeAttribute("max");
+ else $("max-stage").max=CURRENT_MAIN_GAME_STAGE_CAP;
  $("max-stage").value=state.maxStage||"";
  $("gold-weight").value=state.goldWeight;
  $("crafting-power").value=state.craftingPower;
@@ -384,6 +390,7 @@ function importRaw(raw){
  state.skillPoints=parsed.skillPoints??parsed.skillPointsSpent;
  state.budgetSource=parsed.budgetSource;
  state.budgetInconsistent=parsed.budgetInconsistent;
+ manualCurrentStageConfirmed=false;
  state.maxStage=parsed.maxStage;state.craftingPower=parsed.craftingPower;state.sets=parsed.sets;
  state.accountProfile=parsed.profile;
 
@@ -439,7 +446,9 @@ function readInputs(){
   state.budgetSource="manual";state.budgetInconsistent=false;
  }
  state.skillPoints=manuallyEntered;
- state.maxStage=capCurrentMaxStage($("max-stage").value);
+ manualCurrentStageConfirmed=true;
+ state.maxStage=capCurrentMaxStage(
+  $("max-stage").value,state.accountProfile,true);
  state.goldWeight=Number($("gold-weight").value);
  state.craftingPower=Number($("crafting-power").value);
  state.timeToKill=Number($("time-to-kill").value);
