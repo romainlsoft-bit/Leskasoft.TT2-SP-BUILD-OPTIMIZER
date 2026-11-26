@@ -16,7 +16,7 @@
 <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg"><link rel="stylesheet" href="../styles.css?v=20261122-toast-flat-r1">
 <title>Optimiseur de compétences TT2 8.4 — Calculateur SP gratuit | Leskasoft</title>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Optimiseur d’arbre de compétences Tap Titans 2","description":"Optimisez vos points de compétences Tap Titans 2 : import JSON, saisie manuelle, confort de jeu (QoL) et export du build jusqu’à 50 000 SP.","applicationCategory":"GameApplication","operatingSystem":"Any","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"url":"https://tap-titans.leskasoft.com/fr/","inLanguage":"fr","@id":"https://tap-titans.leskasoft.com/fr/#tool"}</script>
-<script type="module" src="../src/app.js?v=20261123-boss-specials-r1&amp;season=20261126-season14-r1&amp;ui=20261123-hide-observed-hit-r1&amp;score=20261123-cadence-separated-r1&amp;audit=20261123-ti-sensitivity-r1&amp;alt=20261123-ti-second-tree-r1&amp;ember=20261123-ember-fire-sword-gate-r1&amp;jackpot=20261123-native-jackpot-expectation-r1&amp;mc=20261123-multicast-no-guessed-x10-r1&amp;crit=20261124-cleaving-crit-event-r1&amp;ambush=20261124-ambush-conditional-gold-r1" defer></script>
+<script type="module" src="../src/app.js?v=20261123-boss-specials-r1&amp;season=20261126-season14-r1&amp;ui=20261123-hide-observed-hit-r1&amp;score=20261123-cadence-separated-r1&amp;audit=20261123-ti-sensitivity-r1&amp;alt=20261123-ti-second-tree-r1&amp;ember=20261123-ember-fire-sword-gate-r1&amp;jackpot=20261123-native-jackpot-expectation-r1&amp;mc=20261123-multicast-no-guessed-x10-r1&amp;crit=20261124-cleaving-crit-event-r1&amp;ambush=20261124-ambush-conditional-gold-r1&amp;simplify=20261126-boss-r1" defer></script>
 </head>
 <body>
 <div class="site">
@@ -64,40 +64,8 @@
       <label>Niveau du sort Clone d'ombre <input id="clone-level" type="number" min="1" max="35" step="1" value="30"></label>
     </div>
 
-    <h3>Objectif de saut de stages (facultatif)</h3>
-    <p class="hint">Indiquez le bonus de saut de stages souhaité pour une attaque. L’optimiseur réserve les niveaux nécessaires puis répartit les SP restants. Il ne s’agit ni du saut total ni d’un gain d’étages garanti : l’attaque doit encore tuer le titan.</p>
-    <label>Attaque effectuant le saut <select id="push-attack-channel"><option value="">Aucun objectif</option></select></label>
-    <label>Saut de stages minimal du talent <input id="push-stage-skip-target" type="number" min="0" max="10000" step="1" inputmode="numeric" value="0"></label>
-    <h3>Explorer des builds de push (facultatif)</h3>
-    <label class="toggle"><input type="checkbox" id="push-frontier-enabled"> Compare plusieurs répartitions complètes de SP à différents niveaux de saut de stages. Les calculs sont plus longs et ne prédisent pas les stages ni les dégâts réels des boss.</label>
-    <h3>Alternatives par dégâts natifs de l'attaque</h3>
-    <label>Attaque dont comparer le multiplicateur de dégâts natif <select id="attack-damage-channel"></select></label>
-    <label class="toggle"><input type="checkbox" id="attack-damage-frontier-enabled"> Explorer des allocations complètes de SP privilégiant le multiplicateur documenté de cette attaque. Expérimental : aucun DPS ni gain de stages n'est prédit.</label>
-    <h3>Conditions de combat à l’étage maximal</h3>
-    <p class="hint">Ne comptez les bonus temporaires que si vous pouvez les utiliser contre votre boss le plus difficile. Inactif/zéro est l’hypothèse prudente par défaut.</p>
-    <label class="toggle"><input type="checkbox" id="hayst-active"> Hayst actif contre votre boss le plus difficile</label>
-    <label class="toggle"><input type="checkbox" id="snap-active"> Snap actif contre votre boss le plus difficile</label>
-    <label>Orbes Astral Awakening activés (0–5) <input type="number" id="astral-activations" min="0" max="5" step="1" inputmode="numeric" value="0"></label>
-    <label class="toggle"><input type="checkbox" id="coordinated-offensive-active"> Coordinated Offensive actif contre le boss (ne compter ses dégâts de héros que dans ce cas)</label>
-    <label class="toggle"><input type="checkbox" id="flash-zip-at-boss"> Flash Zip est chargé et frappe le boss le plus difficile (dégâts de la QTE Pet Boss)</label>
-    <label class="toggle"><input type="checkbox" id="nightmare-at-boss"> Shadow Clone déclenche Nightmare Damage contre le boss le plus difficile (tentatives spéciales uniquement)</label>
-    <label class="toggle"><input type="checkbox" id="magnum-opus-at-boss"> Magnum Opus est chargé et actif contre le boss le plus difficile (pas les tirs ordinaires du Gold Gun)</label>
     <label class="toggle"><input type="checkbox" id="preserve-current">Conserver les niveaux actuels comme minimums</label>
     <label class="toggle"><input type="checkbox" id="protect-unmodeled-skills" checked> Conserver les compétences conditionnelles existantes lorsque leurs effets ne sont pas modélisés (recommandé)</label>
-    <label class="toggle"><input type="checkbox" id="exclude-unverified-tactical-insight"> Expérimental : exclure du calcul SP le coefficient communautaire non vérifié de Tactical Insight (sa valeur réelle n'est pas considérée comme nulle)</label>
-    <details class="result-detail">
-     <summary>Tactical Insight — calibration par mesures Stats (facultatif)</summary>
-     <p class="hint">Saisissez deux relevés de l'écran Stats du jeu avec les mêmes équipements, familiers, sorts et bonus ; seul le niveau de Tactical Insight doit changer. Renseignez les dégâts et l'or de ce build. La notation 1.23e30000 est acceptée. L'optimisation se limite aux niveaux entre les deux mesures. Ces données restent sur cet appareil et sont omises des liens partagés.</p>
-     <label class="toggle"><input type="checkbox" id="ti-cal-enabled"> Utiliser ma calibration mesurée de Tactical Insight pour ce build</label>
-     <div class="options-grid">
-      <label>Niveau inférieur de Tactical Insight <input type="number" id="ti-cal-low-level" min="0" max="30" step="1" inputmode="numeric" placeholder="10"></label>
-      <label>Niveau supérieur de Tactical Insight <input type="number" id="ti-cal-high-level" min="0" max="30" step="1" inputmode="numeric" placeholder="15"></label>
-      <label>Dégâts Stats au niveau inférieur <input type="text" id="ti-cal-low-damage" inputmode="decimal" placeholder="1.23e30000"></label>
-      <label>Dégâts Stats au niveau supérieur <input type="text" id="ti-cal-high-damage" inputmode="decimal" placeholder="2.45e30000"></label>
-      <label>Or Stats au niveau inférieur <input type="text" id="ti-cal-low-gold" inputmode="decimal" placeholder="1.23e29000"></label>
-      <label>Or Stats au niveau supérieur <input type="text" id="ti-cal-high-gold" inputmode="decimal" placeholder="1.56e29000"></label>
-     </div>
-    </details>
     <h3>Compétences individuelles</h3>
     <p class="hint">Renseignez votre niveau actuel pour la comparaison. Imposez un niveau minimal si nécessaire. Les compétences exclues ne recevront aucun SP supplémentaire.</p>
     <div class="skill-filter"><input type="search" id="skill-search" placeholder="Rechercher une compétence ou un arbre…" aria-label="Rechercher des compétences"><button type="button" class="btn tiny secondary" id="clear-minimums">Effacer les minimums</button></div>
