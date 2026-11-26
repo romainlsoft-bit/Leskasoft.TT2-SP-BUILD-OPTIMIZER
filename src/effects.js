@@ -9,7 +9,7 @@ import { spellInfo, spell_reductions } from "../vendor/spells.js?v=20261123-boss
 import {spellTableIndex} from "./spell-caps.js?v=20261123-boss-specials-r1";
 import {spellCapGainEligible,multicastSkillEvidence,spellEffectScorable,ACTIVE_SOURCE_SKILL_SPELLS} from "./spell-scenarios.js?v=20261123-boss-specials-r1";
 import {lightningStrikeSkillScore} from "./lightning-strike-evidence.js?v=20261123-boss-specials-r1";
-import {petCombatTechniquesIncrement,petEquipmentCombatTechniquesIncrement} from "./pet-scenarios.js?v=20261123-boss-specials-r1&season=20261124-end-season13-r1";
+import {petCombatTechniquesIncrement,petEquipmentCombatTechniquesIncrement} from "./pet-scenarios.js?v=20261123-boss-specials-r1&season=20261126-season14-r1";
 import {skillTreeSetScore} from "./skill-tree-set-effects.js?v=20261123-boss-specials-r1";
 import {contractSkillScore} from "./contract-scenarios.js?v=20261123-boss-specials-r1";
 import {tacticalInsightLocalScore} from "./tactical-insight-local.js?v=20261123-boss-specials-r1";
