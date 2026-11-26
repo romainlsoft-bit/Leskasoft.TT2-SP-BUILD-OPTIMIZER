@@ -133,7 +133,7 @@ test("Combat Techniques full-coverage gate needs all five explicit Exotic pet le
 });
 
 test("Pet import warning is translated and never reveals player identifiers",async()=>{
- const {translations}=await import("../src/i18n.js");
+ const {translations}=await import("./helpers/i18n-all.js");
  const key="Pet import warning: {count} invalid, conflicting or unknown pet records were excluded from calculations.";
  for(const lang of ["fr","uk","ru"]){
   assert.ok(translations[lang][key]);
