@@ -91,7 +91,7 @@ test("#30: two successive imports, explicit zero, mismatch and manual edits reac
  assert.equal(state.budgetSource,"manual");
  assert.equal(state.budgetInconsistent,false);
  assert.match(app,/settings:requestContext/);
- assert.match(app,/const requestContext=publicOptimizationSettings\\(keepContractsConservative\\(structuredClone\\(state\\)\\)\\)/);
+ assert.match(app,/const requestContext=publicOptimizationSettings\(keepContractsConservative\(structuredClone\(state\)\)\)/);
 });
 test("#30: multiscast bonus requires a selected and unlocked spell",()=>{
  const absent={...pet,selectedSpells:["BurstDamage","CritBoost","HandOfMidas","HelperBoost","ShadowClone","StreamOfBlades"]};
