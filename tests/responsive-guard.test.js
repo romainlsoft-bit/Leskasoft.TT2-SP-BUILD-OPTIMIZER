@@ -28,10 +28,13 @@ test("language-safe layouts wrap text and let form controls fill grid columns",(
 });
 test("share links persist the safety preference without importing private profile fields",()=>{
  const app=read("src/app.js");
- assert.match(app,/protect:state\.protectUnmodeledSkills!==false/);
+ const sharing=read("src/share-link-protocol.js");
+ assert.match(sharing,/protect:state\.protectUnmodeledSkills!==false/);
  const boundary=read("src/build-input-boundary.js");
  assert.match(boundary,/protectUnmodeledSkills:value\.protect!==false/);
- assert.match(app,/parseSharedBuildHash\(hash,SKILLS,DAMAGE_TYPES,GOLD_TYPES\)/);
+ assert.match(sharing,/parseSharedBuildHash\(hash,skills,damageTypes,goldTypes\)/);
+ assert.match(app,/readSharedBuild\(hash,SKILLS,DAMAGE_TYPES,GOLD_TYPES\)/);
  assert.match(app,/protectUnmodeledSkills:true/);
- assert.doesNotMatch(app,/sharePayload\(\)[\s\S]*?return \{[^}]*accountProfile:/);
+ assert.doesNotMatch(sharing,/return \{[^}]*accountProfile:/);
+ assert.match(app,/createShareableBuildLink\(window\.location\.href/);
 });
