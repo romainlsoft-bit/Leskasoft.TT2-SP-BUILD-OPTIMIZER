@@ -60,7 +60,7 @@ npm run check:data
 
 The test suite includes property-like seeded cases comparing the solver against exhaustive enumeration, cross-branch convolution checks, source table validation, constraints, import/export and finite score checks. See [math audit](docs/MATH_AUDIT.md).
 
-`check:data` downloads the current public TT2 skill CSV from the source data repository and compares all skill fields; run it when a game patch releases. It needs an Internet connection. It intentionally **does not automatically replace** the bundled data.
+`check:data` compares bundled game data with the independently extracted TT2 8.4 Unity snapshot. It runs offline and does not automatically fetch or replace game data.
 
 ## Deploy with GitHub Pages
 
@@ -117,7 +117,7 @@ Static translated HTML, one factual H1 per language, self-canonical URLs, recipr
 
 ## Model limitation and measured Pet/Fairy regression (issue #9)
 
-A player reported a build **750 stages better** than the optimizer's previous output with almost identical SP (22,640 vs 22,642). This is evidence of a gameplay-model problem or incompatible optimization settings, not a reason to lock branch budgets to their old values. Some temporary effects were previously scored without checking activation: Hayst (Quick Fortune), Snap (Philosopher's Flux) and five Astral Awakening orb taps. Advanced settings now make these conditions explicit and default to inactive for a conservative boss-push scenario.
+A player reported a build **750 stages better** than the optimizer's previous output with almost identical SP (22,640 vs 22,642). This is evidence of a gameplay-model problem or incompatible optimization settings, not a reason to lock branch budgets to their old values. Some temporary effects were previously scored without checking activation: Hayst (Quick Fortune), Snap (Philosopher's Flux) and five Astral Awakening orb taps. The current public optimizer instead assumes ideal boss-push conditions (including Hayst and Snap); Astral Awakening uses five orbs only when the skill is present. These assumptions do not establish simultaneous availability or real damage.
 
 These changes do **not** establish a guaranteed in-game improvement or close issue #9. Compare real game outcomes. See [mathematical audit](docs/MATH_AUDIT.md).
 
@@ -142,3 +142,26 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\Verify-TT2-Offline
 
 The script invokes **local** `npm test`, `npm run check:data`, and `npm run check:modules` (complete ESM import graph, release versions and syntax checks); the benchmark runs only with `-Benchmark`. For the module graph alone, run `npm run check:modules`. It never submits GitHub Actions jobs, merges a PR or deploys a website. It does not replace gameplay calibration, especially for live contracts and season reset. See [module-graph release gate](docs/ESM_MODULE_GRAPH.md).
 
+
+## Browser qualification (optional, local or deployed)
+
+Install Node.js 22+, Python and the Playwright development dependency. From the repository root:
+
+```powershell
+npm install
+npx playwright install chromium
+npm run test:e2e
+npm run test:e2e:report
+````
+
+The local suite starts its own Python HTTP server on 127.0.0.1:8765 and closes it afterwards. Stop any previous server on that port. The VS Code Playwright extension discovers the configuration; select the Chromium project in the Testing panel. `npm run test:e2e:ui` opens interactive Playwright UI. The regular `npm run check` remains dependency-free and does not launch a browser. Reports and traces are local, ignored by Git; only synthetic player exports are used.
+
+To qualify the actual deployed website, explicitly set the target URL (the suite will not start a local server):
+
+```powershell
+$env:TT2_E2E_BASE_URL = 'https://tap-titans.leskasoft.com'
+npm run test:e2e
+Remove-Item Env:TT2_E2E_BASE_URL
+```
+
+The browser suite checks JSON import (paste, clipboard, file), actual worker allocation, budget and export, share-link privacy, malicious input, storage cleanup, keyboard/help, all four locales and 360px layouts, eight pages and internal HTTP links, sitemap and robots. It does not certify external link availability, search indexing, Core Web Vitals, response-header security or real game optimality. No GitHub Actions are used.
