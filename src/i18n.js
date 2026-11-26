@@ -1272,6 +1272,12 @@ translations.ru["Your imported account and preferences may be stored in this bro
 translations.fr["Erase saved TT2 data"]="Effacer les données TT2 enregistrées";
 translations.uk["Erase saved TT2 data"]="Видалити збережені дані TT2";
 translations.ru["Erase saved TT2 data"]="Удалить сохранённые данные TT2";
+translations.fr["Imported TT2 version {version} is newer than the verified skill catalog {catalog}. Compatibility with newer gameplay mechanics is not fully validated."]="L’export TT2 {version} est plus récent que le catalogue de compétences vérifié {catalog}. La compatibilité avec les nouvelles mécaniques de jeu n’est pas entièrement validée.";
+translations.uk["Imported TT2 version {version} is newer than the verified skill catalog {catalog}. Compatibility with newer gameplay mechanics is not fully validated."]="Версія експорту TT2 {version} новіша за перевірений каталог навичок {catalog}. Сумісність із новішими механіками гри ще не повністю підтверджена.";
+translations.ru["Imported TT2 version {version} is newer than the verified skill catalog {catalog}. Compatibility with newer gameplay mechanics is not fully validated."]="Версия экспорта TT2 {version} новее проверенного каталога навыков {catalog}. Совместимость с более новыми игровыми механиками ещё не полностью подтверждена.";
+translations.fr["Imported TT2 version {version} is not validated against skill catalog {catalog}. Check your imported skills before applying the build."]="L’export TT2 {version} n’est pas validé avec le catalogue de compétences {catalog}. Vérifiez les compétences importées avant d’appliquer le build.";
+translations.uk["Imported TT2 version {version} is not validated against skill catalog {catalog}. Check your imported skills before applying the build."]="Версію експорту TT2 {version} не перевірено з каталогом навичок {catalog}. Перевірте імпортовані навички перед застосуванням білду.";
+translations.ru["Imported TT2 version {version} is not validated against skill catalog {catalog}. Check your imported skills before applying the build."]="Версия экспорта TT2 {version} не проверена с каталогом навыков {catalog}. Проверьте импортированные навыки перед применением билда.";
 export function t(message, lang="en", parameters={}){
   const selected=SUPPORTED_LANGUAGES.includes(lang)?lang:"en";
   const value=translations[selected]?.[message] ?? message;
