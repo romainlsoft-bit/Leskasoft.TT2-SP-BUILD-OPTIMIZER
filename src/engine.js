@@ -586,7 +586,12 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
       magnumOpusAtBoss:combatContext.assumeMagnumOpusAtBoss,
       astralActivations:modeledAstralOrbTaps(result.levels,astralActivations),
       astralMaxAvailable:5,
-      idealBossAssumptionsOnly:true,
+      idealBossAssumptionsOnly:[
+       combatContext.assumeHaystActive,combatContext.assumeSnapActive,
+       combatContext.assumeCoordinatedOffensiveActive,
+       combatContext.assumeFlashZipAtBoss,
+       combatContext.assumeNightmareAtBoss,
+       combatContext.assumeMagnumOpusAtBoss].every(Boolean),
       actualBossUptimeVerified:false,
       contractsAtMax:combatContext.assumeContractsAtMax},
     model:"TT2 weighted log-damage/gold proxy; not a gameplay performance guarantee",
