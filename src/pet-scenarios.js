@@ -37,6 +37,15 @@ const petLevels=(profile,at=new Date())=>{
  // Between seasons NO Transcendent pet survives, even when an imported
  // save omits its season number. The permanent pets still work normally.
  const filtered={...raw};
+ const seasonalImported=Object.keys(TRANSCENDENT_PETS)
+  .filter(id=>raw[id]>0).length;
+ // Only 10 Transcendent pets can exist per season. In lieu of an
+ // independently verified S14 roster, a current-season export is provisional
+ // ownership evidence; more than ten seasonal rows is stale/conflicting.
+ const source14Valid=season.season==="14"&&season.days!==null&&
+  profile?.sections?.petLevels?.present===true&&
+  profile?.sections?.petLevels?.truncated!==true&&
+  seasonalImported<=10;
  if(season.betweenSeasons){
   for(const id of Object.keys(TRANSCENDENT_PETS))delete filtered[id];
   return filtered;
@@ -50,7 +59,7 @@ const petLevels=(profile,at=new Date())=>{
  for(const pet of Object.values(TRANSCENDENT_PETS)){
   const allowed=!season.estimatedSeasonEnded&&(
    (season.season==="13"&&season13.has(pet.name))||
-   season.season==="14");
+   source14Valid);
   if(!allowed)delete filtered[pet.id];
  }
  return filtered;
