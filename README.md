@@ -4,6 +4,28 @@ Free, open-source, mobile-first **Tap Titans 2 skill points calculator and TT2 s
 
 > **Status: public preview (v0.1).** The solver is exact per branch for its weighted damage/gold proxy; cross-branch allocations above 12,000 SP use a certified bounded approximation. This does **not** establish the best real gameplay build. The underlying skill-tree table matches the latest skill CSV compared on 15 November 2026. Other game mechanics, equipment sets and live game changes require ongoing verification. Hosting and DNS availability must be verified independently after publication.
 
+## Export-version compatibility
+
+The source skill-tree catalogue is validated against **TT2 8.4.0** (source
+dataset revision **2026-09-18**). This does **not** certify the model's other
+account effects, conditional bonuses or seasonal rules against every TT2
+version. The app now evaluates the `Version` supplied in player exports:
+
+- `8.4.0`: the skill-tree catalogue version matches.
+- Newer versions (for example `8.4.1` or `8.4.2`): import is allowed for
+  inspection, but the app warns that gameplay compatibility is not fully
+  verified. It does **not** silently upgrade the export version of generated
+  builds or claim that all account mechanics are validated.
+- Older or unrecognized versions: the app warns that the skill-tree mapping
+  has not been validated; absent version metadata remains unknown.
+
+The Transcendence season-14 start is dated **26 November 2026 UTC** in one
+canonical source policy. The 180,000 stage figure is a Transcendence entry
+threshold, not a season-14 stage ceiling. Old seasonal account power is
+excluded unless the imported account supplies qualifying current-season
+evidence. The public automatic pet mode chooses one source-ranked owned pet
+per equipment slot, not an exhaustive pet-pair comparison.
+
 ## Features
 
 - Import player or skill-tree **JSON** via clipboard, paste or file upload.
