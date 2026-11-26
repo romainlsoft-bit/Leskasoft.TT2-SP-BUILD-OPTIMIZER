@@ -21,7 +21,7 @@ test("old saved preferences and links cannot silently enable contract what-ifs",
  assert.match(app,/options\.assumeContractsAtMax=false/);
  assert.match(app,/options\.contractTimeline=null/);
  assert.match(app,/options\.contractMultiScenario=null/);
- assert.match(app,/const requestContext=keepContractsConservative\(structuredClone\(state\)\)/);
+ assert.match(app,/const requestContext=publicOptimizationSettings\(keepContractsConservative\(structuredClone\(state\)\)\)/);
  assert.match(app,/keepContractsConservative\(state\)/);
  assert.doesNotMatch(app,/contracts:state\.assumeContractsAtMax/);
  assert.doesNotMatch(app,/assumeContractsAtMax:payload\.contracts===true/);
