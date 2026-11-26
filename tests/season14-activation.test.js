@@ -9,7 +9,7 @@ import {monumentDerivedPower} from "../src/account-monument-derived.js";
 import {SEASON14_ARTIFACT_CATALOG,SEASON14_MONUMENT_SOURCE_SHA} from "../vendor/season14-monuments.js";
 import {SEASON14_PET_IDS,SEASON14_PET_NAMES} from "../vendor/season14-pet-roster.js";
 import {availablePets} from "../src/pet-scenarios.js";
-import {parseExport,optimizeBuild} from "../src/engine.js";
+import {parseExport,optimizeBuild,DAMAGE_TYPES,GOLD_TYPES} from "../src/engine.js";
 
 const nov25=new Date("2026-11-25T23:59:59.000Z");
 const nov26=new Date("2026-11-26T00:00:00.000Z");
@@ -122,4 +122,22 @@ test("season-14 monument scoring draws only from the alternate source",()=>{
  assert.equal(pool.seasonVerified,true);
  assert.ok(pool.eligibleComponents>=2);
  assert.ok(Number.isFinite(pool.poolLog10));
+});
+
+test("all 18 damage/gold routes preserve valid season14 stage and exclude Arcanas",()=>{
+ const profile=newAccount();
+ let tested=0;
+ for(const damage of DAMAGE_TYPES)for(const gold of GOLD_TYPES){
+  const result=optimizeBuild({
+   accountProfile:profile,damage,gold,skillPoints:0,goldWeight:.7,
+   maxStage:245678,sets:{},currentLevels:{},minimums:{},qol:"none"
+  });
+  assert.equal(result.effectiveMaxStage,245678,damage+"/"+gold);
+  assert.equal(result.accountIntegration.monuments.season,"14");
+  assert.equal(result.accountIntegration.monuments.seasonVerified,true);
+  assert.equal(result.accountIntegration.monuments.additiveDamageApplied,true);
+  assert.equal(result.modelAttribution.additiveReconstructionMatches,true);
+  tested++;
+ }
+ assert.equal(tested,18);
 });
