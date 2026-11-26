@@ -1,3 +1,5 @@
+import {buildModelAttribution} from "./model-attribution.js?v=20261123-boss-specials-r1";
+import {buildAccountBaseline} from "./optimization-account-baseline.js?v=20261123-boss-specials-r1";
 import {VERIFIED_SKILL_CATALOG_VERSION,VERIFIED_SKILL_CATALOG_DATASET,gameVersionEvidence} from "./game-version-policy.js?v=20261123-boss-specials-r1";
 import {modeledAstralOrbTaps} from "./public-optimization-policy.js?v=20261123-boss-specials-r1";
 import { skillInfo } from "../vendor/skills.js?v=20261123-boss-specials-r1";
@@ -9,17 +11,12 @@ import { baseline } from "../vendor/qol-baseline.js?v=20261123-boss-specials-r1"
 import { optimizeExact } from "./solver-core.js?v=20261123-boss-specials-r1";
 import { scoreAtLevel } from "./effects.js?v=20261123-boss-specials-r1&season=20261126-season14-r1&score=20261123-cadence-separated-r1&ember=20261123-ember-fire-sword-gate-r1&jackpot=20261123-native-jackpot-expectation-r1&mc=20261123-multicast-no-guessed-x10-r1&crit=20261124-cleaving-crit-event-r1&ambush=20261124-ambush-conditional-gold-r1";
 import { parseAccountProfile } from "./account-profile.js?v=20261123-boss-specials-r1";
-import {extractFixedAccountPower,fixedAccountScore} from "./account-power.js?v=20261123-boss-specials-r1&season=20261126-season14-r1";
-import {accountDependencyGraph} from "./account-dependencies.js?v=20261123-boss-specials-r1&season=20261126-season14-r1";
 import {resolveSpellCaps} from "./spell-caps.js?v=20261123-boss-specials-r1";
-import {resolveSpellScenario,spellSelectionEvidence,spellEffectScorable,SPELL_CAP_SKILLS,MULTICAST_SKILL_SPELLS,ACTIVE_SOURCE_SKILL_SPELLS,multicastSkillEvidence} from "./spell-scenarios.js?v=20261123-boss-specials-r1";
+import {resolveSpellScenario,spellSelectionEvidence,SPELL_CAP_SKILLS,MULTICAST_SKILL_SPELLS,ACTIVE_SOURCE_SKILL_SPELLS,multicastSkillEvidence} from "./spell-scenarios.js?v=20261123-boss-specials-r1";
 import {ACTIVE_SPELL_CAPS} from "../vendor/active-spell-caps.js?v=20261123-boss-specials-r1";
 import {resolveManaEvidence} from "./mana-evidence.js?v=20261123-boss-specials-r1";
 import {accountSourceCoverage} from "./account-source-coverage.js?v=20261123-boss-specials-r1&season=20261126-season14-r1";
 import {monumentSeasonDayEvidence} from "./monument-season-day.js?v=20261123-boss-specials-r1&season=20261126-season14-r1";
-import {extractTimedSetPower} from "./account-set-bonuses.js?v=20261123-boss-specials-r1&season=20261126-season14-r1";
-import {resolvePermanentSetPower} from "./account-permanent-sets.js?v=20261123-boss-specials-r1";
-import {skillTreeSetAllocationEvidence} from "./skill-tree-set-effects.js?v=20261123-boss-specials-r1";
 import {resolveContractScenario} from "./contract-scenarios.js?v=20261123-boss-specials-r1";
 import {conditionalSkillEvidence} from "./conditional-skill-evidence.js?v=20261123-boss-specials-r1";
 import {lightningStrikeEvidence} from "./lightning-strike-evidence.js?v=20261123-boss-specials-r1";
@@ -30,7 +27,6 @@ import {ambushSourceEventEvidence} from "./ambush-native-score.js?v=20261123-bos
 import {resolveTacticalInsightLocal} from "./tactical-insight-local.js?v=20261123-boss-specials-r1";
 import {capCurrentMaxStage,CURRENT_MAIN_GAME_STAGE_CAP} from "./current-season-policy.js?v=20261123-boss-specials-r1&season=20261126-season14-r1";
 export {capCurrentMaxStage,CURRENT_MAIN_GAME_STAGE_CAP};
-import {tacticalInsightRecommendationSensitivity} from "./tactical-insight-sensitivity.js?v=20261123-boss-specials-r1&season=20261126-season14-r1&audit=20261123-ti-sensitivity-r1";
 
 export const GAME_VERSION = VERIFIED_SKILL_CATALOG_VERSION;
 export const DATASET_REVISION = VERIFIED_SKILL_CATALOG_DATASET; // SkillTreeInfo2.0.csv comparison
@@ -293,85 +289,7 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
     scoreCache.set(id,scores);
   }
   const result=optimizeExact(skills,SP,(skill,level)=>scoreCache.get(skill.id)[level],"power",onProgress,{branchCache});
-  // Explain the existing additive skill proxy without pretending that
-  // a dominant coefficient establishes actual boss DPS. Same audit for
-  // ALL six damage builds and three gold choices, with no change to DP.
-  const skillAttribution=SKILL_IDS.filter(id=>result.levels[id]>0).map(id=>{
-    const before=current[id],after=result.levels[id],scores=scoreCache.get(id);
-    return {id,name:skillInfo[id].Name,branch:BRANCH_NAMES[skillInfo[id].Branch],
-      level:after,priorLevel:before,sourceBonusTypeA:skillInfo[id].BonusTypeA,
-      scoreLog10:scores[after],priorScoreLog10:scores[before],
-      changeLog10:scores[after]-scores[before],
-      conditionalSourceUnverified:id==="HelperBoost"||
-       ["ForbiddenContract","RoyalContract","TerrifyingPact",
-        "QuickFortune","PhilosophersFlux","HelperDmgSkillBoost",
-        "ClanShipVoltage","CriticalHit","HelperInspiredWeaken",
-        "Transmutation","TwilightGatheringMultiCastSkill",
-        "MultiMonsters",
-        ].includes(id)||
-       (id==="HeavyStrikes"&&scoreContext.damage!=="Heavenly Strike")};
-  });
-  const byBranch=Object.fromEntries(Object.values(BRANCH_NAMES).map(name=>[
-    name,skillAttribution.filter(row=>row.branch===name)
-     .reduce((sum,row)=>sum+row.scoreLog10,0)
-  ]));
-  const scoredTotal=skillAttribution.reduce((sum,row)=>sum+row.scoreLog10,0);
-  const modelAttribution={schema:"tt2-skill-model-attribution-v1",
-    entries:skillAttribution,byBranch,
-    top:[...skillAttribution].sort((a,b)=>b.scoreLog10-a.scoreLog10).slice(0,8),
-    scoredTotalLog10:scoredTotal,dpScoreLog10:result.score,
-    additiveReconstructionMatches:Math.abs(scoredTotal-result.score)<=
-     1e-7*Math.max(1,Math.abs(result.score)),
-    sourceOnly:true,gameplayCalibrationVerified:false,
-    nativeConditionalScoringGuards:{
-      schema:"tt2-84-native-conditional-guards-v1",
-      warCryScoredOnlyWhenSelected:spellEffectScorable("HelperBoost",scoreContext),
-      thunderVolleyScoredOnlyWhenSelected:
-        spellEffectScorable("ThunderVolley",scoreContext),
-      streamOfBladesScoredOnlyWhenSelected:
-        spellEffectScorable("StreamOfBlades",scoreContext),
-      emberArtsFireSwordScoredOnlyWhenEquipped:
-        spellEffectScorable("TapBoost",scoreContext),
-      transmutationIsConditionalEventExpectation:true,
-      transmutationDoesNotCreditFullJackpotAsAlwaysOn:true,
-      multicastInventedTenfoldPerChargeRemoved:true,
-      multicastGuessedMidasGoldTableRemoved:true,
-      twilightGloomSpecialCNotScoredWithoutEvidence:true,
-      cleavingStrikeGuaranteedCritOnlyForHeavenlyStrike:true,
-      cleavingStrikeOtherBuildsUseSourceOnlyCritChance:true,
-      importedCriticalChanceNotUsedForAlternativeTrees:true,
-      ambushGoldNotCreditedOnEveryChestersonEvent:true,
-      ambushMaximumTitanCountNotUsedAsEncounterChance:true,
-      sourceSpellScoringBySkill:Object.fromEntries(
-        Object.entries(ACTIVE_SOURCE_SKILL_SPELLS).map(([id,spell])=>
-          [id,spellEffectScorable(spell,scoreContext)])),
-      coordinatedOffensiveActiveAssumed:
-        scoreContext.assumeCoordinatedOffensiveActive===true,
-      flashZipChargedAtBossAssumed:scoreContext.assumeFlashZipAtBoss===true,
-      nightmareSpecialAtBossAssumed:scoreContext.assumeNightmareAtBoss===true,
-      magnumOpusActiveAtBossAssumed:scoreContext.assumeMagnumOpusAtBoss===true,
-      specialAttemptRateNeverCountedAsHitDamage:true,
-      specialCooldownOpportunitiesNotAddedToDamageScore:true,
-      thunderVolleySpecialHitAssumed:
-        scoreContext.assumeThunderVolleySpecialHit===true,
-      daggerMarkedTargetAssumed:
-        scoreContext.assumeDaggerTargetMarked===true,
-      inspiredHelpersActiveAssumed:
-        scoreContext.assumeInspiredHelpersActive===true,
-      heroInspiredCountNotMultipliedIntoDamage:true,
-      shadowCloneAttackRateNotConvertedToDamage:true,
-      nativeDamageSourceTablesVersion:GAME_VERSION,
-      verifiedRealStageImprovement:false
-    },
-    tacticalInsightCommunityWeightExcluded:tiLocal.enabled||
-      settings.excludeUnverifiedTacticalInsight===true,
-    tacticalInsightMode:tiLocal.enabled?"measured-local":
-      settings.excludeUnverifiedTacticalInsight===true?"excluded":"community",
-    tacticalInsightLocal:tiLocal.enabled?tiLocal:null,
-    optimizerScoreChanged:tiLocal.enabled||
-      settings.excludeUnverifiedTacticalInsight===true};
-  modelAttribution.tacticalInsightSensitivity=
-   tacticalInsightRecommendationSensitivity(current,result.levels,scoreContext);
+  const modelAttribution=buildModelAttribution({result,current,scoreCache,scoreContext,tiLocal,settings,SKILL_IDS,skillInfo,BRANCH_NAMES,GAME_VERSION});
   const points=spentPoints(result.levels);
   if(points>SP)throw new Error("Internal validation failed: allocation exceeds SP budget.");
   for(const item of skills){
@@ -391,33 +309,7 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
   const branchTotals=Object.fromEntries(Object.entries(BRANCH_NAMES).map(([branch,name])=>[name,
     SKILL_IDS.filter(id=>skillInfo[id].Branch===branch).reduce((sum,id)=>sum+COSTS[id][result.levels[id]],0)
   ]));
-  const power=extractFixedAccountPower(settings.accountProfile);
-  const fixedRaw=fixedAccountScore(power,settings);
-  // Recompute date-dependent bonuses on every optimization, never memoize
-  // them by profile identity across days.
-  const timed=extractTimedSetPower(settings.accountProfile);
-  const timedScore=fixedAccountScore({available:timed.applied>0,byType:timed.byType},settings);
-  // Completed sets (even sold) and observed Unique items are immutable
-  // account bonuses. CP affects their numerical values, never their ownership.
-  // CP-dependent multiplier formulas are evaluated once outside the SP DP.
-  const permanentSetPower=resolvePermanentSetPower(settings.accountProfile,settings);
-  const permanentScore=fixedAccountScore({
-   available:permanentSetPower.appliedDirect>0,byType:permanentSetPower.byType
-  },settings);
-  const fixedAccount={...fixedRaw,
-    damageLog10:fixedRaw.damageLog10+timedScore.damageLog10+permanentScore.damageLog10,
-    goldLog10:fixedRaw.goldLog10+timedScore.goldLog10+permanentScore.goldLog10,
-    weightedLog10:fixedRaw.weightedLog10+timedScore.weightedLog10+permanentScore.weightedLog10};
-  const dependencyReport=accountDependencyGraph(settings.accountProfile);
-  // The catalog DAG still counts every static set row as unknown. Discount
-  // only the owned set effects for which the CP formula was actually
-  // resolved; CP=1 lower bounds remain unresolved for full-power claims.
-  const skillTreeSetPower=skillTreeSetAllocationEvidence(settings.accountProfile,result.levels);
-  const newlyResolvedSetEffects=permanentSetPower.entries.filter(e=>
-   (e.appliedToAccount||e.appliedToEquipment)&&!e.conservative).length+
-   skillTreeSetPower.applied;
-  const remainingUnmodeledEffects=Math.max(0,
-   dependencyReport.unmodeledEffects-newlyResolvedSetEffects);
+  const {power,timed,permanentSetPower,fixedAccount,dependencyReport,skillTreeSetPower,remainingUnmodeledEffects}=buildAccountBaseline(settings,result.levels);
   const jackpotSourceOnly=transmutationSourceEventEvidence(
    result.levels.Transmutation??0);
   const criticalSourceOnly=cleavingStrikeSourceEvidence(
