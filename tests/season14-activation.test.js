@@ -118,6 +118,14 @@ test("season-14 monument scoring draws only from the alternate source",()=>{
  assert.equal(arcanas.appliedToScore,false);
  assert.equal(arcanas.damageEligible,false);
  assert.equal(arcanas.formulaStatus,"not-in-current-transcendence-rotation");
+ const oldViper=resolveMonumentEvidence(parseAccountProfile({
+  playerStats:{"Transcendence Season":14},
+  monuments:{SeasonalArtifact22:{level:12,enchanted:false}}
+ }),nov26);
+ assert.equal(oldViper.entries[0].category,"Viper");
+ assert.equal(oldViper.entries[0].catalogActive,false);
+ assert.equal(oldViper.entries[0].categoryAllowed,false);
+ assert.equal(oldViper.entries[0].damageEligible,false);
  const pool=monumentDerivedPower(p,present);
  assert.equal(pool.seasonVerified,true);
  assert.ok(pool.eligibleComponents>=2);
