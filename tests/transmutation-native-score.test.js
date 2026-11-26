@@ -105,7 +105,9 @@ test("locale cache versions and GH Actions prohibition",()=>{
  assert.equal(extract(engine,"effects\\.js"),extract(ti,"effects\\.js"));
  assert.equal(extract(engine,"effects\\.js"),extract(alt,"effects\\.js"));
  assert.ok(engine.includes("20261123-native-jackpot-expectation-r1"));
- assert.ok(app.includes("result.jackpotSourceOnly"));
+ const details=readFileSync(new URL("../src/result-details-ui.js",import.meta.url),"utf8");
+  assert.ok(details.includes("result.jackpotSourceOnly"));
+  assert.ok(app.includes("createResultDetailRenderers"));
  for(const path of ["index.html","fr/index.html","uk/index.html","ru/index.html"]){
   assert.ok(readFileSync(new URL("../"+path,import.meta.url),"utf8")
    .includes("&amp;jackpot=20261123-native-jackpot-expectation-r1"));
