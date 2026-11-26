@@ -5,17 +5,17 @@ import {bossPushEvidence} from "./boss-push-evidence.js?v=20261123-boss-specials
 import {resolvePushSkipTarget,verifyPushSkipTarget} from "./push-skip-target.js?v=20261123-boss-specials-r1";
 import { baseline } from "../vendor/qol-baseline.js?v=20261123-boss-specials-r1";
 import { optimizeExact } from "./solver-core.js?v=20261123-boss-specials-r1";
-import { scoreAtLevel } from "./effects.js?v=20261123-boss-specials-r1&season=20261124-end-season13-r1&score=20261123-cadence-separated-r1&ember=20261123-ember-fire-sword-gate-r1&jackpot=20261123-native-jackpot-expectation-r1&mc=20261123-multicast-no-guessed-x10-r1&crit=20261124-cleaving-crit-event-r1&ambush=20261124-ambush-conditional-gold-r1";
+import { scoreAtLevel } from "./effects.js?v=20261123-boss-specials-r1&season=20261126-season14-r1&score=20261123-cadence-separated-r1&ember=20261123-ember-fire-sword-gate-r1&jackpot=20261123-native-jackpot-expectation-r1&mc=20261123-multicast-no-guessed-x10-r1&crit=20261124-cleaving-crit-event-r1&ambush=20261124-ambush-conditional-gold-r1";
 import { parseAccountProfile } from "./account-profile.js?v=20261123-boss-specials-r1";
-import {extractFixedAccountPower,fixedAccountScore} from "./account-power.js?v=20261123-boss-specials-r1&season=20261124-end-season13-r1";
-import {accountDependencyGraph} from "./account-dependencies.js?v=20261123-boss-specials-r1&season=20261124-end-season13-r1";
+import {extractFixedAccountPower,fixedAccountScore} from "./account-power.js?v=20261123-boss-specials-r1&season=20261126-season14-r1";
+import {accountDependencyGraph} from "./account-dependencies.js?v=20261123-boss-specials-r1&season=20261126-season14-r1";
 import {resolveSpellCaps} from "./spell-caps.js?v=20261123-boss-specials-r1";
 import {resolveSpellScenario,spellSelectionEvidence,spellEffectScorable,SPELL_CAP_SKILLS,MULTICAST_SKILL_SPELLS,ACTIVE_SOURCE_SKILL_SPELLS,multicastSkillEvidence} from "./spell-scenarios.js?v=20261123-boss-specials-r1";
 import {ACTIVE_SPELL_CAPS} from "../vendor/active-spell-caps.js?v=20261123-boss-specials-r1";
 import {resolveManaEvidence} from "./mana-evidence.js?v=20261123-boss-specials-r1";
-import {accountSourceCoverage} from "./account-source-coverage.js?v=20261123-boss-specials-r1&season=20261124-end-season13-r1";
-import {monumentSeasonDayEvidence} from "./monument-season-day.js?v=20261123-boss-specials-r1&season=20261124-end-season13-r1";
-import {extractTimedSetPower} from "./account-set-bonuses.js?v=20261123-boss-specials-r1&season=20261124-end-season13-r1";
+import {accountSourceCoverage} from "./account-source-coverage.js?v=20261123-boss-specials-r1&season=20261126-season14-r1";
+import {monumentSeasonDayEvidence} from "./monument-season-day.js?v=20261123-boss-specials-r1&season=20261126-season14-r1";
+import {extractTimedSetPower} from "./account-set-bonuses.js?v=20261123-boss-specials-r1&season=20261126-season14-r1";
 import {resolvePermanentSetPower} from "./account-permanent-sets.js?v=20261123-boss-specials-r1";
 import {skillTreeSetAllocationEvidence} from "./skill-tree-set-effects.js?v=20261123-boss-specials-r1";
 import {resolveContractScenario} from "./contract-scenarios.js?v=20261123-boss-specials-r1";
@@ -26,9 +26,9 @@ import {transmutationSourceEventEvidence} from "./transmutation-native.js?v=2026
 import {cleavingStrikeSourceEvidence} from "./cleaving-strike-native.js?v=20261123-boss-specials-r1&crit=20261124-cleaving-crit-event-r1";
 import {ambushSourceEventEvidence} from "./ambush-native-score.js?v=20261123-boss-specials-r1&ambush=20261124-ambush-conditional-gold-r1";
 import {resolveTacticalInsightLocal} from "./tactical-insight-local.js?v=20261123-boss-specials-r1";
-import {capCurrentMaxStage,CURRENT_MAIN_GAME_STAGE_CAP} from "./current-season-policy.js?v=20261123-boss-specials-r1&season=20261124-end-season13-r1";
+import {capCurrentMaxStage,CURRENT_MAIN_GAME_STAGE_CAP} from "./current-season-policy.js?v=20261123-boss-specials-r1&season=20261126-season14-r1";
 export {capCurrentMaxStage,CURRENT_MAIN_GAME_STAGE_CAP};
-import {tacticalInsightRecommendationSensitivity} from "./tactical-insight-sensitivity.js?v=20261123-boss-specials-r1&season=20261124-end-season13-r1&audit=20261123-ti-sensitivity-r1";
+import {tacticalInsightRecommendationSensitivity} from "./tactical-insight-sensitivity.js?v=20261123-boss-specials-r1&season=20261126-season14-r1&audit=20261123-ti-sensitivity-r1";
 
 export const GAME_VERSION = "8.4.0";
 export const DATASET_REVISION = "2026-09-18"; // SkillTreeInfo2.0.csv comparison
