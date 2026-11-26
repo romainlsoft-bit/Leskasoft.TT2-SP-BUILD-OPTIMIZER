@@ -145,14 +145,15 @@ The script invokes **local** `npm test`, `npm run check:data`, and `npm run chec
 
 ## Browser qualification (optional, local or deployed)
 
-Install Node.js 22+, Python and the Playwright development dependency. From the repository root:
+Install Node.js 22+, Python and Google Chrome (the default browser). From the repository root:
 
 ```powershell
 npm install
-npx playwright install chromium
 npm run test:e2e
 npm run test:e2e:report
 ````
+
+No Playwright browser download is needed when Chrome is installed. To use Playwright-managed Chromium instead, run `npx playwright install chromium`, set `$env:TT2_E2E_BROWSER = "chromium"` before running the suite, and remove that environment variable afterwards with `Remove-Item Env:TT2_E2E_BROWSER`.
 
 The local suite starts its own Python HTTP server on 127.0.0.1:8765 and closes it afterwards. Stop any previous server on that port. The VS Code Playwright extension discovers the configuration; select the Chromium project in the Testing panel. `npm run test:e2e:ui` opens interactive Playwright UI. The regular `npm run check` remains dependency-free and does not launch a browser. Reports and traces are local, ignored by Git; only synthetic player exports are used.
 
