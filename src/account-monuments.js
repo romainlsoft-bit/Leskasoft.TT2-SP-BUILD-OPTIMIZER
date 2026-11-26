@@ -6,7 +6,7 @@
  * legacy category, conflicting mirrored rows, or an unknown season.
  */
 import {SEASON_ARTIFACT_CATALOG} from "../vendor/account-catalog.js?v=20261123-boss-specials-r1";
-import {SEASON14_ARTIFACT_CATALOG,SEASON14_MONUMENT_SOURCE_SHA} from "../vendor/season14-monuments.js?v=20261126-season14-r2";
+import {SEASON14_ARTIFACT_CATALOG,SEASON14_MONUMENT_SOURCE_SHA} from "../vendor/season14-monuments.js?v=20261123-boss-specials-r1";
 import {resolveTranscendenceAge} from "./account-temporal.js?v=20261123-boss-specials-r1&season=20261126-season14-r1";
 import {computeArtifactEffect,isDirectBonusType,positiveLog10} from "./account-artifacts.js?v=20261123-boss-specials-r1";
 import {resolvePermanentSetPower} from "./account-permanent-sets.js?v=20261123-boss-specials-r1";
