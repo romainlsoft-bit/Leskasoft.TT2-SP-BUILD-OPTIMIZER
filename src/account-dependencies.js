@@ -4,6 +4,7 @@
  * The graph is a DAG of dependency *classes*, not an invented skill model.
  */
 import {ARTIFACT_CATALOG,EQUIPMENT_SET_CATALOG,SEASON_ARTIFACT_CATALOG} from "../vendor/account-catalog.js?v=20261123-boss-specials-r1";
+import {SEASON14_ARTIFACT_CATALOG} from "../vendor/season14-monuments.js?v=20261126-season14-r2";
 import {resolveSetCompletionDates,resolveTranscendenceAge,heroWeaponEvidence} from "./account-temporal.js?v=20261123-boss-specials-r1&season=20261126-season14-r1";
 import {clanScrollEvidence} from "./account-scrolls.js?v=20261123-boss-specials-r1";
 import {extractTimedSetPower} from "./account-set-bonuses.js?v=20261123-boss-specials-r1&season=20261126-season14-r1";
@@ -58,7 +59,8 @@ export function accountDependencyGraph(profile){
  const gemstones=resolveGemstoneEvidence(profile);
  const monuments=resolveMonumentEvidence(profile);
  const additiveDamage=additiveDamageEvidence(permanentArtifacts,monuments,
-  ARTIFACT_CATALOG,SEASON_ARTIFACT_CATALOG);
+  ARTIFACT_CATALOG,monuments.season==="14"?
+   SEASON14_ARTIFACT_CATALOG:SEASON_ARTIFACT_CATALOG);
  const knownArtifacts=new Map(permanentArtifacts.entries.map(x=>[x.id,x]));
  const uniqueEquipment=resolveUniqueOwnership(profile);
  const uniqueOwned=new Set(uniqueEquipment.ownedIds);
