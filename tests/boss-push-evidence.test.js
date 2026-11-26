@@ -127,7 +127,7 @@ test("localized UI no longer requests a measured attack or hit damage",()=>{
   const s=readFileSync(new URL("../"+p,import.meta.url),"utf8");
   for(const id of ["push-observed-attack","push-observed-stage","push-observed-damage"])
    assert.ok(!s.includes('id="'+id+'"'),p+": "+id);
-  assert.ok(s.includes('id="push-attack-channel"'),p);
+  assert.ok(!s.includes('id="push-attack-channel"'),p);
  }
  const app=readFileSync(new URL("../src/app.js",import.meta.url),"utf8");
  assert.ok(!app.includes('$("push-observed-'),"Removed DOM control remains referenced");
