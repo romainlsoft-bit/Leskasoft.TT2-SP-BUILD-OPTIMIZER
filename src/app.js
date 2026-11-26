@@ -125,6 +125,7 @@ function renderEditor(filter=""){
  }).join("");
  if(!matches.length)$("skill-editor").innerHTML="<p class='hint'>"+safe(tr("No skills match your search."))+"</p>";
 }
+const SEASON14_NOTICE="Transcendence season 14 started 26 November 2026. Only positive Transcendent pet levels from a season-14 account export are considered (the official ten-pet rotation is not yet verified). Season-14 monument coefficients remain excluded from scoring until independently verified. Stage 180,000 is the Transcendence entry threshold, not a seasonal maximum.";
 function renderAccountProfile(){
  let el=$("account-profile-summary");
  if(!el){
@@ -153,6 +154,8 @@ function renderAccountProfile(){
  el.textContent=names.length
   ?tr("Detected account categories: {categories}. Some effects are modeled; other imported categories remain diagnostic.",{categories:names.join(" · ")})
   :tr("Skill-tree-only export: no additional account categories detected.");
+ if(String(profile?.stats?.transcendenceSeason||"")==="14")
+  el.textContent+=" "+tr(SEASON14_NOTICE);
  if(String(state.importedVersion||"").startsWith("8.4.1"))
   el.textContent+=" "+tr(
    "This account export reports TT2 8.4.1. The mathematical catalog is verified against 8.4.0; compatibility with later live data has not been independently confirmed.");
@@ -702,6 +705,8 @@ function renderAccountIntegration(result){
     regen:mana.exportedFinalManaRegenPerSecond===null?
      tr("not verifiable from this export"):numberText(mana.exportedFinalManaRegenPerSecond)});
  const sourceCoverage=result.accountSourceCoverage;
+ if(sourceCoverage?.seasonCalendar?.season==="14")
+  panel.textContent+=" "+tr(SEASON14_NOTICE);
  if(sourceCoverage?.seasonCalendar?.betweenSeasons)
   panel.textContent+=" "+tr(
    "Transcendence season 13 has ended. Archived monuments and Transcendent pets are excluded from calculations, even if an old import still lists them. Current maximum stage: 180,000. Only permanent pets count until the next season is verified.");
