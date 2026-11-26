@@ -25,7 +25,8 @@ export function transmutationSourceEventEvidence(level){
  if(n===0)return {level:n,status:"not-invested",
   nativeJackpotChance:0,nativeJackpotMultiplierLog10:0,
   sourceOnlyExpectedGoldLog10:0,
-  assumesZeroOtherJackpotChance:true,accountExpectationVerified:false};
+  assumesZeroOtherJackpotChance:true,accountExpectationVerified:false,
+  stageGainPredicted:false};
  const p=Number(row["B"+n]);
  const amount=positiveLog10(row["A"+n]);
  if(!Number.isFinite(p)||p<0||p>1||amount===null||amount<0)
