@@ -40,7 +40,10 @@ self.onmessage=event=>{
  try{
   const gearEnumeration=enumerateOwnedGearAssignments(settings.accountProfile,
    settings,MAX_EXHAUSTIVE_OWNED_GEAR_ASSIGNMENTS);
-  const useFullGearEnumeration=shouldEnumerateOwnedGear(gearEnumeration);
+  const sp=Number(settings.skillPoints??0);
+  // Pet-pair comparison is diagnostic-only; bound its total gear×pet work.
+  const fullJointBudget=sp<=1000?96:sp<=5000?48:32;
+  let useFullGearEnumeration=shouldEnumerateOwnedGear(gearEnumeration);
   const gearFor=context=>
    gearSelectionEffects(context.accountProfile,context,context.selectedEquipment||{});
   const evaluateJoint=(chosen,sendSolverProgress=false)=>{
