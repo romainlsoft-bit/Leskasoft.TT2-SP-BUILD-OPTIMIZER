@@ -1,3 +1,4 @@
+import {VERIFIED_SKILL_CATALOG_VERSION,VERIFIED_SKILL_CATALOG_DATASET,gameVersionEvidence} from "./game-version-policy.js?v=20261123-boss-specials-r1";
 import {modeledAstralOrbTaps} from "./public-optimization-policy.js?v=20261123-boss-specials-r1";
 import { skillInfo } from "../vendor/skills.js?v=20261123-boss-specials-r1";
 import {parseExportCounter} from "./import-numbers.js?v=20261123-boss-specials-r1";
@@ -27,12 +28,12 @@ import {transmutationSourceEventEvidence} from "./transmutation-native.js?v=2026
 import {cleavingStrikeSourceEvidence} from "./cleaving-strike-native.js?v=20261123-boss-specials-r1&crit=20261124-cleaving-crit-event-r1";
 import {ambushSourceEventEvidence} from "./ambush-native-score.js?v=20261123-boss-specials-r1&ambush=20261124-ambush-conditional-gold-r1";
 import {resolveTacticalInsightLocal} from "./tactical-insight-local.js?v=20261123-boss-specials-r1";
-import {capCurrentMaxStage,CURRENT_MAIN_GAME_STAGE_CAP} from "./current-season-policy.js?v=20261123-boss-specials-r1&season=20261126-season14-r1";
-export {capCurrentMaxStage,CURRENT_MAIN_GAME_STAGE_CAP};
+import {capCurrentMaxStage,CURRENT_MAIN_GAME_STAGE_CAP,isCurrentSeasonStarted} from "./current-season-policy.js?v=20261123-boss-specials-r1&season=20261126-season14-r1&compat=20261126-audit56-r1";
+export {capCurrentMaxStage,CURRENT_MAIN_GAME_STAGE_CAP,isCurrentSeasonStarted};
 import {tacticalInsightRecommendationSensitivity} from "./tactical-insight-sensitivity.js?v=20261123-boss-specials-r1&season=20261126-season14-r1&audit=20261123-ti-sensitivity-r1";
 
-export const GAME_VERSION = "8.4.0";
-export const DATASET_REVISION = "2026-09-18"; // SkillTreeInfo2.0.csv comparison
+export const GAME_VERSION = VERIFIED_SKILL_CATALOG_VERSION;
+export const DATASET_REVISION = VERIFIED_SKILL_CATALOG_DATASET; // SkillTreeInfo2.0.csv comparison
 export const DAMAGE_TYPES = ["Clan Ship","Pet","Shadow Clone","Heavenly Strike","Dagger","Gold Gun"];
 export const GOLD_TYPES = ["Fairy","HoG","Chesterson"];
 export const BRANCH_NAMES = {BranchRed:"Knight", BranchOrange:"Summoner", BranchYellow:"Warlord", BranchBlue:"Sorcerer", BranchGreen:"Rogue", BranchPurple:"Alchemist"};
@@ -104,6 +105,7 @@ export function parseExport(source){
     damage:DAMAGE_TYPES.includes(stats.typeDamage)?stats.typeDamage:null,
     gold:GOLD_TYPES.includes(stats.typeGold)?stats.typeGold:null,
     importedVersion:data.Version||stats.buildVersion||null,
+    versionCompatibility:gameVersionEvidence(data.Version||stats.buildVersion||null),
     profile
   };
 }
