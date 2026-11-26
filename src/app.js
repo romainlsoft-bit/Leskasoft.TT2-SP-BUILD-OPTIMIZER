@@ -1,6 +1,8 @@
+import {gameVersionEvidence} from "./game-version-policy.js?v=20261123-boss-specials-r1";
+import {VERIFIED_NEXT_SEASON_START_UTC} from "./current-season-policy.js?v=20261123-boss-specials-r1&season=20261126-season14-r1";
 import {sanitizeUserBuild,parseSharedBuildHash,MAX_SHARED_BUILD_HASH,MAX_SAVED_STATE_TEXT} from "./build-input-boundary.js?v=20261123-boss-specials-r1";
 import {publicOptimizationSettings} from "./public-optimization-policy.js?v=20261123-boss-specials-r1";
-import {SKILLS,SKILL_IDS,BRANCH_NAMES,PRESETS,DAMAGE_TYPES,GOLD_TYPES,GAME_VERSION,parseExport,exportBuild,spentPoints,ownedSetFlags,capCurrentMaxStage,CURRENT_MAIN_GAME_STAGE_CAP} from "./engine.js?v=20261123-boss-specials-r1&season=20261126-season14-r1&score=20261123-cadence-separated-r1&audit=20261123-ti-sensitivity-r1&ember=20261123-ember-fire-sword-gate-r1&jackpot=20261123-native-jackpot-expectation-r1&mc=20261123-multicast-no-guessed-x10-r1&crit=20261124-cleaving-crit-event-r1&ambush=20261124-ambush-conditional-gold-r1&ideal=20261126-boss-r1";
+import {SKILLS,SKILL_IDS,BRANCH_NAMES,PRESETS,DAMAGE_TYPES,GOLD_TYPES,GAME_VERSION,parseExport,exportBuild,spentPoints,ownedSetFlags,capCurrentMaxStage,CURRENT_MAIN_GAME_STAGE_CAP} from "./engine.js?v=20261123-boss-specials-r1&season=20261126-season14-r1&compat=20261126-audit56-r1&score=20261123-cadence-separated-r1&audit=20261123-ti-sensitivity-r1&ember=20261123-ember-fire-sword-gate-r1&jackpot=20261123-native-jackpot-expectation-r1&mc=20261123-multicast-no-guessed-x10-r1&crit=20261124-cleaving-crit-event-r1&ambush=20261124-ambush-conditional-gold-r1&ideal=20261126-boss-r1";
 import { t, localizeDocument, SUPPORTED_LANGUAGES } from "./i18n.js?v=20261123-boss-specials-r1&season=20261126-season14-r1&ui=20261123-hide-observed-hit-r1&audit=20261123-ti-sensitivity-r1&alt=20261123-ti-second-tree-r1&ideal=20261126-boss-r1&security=20261126-audit56-r1";
 import { readClipboardText } from "./clipboard.js?v=20261123-boss-specials-r1";
 import {resetAccountDependentOptions} from "./import-session-reset.js?v=20261123-boss-specials-r1&ideal=20261126-boss-r1";
@@ -164,9 +166,16 @@ function renderAccountProfile(){
   :tr("Skill-tree-only export: no additional account categories detected.");
  if(String(profile?.stats?.transcendenceSeason||"")==="14")
   el.textContent+=" "+tr(SEASON14_NOTICE);
- if(String(state.importedVersion||"").startsWith("8.4.1"))
+ const versionReport=gameVersionEvidence(state.importedVersion);
+ if(versionReport.status==="newer-than-verified")
   el.textContent+=" "+tr(
-   "This account export reports TT2 8.4.1. The mathematical catalog is verified against 8.4.0; compatibility with later live data has not been independently confirmed.");
+   "Imported TT2 version {version} is newer than the verified skill catalog {catalog}. Compatibility with newer gameplay mechanics is not fully validated.",
+   {version:versionReport.exportedVersion,catalog:versionReport.verifiedSkillCatalogVersion});
+ else if(versionReport.status==="older-than-verified"||
+         versionReport.status==="unrecognized")
+  el.textContent+=" "+tr(
+   "Imported TT2 version {version} is not validated against skill catalog {catalog}. Check your imported skills before applying the build.",
+   {version:versionReport.exportedVersion,catalog:versionReport.verifiedSkillCatalogVersion});
  const petData=petLevelEvidence(profile);
  if(petData.rejected.length){
   el.textContent+=" "+tr("Pet import warning: {count} invalid, conflicting or unknown pet records were excluded from calculations.",{count:numberText(petData.rejected.length)});
@@ -314,7 +323,7 @@ function fillInputs(){
  state.maxStage=capCurrentMaxStage(
   state.maxStage,state.accountProfile,manualCurrentStageConfirmed);
  const season=Number(state.accountProfile?.stats?.transcendenceSeason);
- const season14Started=Date.now()>=Date.parse("2026-11-26T00:00:00.000Z");
+ const season14Started=Date.now()>=Date.parse(VERIFIED_NEXT_SEASON_START_UTC);
  if(season14Started&&(!state.accountProfile||season===14))
   $("max-stage").removeAttribute("max");
  else $("max-stage").max=CURRENT_MAIN_GAME_STAGE_CAP;
@@ -406,7 +415,7 @@ function readInputs(){
  }
  state.skillPoints=manuallyEntered;
  manualCurrentStageConfirmed=true;
- state.stageSeason=!state.accountProfile&&Date.now()>=Date.parse("2026-11-26T00:00:00.000Z")?14:null;
+ state.stageSeason=!state.accountProfile&&Date.now()>=Date.parse(VERIFIED_NEXT_SEASON_START_UTC)?14:null;
  state.maxStage=capCurrentMaxStage(
   $("max-stage").value,state.accountProfile,true);
  state.goldWeight=Number($("gold-weight").value);
