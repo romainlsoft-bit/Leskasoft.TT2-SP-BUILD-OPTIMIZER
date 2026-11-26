@@ -6,6 +6,7 @@
  */
 import {PETS} from "../vendor/pets.js?v=20261123-boss-specials-r1&season=20261126-season14-r1";
 import {TRANSCENDENT_PETS} from "../vendor/transcendent-pets.js?v=20261123-boss-specials-r1&season=20261126-season14-r1";
+import {SEASON14_PET_IDS} from "../vendor/season14-pet-roster.js?v=20261126-season14-r2";
 
 export const ALL_PETS=Object.freeze({...PETS,...TRANSCENDENT_PETS});
 import {skillInfo} from "../vendor/skills.js?v=20261123-boss-specials-r1";
@@ -28,9 +29,10 @@ export const OFFICIAL_SEASON13_PET_ROSTER=Object.freeze([
  "Owlivia","Quippy","Scaly","Sonara","Watson"
 ]);
 const season13=new Set(OFFICIAL_SEASON13_PET_ROSTER);
-// The season-14 official roster has not yet been source-verified.
-// Accept only positive pet levels from an export explicitly stamped 14;
-// never resurrect season-13 local storage or infer ownership from CSV flags.
+const season14=new Set(SEASON14_PET_IDS);
+// Season-14 candidate pets are the ten active rows from Unity variant A,
+// cross-validated against the S13 official roster in the Unity _1 variant.
+// Still require positive levels in a season-14 export; never guess ownership.
 const petLevels=(profile,at=new Date())=>{
  const raw=petLevelEvidence(profile).levels;
  const season=resolveTranscendenceAge(profile,at);
@@ -59,7 +61,7 @@ const petLevels=(profile,at=new Date())=>{
  for(const pet of Object.values(TRANSCENDENT_PETS)){
   const allowed=!season.estimatedSeasonEnded&&(
    (season.season==="13"&&season13.has(pet.name))||
-   source14Valid);
+   (source14Valid&&season14.has(pet.id)));
   if(!allowed)delete filtered[pet.id];
  }
  return filtered;
