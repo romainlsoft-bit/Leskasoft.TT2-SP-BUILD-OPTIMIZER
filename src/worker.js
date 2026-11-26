@@ -20,14 +20,18 @@ import {exploreTacticalInsightAlternative} from "./ti-alternative.js?v=20261123-
 self.onmessage=event=>{
  const {type,settings:rawSettings}=event.data||{};
  // Direct worker requests can carry old-season pets and saved 250k stages.
- const petIds=new Set(availablePets(rawSettings?.accountProfile).map(p=>p.id));
+ const ownedPets=availablePets(rawSettings?.accountProfile);
+ const petIdsBySlot={
+  damage:new Set(ownedPets.filter(p=>p.equipType==="Damage").map(p=>p.id)),
+  gold:new Set(ownedPets.filter(p=>p.equipType==="Support").map(p=>p.id))
+ };
  const settings=rawSettings?publicOptimizationSettings({
   ...rawSettings,
   maxStage:capCurrentMaxStage(rawSettings.maxStage,
    rawSettings.accountProfile,!rawSettings.accountProfile),
-  selectedDamagePet:petIds.has(rawSettings.selectedDamagePet)?
+  selectedDamagePet:petIdsBySlot.damage.has(rawSettings.selectedDamagePet)?
    rawSettings.selectedDamagePet:null,
-  selectedGoldPet:petIds.has(rawSettings.selectedGoldPet)?
+  selectedGoldPet:petIdsBySlot.gold.has(rawSettings.selectedGoldPet)?
    rawSettings.selectedGoldPet:null
  }):null;
  if(!["optimize","optimize-pet-scenarios"].includes(type))return;
