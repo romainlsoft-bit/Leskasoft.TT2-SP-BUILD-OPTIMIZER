@@ -57,7 +57,8 @@ test("season-13 final UTC boundary closes seasonal pets even with missing export
  for(const profile of [archived(),unknown()]){
   const previous=availablePets(profile,before);
   const now=availablePets(profile,after);
-  assert.ok(previous.some(p=>p.id==="SeasonalPet2"));
+  assert.equal(previous.some(p=>p.id==="SeasonalPet2"),
+    String(profile.stats.transcendenceSeason)==="13");
   assert.ok(now.every(p=>!p.id.startsWith("SeasonalPet")));
   assert.deepEqual(now.map(p=>p.id),["Pet1","Pet6"]);
   const timeline=resolveTranscendenceAge(profile,after);
