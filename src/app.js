@@ -1,3 +1,4 @@
+import {sanitizeUserBuild,parseSharedBuildHash,MAX_SAVED_STATE_TEXT} from "./build-input-boundary.js?v=20261123-boss-specials-r1";
 import {publicOptimizationSettings} from "./public-optimization-policy.js?v=20261123-boss-specials-r1";
 import {SKILLS,SKILL_IDS,BRANCH_NAMES,PRESETS,DAMAGE_TYPES,GOLD_TYPES,GAME_VERSION,parseExport,exportBuild,spentPoints,ownedSetFlags,capCurrentMaxStage,CURRENT_MAIN_GAME_STAGE_CAP} from "./engine.js?v=20261123-boss-specials-r1&season=20261126-season14-r1&score=20261123-cadence-separated-r1&audit=20261123-ti-sensitivity-r1&ember=20261123-ember-fire-sword-gate-r1&jackpot=20261123-native-jackpot-expectation-r1&mc=20261123-multicast-no-guessed-x10-r1&crit=20261124-cleaving-crit-event-r1&ambush=20261124-ambush-conditional-gold-r1&ideal=20261126-boss-r1";
 import { t, localizeDocument, SUPPORTED_LANGUAGES } from "./i18n.js?v=20261123-boss-specials-r1&season=20261126-season14-r1&ui=20261123-hide-observed-hit-r1&audit=20261123-ti-sensitivity-r1&alt=20261123-ti-second-tree-r1&ideal=20261126-boss-r1";
@@ -112,7 +113,14 @@ function status(message,type="",params={}){
 }
 function resetOptimizeButton(){const b=$("optimize-button");b.disabled=false;b.innerHTML='<span>✦ &nbsp; '+safe(tr("Optimize my build"))+'</span><span>→</span>';}
 function safe(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
-function persist(){try{localStorage.setItem("tt2_skill_optimizer_v1",JSON.stringify(state));}catch{}}
+function persist(){
+ try{
+  const snapshot=JSON.stringify(state);
+  if(snapshot.length<=MAX_SAVED_STATE_TEXT)
+   localStorage.setItem("tt2_skill_optimizer_v1",snapshot);
+  else localStorage.removeItem("tt2_skill_optimizer_v1");
+ }catch{}
+}
 function renderChoices(){
   $("damage-choices").innerHTML=DAMAGE_TYPES.map(x=>`<button class="choice ${state.damage===x?"selected":""}" type="button" data-damage="${safe(x)}" aria-pressed="${state.damage===x}"><span>${iconMap[x]}</span>${safe(tr(x))}</button>`).join("");
   $("gold-choices").innerHTML=GOLD_TYPES.map(x=>`<button class="${state.gold===x?"selected":""}" type="button" data-gold="${safe(x)}" aria-pressed="${state.gold===x}">${safe(tr(x==="HoG"?"Heart of Gold":x))}</button>`).join("");
@@ -121,7 +129,7 @@ function renderChoices(){
 function renderEditor(filter=""){
  const q=filter.trim().toLowerCase();const matches=SKILL_IDS.filter(id=>SKILLS[id].Name.toLowerCase().includes(q)||BRANCH_NAMES[SKILLS[id].Branch].toLowerCase().includes(q)||tr(BRANCH_NAMES[SKILLS[id].Branch]).toLowerCase().includes(q));
  $("skill-editor").innerHTML='<div class="skill-colhead"><span>'+safe(tr("Skill"))+'</span><span>'+safe(tr("Current"))+'</span><span>'+safe(tr("Minimum"))+'</span><span>'+safe(tr("Exclude"))+'</span></div>'+matches.map(id=>{
-  const s=SKILLS[id];return `<div class="skill-row"><span class="skill-name">${safe(s.Name)}<small>${safe(tr(BRANCH_NAMES[s.Branch]))} · max ${s.MaxLevel}</small></span><input type="number" data-level="${id}" min="0" max="${s.MaxLevel}" step="1" value="${state.currentLevels?.[id]||0}" aria-label="${safe(tr("Current level for {name}",{name:s.Name}))}"><input type="number" data-minimum="${id}" min="0" max="${s.MaxLevel}" step="1" value="${state.minimums?.[id]||0}" aria-label="${safe(tr("Minimum level for {name}",{name:s.Name}))}"><div class="center"><input type="checkbox" data-exclude="${id}" aria-label="${safe(tr("Exclude {name}",{name:s.Name}))}" ${state.excluded?.includes(id)?"checked":""}></div></div>`;
+  const s=SKILLS[id];return `<div class="skill-row"><span class="skill-name">${safe(s.Name)}<small>${safe(tr(BRANCH_NAMES[s.Branch]))} · max ${s.MaxLevel}</small></span><input type="number" data-level="${id}" min="0" max="${s.MaxLevel}" step="1" value="${safe(state.currentLevels?.[id]??0)}" aria-label="${safe(tr("Current level for {name}",{name:s.Name}))}"><input type="number" data-minimum="${id}" min="0" max="${s.MaxLevel}" step="1" value="${safe(state.minimums?.[id]??0)}" aria-label="${safe(tr("Minimum level for {name}",{name:s.Name}))}"><div class="center"><input type="checkbox" data-exclude="${id}" aria-label="${safe(tr("Exclude {name}",{name:s.Name}))}" ${state.excluded?.includes(id)?"checked":""}></div></div>`;
  }).join("");
  if(!matches.length)$("skill-editor").innerHTML="<p class='hint'>"+safe(tr("No skills match your search."))+"</p>";
 }
@@ -1057,25 +1065,19 @@ function decodeLink(){
  const hash=window.location.hash;
  if(!hash.startsWith("#build="))return;
  try{
-  const payload=JSON.parse(decodeURIComponent(escape(atob(hash.slice(7)))));
-  if(!payload||typeof payload!=="object")return;
-  state=publicOptimizationSettings({...fresh(),
-   skillPoints:payload.sp??0,stageSeason:payload.ss===14?14:null,
-   maxStage:capCurrentMaxStage(payload.st??0,null,payload.ss===14),
-   damage:payload.da??"Clan Ship",gold:payload.go??"Fairy",
-   playstyle:payload.p??"balanced",qol:payload.q??"recommended",
-   goldWeight:payload.w??.7,craftingPower:payload.cp??1,
-   timeToKill:payload.tk??8,sClone:payload.cl??30,
-   currentLevels:payload.cur||{},minimums:payload.min||{},
-   excluded:Array.isArray(payload.exc)?payload.exc:[],
-   preserveCurrent:Boolean(payload.keep),
-   protectUnmodeledSkills:payload.protect!==false,mode:"power"});
+  const payload=parseSharedBuildHash(hash,SKILLS,DAMAGE_TYPES,GOLD_TYPES);
+  state=publicOptimizationSettings({...fresh(),...payload,
+   maxStage:capCurrentMaxStage(payload.maxStage,null,payload.stageSeason===14)});
   window.history.replaceState(null,"",window.location.pathname+window.location.search);
   status("Shared build settings loaded. Optimize to calculate a new recommendation.","success");
  }catch(e){status("Could not load this shared build link.","error");}
 }
 function initialize(){
- try{const saved=JSON.parse(localStorage.getItem("tt2_skill_optimizer_v1")||"null");if(saved&&typeof saved==="object")state={...fresh(),...saved};}catch{}
+ try{
+  const stored=localStorage.getItem("tt2_skill_optimizer_v1");
+  if(stored&&stored.length<=MAX_SAVED_STATE_TEXT)
+   state=sanitizeUserBuild(JSON.parse(stored),fresh(),SKILLS,DAMAGE_TYPES,GOLD_TYPES);
+ }catch{state=fresh();}
  decodeLink();
  state=publicOptimizationSettings(state);
  // Retired UI settings from previous sessions must not influence diagnostics.
@@ -1145,6 +1147,16 @@ function initialize(){
   if(input.dataset.level)state.currentLevels[id]=Number(input.value);
   else state.minimums[id]=Number(input.value);
   remember();
+ });
+ $("clear-local-data").addEventListener("click",()=>{
+  if(!window.confirm(tr("Erase all locally saved TT2 data from this browser?")))return;
+  if(worker){worker.terminate();worker=null;}
+  try{
+   localStorage.removeItem("tt2_skill_optimizer_v1");
+   localStorage.removeItem("tt2_site_language");
+  }catch{}
+  window.history.replaceState(null,"",window.location.pathname+window.location.search);
+  window.location.reload();
  });
  $("paste-button").addEventListener("click",pasteClipboard);
  $("upload-button").addEventListener("click",()=>$("upload-file").click());
