@@ -309,7 +309,7 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
   const branchTotals=Object.fromEntries(Object.entries(BRANCH_NAMES).map(([branch,name])=>[name,
     SKILL_IDS.filter(id=>skillInfo[id].Branch===branch).reduce((sum,id)=>sum+COSTS[id][result.levels[id]],0)
   ]));
-  const {power,timed,permanentSetPower,fixedAccount,dependencyReport,skillTreeSetPower,remainingUnmodeledEffects}=buildAccountBaseline(settings,result.levels);
+  const {power,timed,permanentSetPower,fixedAccount,dependencyReport,skillTreeSetPower,newlyResolvedSetEffects,remainingUnmodeledEffects}=buildAccountBaseline(settings,result.levels);
   const jackpotSourceOnly=transmutationSourceEventEvidence(
    result.levels.Transmutation??0);
   const criticalSourceOnly=cleavingStrikeSourceEvidence(
