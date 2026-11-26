@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
-import {t} from "../src/i18n.js";
+import {t} from "./helpers/i18n-all.js";
 
 const src=path=>readFileSync(new URL("../"+path,import.meta.url),"utf8");
 const app=src("src/app.js");
