@@ -52,7 +52,7 @@ test("imported TT2 8.4.2 is accepted with an explicit unverified-version warning
  assert.equal(known.versionCompatibility.status,"matches-verified");
 });
 test("UI shows version warnings in four languages rather than special-casing 8.4.1",()=>{
- const app=read("src/app.js"),locale=read("src/i18n.js");
+ const app=read("src/app.js");
  assert.match(app,/gameVersionEvidence\(state\.importedVersion\)/);
  assert.match(app,/versionReport\.status==="newer-than-verified"/);
  assert.doesNotMatch(app,/startsWith\("8\.4\.1"\)/);
@@ -62,7 +62,7 @@ test("UI shows version warnings in four languages rather than special-casing 8.4
  ]){
   assert.ok(app.includes(key));
   for(const lang of ["fr","uk","ru"])
-   assert.ok(locale.includes("translations."+lang+"["),
+   assert.ok(read("src/i18n-"+lang+".js").includes(key),
     lang+" localization source missing");
  }
 });
