@@ -1260,6 +1260,9 @@ translations.ru["Gold Stats at higher level"]="Статистика золота
 translations.fr["Automatic pet slots use one source-ranked owned pet each; manually selected pets stay fixed."]="Chaque emplacement automatique utilise un familier possédé, sélectionné selon son bonus modélisé ; les familiers choisis manuellement restent fixes.";
 translations.uk["Automatic pet slots use one source-ranked owned pet each; manually selected pets stay fixed."]="Для кожного автоматичного слота вибирається один наявний улюбленець за оцінкою його бонусу; вибрані вручну улюбленці залишаються незмінними.";
 translations.ru["Automatic pet slots use one source-ranked owned pet each; manually selected pets stay fixed."]="Для каждого автоматического слота выбирается один имеющийся питомец по оценке его бонуса; выбранные вручную питомцы остаются неизменными.";
+translations.fr["Erase all locally saved TT2 data from this browser?"]="Effacer toutes les données TT2 enregistrées localement dans ce navigateur ?";
+translations.uk["Erase all locally saved TT2 data from this browser?"]="Видалити всі дані TT2, збережені в цьому браузері?";
+translations.ru["Erase all locally saved TT2 data from this browser?"]="Удалить все данные TT2, сохранённые в этом браузере?";
 export function t(message, lang="en", parameters={}){
   const selected=SUPPORTED_LANGUAGES.includes(lang)?lang:"en";
   const value=translations[selected]?.[message] ?? message;
