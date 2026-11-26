@@ -110,11 +110,16 @@ test("all four localized HTML pages include an explicit browser-data erasure con
   assert.match(html,/security=20261126-audit56-r1/);
  }
  const js=readFileSync(new URL("../src/app.js",import.meta.url),"utf8");
- assert.match(js,/parseSharedBuildHash\(hash,SKILLS,DAMAGE_TYPES,GOLD_TYPES\)/);
- assert.match(js,/sanitizeUserBuild\(JSON\.parse\(stored\),fresh\(\),SKILLS,DAMAGE_TYPES,GOLD_TYPES\)/);
+ const store=readFileSync(new URL("../src/browser-persistence.js",import.meta.url),"utf8");
+ const sharing=readFileSync(new URL("../src/share-link-protocol.js",import.meta.url),"utf8");
+ assert.match(sharing,/parseSharedBuildHash\(hash,skills,damageTypes,goldTypes\)/);
+ assert.match(js,/readSharedBuild\(hash,SKILLS,DAMAGE_TYPES,GOLD_TYPES\)/);
+ assert.match(store,/sanitizeUserBuild\(JSON\.parse\(snapshot\),defaults,skills,damageTypes,goldTypes\)/);
+ assert.match(js,/restoreSavedBuild\(localStorage,fresh\(\),SKILLS,DAMAGE_TYPES,GOLD_TYPES\)/);
  assert.match(js,/value="\$\{safe\(state\.currentLevels\?\.\[id\]\?\?0\)\}"/);
  assert.match(js,/value="\$\{safe\(state\.minimums\?\.\[id\]\?\?0\)\}"/);
- assert.match(js,/localStorage\.removeItem\("tt2_skill_optimizer_v1"\)/);
+ assert.match(store,/storage\?\.removeItem\(BUILD_STORAGE_KEY\)/);
+ assert.match(js,/eraseSavedBrowserData\(localStorage\)/);
 });
 test("one gear limit is used for 16, 17, 32 and 33 candidates",()=>{
  assert.equal(MAX_EXHAUSTIVE_OWNED_GEAR_ASSIGNMENTS,32);
