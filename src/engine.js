@@ -28,8 +28,8 @@ import {transmutationSourceEventEvidence} from "./transmutation-native.js?v=2026
 import {cleavingStrikeSourceEvidence} from "./cleaving-strike-native.js?v=20261123-boss-specials-r1&crit=20261124-cleaving-crit-event-r1";
 import {ambushSourceEventEvidence} from "./ambush-native-score.js?v=20261123-boss-specials-r1&ambush=20261124-ambush-conditional-gold-r1";
 import {resolveTacticalInsightLocal} from "./tactical-insight-local.js?v=20261123-boss-specials-r1";
-import {capCurrentMaxStage,CURRENT_MAIN_GAME_STAGE_CAP,isCurrentSeasonStarted} from "./current-season-policy.js?v=20261123-boss-specials-r1&season=20261126-season14-r1&compat=20261126-audit56-r1";
-export {capCurrentMaxStage,CURRENT_MAIN_GAME_STAGE_CAP,isCurrentSeasonStarted};
+import {capCurrentMaxStage,CURRENT_MAIN_GAME_STAGE_CAP} from "./current-season-policy.js?v=20261123-boss-specials-r1&season=20261126-season14-r1";
+export {capCurrentMaxStage,CURRENT_MAIN_GAME_STAGE_CAP};
 import {tacticalInsightRecommendationSensitivity} from "./tactical-insight-sensitivity.js?v=20261123-boss-specials-r1&season=20261126-season14-r1&audit=20261123-ti-sensitivity-r1";
 
 export const GAME_VERSION = VERIFIED_SKILL_CATALOG_VERSION;
