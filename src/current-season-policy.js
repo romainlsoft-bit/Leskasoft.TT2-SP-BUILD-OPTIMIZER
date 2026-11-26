@@ -22,7 +22,7 @@ export const CURRENT_PET_SOURCE_PROVENANCE=Object.freeze({
  transcendentPetInfoGitSha:"7d0b47e117a5dadaf2b6774394874791690c83f6",
  catalogVerifiedOn:"2026-11-24",
  source:"rawrzcookie/TT2_CSV:csv/PetInfo.csv and csv/EndgamePetInfo.csv",
- currentSelection:"season-14: positive levels in a season-14 export are provisional; ten-pet roster unverified"
+ currentSelection:"season-14: ten active Unity variant A pets, positive season-14 exported levels only"
 });
 
 export function currentPostSeasonMode(at=new Date()){
