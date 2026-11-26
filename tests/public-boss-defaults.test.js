@@ -28,7 +28,8 @@ test("all four localized sites remove retired controls without removing manual s
  const app=read("src/app.js");
  assert.doesNotMatch(app,/id="pet-compare"/);
  assert.doesNotMatch(app,/\$\("pet-compare"\)/);
- assert.ok(app.includes("const compare=false"));
+ assert.match(app,/running\.postMessage\(\{type:"optimize",settings:requestContext\}\)/);
+  assert.doesNotMatch(app,/type:compare\?/);
  for(const id of retired)assert.ok(!app.includes('$("'+id+'")'),"DOM reference "+id);
 });
 
