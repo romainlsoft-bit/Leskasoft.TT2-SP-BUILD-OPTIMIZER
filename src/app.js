@@ -452,7 +452,11 @@ const {renderAttackChannelEvidence,
  getById:$,doc:document,tr,safe,numberText,exportBuild
 });
 function renderResults(result,scroll=true){
- $("empty-results").hidden=true;$("actual-results").hidden=false;if(scroll)$("results").scrollIntoView({behavior:"smooth",block:"start"});
+ $("empty-results").hidden=true;$("actual-results").hidden=false;
+ if(scroll){
+  const reducedMotion=window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches===true;
+  $("results").scrollIntoView({behavior:reducedMotion?"auto":"smooth",block:"start"});
+ }
  const bounded=result.optimality?.mode==="bounded-power";
  $("result-mode").textContent=tr(bounded?"Optimized · bounded grid":"Optimized · exact DP");
  const scenario=lastRunContext??state;
