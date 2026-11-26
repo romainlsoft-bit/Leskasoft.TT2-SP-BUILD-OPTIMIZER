@@ -116,7 +116,7 @@ test("all 18 routes produce feasible full builds with consistent marginal model"
  }
 });
 test("all language entrypoints and module graphs update; no GitHub Actions",()=>{
- const paths=["src/app.js","src/worker.js","src/engine.js",
+ const paths=["src/app.js","src/result-details-ui.js","src/worker.js","src/engine.js",
   "src/tactical-insight-sensitivity.js","src/ti-alternative.js"];
  const code=Object.fromEntries(paths.map(path=>[
   path,readFileSync(new URL("../"+path,import.meta.url),"utf8")]));
@@ -129,7 +129,8 @@ test("all language entrypoints and module graphs update; no GitHub Actions",()=>
   read("src/tactical-insight-sensitivity.js","effects.js"));
  const tag="20261124-cleaving-crit-event-r1";
  assert.ok(code["src/engine.js"].includes(tag));
- assert.ok(code["src/app.js"].includes("result.criticalSourceOnly"));
+ assert.ok(code["src/result-details-ui.js"].includes("result.criticalSourceOnly"));
+ assert.ok(code["src/app.js"].includes("createResultDetailRenderers"));
  for(const path of ["index.html","fr/index.html","uk/index.html","ru/index.html"]){
   const content=readFileSync(new URL("../"+path,import.meta.url),"utf8");
   assert.ok(content.includes("&amp;crit="+tag),path);
