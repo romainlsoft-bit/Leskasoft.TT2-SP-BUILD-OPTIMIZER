@@ -111,7 +111,7 @@ hr{border:0;border-top:1px solid #384158;margin:27px 0}.playstyles{display:grid;
  align-items:flex-start;
  gap:12px;
  padding:15px 14px;
- /* Flat dark surface: no bright edge or inset highlight at top-left. */
+ /* Flat dark surface without the previously distracting highlight. */
  border:0;
  border-radius:12px;
  background:#30202a;
