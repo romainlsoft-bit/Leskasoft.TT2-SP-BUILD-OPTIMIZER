@@ -19,8 +19,9 @@ export const VERIFIED_NEXT_SEASON_START_UTC="2026-11-26T00:00:00.000Z";
 export const CURRENT_PET_SOURCE_PROVENANCE=Object.freeze({
  permanentPetCount:30,archivedTranscendentPetCount:15,
  permanentPetInfoGitSha:"c6f367e2ec38d7348c44974edde7de3c679ce300",
- transcendentPetInfoGitSha:"7d0b47e117a5dadaf2b6774394874791690c83f6",
- catalogVerifiedOn:"2026-11-24",
+ transcendentPetInfoGitSha:"b2e8ffe778f22f6742447284ac05ede113f6c992",
+ season13UnityPetVariantGitSha:"3d4ac87949893f3619d3c8d43d3638eec55de820",
+ catalogVerifiedOn:"2026-11-26",
  source:"rawrzcookie/TT2_CSV:csv/PetInfo.csv and csv/EndgamePetInfo.csv",
  currentSelection:"season-14: ten active Unity variant A pets, positive season-14 exported levels only"
 });
