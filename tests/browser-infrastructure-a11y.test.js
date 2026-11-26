@@ -147,7 +147,7 @@ test("all eight static pages expose a localized skip link and a main target",()=
   assert.equal((html.match(/id="main-content"/g)||[]).length,1,path);
   assert.match(html,/href="#main-content"/);
   assert.ok(html.includes(">"+label+"</a>"),path);
-  assert.match(html,/styles\.css\?v=[^"]*&amp;a11y=20261126-audit56-r1/);
+  assert.match(html,/styles\.css\?v=[^"]*&amp;accessibility=20261126-audit56-r1/);
  }
  const css=read("styles.css");
  assert.match(css,/\.skip-link:focus/);
