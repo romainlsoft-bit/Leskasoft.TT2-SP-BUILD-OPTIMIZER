@@ -16,7 +16,7 @@
 <link rel="icon" type="image/svg+xml" href="assets/favicon.svg"><link rel="stylesheet" href="styles.css?v=20261122-toast-flat-r1">
 <title>TT2 Skill Tree Optimizer 8.4 — Free Skill Point Calculator | Leskasoft</title>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"TT2 Skill Tree Optimizer","description":"Tap Titans 2 skill tree optimizer with manual and JSON import, QoL preferences and 50,000 Skill Point support.","applicationCategory":"GameApplication","operatingSystem":"Any","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"url":"https://tap-titans.leskasoft.com/","inLanguage":"en","@id":"https://tap-titans.leskasoft.com/#tool"}</script>
-<script type="module" src="src/app.js?v=20261123-boss-specials-r1&amp;season=20261126-season14-r1&amp;ui=20261123-hide-observed-hit-r1&amp;score=20261123-cadence-separated-r1&amp;audit=20261123-ti-sensitivity-r1&amp;alt=20261123-ti-second-tree-r1&amp;ember=20261123-ember-fire-sword-gate-r1&amp;jackpot=20261123-native-jackpot-expectation-r1&amp;mc=20261123-multicast-no-guessed-x10-r1&amp;crit=20261124-cleaving-crit-event-r1&amp;ambush=20261124-ambush-conditional-gold-r1" defer></script>
+<script type="module" src="src/app.js?v=20261123-boss-specials-r1&amp;season=20261126-season14-r1&amp;ui=20261123-hide-observed-hit-r1&amp;score=20261123-cadence-separated-r1&amp;audit=20261123-ti-sensitivity-r1&amp;alt=20261123-ti-second-tree-r1&amp;ember=20261123-ember-fire-sword-gate-r1&amp;jackpot=20261123-native-jackpot-expectation-r1&amp;mc=20261123-multicast-no-guessed-x10-r1&amp;crit=20261124-cleaving-crit-event-r1&amp;ambush=20261124-ambush-conditional-gold-r1&amp;simplify=20261126-boss-r1" defer></script>
 </head>
 <body>
 <div class="site">
@@ -64,40 +64,8 @@
       <label>Shadow Clone spell level <input id="clone-level" type="number" min="1" max="35" step="1" value="30"></label>
     </div>
 
-    <h3>Source Stage Skip target (optional)</h3>
-    <p class="hint">Set the Stage Skip bonus you want from a particular attack talent. The optimizer reserves only the necessary skill levels and optimizes the remaining SP. This is not total Stage Skip or a predicted stage gain; the attack still needs to kill.</p>
-    <label>Attack carrying the Stage Skip <select id="push-attack-channel"><option value="">No target</option></select></label>
-    <label>Minimum source Stage Skip <input id="push-stage-skip-target" type="number" min="0" max="10000" step="1" inputmode="numeric" value="0"></label>
-    <h3>Explore push alternatives (optional)</h3>
-    <label class="toggle"><input type="checkbox" id="push-frontier-enabled"> Compare full SP allocations at different source Stage Skip levels. This costs extra calculations and does not predict stages or rank real boss damage.</label>
-    <h3>Native attack damage alternatives</h3>
-    <label>Attack whose native damage multiplier will be compared <select id="attack-damage-channel"></select></label>
-    <label class="toggle"><input type="checkbox" id="attack-damage-frontier-enabled"> Explore full SP allocations favoring that attack's tabulated damage multiplier. Experimental: not a measured DPS or stage prediction.</label>
-    <h3>Push-limit combat conditions</h3>
-    <p class="hint">Count temporary bonuses only when you can use them against your hardest boss. Inactive/zero is the conservative default.</p>
-    <label class="toggle"><input type="checkbox" id="hayst-active"> Hayst active at your hardest boss</label>
-    <label class="toggle"><input type="checkbox" id="snap-active"> Snap active at your hardest boss</label>
-    <label>Astral Awakening orb taps (0–5) <input type="number" id="astral-activations" min="0" max="5" step="1" inputmode="numeric" value="0"></label>
-    <label class="toggle"><input type="checkbox" id="coordinated-offensive-active"> Coordinated Offensive is active against the boss (only then credit its hero damage)</label>
-    <label class="toggle"><input type="checkbox" id="flash-zip-at-boss"> Flash Zip is charged and hits the hardest boss (credit its Pet Boss QTE damage)</label>
-    <label class="toggle"><input type="checkbox" id="nightmare-at-boss"> Shadow Clone triggers Nightmare Damage against the hardest boss (special attempts only)</label>
-    <label class="toggle"><input type="checkbox" id="magnum-opus-at-boss"> Magnum Opus is charged and active against the hardest boss (not ordinary Gold Gun shots)</label>
     <label class="toggle"><input type="checkbox" id="preserve-current">Keep current levels as minimums</label>
     <label class="toggle"><input type="checkbox" id="protect-unmodeled-skills" checked> Keep existing conditional skills when their effects cannot be modeled (recommended)</label>
-    <label class="toggle"><input type="checkbox" id="exclude-unverified-tactical-insight"> Experiment: exclude the unverified Tactical Insight community coefficient from SP scoring (not a claim that the skill has no value)</label>
-    <details class="result-detail">
-     <summary>Tactical Insight — measured Stats calibration (optional)</summary>
-     <p class="hint">Enter two in-game Stats readings with identical equipment, pets, spells and buffs; change only Tactical Insight. Include damage and gold for the selected build. Scientific notation (1.23e30000) works. Only levels between both observations will be considered. Measurements stay on this device and are omitted from shared links.</p>
-     <label class="toggle"><input type="checkbox" id="ti-cal-enabled"> Use my measured Tactical Insight calibration for this build</label>
-     <div class="options-grid">
-      <label>Lower Tactical Insight level <input type="number" id="ti-cal-low-level" min="0" max="30" step="1" inputmode="numeric" placeholder="10"></label>
-      <label>Higher Tactical Insight level <input type="number" id="ti-cal-high-level" min="0" max="30" step="1" inputmode="numeric" placeholder="15"></label>
-      <label>Damage Stats at lower level <input type="text" id="ti-cal-low-damage" inputmode="decimal" placeholder="1.23e30000"></label>
-      <label>Damage Stats at higher level <input type="text" id="ti-cal-high-damage" inputmode="decimal" placeholder="2.45e30000"></label>
-      <label>Gold Stats at lower level <input type="text" id="ti-cal-low-gold" inputmode="decimal" placeholder="1.23e29000"></label>
-      <label>Gold Stats at higher level <input type="text" id="ti-cal-high-gold" inputmode="decimal" placeholder="1.56e29000"></label>
-     </div>
-    </details>
     <h3>Individual skills</h3>
     <p class="hint">Enter your current level for comparisons. Set a minimum level to require the skill. Excluded skills receive no additional investment.</p>
     <div class="skill-filter"><input type="search" id="skill-search" placeholder="Find a skill or branch…" aria-label="Search skills"><button type="button" class="btn tiny secondary" id="clear-minimums">Clear minimums</button></div>
