@@ -453,10 +453,7 @@ const renderAccountIntegration=createAccountDiagnosticsRenderer({
 });
 const {renderAttackChannelEvidence,
  renderModelAttribution,
- renderPushSkipComparison,
- renderBossPushEvidence,
- renderPushFrontier,
- renderNativeAttackFrontier}=createResultDetailRenderers({
+ renderBossPushEvidence}=createResultDetailRenderers({
  getById:$,doc:document,tr,safe,numberText,exportBuild
 });
 function renderResults(result,scroll=true){
@@ -510,10 +507,7 @@ function renderResults(result,scroll=true){
  renderAccountIntegration(result);
  renderAttackChannelEvidence(result);
  renderModelAttribution(result);
- renderPushSkipComparison(result);
  renderBossPushEvidence(result);
- renderPushFrontier(result);
- renderNativeAttackFrontier(result);
  $("full-tree").innerHTML=Object.entries(BRANCH_NAMES).map(([code,name])=>`<h4 class="group-title">${safe(tr(name))}</h4>`+SKILL_IDS.filter(id=>SKILLS[id].Branch===code&&result.levels[id]>0).map(id=>`<div class="tree-row"><span>${safe(SKILLS[id].Name)}</span><strong>${result.levels[id]}</strong></div>`).join("")).join("");
  $("delta-count").textContent="("+result.changes.length+")";
  $("diff-list").innerHTML=result.changes.length?result.changes.map(change=>`<div class="change-row"><span>${safe(change.name)}</span><span><small>${change.before} → ${change.after}</small> <strong class="${change.difference>=0?"plus":"minus"}">${change.difference>0?"+":""}${change.difference}</strong></span></div>`).join(""):"<p class='hint'>"+safe(tr("No skill-level changes."))+"</p>";
