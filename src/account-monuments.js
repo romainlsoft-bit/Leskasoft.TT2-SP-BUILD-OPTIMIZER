@@ -52,7 +52,9 @@ function unique(values){
 export function resolveMonumentEvidence(profile,at=new Date()){
  const age=resolveTranscendenceAge(profile,at);
  const catalog=catalogForSeason(age.season);
- const byId=BY_SEASON[age.season]||new Map();
+ // Unknown-season exports remain inspectable as historical diagnostics;
+ // their recognized rows may NOT be scored without a verified season.
+ const byId=BY_SEASON[age.season]||BY_SEASON["13"];
  const group=new Map(),unknown=[];
  const truncation=["monuments","seasonArtifacts"].filter(
   section=>profile?.sections?.[section]?.truncated===true);
@@ -80,7 +82,7 @@ export function resolveMonumentEvidence(profile,at=new Date()){
   const level=conflict?null:safeLevel(levels[0],info.maxLevel);
   const perSeasonDay=info.bonusType.includes("PerSeasonDay");
   const categoryAllowed=categories?
-   categories.includes(info.category)&&info.isActive:info.isActive;
+   categories.includes(info.category):info.isActive;
   const seasonKnown=categories!==null;
   const enchantKnown=enchants.length===1;
   const enchanted=enchantKnown?enchants[0]==="true":null;
