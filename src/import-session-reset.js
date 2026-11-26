@@ -12,14 +12,21 @@ export function resetAccountDependentOptions(state){
  state.contractTimeline=null;
  state.contractMultiScenario=null;
  state.assumeContractsAtMax=false;
- state.assumeCoordinatedOffensiveActive=false;
- state.assumeFlashZipAtBoss=false;
- state.assumeNightmareAtBoss=false;
- state.assumeMagnumOpusAtBoss=false;
+ state.assumeCoordinatedOffensiveActive=true;
+ state.assumeFlashZipAtBoss=true;
+ state.assumeNightmareAtBoss=true;
+ state.assumeMagnumOpusAtBoss=true;
  state.tacticalInsightCalibration=null;
+ state.excludeUnverifiedTacticalInsight=false;
+ state.assumeHaystActive=true;
+ state.assumeSnapActive=true;
+ state.astralActivations=5;
+ state.pushAttackChannelId="";state.pushSourceStageSkipTarget=0;
+ state.pushFrontierEnabled=false;
+ state.attackDamageFrontierEnabled=false;state.attackDamageChannelId="";
  state.selectedDamagePet=null;
  state.selectedGoldPet=null;
- state.comparePetScenarios=true;
+ state.comparePetScenarios=false;
  state.selectedEquipment={};
  return state;
 }
