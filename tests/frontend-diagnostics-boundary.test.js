@@ -92,8 +92,9 @@ test("attack channel display escapes hostile source labels and leaves score unto
  const score={byBranch:{Knight:2},top:[],gold:"Fairy"};
  views.renderModelAttribution({modelAttribution:score});
  assert.match(dom.nodes.get("model-score-attribution").innerHTML,/Knight/);
- views.renderPushSkipComparison({});
- assert.equal(dom.nodes.get("push-skip-comparison").hidden,true);
+ assert.equal(Object.hasOwn(views,"renderPushSkipComparison"),false);
+ views.renderBossPushEvidence({});
+ assert.equal(dom.nodes.get("boss-push-evidence").hidden,true);
 });
 test("controller retains only orchestration and all diagnostics live in SRP modules",()=>{
  const app=readFileSync(new URL("../src/app.js",import.meta.url),"utf8");
@@ -104,6 +105,8 @@ test("controller retains only orchestration and all diagnostics live in SRP modu
  assert.doesNotMatch(app,/function renderAccountIntegration\(/);
  assert.doesNotMatch(app,/function renderAttackChannelEvidence\(/);
  assert.match(account,/const sourceCoverage=result\.accountSourceCoverage;/);
- assert.match(detail,/function renderNativeAttackFrontier\(/);
+ assert.doesNotMatch(detail,/function renderNativeAttackFrontier\(/);
+ assert.doesNotMatch(app,/renderNativeAttackFrontier\(/);
+ assert.doesNotMatch(app,/renderPushFrontier\(/);
  assert.match(app,/running\.postMessage\(\{type:"optimize",settings:requestContext\}\)/);
 });
