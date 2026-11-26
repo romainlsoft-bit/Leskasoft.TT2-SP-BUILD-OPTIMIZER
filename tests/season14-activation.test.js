@@ -5,6 +5,9 @@ import {currentPostSeasonMode,capCurrentMaxStage,
  CURRENT_MAIN_GAME_STAGE_CAP} from "../src/current-season-policy.js";
 import {resolveTranscendenceAge} from "../src/account-temporal.js";
 import {resolveMonumentEvidence} from "../src/account-monuments.js";
+import {monumentDerivedPower} from "../src/account-monument-derived.js";
+import {SEASON14_ARTIFACT_CATALOG,SEASON14_MONUMENT_SOURCE_SHA} from "../vendor/season14-monuments.js";
+import {SEASON14_PET_IDS,SEASON14_PET_NAMES} from "../vendor/season14-pet-roster.js";
 import {availablePets} from "../src/pet-scenarios.js";
 import {parseExport,optimizeBuild} from "../src/engine.js";
 
@@ -15,7 +18,8 @@ const newAccount=(petLevels={SeasonalPet2:7,SeasonalPet7:9,Pet1:120})=>
   playerStats:{"Transcendence Season":14},
   petLevels,
   monuments:{SeasonalArtifact34:{level:50,enchanted:false},
-   SeasonalArtifact1:{level:6,enchanted:false}}
+   SeasonalArtifact1:{level:6,enchanted:false},
+   SeasonalArtifact2:{level:10,enchanted:false}}
  });
 const archivedAccount=()=>parseAccountProfile({
  playerStats:{"Transcendence Season":13},
@@ -76,14 +80,46 @@ test("season 14 accepts only fresh, stamped and plausible pet observations",()=>
  assert.equal(impossible.filter(x=>x.tier==="Transcendent").length,0);
 });
 
-test("season 14 monument categories are recognized, but old coefficients are never scored",()=>{
- const present=resolveMonumentEvidence(newAccount(),nov26);
+test("season-14 source catalog: 52 monuments, 33 available, 10 pets",()=>{
+ assert.equal(Object.keys(SEASON14_ARTIFACT_CATALOG).length,52);
+ assert.equal(SEASON14_MONUMENT_SOURCE_SHA,"ea82d1f49af816f9a43e58849b1aa21cbc4b072d");
+ const active=Object.values(SEASON14_ARTIFACT_CATALOG).filter(x=>x.isActive);
+ assert.equal(active.length,33);
+ for(const category of ["Pirate","Viper","Celestial"])
+  assert.equal(active.filter(x=>x.category===category).length,11);
+ assert.equal(SEASON14_PET_IDS.length,10);
+ assert.deepEqual(SEASON14_PET_NAMES,[
+  "Clang","Scaly","Snuggles","Chitter","Quippy","Lullabye",
+  "Lemon","Sonara","Sandy","Clawsette"]);
+ const valid=newAccount({SeasonalPet1:5,SeasonalPet2:5,Pet1:120});
+ assert.ok(availablePets(valid,nov26).some(x=>x.id==="SeasonalPet1"));
+ const inactive=newAccount({SeasonalPet5:5,SeasonalPet15:5,Pet1:120});
+ assert.ok(availablePets(inactive,nov26).every(x=>
+  !["SeasonalPet5","SeasonalPet15"].includes(x.id)));
+});
+
+test("season-14 monument scoring draws only from the alternate source",()=>{
+ const p=newAccount(),present=resolveMonumentEvidence(p,nov26);
  assert.equal(present.season,"14");
  assert.equal(present.betweenSeasons,false);
- assert.equal(present.seasonVerified,false);
- assert.equal(present.modeled,0);
- assert.ok(present.entries.length>=2);
- assert.ok(present.entries.every(x=>!x.damageEligible&&!x.appliedToScore));
- assert.ok(present.entries.every(x=>
-  x.formulaStatus==="unverified-season14-monument-coefficients"));
+ assert.equal(present.seasonVerified,true);
+ assert.equal(present.catalogCount,52);
+ assert.equal(present.activeInCatalog,33);
+ assert.equal(present.catalogSourceSha,SEASON14_MONUMENT_SOURCE_SHA);
+ assert.ok(present.entries.length>=3);
+ const pirate=present.entries.find(x=>x.id==="SeasonalArtifact1");
+ assert.equal(pirate.category,"Pirate");
+ assert.equal(pirate.damageEligible,true);
+ const gold=present.entries.find(x=>x.id==="SeasonalArtifact2");
+ assert.equal(gold.category,"Pirate");
+ assert.equal(gold.damageEligible,true);
+ const arcanas=present.entries.find(x=>x.id==="SeasonalArtifact34");
+ assert.equal(arcanas.categoryAllowed,false);
+ assert.equal(arcanas.appliedToScore,false);
+ assert.equal(arcanas.damageEligible,false);
+ assert.equal(arcanas.formulaStatus,"not-in-current-transcendence-rotation");
+ const pool=monumentDerivedPower(p,present);
+ assert.equal(pool.seasonVerified,true);
+ assert.ok(pool.eligibleComponents>=2);
+ assert.ok(Number.isFinite(pool.poolLog10));
 });
