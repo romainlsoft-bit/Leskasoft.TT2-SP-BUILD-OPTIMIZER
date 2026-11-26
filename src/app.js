@@ -1149,7 +1149,7 @@ function initialize(){
  delete state.pushObservedAttackChannelId;
  delete state.pushObservedHitDamage;
  delete state.pushBossStage;
- state.maxStage=capCurrentMaxStage(state.maxStage);
+ state.maxStage=capCurrentMaxStage(state.maxStage,state.accountProfile,false);
  // Previous seasonal pet choices must not outlive the reset.
  const activePetIds=new Set(availablePets(state.accountProfile).map(p=>p.id));
  if(state.selectedDamagePet&&!activePetIds.has(state.selectedDamagePet))
