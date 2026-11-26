@@ -1263,6 +1263,9 @@ translations.ru["Automatic pet slots use one source-ranked owned pet each; manua
 translations.fr["Erase all locally saved TT2 data from this browser?"]="Effacer toutes les données TT2 enregistrées localement dans ce navigateur ?";
 translations.uk["Erase all locally saved TT2 data from this browser?"]="Видалити всі дані TT2, збережені в цьому браузері?";
 translations.ru["Erase all locally saved TT2 data from this browser?"]="Удалить все данные TT2, сохранённые в этом браузере?";
+translations.fr["Cannot share a build with invalid or excessive settings. Check the skill levels and SP budget."]="Impossible de partager un build avec des paramètres invalides ou trop volumineux. Vérifiez les niveaux de compétences et le budget SP.";
+translations.uk["Cannot share a build with invalid or excessive settings. Check the skill levels and SP budget."]="Неможливо поділитися білдом із некоректними або надмірними параметрами. Перевірте рівні навичок і кількість SP.";
+translations.ru["Cannot share a build with invalid or excessive settings. Check the skill levels and SP budget."]="Невозможно поделиться билдом с некорректными или слишком большими параметрами. Проверьте уровни навыков и количество SP.";
 export function t(message, lang="en", parameters={}){
   const selected=SUPPORTED_LANGUAGES.includes(lang)?lang:"en";
   const value=translations[selected]?.[message] ?? message;
