@@ -33,5 +33,5 @@ export function buildAccountBaseline(settings,levels){
    skillTreeSetPower.applied;
   const remainingUnmodeledEffects=Math.max(0,
    dependencyReport.unmodeledEffects-newlyResolvedSetEffects);
-  return {power,timed,permanentSetPower,fixedAccount,dependencyReport,skillTreeSetPower,remainingUnmodeledEffects};
+  return {power,timed,permanentSetPower,fixedAccount,dependencyReport,skillTreeSetPower,newlyResolvedSetEffects,remainingUnmodeledEffects};
 }
