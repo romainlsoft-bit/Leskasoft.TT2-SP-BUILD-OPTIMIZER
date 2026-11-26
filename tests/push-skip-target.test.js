@@ -124,7 +124,9 @@ test("public UI removes Stage Skip targets but keeps the diagnostic code",()=>{
  const app=readFileSync(new URL("../src/app.js",import.meta.url),"utf8");
  const worker=readFileSync(new URL("../src/worker.js",import.meta.url),"utf8");
  assert.doesNotMatch(app,/function renderPushStageSkipOptions/);
- assert.match(app,/function renderPushSkipComparison\(result\)/);
+ const view=readFileSync(new URL("../src/result-details-ui.js",import.meta.url),"utf8");
+  assert.match(view,/function renderPushSkipComparison\(result\)/);
+  assert.match(app,/createResultDetailRenderers/);
  assert.match(worker,/const withPushComparison=\(choice,selected\)=>/);
 });
 test("the generic benchmark script can exercise constrained full build matrices",()=>{
