@@ -12,7 +12,7 @@ test("the public form has no contract speculation or mana-timeline controls",()=
     "scenario-enabled","scenario-active-fraction","scenario-pact-max"])
    assert.doesNotMatch(html,new RegExp('id="'+id+'"'),p+" "+id);
   assert.match(html,/id="protect-unmodeled-skills"/);
-  assert.match(html,/id="astral-activations"/);
+  assert.doesNotMatch(html,/id="astral-activations"/);
  }
 });
 test("old saved preferences and links cannot silently enable contract what-ifs",()=>{
