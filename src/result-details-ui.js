@@ -109,41 +109,6 @@ function renderModelAttribution(result){
   "</p>"+experimental+sensitivity+jackpotNotice+critNotice+ambushNotice+branches.join("")+
   "<h4>"+safe(tr("Largest modeled talent contributions"))+"</h4>"+top.join()+altView;
 }
-/** Keep both valid builds visible; never invent a damage-to-stage conversion. */
-function renderPushSkipComparison(result){
- let el=$("push-skip-comparison");
- if(!el){
-  el=document.createElement("details");
-  el.id="push-skip-comparison";el.className="result-detail";
-  $("model-score-attribution").insertAdjacentElement("afterend",el);
- }
- const compare=result.pushSkipComparison;
- if(!compare||compare.status!=="compared-same-pet-gear-context"){
-  el.hidden=true;return;
- }
- el.hidden=false;
- const delta=compare.scoreDifferenceLog10;
- const branches=Object.entries(compare.constrainedBranchTotals).map(([name,after])=>{
-  const before=compare.baselineBranchTotals[name]??0;
-  const difference=after-before;
-  return "<div class='tree-row'><span>"+safe(tr(name))+"</span><strong>"+
-   safe(numberText(before))+" → "+safe(numberText(after))+
-   " SP ("+(difference>0?"+":"")+safe(numberText(difference))+")</strong></div>";
- });
- el.innerHTML="<summary>"+safe(tr("Stage Skip target: compare two builds"))+
-  "</summary><p class='hint'>"+
-  safe(tr("The constrained build and the unconstrained build use the same pet/gear context. Their score difference is from the existing damage/gold proxy, not measured boss DPS or stages gained."))+
-  "</p><p>"+safe(tr("Source Stage Skip from this talent: {before} → {after}",{
-   before:numberText(compare.baselineSourceStageSkip),
-   after:numberText(compare.constrainedSourceStageSkip)}))+
-  "</p><p>"+safe(tr("Constrained minus baseline proxy score: {delta} log10",{
-    delta:(delta>0?"+":"")+delta.toFixed(3)}))+
-  "</p>"+branches.join("")+
-  "<p class='hint'>"+safe(tr("The comparison uses a bounded SP grid when necessary; neither allocation guarantees a higher stage."))+"</p>"+
-  "<label>"+safe(tr("Unconstrained alternative (copy to compare in game)"))+
-  "<textarea readonly rows='4' class='export-json' aria-label='Unconstrained alternative'>"+
-  safe(exportBuild(compare.baselineLevels))+"</textarea></label>";
-}
 /** One observed hit from the CURRENT tree only; the recommendation is
  * deliberately shown as source evidence, not as a projected hit value.
  */
@@ -152,7 +117,7 @@ function renderBossPushEvidence(result){
  if(!el){
   el=document.createElement("details");
   el.id="boss-push-evidence";el.className="result-detail";
-  $("push-skip-comparison").insertAdjacentElement("afterend",el);
+  $("model-score-attribution").insertAdjacentElement("afterend",el);
  }
  const current=result.bossPushCurrent,proposed=result.bossPushProposed;
  if(!current||!proposed){el.hidden=true;return;}
@@ -187,88 +152,5 @@ function renderBossPushEvidence(result){
  "This panel compares theoretical boss HP and attack-talent Stage Skip sources. It does not measure hit damage or predict stage gains."))+
  "</p>"+rows.join("");
 }
-/** Optional competing SP allocations; Stage Skip is not a damage score. */
-function renderPushFrontier(result){
- let el=$("push-pareto-frontier");
- if(!el){
-  el=document.createElement("details");
-  el.id="push-pareto-frontier";el.className="result-detail";
-  $("boss-push-evidence").insertAdjacentElement("afterend",el);
- }
- const search=result.pushFrontier;
- if(!search){el.hidden=true;return;}
- el.hidden=false;
- if(search.status!=="explored"){
-  el.innerHTML="<summary>"+safe(tr("Push alternatives"))+"</summary><p class='hint'>"+
-   safe(tr("Alternative allocation search was not available: {reason}",{
-    reason:search.reason||search.status}))+"</p>";
-  return;
- }
- const rows=search.pareto.map(row=>
-  "<div class='tree-row'><div><strong>"+
-   safe(tr("Source Stage Skip: {value}",{
-    value:numberText(row.sourceStageSkip)}))+
-   "</strong> · "+safe(tr("Modeled proxy score: {score} log10",{
-    score:row.scoreProxyLog10.toFixed(2)}))+
-   " · "+safe(tr("Spent SP: {sp}",{sp:numberText(row.spent)}))+
-   "<textarea readonly rows='3' class='export-json' aria-label='"+
-   safe(tr("Alternative build export"))+"'>"+
-   safe(exportBuild(row.levels))+"</textarea></div></div>").join("");
- const attempts=search.attempted.filter(x=>x.status!=="solved").length;
- el.innerHTML="<summary>"+safe(tr("Push alternatives"))+
-  "</summary><p class='hint'>"+
-  safe(tr("Source Stage Skip versus the existing skill-score proxy, evaluated for this selected build and final pet/gear setup. These are non-dominated visited alternatives, not predicted stage gains. Extra optimizations are limited."))+
-  "</p>"+rows+"<p class='hint'>"+
-  safe(tr("Unresolved or infeasible alternatives: {count}",{
-   count:numberText(attempts)}))+"</p>";
-}
-/** Native multiplier vs original score, with no conversion to DPS/stages. */
-function renderNativeAttackFrontier(result){
- let el=$("native-attack-frontier");
- if(!el){
-  el=document.createElement("details");
-  el.id="native-attack-frontier";el.className="result-detail";
-  $("push-pareto-frontier").insertAdjacentElement("afterend",el);
- }
- const report=result.attackDamageFrontier;
- if(!report){el.hidden=true;return;}
- el.hidden=false;
- if(report.status!=="explored"){
-  el.innerHTML="<summary>"+safe(tr("Attack damage alternatives"))+
-   "</summary><p class='hint'>"+safe(tr("Attack comparison unavailable: {reason}",{
-    reason:report.reason||report.status}))+"</p>";
-  return;
- }
- const rows=report.pareto.map(row=>{
-  const value=row.sourceNativeModifierLog10;
-  const modifier=value===null?tr("Talent not invested"):
-   "10^"+value.toFixed(2);
-  return "<div class='tree-row'><div><strong>"+
-   safe(tr("Native attack source modifier"))+": "+safe(modifier)+
-   "</strong> · "+safe(tr("Talent level"))+" "+safe(numberText(row.sourceSkillLevel))+
-   " · "+safe(tr("Modeled proxy score: {score} log10",{
-    score:row.scoreProxyLog10.toFixed(2)}))+
-   " · "+safe(tr("Spent SP: {sp}",{sp:numberText(row.spent)}))+
-   "<textarea readonly rows='3' class='export-json' aria-label='"+
-   safe(tr("Alternative build export"))+"'>"+
-   safe(exportBuild(row.levels))+"</textarea></div></div>";
- }).join("");
- el.innerHTML="<summary>"+safe(tr("Attack damage alternatives"))+
-  "</summary><p class='hint'>"+safe(tr(
-   "Experimental comparison of a native multiplier for the selected attack versus the existing damage/gold proxy. These are different full SP allocations under the same pet, gear and account settings. No attack rate, uptime, real boss damage or stage gain has been inferred."))+
-  "</p>"+rows+
-  (report.nativeSourceNotFurtherImproved?
-   "<p class='hint'>"+safe(tr(
-    report.alreadyAtNativeSourceMaximum?
-     "The selected attack talent is already at its native maximum; no stronger level can be explored.":
-     "No stronger native attack level fits the source SP cost. No extra allocation was calculated."))+"</p>":"")+
-  (report.attempted.some(x=>x.status.includes("infeasible"))?
-   "<p class='hint'>"+safe(tr(
-    "Some candidate levels could not meet actual skill-tree prerequisites or other minimums. Their native source cost alone is not enough."))+"</p>":"")+
-  "<p class='hint'>"+
-  safe(tr("Different full allocations found: {value}",{
-   value:report.changedTrees?tr("yes"):tr("no")}))+"</p>";
-}
-
- return {renderAttackChannelEvidence,renderModelAttribution,renderPushSkipComparison,renderBossPushEvidence,renderPushFrontier,renderNativeAttackFrontier};
+ return {renderAttackChannelEvidence,renderModelAttribution,renderBossPushEvidence};
 }
