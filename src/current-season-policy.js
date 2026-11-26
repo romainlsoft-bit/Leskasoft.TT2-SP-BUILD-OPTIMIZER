@@ -26,6 +26,11 @@ export const CURRENT_PET_SOURCE_PROVENANCE=Object.freeze({
  currentSelection:"season-14: ten active Unity variant A pets, positive season-14 exported levels only"
 });
 
+/** True only after the documented season-14 start; invalid dates fail closed. */
+export function isCurrentSeasonStarted(at=new Date()){
+ const ms=at instanceof Date?at.getTime():Date.parse(at);
+ return Number.isFinite(ms)&&ms>=Date.parse(VERIFIED_NEXT_SEASON_START_UTC);
+}
 export function currentPostSeasonMode(at=new Date()){
  const ms=at instanceof Date?at.getTime():Date.parse(at);
  if(!Number.isFinite(ms))return true; // unknown date: do not credit seasonal power
@@ -43,9 +48,7 @@ export function currentPostSeasonMode(at=new Date()){
 export function capCurrentMaxStage(value,profile=null,manualCurrentSeason=false,at=new Date()){
  const n=Number(value);
  if(!Number.isSafeInteger(n)||n<0)return 0;
- const date=at instanceof Date?at.getTime():Date.parse(at);
- const inSeason14=Number.isFinite(date)&&
-  date>=Date.parse(VERIFIED_NEXT_SEASON_START_UTC);
+ const inSeason14=isCurrentSeasonStarted(at);
  const importedSeason=Number(profile?.stats?.transcendenceSeason);
  // A positive stage above 180k belongs to the new season ONLY with
  // explicit current-season metadata, or new manual input after rollover.
