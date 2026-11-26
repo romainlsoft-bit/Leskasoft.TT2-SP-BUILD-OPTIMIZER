@@ -87,6 +87,7 @@ test("all 18 routes use the ideal-boss scenario and still produce a valid SP tre
   const result=optimizeBuild(cfg);
   assert.ok(Number.isFinite(result.score),damage+"/"+gold);
   assert.ok(result.spent<=100,damage+"/"+gold);
+  assert.equal(result.modelAttribution.additiveReconstructionMatches,true);
   const a=result.combatAssumptions;
   for(const key of ["hayst","snap","coordinatedOffensive",
    "flashZipAtBoss","nightmareAtBoss","magnumOpusAtBoss"]){
@@ -95,6 +96,26 @@ test("all 18 routes use the ideal-boss scenario and still produce a valid SP tre
   assert.equal(a.astralActivations,modeledAstralOrbTaps(result.levels));
   assert.equal(a.actualBossUptimeVerified,false);
   assert.equal(result.pushSkipTarget.enabled,false);
+ }
+});
+
+test("ideal boss flags are score-monotonic for source-correct skill contributions",()=>{
+ const gated=[
+  ["ClanQTE","assumeCoordinatedOffensiveActive"],
+  ["BossDmgQTE","assumeFlashZipAtBoss"],
+  ["PuppetMaster","assumeNightmareAtBoss"],
+  ["MagnumOpus","assumeMagnumOpusAtBoss"],
+  ["PhilosophersFlux","assumeSnapActive"],
+  ["QuickFortune","assumeHaystActive"]
+ ];
+ for(const damage of DAMAGE_TYPES)for(const gold of GOLD_TYPES){
+  const cfg={damage,gold,goldWeight:.7};
+  for(const [skill,flag] of gated){
+   const off=scoreAtLevel(skill,1,{...cfg,[flag]:false});
+   const on=scoreAtLevel(skill,1,{...cfg,[flag]:true});
+   assert.ok(Number.isFinite(off)&&Number.isFinite(on),damage+"/"+gold+"/"+skill);
+   assert.ok(on+1e-10>=off,damage+"/"+gold+"/"+skill+" must be monotonic");
+  }
  }
 });
 
