@@ -73,7 +73,7 @@ const fresh=()=>({damage:"Clan Ship",gold:"Fairy",skillPoints:0,maxStage:0,stage
  pushAttackChannelId:"",pushSourceStageSkipTarget:0,
  pushFrontierEnabled:false,attackDamageFrontierEnabled:false,attackDamageChannelId:""});
 let manualCurrentStageConfirmed=false;
-let state=publicOptimizationSettings(fresh()),lastResult=null,lastScenarios=[],lastEquipment={},
+let state=publicOptimizationSettings(fresh()),lastResult=null,lastEquipment={},
  lastGearSelection=null,lastResolvedPets=null,lastRunContext=null,
  worker=null,calculationRevision=0;
 // Public recommendations must ignore obsolete speculative contract settings.
@@ -251,42 +251,6 @@ function renderPetControls(){
  html+='<p class="hint">'+safe(tr("Automatic damage and gold source selection will require calibrated cross-build scoring; it is not yet safe to rank those builds together."))+'</p>';
  box.innerHTML=html;
 }
-function renderPetComparisons(){
- let el=$("pet-comparison-results");
- if(!el){
-  el=document.createElement("div");el.id="pet-comparison-results";el.className="result-detail";
-  $("branch-chart").insertAdjacentElement("afterend",el);
-  el.addEventListener("click",event=>{
-   const button=event.target.closest("button[data-scenario-index]");
-   if(!button)return;
-   const selected=lastScenarios[Number(button.dataset.scenarioIndex)];
-   if(!selected)return;
-   state.selectedDamagePet=selected.damagePet;state.selectedGoldPet=selected.goldPet;
-   lastGearSelection=selected.gearSelection??null;
-   lastResolvedPets={damage:selected.damagePet,gold:selected.goldPet};
-   lastResult=selected.result;fillInputs();persist();renderResults(selected.result,false);
-  });
- }
- if(!lastScenarios.length){el.hidden=true;return;}
- el.hidden=false;
- const sections=[["damage",tr("Damage pets")],["gold",tr("Gold pets")]];
- const renderSection=([slot,title])=>{
-  const list=lastScenarios.map((x,i)=>({...x,index:i})).filter(x=>x.slot===slot);
-  if(!list.length)return "";
-  list.sort((a,b)=>b.adjustedScore-a.adjustedScore);
-  const best=list[0].adjustedScore;
-  return '<h4>'+safe(title)+'</h4><div class="table-wrapper"><table><thead><tr><th>'
-   +safe(tr("Pet"))+'</th><th>'+safe(tr("Gap to best"))+'</th><th>SP</th><th></th></tr></thead><tbody>'
-   +list.map(item=>'<tr><td>'+safe(slot==="damage"?item.damageName:item.goldName)+'</td><td>'
-    +(best-item.adjustedScore).toFixed(3)+' log10</td><td>'+numberText(item.result.spent)
-    +' SP</td><td><button type="button" class="btn tiny secondary" data-scenario-index="'+item.index+'">'
-    +safe(tr("Select"))+'</button></td></tr>').join("")
-   +'</tbody></table></div>';
- };
- el.innerHTML='<h3>'+safe(tr("Compared pet setups"))+'</h3>'
-  +'<p class="hint">'+safe(tr("Damage and Gold pet rankings are independent; only changed skill-tree branches are recalculated. These are theoretical scores, not guaranteed stages."))+'</p>'
-  +sections.map(renderSection).join("");
-}
 function renderEquipmentRecommendations(){
  let el=$("equipment-comparison-results");
  if(!el){
@@ -342,7 +306,7 @@ function fillInputs(){
 function remember(){
  calculationRevision++;
  if(worker){worker.terminate();worker=null;resetOptimizeButton();}
- persist();lastScenarios=[];lastEquipment={};lastGearSelection=null;
+ persist();lastEquipment={};lastGearSelection=null;
  lastResolvedPets=null;lastRunContext=null;lastResult=null;
  $("actual-results").hidden=true;$("empty-results").hidden=false;
  $("result-mode").textContent=tr("Settings changed");
@@ -458,8 +422,6 @@ function optimize(){
    }
    resetOptimizeButton();
    if(data.ok){
-    lastScenarios=[...(data.petComparisons?.damage||[]),
-     ...(data.petComparisons?.gold||[])];
     lastEquipment=data.equipment||{};
     lastGearSelection=data.gearSelection??null;
     lastResolvedPets=data.selectedPets??null;
@@ -544,7 +506,7 @@ function renderResults(result,scroll=true){
  $("change-count").textContent=result.changes.length;
  const max=Math.max(1,...Object.values(result.branchTotals));
  $("branch-chart").innerHTML=Object.entries(result.branchTotals).map(([name,points])=>`<div class="branch-row"><div class="branch-header"><span>${safe(tr(name))}</span><strong>${numberText(points)} SP</strong></div><div class="progress-track"><div class="progress-fill" style="width:${points/max*100}%;background:${branchColors[name]}"></div></div></div>`).join("");
- renderPetComparisons();renderEquipmentRecommendations();
+ renderEquipmentRecommendations();
  renderAccountIntegration(result);
  renderAttackChannelEvidence(result);
  renderModelAttribution(result);
