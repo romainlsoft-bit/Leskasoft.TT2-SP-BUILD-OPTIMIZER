@@ -16,7 +16,7 @@
 <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg"><link rel="stylesheet" href="../styles.css?v=20261122-toast-flat-r1">
 <title>Optimiseur de compétences TT2 8.4 — Calculateur SP gratuit | Leskasoft</title>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Optimiseur d’arbre de compétences Tap Titans 2","description":"Optimisez vos points de compétences Tap Titans 2 : import JSON, saisie manuelle, confort de jeu (QoL) et export du build jusqu’à 50 000 SP.","applicationCategory":"GameApplication","operatingSystem":"Any","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"url":"https://tap-titans.leskasoft.com/fr/","inLanguage":"fr","@id":"https://tap-titans.leskasoft.com/fr/#tool"}</script>
-<script type="module" src="../src/app.js?v=20261123-boss-specials-r1&amp;season=20261126-season14-r1&amp;ui=20261123-hide-observed-hit-r1&amp;score=20261123-cadence-separated-r1&amp;audit=20261123-ti-sensitivity-r1&amp;alt=20261123-ti-second-tree-r1&amp;ember=20261123-ember-fire-sword-gate-r1&amp;jackpot=20261123-native-jackpot-expectation-r1&amp;mc=20261123-multicast-no-guessed-x10-r1&amp;crit=20261124-cleaving-crit-event-r1&amp;ambush=20261124-ambush-conditional-gold-r1&amp;simplify=20261126-boss-r1" defer></script>
+<script type="module" src="../src/app.js?v=20261123-boss-specials-r1&amp;season=20261126-season14-r1&amp;ui=20261123-hide-observed-hit-r1&amp;score=20261123-cadence-separated-r1&amp;audit=20261123-ti-sensitivity-r1&amp;alt=20261123-ti-second-tree-r1&amp;ember=20261123-ember-fire-sword-gate-r1&amp;jackpot=20261123-native-jackpot-expectation-r1&amp;mc=20261123-multicast-no-guessed-x10-r1&amp;crit=20261124-cleaving-crit-event-r1&amp;ambush=20261124-ambush-conditional-gold-r1&amp;simplify=20261126-boss-r1&amp;security=20261126-audit56-r1" defer></script>
 </head>
 <body>
 <div class="site">
@@ -38,6 +38,8 @@
   <input type="file" id="upload-file" accept=".json,application/json,text/plain" hidden>
   <details class="import-expand" id="paste-details"><summary>Ou coller les données manuellement</summary><textarea id="import-json" rows="4" spellcheck="false" placeholder='Paste TT2 JSON export here…' aria-label="Coller l'export JSON TT2"></textarea><button class="btn secondary" type="button" id="import-button">Importer le JSON collé</button></details>
   <p class="hint">Confidentialité préservée : vos données sont traitées localement dans ce navigateur.</p>
+  <p class="hint">Votre compte importé et vos préférences peuvent être conservés dans ce navigateur. Vous pouvez les effacer ici.</p>
+  <button type="button" class="btn tiny secondary" id="clear-local-data">Effacer les données TT2 enregistrées</button>
  </div>
  <div class="field-grid">
   <label>Points de compétences <input id="skill-points" type="number" min="0" max="50000" step="1" inputmode="numeric" placeholder="ex. 4200" required></label>
