@@ -14,7 +14,8 @@ const BY_ID=new Map(Object.values(SEASON_ARTIFACT_CATALOG).flatMap(item=>[
  [item.id.toLowerCase(),item.id],[item.name.toLowerCase(),item.id]
 ]));
 export const OFFICIAL_MONUMENT_CATEGORIES=Object.freeze({
- "13":Object.freeze(["Celestial","Viper","Arcanas"])
+ "13":Object.freeze(["Celestial","Viper","Arcanas"]),
+ "14":Object.freeze(["Celestial","Viper","Pirate"])
 });
 const COUNTED=Object.freeze({
  DamagePerEquipmentSet:{kind:"All",type:"AllDamage"},
@@ -78,8 +79,12 @@ export function resolveMonumentEvidence(profile,at=new Date()){
   const counted=COUNTED[info.bonusType]||null;
   const countVerified=!counted||sets.ownedRosterComplete===true;
   const count=counted&&countVerified?sets.ownedCounts[counted.kind]:null;
+  // Embedded Unity data is season-13 calibrated: do not numerically score
+  // season-14 monument values until the season-14 CSV is verified.
+  const numericCatalogUnverified=age.season==="14";
   const blocked=conflict?"ignored-conflicting-export-records":
    wrongSeason?"ignored-wrong-transcendence-season":
+   numericCatalogUnverified?"unverified-season14-monument-coefficients":
    age.betweenSeasons?"ignored-post-season13-reset":
    age.estimatedSeasonEnded?"ignored-estimated-expired-transcendence":
    truncation.length?"ignored-truncated-monument-export":
@@ -122,7 +127,7 @@ export function resolveMonumentEvidence(profile,at=new Date()){
    enchantmentMult:info.enchantmentMult,
    // A separate, additive All Monument Damage contribution exists even
    // when the monument's MAIN effect depends on another gameplay state.
-   damageEligible:!conflict&&!wrongSeason&&!age.betweenSeasons&&
+   damageEligible:!conflict&&!wrongSeason&&!numericCatalogUnverified&&!age.betweenSeasons&&
     !age.estimatedSeasonEnded&&
     !truncation.length&&level!==null&&categoryAllowed&&seasonKnown,
    formulaStatus,appliedToScore});
@@ -145,7 +150,7 @@ export function resolveMonumentEvidence(profile,at=new Date()){
   betweenSeasons:age.betweenSeasons,
   endDateSource:age.endDateSource,
   expirationOfficiallyConfirmed:false,
-  seasonVerified:categories!==null&&!age.estimatedSeasonEnded&&
+  seasonVerified:categories!==null&&age.season!=="14"&&!age.estimatedSeasonEnded&&
    !age.betweenSeasons,
   countedSetEffects:entries.filter(x=>x.countedSetKind!==null),
   computed:entries.filter(x=>x.log10!==null).length,
