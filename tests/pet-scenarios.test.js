@@ -82,7 +82,7 @@ test("changing pet scenarios reuses DP frontiers of unaffected branches",()=>{
 
 
 test("Seasonal Transcendent pets, plus all permanent Legacy/Exotic, are recognized from exports",()=>{
- const p=parseAccountProfile({petLevels:{
+ const p=parseAccountProfile({playerStats:{"Transcendence Season":13},petLevels:{
   Pet1:1500,Pet12:1500,Pet20:1300,
   SeasonalPet2:260,SeasonalPet7:260,SeasonalPet11:240,
   SeasonalPet12:180,SeasonalPet1:0
