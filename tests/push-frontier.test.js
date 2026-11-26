@@ -94,6 +94,8 @@ test("push comparison is internal only; the public form has no controls",()=>{
  }
  const app=readFileSync(new URL("../src/app.js",import.meta.url),"utf8");
  const worker=readFileSync(new URL("../src/worker.js",import.meta.url),"utf8");
+ const decision=readFileSync(new URL("../src/final-candidate-decision.js",import.meta.url),"utf8");
+ assert.match(worker,/createFinalCandidateDecision\(settings,/);
  assert.doesNotMatch(app,/state\.pushFrontierEnabled=\$\("push-frontier-enabled"\)\.checked/);
- assert.match(worker,/const withPushFrontier=\(choice,result\)=>/);
+ assert.match(decision,/const withPushFrontier=\(choice,result\)=>/);
 });
