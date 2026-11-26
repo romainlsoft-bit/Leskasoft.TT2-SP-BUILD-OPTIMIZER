@@ -4,6 +4,7 @@
  * Never add each additive component as its own multiplicative AllDamage.
  */
 import {SEASON_ARTIFACT_CATALOG} from "../vendor/account-catalog.js?v=20261123-boss-specials-r1";
+import {SEASON14_ARTIFACT_CATALOG} from "../vendor/season14-monuments.js?v=20261126-season14-r2";
 import {additiveDamageEvidence} from "./account-damage-pools.js?v=20261123-boss-specials-r1";
 
 export function monumentDerivedPower(profile,monuments){
@@ -26,8 +27,9 @@ export function monumentDerivedPower(profile,monuments){
  const eligible=(monuments?.entries||[]).filter(row=>
   row.damageEligible===true&&row.seasonCategorySource===
    "official-season-categories");
- const pool=additiveDamageEvidence({entries:[]},{entries:eligible},{},
-  SEASON_ARTIFACT_CATALOG);
+ const catalog=monuments?.season==="14"?
+  SEASON14_ARTIFACT_CATALOG:SEASON_ARTIFACT_CATALOG;
+ const pool=additiveDamageEvidence({entries:[]},{entries:eligible},{},catalog);
  const log10=pool.monuments.unenchantedPoolLog10;
  const sourceCandidate=pool.monuments.candidateEnchantedPoolLog10;
  const sourceDelta=Number.isFinite(log10)&&
