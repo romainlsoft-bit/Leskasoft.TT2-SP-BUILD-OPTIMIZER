@@ -1,3 +1,4 @@
+import {MAX_EXHAUSTIVE_OWNED_GEAR_ASSIGNMENTS,MAX_GEAR_ENUMERATION_INPUT_LIMIT} from "./gear-search-policy.js?v=20261123-boss-specials-r1";
 /**
  * Interchangeable equipment is a separate optimization dimension, never
  * confused with fixed artifacts, gemstones or Titan research.
@@ -336,9 +337,9 @@ export function bestEquipmentByCategory(profile,settings,limit=2){
  * over uncertain source effects, unimported inventory or actual stage DPS.
  * A manual selection narrows the corresponding slot without creating items.
  */
-export function enumerateOwnedGearAssignments(profile,settings={},limit=16){
- if(!Number.isSafeInteger(limit)||limit<1||limit>256)
-  throw new RangeError("Gear enumeration limit must be 1–256");
+export function enumerateOwnedGearAssignments(profile,settings={},limit=MAX_EXHAUSTIVE_OWNED_GEAR_ASSIGNMENTS){
+ if(!Number.isSafeInteger(limit)||limit<1||limit>MAX_GEAR_ENUMERATION_INPUT_LIMIT)
+  throw new RangeError("Gear enumeration limit must be 1–"+MAX_GEAR_ENUMERATION_INPUT_LIMIT);
  const inventory=profile?.sections?.equipmentInventory;
  if(inventory?.present!==true||inventory.truncated===true)
   return {exhaustive:false,assignments:[],combinations:null,
