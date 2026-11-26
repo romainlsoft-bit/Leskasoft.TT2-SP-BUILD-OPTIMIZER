@@ -133,9 +133,11 @@ test("language switch changes URL and preserves entered SP",async({page})=>{
 });
 for(const [path,lang,guide] of routes){
  test("locale "+lang+": load, keyboard, help, guide and SEO",async({page})=>{
-  const errors=[];
+  const errors=[],catalogs=[];
   page.on("pageerror",e=>errors.push(e.message));
+  page.on("request",r=>{const match=new URL(r.url()).pathname.match(/\/i18n-(fr|uk|ru)\.js$/);if(match)catalogs.push(match[1]);});
   await openOptimizer(page,path);
+  expect(catalogs).toEqual(lang==="en"?[]:[lang]);
   await expect(page.locator("html")).toHaveAttribute("lang",lang);
   await expect(page.locator("#language-select")).toHaveValue(lang);
   await expect(page.locator("link[rel=canonical]")).toHaveAttribute("href",canonicalOrigin+path);
