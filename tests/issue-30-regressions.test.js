@@ -31,7 +31,8 @@ test("#30: import counters preserve explicit zero and parse grouped integers",()
   assert.throws(()=>parseExportCounter(v),/Ambiguous|Invalid/);
  }
  assert.equal(parseExportCounter(undefined),null);
- const a=parseExport({Skills:{TapDmg:1},playerStats:{"Skill Points Owned":"22,600","Max Prestige Stage":"792,100"}});
+ const a=parseExport({Skills:{TapDmg:1},playerStats:{"Transcendence Season":14,
+   "Skill Points Owned":"22,600","Max Prestige Stage":"792,100"}});
  assert.equal(a.skillPoints,22600);
  assert.equal(a.maxStage,792100);
  assert.equal(a.budgetSource,"declared");
@@ -82,8 +83,9 @@ test("#30: two successive imports, explicit zero, mismatch and manual edits reac
  assert.equal(state.budgetInconsistent,true);
  assert.match(statusMessages.at(-1),/lower than/);
  $("skill-points").value="125";
- const readInputs=new Function("state","$","keepContractsConservative","persist",
-  readSource+"\nreturn readInputs;")(state,$,x=>x,()=>{});
+ const readInputs=new Function("state","$","keepContractsConservative","persist","capCurrentMaxStage",
+  "let manualCurrentStageConfirmed=false;\n"+readSource+"\nreturn readInputs;")(
+   state,$,x=>x,()=>{},(stage)=>Number(stage)||0);
  readInputs();
  assert.equal(state.skillPoints,125);
  assert.equal(state.budgetSource,"manual");
