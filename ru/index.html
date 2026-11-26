@@ -16,7 +16,7 @@
 <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg"><link rel="stylesheet" href="../styles.css?v=20261122-toast-flat-r1">
 <title>Оптимизатор дерева навыков TT2 8.4 — бесплатный калькулятор | Leskasoft</title>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Оптимизатор дерева навыков Tap Titans 2","description":"Калькулятор очков навыков Tap Titans 2: импорт JSON, ручной ввод, настройки QoL и экспорт билда до 50 000 очков.","applicationCategory":"GameApplication","operatingSystem":"Any","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"url":"https://tap-titans.leskasoft.com/ru/","inLanguage":"ru","@id":"https://tap-titans.leskasoft.com/ru/#tool"}</script>
-<script type="module" src="../src/app.js?v=20261123-boss-specials-r1&amp;season=20261126-season14-r1&amp;ui=20261123-hide-observed-hit-r1&amp;score=20261123-cadence-separated-r1&amp;audit=20261123-ti-sensitivity-r1&amp;alt=20261123-ti-second-tree-r1&amp;ember=20261123-ember-fire-sword-gate-r1&amp;jackpot=20261123-native-jackpot-expectation-r1&amp;mc=20261123-multicast-no-guessed-x10-r1&amp;crit=20261124-cleaving-crit-event-r1&amp;ambush=20261124-ambush-conditional-gold-r1" defer></script>
+<script type="module" src="../src/app.js?v=20261123-boss-specials-r1&amp;season=20261126-season14-r1&amp;ui=20261123-hide-observed-hit-r1&amp;score=20261123-cadence-separated-r1&amp;audit=20261123-ti-sensitivity-r1&amp;alt=20261123-ti-second-tree-r1&amp;ember=20261123-ember-fire-sword-gate-r1&amp;jackpot=20261123-native-jackpot-expectation-r1&amp;mc=20261123-multicast-no-guessed-x10-r1&amp;crit=20261124-cleaving-crit-event-r1&amp;ambush=20261124-ambush-conditional-gold-r1&amp;simplify=20261126-boss-r1" defer></script>
 </head>
 <body>
 <div class="site">
@@ -64,40 +64,8 @@
       <label>Уровень заклинания Теневого клона <input id="clone-level" type="number" min="1" max="35" step="1" value="30"></label>
     </div>
 
-    <h3>Цель по пропуску этапов (необязательно)</h3>
-    <p class="hint">Укажите желаемый бонус пропуска этапов от конкретной атаки. Оптимизатор закрепляет нужные уровни навыка и распределяет остальные SP. Это не общий пропуск этапов и не гарантированный прогресс: атака должна убить титана.</p>
-    <label>Атака, дающая пропуск <select id="push-attack-channel"><option value="">Без цели</option></select></label>
-    <label>Минимальный бонус пропуска от навыка <input id="push-stage-skip-target" type="number" min="0" max="10000" step="1" inputmode="numeric" value="0"></label>
-    <h3>Сравнить push-билды (необязательно)</h3>
-    <label class="toggle"><input type="checkbox" id="push-frontier-enabled"> Сравните полные распределения SP с разными бонусами пропуска этапов. Это требует дополнительных вычислений и не прогнозирует реальные этапы или урон по боссу.</label>
-    <h3>Альтернативы по базовому множителю атаки</h3>
-    <label>Атака для сравнения множителя урона <select id="attack-damage-channel"></select></label>
-    <label class="toggle"><input type="checkbox" id="attack-damage-frontier-enabled"> Сравнить полные распределения SP с разными значениями подтверждённого множителя атаки. Экспериментально: без прогноза DPS и этапов.</label>
-    <h3>Условия боя на максимальном этапе</h3>
-    <p class="hint">Учитывайте временные бонусы, только если можете использовать их против самого сложного босса. Неактивные эффекты и ноль — осторожное допущение.</p>
-    <label class="toggle"><input type="checkbox" id="hayst-active"> Hayst активен против самого сложного босса</label>
-    <label class="toggle"><input type="checkbox" id="snap-active"> Snap активен против самого сложного босса</label>
-    <label>Нажатия на сферы Astral Awakening (0–5) <input type="number" id="astral-activations" min="0" max="5" step="1" inputmode="numeric" value="0"></label>
-    <label class="toggle"><input type="checkbox" id="coordinated-offensive-active"> Coordinated Offensive активен в бою с боссом (только тогда учитывать усиление урона героев)</label>
-    <label class="toggle"><input type="checkbox" id="flash-zip-at-boss"> Flash Zip заряжен и попадает по самому сложному боссу (урон Pet Boss QTE)</label>
-    <label class="toggle"><input type="checkbox" id="nightmare-at-boss"> Shadow Clone наносит Nightmare Damage самому сложному боссу (только особые попытки)</label>
-    <label class="toggle"><input type="checkbox" id="magnum-opus-at-boss"> Magnum Opus заряжен и действует против самого сложного босса (не обычные выстрелы Gold Gun)</label>
     <label class="toggle"><input type="checkbox" id="preserve-current">Сохранить текущие уровни как минимальные</label>
     <label class="toggle"><input type="checkbox" id="protect-unmodeled-skills" checked> Сохранять имеющиеся условные навыки, если модель не учитывает их эффект (рекомендуется)</label>
-    <label class="toggle"><input type="checkbox" id="exclude-unverified-tactical-insight"> Эксперимент: исключить непроверенный коэффициент сообщества для Tactical Insight из расчёта SP (реальная польза навыка не считается нулевой)</label>
-    <details class="result-detail">
-     <summary>Tactical Insight — калибровка по двум измерениям Stats (необязательно)</summary>
-     <p class="hint">Введите два значения Stats в игре с одинаковой экипировкой, питомцами, заклинаниями и бонусами; меняется только уровень Tactical Insight. Укажите урон и золото для этого билда. Допускается 1.23e30000. Оптимизация ограничена уровнями между измерениями. Данные остаются на устройстве и не попадают в общие ссылки.</p>
-     <label class="toggle"><input type="checkbox" id="ti-cal-enabled"> Использовать мои измерения Tactical Insight для этого билда</label>
-     <div class="options-grid">
-      <label>Нижний уровень Tactical Insight <input type="number" id="ti-cal-low-level" min="0" max="30" step="1" inputmode="numeric" placeholder="10"></label>
-      <label>Верхний уровень Tactical Insight <input type="number" id="ti-cal-high-level" min="0" max="30" step="1" inputmode="numeric" placeholder="15"></label>
-      <label>Урон Stats на нижнем уровне <input type="text" id="ti-cal-low-damage" inputmode="decimal" placeholder="1.23e30000"></label>
-      <label>Урон Stats на верхнем уровне <input type="text" id="ti-cal-high-damage" inputmode="decimal" placeholder="2.45e30000"></label>
-      <label>Золото Stats на нижнем уровне <input type="text" id="ti-cal-low-gold" inputmode="decimal" placeholder="1.23e29000"></label>
-      <label>Золото Stats на верхнем уровне <input type="text" id="ti-cal-high-gold" inputmode="decimal" placeholder="1.56e29000"></label>
-     </div>
-    </details>
     <h3>Отдельные навыки</h3>
     <p class="hint">Укажите текущий уровень для сравнения. Задайте обязательный минимум. Исключённые навыки не получат дополнительные очки.</p>
     <div class="skill-filter"><input type="search" id="skill-search" placeholder="Поиск навыка или дерева…" aria-label="Поиск навыков"><button type="button" class="btn tiny secondary" id="clear-minimums">Очистить минимумы</button></div>
