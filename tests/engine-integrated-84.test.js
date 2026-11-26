@@ -46,7 +46,7 @@ test("qualification: each of the 18 fixed damage/gold routes produces a bounded,
 });
 test("qualification: Unity season-13 Celestial is active; Pirate is not",()=>{
  const profile=createProfile();
- const e=resolveMonumentEvidence(profile);
+ const e=resolveMonumentEvidence(profile,new Date("2026-11-17T00:00:00Z"));
  // Imported season identifiers are normalized to strings by account parsing.
  assert.equal(e.season,"13");
  assert.equal(e.seasonVerified,true);
