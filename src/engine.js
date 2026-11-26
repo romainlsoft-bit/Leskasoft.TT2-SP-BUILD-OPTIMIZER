@@ -96,7 +96,7 @@ export function parseExport(source){
     budgetSource:declaredBudget===null?"inferred":"declared",
     budgetInconsistent:declaredBudget!==null&&declaredBudget<spent,
     maxStage:capCurrentMaxStage(parseExportCounter(
-     stats["Max Prestige Stage"]??stats.MaxStage,"Max Stage")??0),
+     stats["Max Prestige Stage"]??stats.MaxStage,"Max Stage")??0,profile),
     craftingPower:Number(stats["Crafting Power"]??stats.CP??1)||1,
     sets:ownedSetFlags(profile),
     setOwnershipKnown:profile.sections.equipmentSets.present,
@@ -116,9 +116,10 @@ export function qosFloors(damage,gold,SP){
   return keys.length?{...presets[String(keys[0])]}:{};
 }
 export function optimizeBuild(settings,onProgress,branchCache=null){
-  // An old imported maximum (e.g. a 250k Transcendence stage) is NOT
-  // the current stage cap. Enforce 180k even in direct worker/API calls.
-  settings={...settings,maxStage:capCurrentMaxStage(settings.maxStage)};
+  // Preserve stage >180k only for a current-season export or an explicit
+  // manual run, never for a stale season-13 account profile.
+  settings={...settings,maxStage:capCurrentMaxStage(
+   settings.maxStage,settings.accountProfile,!settings.accountProfile)};
   const SP=Number(settings.skillPoints), goldWeight=Number(settings.goldWeight);
   if(!Number.isSafeInteger(SP)||SP<0||SP>50000)throw new Error("Enter 0–50,000 Skill Points.");
   if(!DAMAGE_TYPES.includes(settings.damage))throw new Error("Select a damage source.");
