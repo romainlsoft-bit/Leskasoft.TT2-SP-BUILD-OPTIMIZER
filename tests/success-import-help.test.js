@@ -54,13 +54,19 @@ test("Leskasoft link preserves the chosen locale in all four static pages",()=>{
  assert.ok(app.includes('leskasoft.href="https://www.leskasoft.fr/"+locale'));
 });
 
-test("Conditional boss-push parameters appear in every localized page",()=>{
+test("Ideal boss assumptions remain visible in results, but not editable",()=>{
  for(const lang of ["en","fr","uk","ru"]){
   const path=lang==="en"?"index.html":lang+"/index.html";
   const html=src(path);
-  for(const id of ["hayst-active","snap-active","astral-activations","combat-assumptions-summary"])
-    assert.ok(html.includes('id="'+id+'"'),lang+": "+id);
+  assert.ok(html.includes('id="combat-assumptions-summary"'),lang);
+  for(const id of ["hayst-active","snap-active","astral-activations",
+   "coordinated-offensive-active","flash-zip-at-boss","nightmare-at-boss",
+   "magnum-opus-at-boss"]){
+   assert.ok(!html.includes('id="'+id+'"'),lang+": "+id);
+  }
  }
- assert.ok(app.includes("state.assumeHaystActive"));
- assert.ok(app.includes("state.astralActivations"));
+ const policy=src("src/public-optimization-policy.js");
+ assert.match(policy,/assumeHaystActive:true/);
+ assert.match(policy,/assumeSnapActive:true/);
+ assert.match(policy,/astralActivations:IDEAL_BOSS_ORB_TAPS/);
 });
