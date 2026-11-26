@@ -44,7 +44,7 @@ test("upstream 2026-11-24 pet catalog is complete, verified and separated from s
  assert.equal(CURRENT_PET_SOURCE_PROVENANCE.permanentPetInfoGitSha,
   "c6f367e2ec38d7348c44974edde7de3c679ce300");
  assert.equal(CURRENT_PET_SOURCE_PROVENANCE.transcendentPetInfoGitSha,
-  "7d0b47e117a5dadaf2b6774394874791690c83f6");
+  "b2e8ffe778f22f6742447284ac05ede113f6c992");
  assert.equal(PETS.Pet1.name,"Nova");
  assert.equal(PETS.Pet20.name,"Jaws");
  assert.equal(PETS.Pet30.name,"Taffy");
