@@ -90,14 +90,14 @@ test("eighteen damage/gold routes enforce budget and disclose all active spell g
  }
 });
 
-test("four localized pages, UI persistence, and summary show boss assumptions",()=>{
+test("four localized pages hide the old boss control and apply a fixed scenario",()=>{
  for(const page of ["index.html","fr/index.html","uk/index.html","ru/index.html"]){
   const html=readFileSync(new URL("../"+page,import.meta.url),"utf8");
-  assert.equal((html.match(/id="coordinated-offensive-active"/g)||[]).length,1,page);
+  assert.equal((html.match(/id="coordinated-offensive-active"/g)||[]).length,0,page);
   assert.ok(html.includes("src/app.js?v=20261123-boss-specials-r1"),page);
  }
  const app=readFileSync(new URL("../src/app.js",import.meta.url),"utf8");
- assert.match(app,/state\.assumeCoordinatedOffensiveActive=\$\("coordinated-offensive-active"\)\.checked/);
- assert.match(app,/co:state\.assumeCoordinatedOffensiveActive===true/);
- assert.match(app,/assumeCoordinatedOffensiveActive:payload\.co===true/);
+ assert.doesNotMatch(app,/state\.assumeCoordinatedOffensiveActive=\$\("coordinated-offensive-active"\)\.checked/);
+ assert.match(app,/publicOptimizationSettings\(structuredClone\(state\)\)|publicOptimizationSettings\(keepContractsConservative\(structuredClone\(state\)\)\)/);
+ assert.doesNotMatch(app,/assumeCoordinatedOffensiveActive:payload\.co===true/);
 });
