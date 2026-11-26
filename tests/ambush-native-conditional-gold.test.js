@@ -111,7 +111,7 @@ test("all 18 routes maintain feasible score and no leaked Ambush gold multiplier
  }
 });
 test("entrypoint caching, model identity, 4 locales and prohibition on GitHub Actions",()=>{
- const files=["src/app.js","src/worker.js","src/engine.js",
+ const files=["src/app.js","src/result-details-ui.js","src/worker.js","src/engine.js",
   "src/tactical-insight-sensitivity.js","src/ti-alternative.js"];
  const code=Object.fromEntries(files.map(path=>[
   path,readFileSync(new URL("../"+path,import.meta.url),"utf8")]));
@@ -125,7 +125,8 @@ test("entrypoint caching, model identity, 4 locales and prohibition on GitHub Ac
   importId("src/ti-alternative.js","effects.js"));
  const tag="20261124-ambush-conditional-gold-r1";
  assert.ok(code["src/engine.js"].includes(tag));
- assert.ok(code["src/app.js"].includes("ambushNotice"));
+ assert.ok(code["src/result-details-ui.js"].includes("ambushNotice"));
+ assert.ok(code["src/app.js"].includes("createResultDetailRenderers"));
  for(const path of ["index.html","fr/index.html","uk/index.html","ru/index.html"]){
   const page=readFileSync(new URL("../"+path,import.meta.url),"utf8");
   assert.ok(page.includes("&amp;ambush="+tag),path);
