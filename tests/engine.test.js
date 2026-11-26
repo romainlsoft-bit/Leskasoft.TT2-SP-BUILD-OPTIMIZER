@@ -181,7 +181,9 @@ test("Combat conditions survive optimization and out-of-range taps are rejected"
  assert.deepEqual(out.combatAssumptions,{hayst:false,snap:true,
    coordinatedOffensive:false,flashZipAtBoss:false,
    nightmareAtBoss:false,magnumOpusAtBoss:false,
-   astralActivations:2,contractsAtMax:false});
+   astralActivations:0,astralMaxAvailable:5,
+   idealBossAssumptionsOnly:true,actualBossUptimeVerified:false,
+   contractsAtMax:false});
 });
 
 test("Max-ramped contracts require explicit peak activation at the boss",()=>{
