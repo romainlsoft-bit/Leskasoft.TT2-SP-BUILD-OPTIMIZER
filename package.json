@@ -11,9 +11,15 @@
     "bench:22k": "node scripts/benchmark-22k.mjs --all",
     "bench:issue30": "node scripts/benchmark-22k.mjs --all --sp 22600 && node scripts/benchmark-22k.mjs --all --sp 50000",
     "check:modules": "node scripts/verify-module-graph.mjs",
-    "bench:push": "node scripts/benchmark-22k.mjs --all --sp 22600 --push-source-skip"
+    "bench:push": "node scripts/benchmark-22k.mjs --all --sp 22600 --push-source-skip",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:report": "playwright show-report"
   },
   "engines": {
     "node": ">=22"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.56.1"
   }
 }
