@@ -173,8 +173,8 @@ test("U: real worker scoring inputs remain finite on 18 builds with candidate so
   "Multiple Titan Chance":"10%", "Jackpot Gold Multiplier":"1e9999"
  }});
  for(const damage of DAMAGE_TYPES)for(const gold of GOLD_TYPES){
-  const settings=cfg(p,{skillPoints:0,damage,gold,
-   currentLevels:{HeavyStrikes:1,Transmutation:1,LovePotion:1}});
+  const settings=cfg(p,{skillPoints:200,damage,gold,
+    currentLevels:{HeavyStrikes:1,Transmutation:1,LovePotion:1}});
   const result=optimizeBuild(settings);
   const gear=gearSelectionEffects(p,settings);
   const scenario=calculateModeledScenario(result,settings,gear);
