@@ -1,10 +1,10 @@
-import {optimizeBuild,capCurrentMaxStage} from "./engine.js?v=20261123-boss-specials-r1&season=20261124-end-season13-r1&score=20261123-cadence-separated-r1&audit=20261123-ti-sensitivity-r1&ember=20261123-ember-fire-sword-gate-r1&jackpot=20261123-native-jackpot-expectation-r1&mc=20261123-multicast-no-guessed-x10-r1&crit=20261124-cleaving-crit-event-r1&ambush=20261124-ambush-conditional-gold-r1";
-import {petSearchPlan,availablePets} from "./pet-scenarios.js?v=20261123-boss-specials-r1&season=20261124-end-season13-r1";
-import {calculateModeledScenario} from "./calculation-ledger.js?v=20261123-boss-specials-r1&season=20261124-end-season13-r1";
+import {optimizeBuild,capCurrentMaxStage} from "./engine.js?v=20261123-boss-specials-r1&season=20261126-season14-r1&score=20261123-cadence-separated-r1&audit=20261123-ti-sensitivity-r1&ember=20261123-ember-fire-sword-gate-r1&jackpot=20261123-native-jackpot-expectation-r1&mc=20261123-multicast-no-guessed-x10-r1&crit=20261124-cleaving-crit-event-r1&ambush=20261124-ambush-conditional-gold-r1";
+import {petSearchPlan,availablePets} from "./pet-scenarios.js?v=20261123-boss-specials-r1&season=20261126-season14-r1";
+import {calculateModeledScenario} from "./calculation-ledger.js?v=20261123-boss-specials-r1&season=20261126-season14-r1";
 import {selectPetPair} from "./pet-pair-search.js?v=20261123-boss-specials-r1";
 import {bestEquipmentByCategory,gearSelectionEffects,petCandidateGearWeightEnvelope,
  enumerateOwnedGearAssignments}
- from "./equipment-scenarios.js?v=20261123-boss-specials-r1&season=20261124-end-season13-r1";
+ from "./equipment-scenarios.js?v=20261123-boss-specials-r1&season=20261126-season14-r1";
 import {refineCoupledGearAndSkills,enumerateJointGearAndSkills}
  from "./joint-candidate-search.js?v=20261123-boss-specials-r1";
 import {modeledCandidateUpperBound} from "./model-score-bounds.js?v=20261123-boss-specials-r1";
@@ -12,7 +12,7 @@ import {proposeContractScenarioBuild} from "./contract-multi-scenarios.js?v=2026
 import {rerankVisitedContractPetPairs} from "./contract-pet-rerank.js?v=20261123-boss-specials-r1";
 import {explorePushParetoFrontier} from "./push-frontier.js?v=20261123-boss-specials-r1";
 import {exploreNativeAttackDamageFrontier} from "./attack-damage-frontier.js?v=20261123-boss-specials-r1";
-import {exploreTacticalInsightAlternative} from "./ti-alternative.js?v=20261123-boss-specials-r1&season=20261124-end-season13-r1&alt=20261123-ti-second-tree-r1";
+import {exploreTacticalInsightAlternative} from "./ti-alternative.js?v=20261123-boss-specials-r1&season=20261126-season14-r1&alt=20261123-ti-second-tree-r1";
 
 // Per-request cache: branch DP signatures must distinguish changes in pet,
 // equipment and the resulting Combat Techniques contribution.
