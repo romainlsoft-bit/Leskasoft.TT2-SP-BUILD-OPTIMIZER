@@ -82,7 +82,8 @@ export function resolveMonumentEvidence(profile,at=new Date()){
   const level=conflict?null:safeLevel(levels[0],info.maxLevel);
   const perSeasonDay=info.bonusType.includes("PerSeasonDay");
   const categoryAllowed=categories?
-   categories.includes(info.category):info.isActive;
+   categories.includes(info.category)&&
+   (age.season!=="14"||info.isActive===true):info.isActive;
   const seasonKnown=categories!==null;
   const enchantKnown=enchants.length===1;
   const enchanted=enchantKnown?enchants[0]==="true":null;
