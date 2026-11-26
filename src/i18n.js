@@ -1281,6 +1281,9 @@ translations.ru["Imported TT2 version {version} is not validated against skill c
 translations.fr["Unable to erase saved browser data. Check your browser storage permissions."]="Impossible d’effacer les données enregistrées. Vérifiez les autorisations de stockage du navigateur.";
 translations.uk["Unable to erase saved browser data. Check your browser storage permissions."]="Не вдалося видалити збережені дані. Перевірте дозволи браузера на зберігання.";
 translations.ru["Unable to erase saved browser data. Check your browser storage permissions."]="Не удалось удалить сохранённые данные. Проверьте разрешения браузера на хранение данных.";
+translations.fr["Skip to main content"]="Aller au contenu principal";
+translations.uk["Skip to main content"]="Перейти до основного вмісту";
+translations.ru["Skip to main content"]="Перейти к основному содержимому";
 export function t(message, lang="en", parameters={}){
   const selected=SUPPORTED_LANGUAGES.includes(lang)?lang:"en";
   const value=translations[selected]?.[message] ?? message;
