@@ -70,6 +70,6 @@ test("missing/new season roster never infers season-14 pet effects from season-1
  });
  assert.deepEqual(availablePets(later,after).map(x=>x.id),["Pet1"]);
  const unknown=parseAccountProfile({petLevels:{Pet1:10,SeasonalPet2:90}});
- assert.ok(availablePets(unknown,before).some(x=>x.id==="SeasonalPet2"),
-  "Unstated season retains the prior positive-export evidence without claiming season-13 parity");
+ assert.ok(availablePets(unknown,before).every(x=>!x.id.startsWith("SeasonalPet")),
+  "Unstamped seasonal rows are never accepted as current pet evidence");
 });
