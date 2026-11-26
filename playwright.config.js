@@ -10,7 +10,15 @@ export default defineConfig({
  retries:0,
  reporter:[["list"],["html",{open:"never"}]],
  use:{baseURL,trace:"retain-on-failure",screenshot:"only-on-failure"},
- projects:[{name:"chromium",use:{...devices["Desktop Chrome"]}}],
+projects: [
+    {
+        name: "chromium",
+        use: {
+            ...devices["Desktop Chrome"],
+            channel: "chrome"
+        }
+    }
+],
  webServer:process.env.TT2_E2E_BASE_URL?undefined:{
   command:"python -m http.server 8765 --bind 127.0.0.1",
   url:local,reuseExistingServer:false,timeout:30000
