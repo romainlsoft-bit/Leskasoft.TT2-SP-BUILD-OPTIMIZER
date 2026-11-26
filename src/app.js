@@ -2,7 +2,8 @@ import {createAccountDiagnosticsRenderer} from "./account-diagnostics-ui.js?v=20
 import {createResultDetailRenderers} from "./result-details-ui.js?v=20261123-boss-specials-r1&refactor=20261126-audit56-ui-r1";
 import {gameVersionEvidence} from "./game-version-policy.js?v=20261123-boss-specials-r1";
 import {VERIFIED_NEXT_SEASON_START_UTC} from "./current-season-policy.js?v=20261123-boss-specials-r1&season=20261126-season14-r1";
-import {sanitizeUserBuild,parseSharedBuildHash,MAX_SHARED_BUILD_HASH,MAX_SAVED_STATE_TEXT} from "./build-input-boundary.js?v=20261123-boss-specials-r1";
+import {restoreSavedBuild,persistSavedBuild,eraseSavedBrowserData,storeLanguage} from "./browser-persistence.js?v=20261123-boss-specials-r1&storage=20261126-audit56-r1";
+import {createShareableBuildLink,readSharedBuild} from "./share-link-protocol.js?v=20261123-boss-specials-r1&storage=20261126-audit56-r1";
 import {publicOptimizationSettings} from "./public-optimization-policy.js?v=20261123-boss-specials-r1";
 import {SKILLS,SKILL_IDS,BRANCH_NAMES,PRESETS,DAMAGE_TYPES,GOLD_TYPES,parseExport,exportBuild,ownedSetFlags,capCurrentMaxStage,CURRENT_MAIN_GAME_STAGE_CAP} from "./engine.js?v=20261123-boss-specials-r1&season=20261126-season14-r1&compat=20261126-audit56-r1&score=20261123-cadence-separated-r1&audit=20261123-ti-sensitivity-r1&ember=20261123-ember-fire-sword-gate-r1&jackpot=20261123-native-jackpot-expectation-r1&mc=20261123-multicast-no-guessed-x10-r1&crit=20261124-cleaving-crit-event-r1&ambush=20261124-ambush-conditional-gold-r1&ideal=20261126-boss-r1";
 import { t, localizeDocument, SUPPORTED_LANGUAGES } from "./i18n.js?v=20261123-boss-specials-r1&season=20261126-season14-r1&ui=20261123-hide-observed-hit-r1&audit=20261123-ti-sensitivity-r1&alt=20261123-ti-second-tree-r1&ideal=20261126-boss-r1&security=20261126-audit56-r1&compat=20261126-audit56-r1";
@@ -21,7 +22,7 @@ const tr=(message,params={})=>t(message,locale,params);
 const numberText=value=>Number(value).toLocaleString({en:"en-US",fr:"fr-FR",uk:"uk-UA",ru:"ru-RU"}[locale]);
 function setLocale(next){
  locale=SUPPORTED_LANGUAGES.includes(next)?next:"en";
- try{localStorage.setItem("tt2_site_language",locale)}catch{}
+ try{storeLanguage(localStorage,locale)}catch{}
  $("language-select").value=locale;
  localizeDocument(document,locale);
  // Main Leskasoft site uses the same four locale codes as this optimizer.
@@ -52,7 +53,7 @@ function localizedUrl(lang){
 function changeLanguage(lang){
  if(!SUPPORTED_LANGUAGES.includes(lang))return;
  readInputs();persist();
- try{localStorage.setItem("tt2_site_language",lang)}catch{}
+ try{storeLanguage(localStorage,lang)}catch{}
  location.assign(localizedUrl(lang));
 }
 function engineError(message){
@@ -117,12 +118,7 @@ function status(message,type="",params={}){
 function resetOptimizeButton(){const b=$("optimize-button");b.disabled=false;b.innerHTML='<span>✦ &nbsp; '+safe(tr("Optimize my build"))+'</span><span>→</span>';}
 function safe(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 function persist(){
- try{
-  const snapshot=JSON.stringify(state);
-  if(snapshot.length<=MAX_SAVED_STATE_TEXT)
-   localStorage.setItem("tt2_skill_optimizer_v1",snapshot);
-  else localStorage.removeItem("tt2_skill_optimizer_v1");
- }catch{}
+ try{persistSavedBuild(localStorage,state);}catch{}
 }
 function renderChoices(){
   $("damage-choices").innerHTML=DAMAGE_TYPES.map(x=>`<button class="choice ${state.damage===x?"selected":""}" type="button" data-damage="${safe(x)}" aria-pressed="${state.damage===x}"><span>${iconMap[x]}</span>${safe(tr(x))}</button>`).join("");
@@ -512,22 +508,11 @@ function renderResults(result,scroll=true){
  $("diff-list").innerHTML=result.changes.length?result.changes.map(change=>`<div class="change-row"><span>${safe(change.name)}</span><span><small>${change.before} → ${change.after}</small> <strong class="${change.difference>=0?"plus":"minus"}">${change.difference>0?"+":""}${change.difference}</strong></span></div>`).join(""):"<p class='hint'>"+safe(tr("No skill-level changes."))+"</p>";
  $("export-json").value=exportBuild(result.levels);
 }
-function sharePayload(){
- // Refuse to generate a link from unfinished or invalid input fields.
- sanitizeUserBuild(state,fresh(),SKILLS,DAMAGE_TYPES,GOLD_TYPES,{strict:true});
- // Only editable public preferences are shareable; hidden assumptions are fixed.
- return {sp:state.skillPoints,st:state.maxStage,
-  ss:(state.stageSeason===14||String(state.accountProfile?.stats?.transcendenceSeason)==="14")?14:null,
-  da:state.damage,go:state.gold,p:state.playstyle,q:state.qol,
-  w:state.goldWeight,cp:state.craftingPower,tk:state.timeToKill,cl:state.sClone,
-  cur:state.currentLevels,min:state.minimums,exc:state.excluded,
-  keep:state.preserveCurrent,protect:state.protectUnmodeledSkills!==false};
-}
 function decodeLink(){
  const hash=window.location.hash;
  if(!hash.startsWith("#build="))return;
  try{
-  const payload=parseSharedBuildHash(hash,SKILLS,DAMAGE_TYPES,GOLD_TYPES);
+  const payload=readSharedBuild(hash,SKILLS,DAMAGE_TYPES,GOLD_TYPES);
   state=publicOptimizationSettings({...fresh(),...payload,
    maxStage:capCurrentMaxStage(payload.maxStage,null,payload.stageSeason===14)});
   window.history.replaceState(null,"",window.location.pathname+window.location.search);
@@ -535,11 +520,8 @@ function decodeLink(){
  }catch(e){status("Could not load this shared build link.","error");}
 }
 function initialize(){
- try{
-  const stored=localStorage.getItem("tt2_skill_optimizer_v1");
-  if(stored&&stored.length<=MAX_SAVED_STATE_TEXT)
-   state=sanitizeUserBuild(JSON.parse(stored),fresh(),SKILLS,DAMAGE_TYPES,GOLD_TYPES);
- }catch{state=fresh();}
+ try{state=restoreSavedBuild(localStorage,fresh(),SKILLS,DAMAGE_TYPES,GOLD_TYPES);}
+ catch{state=fresh();}
  decodeLink();
  state=publicOptimizationSettings(state);
  // Retired UI settings from previous sessions must not influence diagnostics.
@@ -562,7 +544,6 @@ function initialize(){
  state.mode="power";fillInputs();
  const queryLang=new URL(location.href).searchParams.get("lang");
  const pathLang=document.documentElement.lang;
- let savedLang="en";try{savedLang=localStorage.getItem("tt2_site_language")||"en"}catch{}
  // An explicitly visited localized URL always wins over a stored preference.
  const desired=SUPPORTED_LANGUAGES.includes(queryLang)?queryLang:pathLang;
  if(desired!==pathLang || queryLang){
@@ -613,10 +594,12 @@ function initialize(){
  $("clear-local-data").addEventListener("click",()=>{
   if(!window.confirm(tr("Erase all locally saved TT2 data from this browser?")))return;
   if(worker){worker.terminate();worker=null;}
-  try{
-   localStorage.removeItem("tt2_skill_optimizer_v1");
-   localStorage.removeItem("tt2_site_language");
-  }catch{}
+  let erased=false;
+  try{erased=eraseSavedBrowserData(localStorage);}catch{}
+  if(!erased){
+   status("Unable to erase saved browser data. Check your browser storage permissions.","error");
+   return;
+  }
   window.history.replaceState(null,"",window.location.pathname+window.location.search);
   window.location.reload();
  });
@@ -632,10 +615,8 @@ function initialize(){
  });
  $("share-build").addEventListener("click",async()=>{
   try{
-   const json=JSON.stringify(sharePayload());
-   const link=window.location.href.split("#")[0]+"#build="+btoa(unescape(encodeURIComponent(json)));
-   if(link.slice(link.indexOf("#")).length>MAX_SHARED_BUILD_HASH)
-    throw new RangeError("Build link is too large");
+   const link=createShareableBuildLink(window.location.href,
+    state,fresh(),SKILLS,DAMAGE_TYPES,GOLD_TYPES);
    const copied=await copyText(link);
    status(copied?"Shareable link copied. Note: it contains the TT2 settings you entered.":"Copy failed. Check browser clipboard permissions.",copied?"success":"error");
   }catch{status("Cannot share a build with invalid or excessive settings. Check the skill levels and SP budget.","error");}
