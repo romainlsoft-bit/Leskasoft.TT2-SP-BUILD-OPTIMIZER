@@ -71,7 +71,7 @@ test("five Astral orb taps are allowed only after purchasing Astral Awakening",(
  assert.equal(modeledAstralOrbTaps({HelperDmgQTE:30}),5);
  assert.equal(modeledAstralOrbTaps({HelperDmgQTE:1},2),2);
  assert.equal(modeledAstralOrbTaps({HelperDmgQTE:1},100),5);
- const basis={damage:"Clan Ship",gold:"Fairy",goldWeight:.7};
+ const basis={damage:"Pet",gold:"Fairy",goldWeight:.7};
  assert.equal(scoreAtLevel("HelperDmgQTE",0,{...basis,astralActivations:5}),0);
  const one=scoreAtLevel("HelperDmgQTE",5,{...basis,astralActivations:1});
  const five=scoreAtLevel("HelperDmgQTE",5,{...basis,astralActivations:5});
