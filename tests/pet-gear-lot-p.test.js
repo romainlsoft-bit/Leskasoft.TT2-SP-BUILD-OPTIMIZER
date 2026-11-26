@@ -33,7 +33,8 @@ test("Rune Heart/gemstone equipment-pet target identity is not bonus-family iden
 });
 
 test("An actively equipped seasonal helmet pet never gains the unverified rune or gemstone cross boost",()=>{
- const source={petLevels:{SeasonalPet6:20,Pet27:20},equipmentInventory:[{
+ const source={playerStats:{"Transcendence Season":14},
+   petLevels:{SeasonalPet6:20,Pet27:20},equipmentInventory:[{
   id:"HelmetA",slot:"Helmet",name:"Elder Snow Cap",bonusType:"AllDamage",bonusAmount:"1e50"
  }]};
  const plain=parseAccountProfile(source);
