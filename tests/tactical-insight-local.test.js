@@ -103,18 +103,17 @@ test("disabled calibration preserves existing community and exclusion policies",
  assert.equal(resolveTacticalInsightLocal(base).enabled,false);
 });
 
-test("four locales expose the measured-input controls and private measurements are not shared",()=>{
+test("measured TI remains a pure calculation API, not a public setting",()=>{
  const ids=["ti-cal-enabled","ti-cal-low-level","ti-cal-high-level",
   "ti-cal-low-damage","ti-cal-high-damage","ti-cal-low-gold","ti-cal-high-gold"];
  for(const path of ["index.html","fr/index.html","uk/index.html","ru/index.html"]){
   const html=readFileSync(new URL("../"+path,import.meta.url),"utf8");
-  for(const id of ids)
-   assert.equal((html.match(new RegExp('id="'+id+'"',"g"))||[]).length,1,path+"/"+id);
-  assert.ok(html.includes("src/app.js?v=20261123-boss-specials-r1"),path);
+  for(const id of ids)assert.ok(!html.includes('id="'+id+'"'),path+"/"+id);
  }
+ const policy=readFileSync(new URL("../src/public-optimization-policy.js",import.meta.url),"utf8");
+ assert.match(policy,/tacticalInsightCalibration:null/);
+ assert.match(policy,/excludeUnverifiedTacticalInsight:false/);
  const app=readFileSync(new URL("../src/app.js",import.meta.url),"utf8");
- assert.match(app,/state\.tacticalInsightCalibration=\$\("ti-cal-enabled"\)\.checked/);
- assert.match(app,/tiMeasurementOmitted:/);
- assert.match(app,/tacticalInsightCalibration=null;/);
+ assert.doesNotMatch(app,/tiMeasurementOmitted:/);
  assert.doesNotMatch(app,/lowerDamage:state\.tacticalInsightCalibration\?\./);
 });
