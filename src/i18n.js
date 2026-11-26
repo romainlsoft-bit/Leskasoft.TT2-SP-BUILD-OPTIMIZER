@@ -1266,6 +1266,9 @@ translations.ru["Erase all locally saved TT2 data from this browser?"]="Удал
 translations.fr["Cannot share a build with invalid or excessive settings. Check the skill levels and SP budget."]="Impossible de partager un build avec des paramètres invalides ou trop volumineux. Vérifiez les niveaux de compétences et le budget SP.";
 translations.uk["Cannot share a build with invalid or excessive settings. Check the skill levels and SP budget."]="Неможливо поділитися білдом із некоректними або надмірними параметрами. Перевірте рівні навичок і кількість SP.";
 translations.ru["Cannot share a build with invalid or excessive settings. Check the skill levels and SP budget."]="Невозможно поделиться билдом с некорректными или слишком большими параметрами. Проверьте уровни навыков и количество SP.";
+translations.fr["Your imported account and preferences may be stored in this browser. You can erase them here."]="Votre compte importé et vos préférences peuvent être conservés dans ce navigateur. Vous pouvez les effacer ici.";
+translations.uk["Your imported account and preferences may be stored in this browser. You can erase them here."]="Імпортований обліковий запис і налаштування можуть зберігатися у цьому браузері. Тут їх можна видалити.";
+translations.ru["Your imported account and preferences may be stored in this browser. You can erase them here."]="Импортированный аккаунт и настройки могут храниться в этом браузере. Здесь их можно удалить.";
 export function t(message, lang="en", parameters={}){
   const selected=SUPPORTED_LANGUAGES.includes(lang)?lang:"en";
   const value=translations[selected]?.[message] ?? message;
