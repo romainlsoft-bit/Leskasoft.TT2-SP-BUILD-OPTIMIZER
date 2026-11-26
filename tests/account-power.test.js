@@ -430,7 +430,7 @@ test("uncapped monuments preserve scientific levels and inactive monuments do no
   SeasonalArtifact2:{level:"1e9999"},SeasonalArtifact22:{level:3}}});
  const m=resolveMonumentEvidence(p);
  assert.equal(m.entries.find(x=>x.id==="SeasonalArtifact2").level,"1e9999");
- assert.equal(m.entries.find(x=>x.id==="SeasonalArtifact22").formulaStatus,"unknown-season-category");
+ assert.equal(m.entries.find(x=>x.id==="SeasonalArtifact22").formulaStatus,"inactive-in-8.4-catalog");
  assert.equal(m.modeled,0);
 });
 
