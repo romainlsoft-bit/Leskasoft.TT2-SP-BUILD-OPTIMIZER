@@ -38,7 +38,7 @@ test("French / Ukrainian / Russian text is indexable without JavaScript",()=>{
  for(const lang of ["fr","uk","ru"]){
   assert.ok(!pages[lang].includes("<h1>Tap Titans 2 Skill Tree Optimizer</h1>"));
   assert.match(pages[lang],/src="\.\.\/src\/app\.js\?v=20\d{6}-[a-z0-9-]+(?:&amp;[a-z]+=[a-z0-9-]+)*"/);
-  assert.match(pages[lang],/href="\.\.\/styles\.css\?v=20\d{6}-[a-z0-9-]+"/);
+  assert.match(pages[lang],/href="\.\.\/styles\.css\?v=20\d{6}-[a-z0-9-]+(?:&amp;[a-z]+=[a-z0-9-]+)*"/);
   assert.ok(pages[lang].includes('href="../assets/favicon.svg"'));
   assert.ok(pages[lang].includes('data-static-localized="true"'));
  }
