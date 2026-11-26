@@ -22,7 +22,8 @@ self.onmessage=event=>{
  const petIds=new Set(availablePets(rawSettings?.accountProfile).map(p=>p.id));
  const settings=rawSettings?{
   ...rawSettings,
-  maxStage:capCurrentMaxStage(rawSettings.maxStage),
+  maxStage:capCurrentMaxStage(rawSettings.maxStage,
+   rawSettings.accountProfile,!rawSettings.accountProfile),
   selectedDamagePet:petIds.has(rawSettings.selectedDamagePet)?
    rawSettings.selectedDamagePet:null,
   selectedGoldPet:petIds.has(rawSettings.selectedGoldPet)?
