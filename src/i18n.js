@@ -1278,6 +1278,9 @@ translations.ru["Imported TT2 version {version} is newer than the verified skill
 translations.fr["Imported TT2 version {version} is not validated against skill catalog {catalog}. Check your imported skills before applying the build."]="L’export TT2 {version} n’est pas validé avec le catalogue de compétences {catalog}. Vérifiez les compétences importées avant d’appliquer le build.";
 translations.uk["Imported TT2 version {version} is not validated against skill catalog {catalog}. Check your imported skills before applying the build."]="Версію експорту TT2 {version} не перевірено з каталогом навичок {catalog}. Перевірте імпортовані навички перед застосуванням білду.";
 translations.ru["Imported TT2 version {version} is not validated against skill catalog {catalog}. Check your imported skills before applying the build."]="Версия экспорта TT2 {version} не проверена с каталогом навыков {catalog}. Проверьте импортированные навыки перед применением билда.";
+translations.fr["Unable to erase saved browser data. Check your browser storage permissions."]="Impossible d’effacer les données enregistrées. Vérifiez les autorisations de stockage du navigateur.";
+translations.uk["Unable to erase saved browser data. Check your browser storage permissions."]="Не вдалося видалити збережені дані. Перевірте дозволи браузера на зберігання.";
+translations.ru["Unable to erase saved browser data. Check your browser storage permissions."]="Не удалось удалить сохранённые данные. Проверьте разрешения браузера на хранение данных.";
 export function t(message, lang="en", parameters={}){
   const selected=SUPPORTED_LANGUAGES.includes(lang)?lang:"en";
   const value=translations[selected]?.[message] ?? message;
