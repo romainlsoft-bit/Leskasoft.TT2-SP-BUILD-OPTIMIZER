@@ -111,23 +111,21 @@ test("higher requested source Stage Skip cannot silently count unverified global
  assert.throws(()=>verifyPushSkipTarget(target,{PetQTE:0}),/unmet source Stage Skip target/);
 });
 
-test("all four localized pages expose the same explicit Stage Skip controls",()=>{
+test("public UI removes Stage Skip targets but keeps the diagnostic code",()=>{
+ const root=readFileSync(new URL("../index.html",import.meta.url),"utf8");
+ const version=root.match(/src\\/app\\.js\\?v=([A-Za-z0-9_-]+)/)?.[1];
+ assert.ok(version);
  for(const path of ["index.html","fr/index.html","uk/index.html","ru/index.html"]){
-  const text=readFileSync(new URL("../"+path,import.meta.url),"utf8");
-  assert.equal(text.match(/id="push-attack-channel"/g)?.length,1,path);
-  assert.equal(text.match(/id="push-stage-skip-target"/g)?.length,1,path);
-  const root=readFileSync(new URL("../index.html",import.meta.url),"utf8");
-  const version=root.match(/src\/app\.js\?v=([A-Za-z0-9_-]+)/)?.[1];
-  assert.ok(version,"Missing versioned entry");
-  assert.ok(text.includes("src/app.js?v="+version));
+  const html=readFileSync(new URL("../"+path,import.meta.url),"utf8");
+  assert.doesNotMatch(html,/id="push-attack-channel"/);
+  assert.doesNotMatch(html,/id="push-stage-skip-target"/);
+  assert.ok(html.includes("app.js?v="+version));
  }
  const app=readFileSync(new URL("../src/app.js",import.meta.url),"utf8");
  const worker=readFileSync(new URL("../src/worker.js",import.meta.url),"utf8");
- assert.match(app,/function renderPushStageSkipOptions\(\)/);
- assert.match(app,/function renderPushSkipComparison\(result\)/);
- assert.match(app,/pushSourceStageSkipTarget:payload\.skip\?\?0/);
- assert.match(worker,/const withPushComparison=\(choice,selected\)=>/);
- assert.match(worker,/pushSkipComparison:/);
+ assert.doesNotMatch(app,/function renderPushStageSkipOptions/);
+ assert.match(app,/function renderPushSkipComparison\\(result\\)/);
+ assert.match(worker,/const withPushComparison=\\(choice,selected\\)=>/);
 });
 test("the generic benchmark script can exercise constrained full build matrices",()=>{
  const pkg=JSON.parse(readFileSync(new URL("../package.json",import.meta.url),"utf8"));
