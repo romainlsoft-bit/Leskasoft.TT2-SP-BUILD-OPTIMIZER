@@ -6,7 +6,7 @@
  */
 import {PETS} from "../vendor/pets.js?v=20261123-boss-specials-r1&season=20261126-season14-r1";
 import {TRANSCENDENT_PETS} from "../vendor/transcendent-pets.js?v=20261123-boss-specials-r1&season=20261126-season14-r1";
-import {SEASON14_PET_IDS} from "../vendor/season14-pet-roster.js?v=20261126-season14-r2";
+import {SEASON14_PET_IDS} from "../vendor/season14-pet-roster.js?v=20261123-boss-specials-r1";
 
 export const ALL_PETS=Object.freeze({...PETS,...TRANSCENDENT_PETS});
 import {skillInfo} from "../vendor/skills.js?v=20261123-boss-specials-r1";
