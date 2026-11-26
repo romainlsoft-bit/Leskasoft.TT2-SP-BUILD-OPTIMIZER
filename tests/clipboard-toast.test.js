@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {readClipboardText} from "../src/clipboard.js";
-import {t} from "../src/i18n.js";
+import {t} from "./helpers/i18n-all.js";
 
 const source=file=>readFileSync(new URL("../"+file,import.meta.url),"utf8");
 const app=source("src/app.js");
