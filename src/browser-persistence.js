@@ -22,6 +22,7 @@ export function restoreSavedBuild(storage,defaults,skills,damageTypes,goldTypes)
 
 /** Failure to save must not block a calculation or store an oversized export. */
 export function persistSavedBuild(storage,state){
+ if(!storage||typeof storage.setItem!=="function")return false;
  try{
   const snapshot=JSON.stringify(state);
   if(!snapshot||snapshot.length>MAX_SAVED_STATE_TEXT){
@@ -35,6 +36,7 @@ export function persistSavedBuild(storage,state){
 
 /** Only an explicit user gesture may call this function. */
 export function eraseSavedBrowserData(storage){
+ if(!storage||typeof storage.removeItem!=="function")return false;
  try{
   storage?.removeItem(BUILD_STORAGE_KEY);
   storage?.removeItem(LANGUAGE_STORAGE_KEY);
@@ -43,7 +45,7 @@ export function eraseSavedBrowserData(storage){
 }
 
 export function storeLanguage(storage,locale){
- if(!SUPPORTED_LOCALES.includes(locale))return false;
+ if(!SUPPORTED_LOCALES.includes(locale)||!storage||typeof storage.setItem!=="function")return false;
  try{storage?.setItem(LANGUAGE_STORAGE_KEY,locale);return true;}
  catch{return false;}
 }
