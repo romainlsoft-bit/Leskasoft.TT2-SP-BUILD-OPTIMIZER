@@ -176,7 +176,7 @@ test("all four localized frontends enforce cap, module identities are unique and
   const html=readFileSync(new URL("../"+path,import.meta.url),"utf8");
   assert.ok(html.includes('id="max-stage" type="number" min="0"'),path);
   assert.ok(!html.includes('id="max-stage" type="number" min="0" max="180000"'),path);
-  assert.ok(html.includes("&amp;season=20261124-end-season13-r1"),path);
+  assert.ok(html.includes("&amp;season=20261126-season14-r1"),path);
  }
  assert.equal(existsSync(new URL("../.github/workflows/",import.meta.url)),false);
 });
