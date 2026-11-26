@@ -1,5 +1,5 @@
 import {HERO_ROSTER} from "../vendor/hero-roster.js?v=20261123-boss-specials-r1";
-import {currentPostSeasonMode,POST_SEASON13_UTC} from "./current-season-policy.js?v=20261123-boss-specials-r1&season=20261124-end-season13-r1";
+import {currentPostSeasonMode,POST_SEASON13_UTC} from "./current-season-policy.js?v=20261123-boss-specials-r1&season=20261126-season14-r1";
 /**
  * TT2 date evidence. No player-entered dates and no inferred set ages.
  * A set is completed upon acquisition of its fifth distinct equipment slot.
