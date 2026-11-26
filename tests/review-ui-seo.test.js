@@ -7,7 +7,7 @@ test("review P2: configuration changes invalidate and terminate in-flight worker
  assert.match(app,/function remember\(\)\{[\s\S]*?calculationRevision\+\+/);
  assert.match(app,/if\(worker\)\{worker\.terminate\(\);worker=null;resetOptimizeButton\(\);\}/);
  assert.match(app,/revision!==calculationRevision\|\|worker!==running/);
- assert.match(app,/const requestContext=keepContractsConservative\(structuredClone\(state\)\)/);
+ assert.match(app,/const requestContext=publicOptimizationSettings\\(keepContractsConservative\\(structuredClone\\(state\\)\\)\\)/);
  assert.match(app,/lastRunContext=requestContext/);
  assert.match(app,/const scenario=lastRunContext\?\?state/);
 });
