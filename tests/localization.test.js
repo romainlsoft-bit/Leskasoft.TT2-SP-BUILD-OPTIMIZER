@@ -103,6 +103,7 @@ test("Gemstone and Titan Soul research diagnostics are translated in all locales
   assert.notEqual(t(key,lang,{levels:"+42",daily:"+70",
    prestige:"+50",chance:"0.6"}),key);
  }
- assert.ok(app.includes("resources.gemstones.extraLevelsFromResearch"));
- assert.ok(app.includes("souls.rawChanceBonusFraction"));
+ const diagnostics=readFileSync(new URL("../src/account-diagnostics-ui.js",import.meta.url),"utf8");
+ assert.ok(diagnostics.includes("resources.gemstones.extraLevelsFromResearch"));
+ assert.ok(diagnostics.includes("souls.rawChanceBonusFraction"));
 });
