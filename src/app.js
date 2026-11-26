@@ -1,4 +1,4 @@
-import {sanitizeUserBuild,parseSharedBuildHash,MAX_SAVED_STATE_TEXT} from "./build-input-boundary.js?v=20261123-boss-specials-r1";
+import {sanitizeUserBuild,parseSharedBuildHash,MAX_SHARED_BUILD_HASH,MAX_SAVED_STATE_TEXT} from "./build-input-boundary.js?v=20261123-boss-specials-r1";
 import {publicOptimizationSettings} from "./public-optimization-policy.js?v=20261123-boss-specials-r1";
 import {SKILLS,SKILL_IDS,BRANCH_NAMES,PRESETS,DAMAGE_TYPES,GOLD_TYPES,GAME_VERSION,parseExport,exportBuild,spentPoints,ownedSetFlags,capCurrentMaxStage,CURRENT_MAIN_GAME_STAGE_CAP} from "./engine.js?v=20261123-boss-specials-r1&season=20261126-season14-r1&score=20261123-cadence-separated-r1&audit=20261123-ti-sensitivity-r1&ember=20261123-ember-fire-sword-gate-r1&jackpot=20261123-native-jackpot-expectation-r1&mc=20261123-multicast-no-guessed-x10-r1&crit=20261124-cleaving-crit-event-r1&ambush=20261124-ambush-conditional-gold-r1&ideal=20261126-boss-r1";
 import { t, localizeDocument, SUPPORTED_LANGUAGES } from "./i18n.js?v=20261123-boss-specials-r1&season=20261126-season14-r1&ui=20261123-hide-observed-hit-r1&audit=20261123-ti-sensitivity-r1&alt=20261123-ti-second-tree-r1&ideal=20261126-boss-r1&security=20261126-audit56-r1";
@@ -1053,6 +1053,8 @@ function renderResults(result,scroll=true){
  $("export-json").value=exportBuild(result.levels);
 }
 function sharePayload(){
+ // Refuse to generate a link from unfinished or invalid input fields.
+ sanitizeUserBuild(state,fresh(),SKILLS,DAMAGE_TYPES,GOLD_TYPES,{strict:true});
  // Only editable public preferences are shareable; hidden assumptions are fixed.
  return {sp:state.skillPoints,st:state.maxStage,
   ss:(state.stageSeason===14||String(state.accountProfile?.stats?.transcendenceSeason)==="14")?14:null,
@@ -1169,10 +1171,14 @@ function initialize(){
   status(copied?"Build JSON copied. Paste it into your TT2 skill-tree importer.":"Please select and copy the JSON from the Exported JSON panel.",copied?"success":"error");
  });
  $("share-build").addEventListener("click",async()=>{
-  const json=JSON.stringify(sharePayload());
-  const link=window.location.href.split("#")[0]+"#build="+btoa(unescape(encodeURIComponent(json)));
-  const copied=await copyText(link);
-  status(copied?"Shareable link copied. Note: it contains the TT2 settings you entered.":"Copy failed. Check browser clipboard permissions.",copied?"success":"error");
+  try{
+   const json=JSON.stringify(sharePayload());
+   const link=window.location.href.split("#")[0]+"#build="+btoa(unescape(encodeURIComponent(json)));
+   if(link.slice(link.indexOf("#")).length>MAX_SHARED_BUILD_HASH)
+    throw new RangeError("Build link is too large");
+   const copied=await copyText(link);
+   status(copied?"Shareable link copied. Note: it contains the TT2 settings you entered.":"Copy failed. Check browser clipboard permissions.",copied?"success":"error");
+  }catch{status("Cannot share a build with invalid or excessive settings. Check the skill levels and SP budget.","error");}
  });
 }
 initialize();
