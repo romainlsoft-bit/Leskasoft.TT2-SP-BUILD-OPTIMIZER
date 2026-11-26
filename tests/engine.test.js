@@ -178,7 +178,10 @@ test("Combat conditions survive optimization and out-of-range taps are rejected"
   assert.throws(()=>optimizeBuild({...defaults,skillPoints:50,astralActivations:n}),/between 0 and 5/);
  const out=optimizeBuild({...defaults,skillPoints:50,damage:"Pet",gold:"Fairy",
   assumeSnapActive:true,assumeHaystActive:false,astralActivations:2});
- assert.deepEqual(out.combatAssumptions,{hayst:false,snap:true,astralActivations:2,contractsAtMax:false});
+ assert.deepEqual(out.combatAssumptions,{hayst:false,snap:true,
+   coordinatedOffensive:false,flashZipAtBoss:false,
+   nightmareAtBoss:false,magnumOpusAtBoss:false,
+   astralActivations:2,contractsAtMax:false});
 });
 
 test("Max-ramped contracts require explicit peak activation at the boss",()=>{
