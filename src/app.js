@@ -203,7 +203,7 @@ function renderPetControls(){
     '<option value="'+safe(p.id)+'" '+(selected===p.id?"selected":"")+'>'+
     safe(p.name)+' · '+safe(tr(p.tier))+' · '+safe(p.type)+' · '+numberText(p.level)+' '+safe(tr("levels"))+'</option>').join("");
   };
-  html+='<p class="hint">'+safe(tr("A damage pet and a gold pet are selected together. Automatic slots search eligible owned pets; named choices stay fixed."))+'</p>'
+  html+='<p class="hint">'+safe(tr("Automatic pet slots use one source-ranked owned pet each; manually selected pets stay fixed."))+'</p>'
    +'<div class="field-grid"><label>'+safe(tr("Damage pet"))+'<select id="pet-damage-select">'+renderOptions("damage",state.selectedDamagePet)+'</select></label>'
    +'<label>'+safe(tr("Gold pet"))+'<select id="pet-gold-select">'+renderOptions("gold",state.selectedGoldPet)+'</select></label></div>';
  }
