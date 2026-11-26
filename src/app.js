@@ -6,7 +6,7 @@ import {restoreSavedBuild,persistSavedBuild,eraseSavedBrowserData,storeLanguage}
 import {createShareableBuildLink,readSharedBuild} from "./share-link-protocol.js?v=20261123-boss-specials-r1&storage=20261126-audit56-r1";
 import {publicOptimizationSettings} from "./public-optimization-policy.js?v=20261123-boss-specials-r1";
 import {SKILLS,SKILL_IDS,BRANCH_NAMES,PRESETS,DAMAGE_TYPES,GOLD_TYPES,parseExport,exportBuild,ownedSetFlags,capCurrentMaxStage,CURRENT_MAIN_GAME_STAGE_CAP} from "./engine.js?v=20261123-boss-specials-r1&season=20261126-season14-r1&compat=20261126-audit56-r1&score=20261123-cadence-separated-r1&audit=20261123-ti-sensitivity-r1&ember=20261123-ember-fire-sword-gate-r1&jackpot=20261123-native-jackpot-expectation-r1&mc=20261123-multicast-no-guessed-x10-r1&crit=20261124-cleaving-crit-event-r1&ambush=20261124-ambush-conditional-gold-r1&ideal=20261126-boss-r1&architecture=20261127-audit56-r1";
-import { t, localizeDocument, SUPPORTED_LANGUAGES } from "./i18n.js?v=20261123-boss-specials-r1&season=20261126-season14-r1&ui=20261123-hide-observed-hit-r1&audit=20261123-ti-sensitivity-r1&alt=20261123-ti-second-tree-r1&ideal=20261126-boss-r1&security=20261126-audit56-r1&compat=20261126-audit56-r1";
+import { t, localizeDocument, SUPPORTED_LANGUAGES, loadLocale } from "./i18n.js?v=20261123-boss-specials-r1&season=20261126-season14-r1&ui=20261123-hide-observed-hit-r1&audit=20261123-ti-sensitivity-r1&alt=20261123-ti-second-tree-r1&ideal=20261126-boss-r1&security=20261126-audit56-r1&compat=20261126-audit56-r1&locale=20261127-audit56-r1";
 import { readClipboardText } from "./clipboard.js?v=20261123-boss-specials-r1";
 import {resetAccountDependentOptions} from "./import-session-reset.js?v=20261123-boss-specials-r1&ideal=20261126-boss-r1";
 import { profileCoverage } from "./account-profile.js?v=20261123-boss-specials-r1";
@@ -626,4 +626,8 @@ function initialize(){
   }catch{status("Cannot share a build with invalid or excessive settings. Check the skill levels and SP budget.","error");}
  });
 }
+// Static localized pages select exactly one catalog before dynamic rendering.
+// A failed catalog request must not make the calculator unusable.
+try{await loadLocale(document.documentElement.lang);}
+catch(error){console.error("Unable to load TT2 translation catalog",error);}
 initialize();
