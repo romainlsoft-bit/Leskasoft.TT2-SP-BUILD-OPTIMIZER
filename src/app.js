@@ -63,7 +63,7 @@ function engineError(message){
 }
 const iconMap={"Clan Ship":"⛵","Pet":"🐾","Shadow Clone":"◈","Heavenly Strike":"⚡","Dagger":"🗡","Gold Gun":"✦"};
 const branchColors={Knight:"#d77879",Summoner:"#edab66",Warlord:"#e7ca75",Sorcerer:"#86adf7",Rogue:"#7ad0a0",Alchemist:"#b595ed"};
-const fresh=()=>({damage:"Clan Ship",gold:"Fairy",skillPoints:0,maxStage:0,playstyle:"balanced",qol:"recommended",goldWeight:.7,craftingPower:1,timeToKill:8,sClone:30,sets:{},currentLevels:{},minimums:{},excluded:[],preserveCurrent:false,assumeCoordinatedOffensiveActive:false,assumeFlashZipAtBoss:false,assumeNightmareAtBoss:false,assumeMagnumOpusAtBoss:false,assumeHaystActive:false,assumeSnapActive:false,assumeContractsAtMax:false,astralActivations:0,mode:"power",accountProfile:null,selectedDamagePet:null,selectedGoldPet:null,comparePetScenarios:true,selectedEquipment:{},protectUnmodeledSkills:true,excludeUnverifiedTacticalInsight:false,tacticalInsightCalibration:null,contractTimeline:null,contractMultiScenario:null,
+const fresh=()=>({damage:"Clan Ship",gold:"Fairy",skillPoints:0,maxStage:0,stageSeason:null,playstyle:"balanced",qol:"recommended",goldWeight:.7,craftingPower:1,timeToKill:8,sClone:30,sets:{},currentLevels:{},minimums:{},excluded:[],preserveCurrent:false,assumeCoordinatedOffensiveActive:false,assumeFlashZipAtBoss:false,assumeNightmareAtBoss:false,assumeMagnumOpusAtBoss:false,assumeHaystActive:false,assumeSnapActive:false,assumeContractsAtMax:false,astralActivations:0,mode:"power",accountProfile:null,selectedDamagePet:null,selectedGoldPet:null,comparePetScenarios:true,selectedEquipment:{},protectUnmodeledSkills:true,excludeUnverifiedTacticalInsight:false,tacticalInsightCalibration:null,contractTimeline:null,contractMultiScenario:null,
  importedVersion:null,budgetSource:"unset",budgetInconsistent:false,
  pushAttackChannelId:"",pushSourceStageSkipTarget:0,
  pushFrontierEnabled:false,attackDamageFrontierEnabled:false,attackDamageChannelId:""});
@@ -394,6 +394,7 @@ function importRaw(raw){
  state.budgetSource=parsed.budgetSource;
  state.budgetInconsistent=parsed.budgetInconsistent;
  manualCurrentStageConfirmed=false;
+ state.stageSeason=null;
  state.maxStage=parsed.maxStage;state.craftingPower=parsed.craftingPower;state.sets=parsed.sets;
  state.accountProfile=parsed.profile;
 
@@ -450,6 +451,7 @@ function readInputs(){
  }
  state.skillPoints=manuallyEntered;
  manualCurrentStageConfirmed=true;
+ state.stageSeason=!state.accountProfile&&Date.now()>=Date.parse("2026-11-26T00:00:00.000Z")?14:null;
  state.maxStage=capCurrentMaxStage(
   $("max-stage").value,state.accountProfile,true);
  state.goldWeight=Number($("gold-weight").value);
@@ -1121,7 +1123,7 @@ function sharePayload(){
  // a fictitious re-creation of the measured allocation.
  // Compact URL encoding; the exported skill tree itself is intentionally
  // not encrypted. Sharing the link discloses the included game settings.
- return {pushFrontier:state.pushFrontierEnabled===true,attackDamageFrontier:state.attackDamageFrontierEnabled===true,attackDamageChannel:state.attackDamageChannelId,protect:state.protectUnmodeledSkills!==false,co:state.assumeCoordinatedOffensiveActive===true,fz:state.assumeFlashZipAtBoss===true,nm:state.assumeNightmareAtBoss===true,mo:state.assumeMagnumOpusAtBoss===true,tiExperiment:state.excludeUnverifiedTacticalInsight===true||state.tacticalInsightCalibration?.enabled===true,tiMeasurementOmitted:state.tacticalInsightCalibration?.enabled===true,sp:state.skillPoints,st:state.maxStage,da:state.damage,go:state.gold,p:state.playstyle,q:state.qol,w:state.goldWeight,cp:state.craftingPower,tk:state.timeToKill,cl:state.sClone,cur:state.currentLevels,min:state.minimums,exc:state.excluded,keep:state.preserveCurrent,hay:state.assumeHaystActive,snap:state.assumeSnapActive,astral:state.astralActivations,attack:state.pushAttackChannelId,skip:state.pushSourceStageSkipTarget};
+ return {pushFrontier:state.pushFrontierEnabled===true,attackDamageFrontier:state.attackDamageFrontierEnabled===true,attackDamageChannel:state.attackDamageChannelId,protect:state.protectUnmodeledSkills!==false,co:state.assumeCoordinatedOffensiveActive===true,fz:state.assumeFlashZipAtBoss===true,nm:state.assumeNightmareAtBoss===true,mo:state.assumeMagnumOpusAtBoss===true,tiExperiment:state.excludeUnverifiedTacticalInsight===true||state.tacticalInsightCalibration?.enabled===true,tiMeasurementOmitted:state.tacticalInsightCalibration?.enabled===true,sp:state.skillPoints,st:state.maxStage,ss:(state.stageSeason===14||String(state.accountProfile?.stats?.transcendenceSeason)==="14")?14:null,da:state.damage,go:state.gold,p:state.playstyle,q:state.qol,w:state.goldWeight,cp:state.craftingPower,tk:state.timeToKill,cl:state.sClone,cur:state.currentLevels,min:state.minimums,exc:state.excluded,keep:state.preserveCurrent,hay:state.assumeHaystActive,snap:state.assumeSnapActive,astral:state.astralActivations,attack:state.pushAttackChannelId,skip:state.pushSourceStageSkipTarget};
 }
 function decodeLink(){
  const hash=window.location.hash;
@@ -1129,7 +1131,7 @@ function decodeLink(){
  try{
   const payload=JSON.parse(decodeURIComponent(escape(atob(hash.slice(7)))));
   if(!payload||typeof payload!=="object")return;
-  state={...fresh(),skillPoints:payload.sp??0,maxStage:capCurrentMaxStage(payload.st??0),damage:payload.da??"Clan Ship",gold:payload.go??"Fairy",playstyle:payload.p??"balanced",qol:payload.q??"recommended",goldWeight:payload.w??.7,craftingPower:payload.cp??1,timeToKill:payload.tk??8,sClone:payload.cl??30,currentLevels:payload.cur||{},minimums:payload.min||{},excluded:Array.isArray(payload.exc)?payload.exc:[],preserveCurrent:Boolean(payload.keep),assumeHaystActive:payload.hay===true,
+  state={...fresh(),skillPoints:payload.sp??0,stageSeason:payload.ss===14?14:null,maxStage:capCurrentMaxStage(payload.st??0,null,payload.ss===14),damage:payload.da??"Clan Ship",gold:payload.go??"Fairy",playstyle:payload.p??"balanced",qol:payload.q??"recommended",goldWeight:payload.w??.7,craftingPower:payload.cp??1,timeToKill:payload.tk??8,sClone:payload.cl??30,currentLevels:payload.cur||{},minimums:payload.min||{},excluded:Array.isArray(payload.exc)?payload.exc:[],preserveCurrent:Boolean(payload.keep),assumeHaystActive:payload.hay===true,
     assumeSnapActive:payload.snap===true,assumeCoordinatedOffensiveActive:payload.co===true,assumeFlashZipAtBoss:payload.fz===true,assumeNightmareAtBoss:payload.nm===true,assumeMagnumOpusAtBoss:payload.mo===true,assumeContractsAtMax:false,astralActivations:payload.astral??0,protectUnmodeledSkills:payload.protect!==false,excludeUnverifiedTacticalInsight:payload.tiExperiment===true,
     pushAttackChannelId:typeof payload.attack==="string"?payload.attack:"",
     pushSourceStageSkipTarget:payload.skip??0,
@@ -1149,7 +1151,8 @@ function initialize(){
  delete state.pushObservedAttackChannelId;
  delete state.pushObservedHitDamage;
  delete state.pushBossStage;
- state.maxStage=capCurrentMaxStage(state.maxStage,state.accountProfile,false);
+ manualCurrentStageConfirmed=state.stageSeason===14;
+ state.maxStage=capCurrentMaxStage(state.maxStage,state.accountProfile,manualCurrentStageConfirmed);
  // Previous seasonal pet choices must not outlive the reset.
  const activePetIds=new Set(availablePets(state.accountProfile).map(p=>p.id));
  if(state.selectedDamagePet&&!activePetIds.has(state.selectedDamagePet))
