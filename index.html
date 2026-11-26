@@ -16,7 +16,7 @@
 <link rel="icon" type="image/svg+xml" href="assets/favicon.svg"><link rel="stylesheet" href="styles.css?v=20261122-toast-flat-r1">
 <title>TT2 Skill Tree Optimizer 8.4 — Free Skill Point Calculator | Leskasoft</title>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"TT2 Skill Tree Optimizer","description":"Tap Titans 2 skill tree optimizer with manual and JSON import, QoL preferences and 50,000 Skill Point support.","applicationCategory":"GameApplication","operatingSystem":"Any","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"url":"https://tap-titans.leskasoft.com/","inLanguage":"en","@id":"https://tap-titans.leskasoft.com/#tool"}</script>
-<script type="module" src="src/app.js?v=20261123-boss-specials-r1&amp;season=20261126-season14-r1&amp;ui=20261123-hide-observed-hit-r1&amp;score=20261123-cadence-separated-r1&amp;audit=20261123-ti-sensitivity-r1&amp;alt=20261123-ti-second-tree-r1&amp;ember=20261123-ember-fire-sword-gate-r1&amp;jackpot=20261123-native-jackpot-expectation-r1&amp;mc=20261123-multicast-no-guessed-x10-r1&amp;crit=20261124-cleaving-crit-event-r1&amp;ambush=20261124-ambush-conditional-gold-r1&amp;simplify=20261126-boss-r1" defer></script>
+<script type="module" src="src/app.js?v=20261123-boss-specials-r1&amp;season=20261126-season14-r1&amp;ui=20261123-hide-observed-hit-r1&amp;score=20261123-cadence-separated-r1&amp;audit=20261123-ti-sensitivity-r1&amp;alt=20261123-ti-second-tree-r1&amp;ember=20261123-ember-fire-sword-gate-r1&amp;jackpot=20261123-native-jackpot-expectation-r1&amp;mc=20261123-multicast-no-guessed-x10-r1&amp;crit=20261124-cleaving-crit-event-r1&amp;ambush=20261124-ambush-conditional-gold-r1&amp;simplify=20261126-boss-r1&amp;security=20261126-audit56-r1" defer></script>
 </head>
 <body>
 <div class="site">
@@ -38,6 +38,8 @@
   <input type="file" id="upload-file" accept=".json,application/json,text/plain" hidden>
   <details class="import-expand" id="paste-details"><summary>Or paste the export manually</summary><textarea id="import-json" rows="4" spellcheck="false" placeholder='Paste TT2 JSON export here…' aria-label="Paste TT2 JSON export"></textarea><button class="btn secondary" type="button" id="import-button">Import pasted JSON</button></details>
   <p class="hint">Private by design — your save is processed locally in this browser.</p>
+  <p class="hint">Your imported account and preferences may be stored in this browser. You can erase them here.</p>
+  <button type="button" class="btn tiny secondary" id="clear-local-data">Erase saved TT2 data</button>
  </div>
  <div class="field-grid">
   <label>Skill Points <input id="skill-points" type="number" min="0" max="50000" step="1" inputmode="numeric" placeholder="e.g. 4200" required></label>
