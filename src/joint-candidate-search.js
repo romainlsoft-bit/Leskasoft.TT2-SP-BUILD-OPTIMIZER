@@ -1,4 +1,5 @@
 import {rankVisitedCandidateBounds,visitedScoreEnvelope} from "./model-score-bounds.js?v=20261123-boss-specials-r1";
+import {MAX_EXHAUSTIVE_OWNED_GEAR_ASSIGNMENTS} from "./gear-search-policy.js?v=20261123-boss-specials-r1";
 /**
  * Block-coordinate refinement between the ACTUAL equipped gear and the
  * optimized skill tree for one chosen pair of active pets.
@@ -91,8 +92,10 @@ export function refineCoupledGearAndSkills(settings,{gearFor,solve,score,upperBo
 export function enumerateJointGearAndSkills(settings,{
  assignments,gearFor,solve,score,upperBoundOf
 }={}){
- if(!Array.isArray(assignments)||!assignments.length||assignments.length>16)
-  throw new RangeError("Full gear/SP enumeration requires 1–16 assignments");
+ if(!Array.isArray(assignments)||!assignments.length||
+  assignments.length>MAX_EXHAUSTIVE_OWNED_GEAR_ASSIGNMENTS)
+  throw new RangeError("Full gear/SP enumeration requires 1–"+
+   MAX_EXHAUSTIVE_OWNED_GEAR_ASSIGNMENTS+" assignments");
  if(typeof gearFor!=="function"||typeof solve!=="function"||typeof score!=="function")
   throw new TypeError("Missing full gear/SP enumeration function");
  let best=null,bestRow=null;
