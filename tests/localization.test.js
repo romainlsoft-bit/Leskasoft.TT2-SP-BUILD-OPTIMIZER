@@ -16,7 +16,9 @@ test("English is the default and only explicitly supported languages can be sele
  assert.equal(t("Skill Points","en"),"Skill Points");
  assert.equal(t("Skill Points","xx"),"Skill Points");
  assert.equal(t("Missing key","uk"),"Missing key");
- assert.ok(app.includes('localStorage.getItem("tt2_site_language")'));
+ const storage=readFileSync(new URL("../src/browser-persistence.js",import.meta.url),"utf8");
+ assert.ok(storage.includes('LANGUAGE_STORAGE_KEY="tt2_site_language"'));
+ assert.ok(app.includes("storeLanguage(localStorage,locale)"));
  assert.ok(app.includes('searchParams.get("lang")'));
 });
 
