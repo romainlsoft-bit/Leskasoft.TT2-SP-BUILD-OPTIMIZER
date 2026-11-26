@@ -8,7 +8,8 @@ import {currentPostSeasonMode,POST_SEASON13_UTC} from "./current-season-policy.j
  * pieces and cannot establish when the set first became complete.
  */
 export const OFFICIAL_TRANSCENDENCE_STARTS=Object.freeze({
- "13":"2026-08-12" // Game Hive DevLog #231, August 11, 2026
+ "13":"2026-08-12", // Game Hive DevLog #231, August 11, 2026
+ "14":"2026-11-26" // TT2 Wiki transcendence guide, 2026-11-26
 });
 // E9 is a COMMUNITY calendar, NOT a developer-confirmed end timestamp.
 // On Nov 24 the in-game season was reported ended. The website now
@@ -45,7 +46,7 @@ export function resolveTranscendenceAge(profile,at=new Date()){
  // End date from E9 is unofficial. Do not assert in-game certainty,
  // but never silently carry a possibly obsolete season's multipliers
  // indefinitely into later seasons.
- const endExclusive=estimatedEndDate?
+ const endExclusive=season==="13"&&estimatedEndDate?
   Date.parse(POST_SEASON13_UTC):null;
  const estimatedSeasonEnded=endExclusive!==null&&
   Number.isFinite(now)&&now>=endExclusive;
