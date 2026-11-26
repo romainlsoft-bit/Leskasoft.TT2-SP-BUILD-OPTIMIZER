@@ -14,7 +14,8 @@ test("review P2: configuration changes invalidate and terminate in-flight worker
 test("review P2: selected real gear and pet pair render ahead of alternatives",()=>{
  assert.match(app,/lastGearSelection=data\.gearSelection\?\?null/);
  assert.match(app,/lastResolvedPets=data\.selectedPets\?\?null/);
- assert.match(app,/lastGearSelection=selected\.gearSelection\?\?null/);
+ assert.doesNotMatch(app,/lastScenarios/);
+ assert.match(app,/renderEquipmentRecommendations\(\)/);
  assert.match(app,/Selected optimized equipment/);
  assert.match(app,/Equipment alternatives/);
  assert.match(app,/const selected=lastGearSelection\?\.selected\|\|\{\}/);
