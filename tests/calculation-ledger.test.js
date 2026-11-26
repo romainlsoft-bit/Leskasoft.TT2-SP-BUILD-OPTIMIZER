@@ -113,7 +113,8 @@ test("The score breakdown is present in every localized UI",()=>{
  const app=readFileSync(new URL("../src/app.js",import.meta.url),"utf8");
  assert.ok(app.includes("result.modeledScenario"));
  const label="Modeled log10 score: skills {skills}, account {account}, equipped gear {gear}, active pets above passive {pets}; combined {total}. Not predicted stages.";
- const i18n=readFileSync(new URL("../src/i18n.js",import.meta.url),"utf8");
- assert.equal(i18n.split(label).length-1,3);
- for(const locale of ["fr","uk","ru"])assert.ok(i18n.includes(locale+":{"));
+ for(const locale of ["fr","uk","ru"]){
+  const i18n=readFileSync(new URL("../src/i18n-"+locale+".js",import.meta.url),"utf8");
+  assert.equal(i18n.split(label).length-1,1);
+ }
 });
