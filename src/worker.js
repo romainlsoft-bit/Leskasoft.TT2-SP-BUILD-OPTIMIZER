@@ -1,4 +1,5 @@
 import {publicOptimizationSettings} from "./public-optimization-policy.js?v=20261123-boss-specials-r1";
+import {MAX_EXHAUSTIVE_OWNED_GEAR_ASSIGNMENTS,shouldEnumerateOwnedGear} from "./gear-search-policy.js?v=20261123-boss-specials-r1";
 import {optimizeBuild,capCurrentMaxStage} from "./engine.js?v=20261123-boss-specials-r1&season=20261126-season14-r1&score=20261123-cadence-separated-r1&audit=20261123-ti-sensitivity-r1&ember=20261123-ember-fire-sword-gate-r1&jackpot=20261123-native-jackpot-expectation-r1&mc=20261123-multicast-no-guessed-x10-r1&crit=20261124-cleaving-crit-event-r1&ambush=20261124-ambush-conditional-gold-r1&ideal=20261126-boss-r1";
 import {petSearchPlan,availablePets} from "./pet-scenarios.js?v=20261123-boss-specials-r1&season=20261126-season14-r1";
 import {calculateModeledScenario} from "./calculation-ledger.js?v=20261123-boss-specials-r1&season=20261126-season14-r1";
@@ -38,11 +39,8 @@ self.onmessage=event=>{
  const cache=new Map();
  try{
   const gearEnumeration=enumerateOwnedGearAssignments(settings.accountProfile,
-   settings,32);
-  const sp=Number(settings.skillPoints??0);
-  const fullJointBudget=sp<=1000?96:sp<=5000?48:32;
-  let useFullGearEnumeration=gearEnumeration.exhaustive&&
-   gearEnumeration.assignments.length<=fullJointBudget;
+   settings,MAX_EXHAUSTIVE_OWNED_GEAR_ASSIGNMENTS);
+  const useFullGearEnumeration=shouldEnumerateOwnedGear(gearEnumeration);
   const gearFor=context=>
    gearSelectionEffects(context.accountProfile,context,context.selectedEquipment||{});
   const evaluateJoint=(chosen,sendSolverProgress=false)=>{
