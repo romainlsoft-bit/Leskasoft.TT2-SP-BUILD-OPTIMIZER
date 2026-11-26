@@ -1,3 +1,4 @@
+import {publicOptimizationSettings} from "./public-optimization-policy.js?v=20261123-boss-specials-r1";
 import {optimizeBuild,capCurrentMaxStage} from "./engine.js?v=20261123-boss-specials-r1&season=20261126-season14-r1&score=20261123-cadence-separated-r1&audit=20261123-ti-sensitivity-r1&ember=20261123-ember-fire-sword-gate-r1&jackpot=20261123-native-jackpot-expectation-r1&mc=20261123-multicast-no-guessed-x10-r1&crit=20261124-cleaving-crit-event-r1&ambush=20261124-ambush-conditional-gold-r1";
 import {petSearchPlan,availablePets} from "./pet-scenarios.js?v=20261123-boss-specials-r1&season=20261126-season14-r1";
 import {calculateModeledScenario} from "./calculation-ledger.js?v=20261123-boss-specials-r1&season=20261126-season14-r1";
@@ -20,7 +21,7 @@ self.onmessage=event=>{
  const {type,settings:rawSettings}=event.data||{};
  // Direct worker requests can carry old-season pets and saved 250k stages.
  const petIds=new Set(availablePets(rawSettings?.accountProfile).map(p=>p.id));
- const settings=rawSettings?{
+ const settings=rawSettings?publicOptimizationSettings({
   ...rawSettings,
   maxStage:capCurrentMaxStage(rawSettings.maxStage,
    rawSettings.accountProfile,!rawSettings.accountProfile),
@@ -28,14 +29,14 @@ self.onmessage=event=>{
    rawSettings.selectedDamagePet:null,
   selectedGoldPet:petIds.has(rawSettings.selectedGoldPet)?
    rawSettings.selectedGoldPet:null
- }:null;
+ }):null;
  if(!["optimize","optimize-pet-scenarios"].includes(type))return;
  const cache=new Map();
  try{
   const gearEnumeration=enumerateOwnedGearAssignments(settings.accountProfile,
-   settings,16);
+   settings,32);
   const sp=Number(settings.skillPoints??0);
-  const fullJointBudget=sp<=1000?72:sp<=5000?36:16;
+  const fullJointBudget=sp<=1000?96:sp<=5000?48:32;
   let useFullGearEnumeration=gearEnumeration.exhaustive&&
    gearEnumeration.assignments.length<=fullJointBudget;
   const gearFor=context=>
@@ -291,12 +292,28 @@ self.onmessage=event=>{
     return;
    }
   }
-  const chosen=evaluateJoint(settings,true);
-  const equipment=bestEquipmentByCategory(settings.accountProfile,settings,3);
+  // No automatic pair comparisons: choose one owned, source-ranked
+  // candidate per automatic slot. NEVER optimize with an empty active
+  // pet slot merely because the expensive comparison was disabled.
+  // Manual pet selections remain hard constraints.
+  const baselineGear=gearFor(settings);
+  const envelope=petCandidateGearWeightEnvelope(settings.accountProfile,settings);
+  const initialPetPlan=petSearchPlan(settings.accountProfile,{
+   ...settings,equipmentPetSlotWeights:envelope.slotWeights,
+   equipmentPetPassiveWeights:envelope.passiveWeights,
+   equipmentPetCoverageComplete:baselineGear.petEquipmentCoverageComplete
+  });
+  const selected={...settings,
+   selectedDamagePet:settings.selectedDamagePet||initialPetPlan.damage[0]?.id||null,
+   selectedGoldPet:settings.selectedGoldPet||initialPetPlan.gold[0]?.id||null};
+  const chosen=evaluateJoint(selected,true);
+  const equipment=bestEquipmentByCategory(settings.accountProfile,selected,3);
   self.postMessage({ok:true,result:{...withContractDecision(chosen),
-   jointSearch:chosen.jointSearch},
-   selectedPets:{damage:settings.selectedDamagePet||null,
-    gold:settings.selectedGoldPet||null},
+   jointSearch:chosen.jointSearch,
+   petSelection:{mode:"single-ranked-owned-pet-per-slot",
+    comparedPairs:false,sourceRankedNotCalibrated:true}},
+   selectedPets:{damage:selected.selectedDamagePet,
+    gold:selected.selectedGoldPet},
    petComparisons:{damage:[],gold:[]},equipment,gearSelection:chosen.gearSelection});
  }catch(error){
   self.postMessage({ok:false,error:error instanceof Error?error.message:String(error)});
