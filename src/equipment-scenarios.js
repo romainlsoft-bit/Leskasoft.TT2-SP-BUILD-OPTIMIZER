@@ -8,9 +8,9 @@
 import {ARTIFACT_CATALOG} from "../vendor/account-catalog.js?v=20261123-boss-specials-r1";
 import {equipmentEffectReduction,EQUIPMENT_AURA_TARGETS} from "./equipment-reductions.js?v=20261123-boss-specials-r1";
 import {calculatePermanentArtifactEffects} from "./account-artifacts.js?v=20261123-boss-specials-r1";
-import {petPassiveEvidence,logPassivePetMultiplier,petScenarioScore,ALL_PETS,verifiedEquipmentPetAmplifierTarget} from "./pet-scenarios.js?v=20261123-boss-specials-r1&season=20261124-end-season13-r1";
-import {petLevelEvidence} from "./account-pet-levels.js?v=20261123-boss-specials-r1&season=20261124-end-season13-r1";
-import {extractFixedAccountPower} from "./account-power.js?v=20261123-boss-specials-r1&season=20261124-end-season13-r1";
+import {petPassiveEvidence,logPassivePetMultiplier,petScenarioScore,ALL_PETS,verifiedEquipmentPetAmplifierTarget} from "./pet-scenarios.js?v=20261123-boss-specials-r1&season=20261126-season14-r1";
+import {petLevelEvidence} from "./account-pet-levels.js?v=20261123-boss-specials-r1&season=20261126-season14-r1";
+import {extractFixedAccountPower} from "./account-power.js?v=20261123-boss-specials-r1&season=20261126-season14-r1";
 import {resolveGemstoneEvidence} from "./account-gemstones.js?v=20261123-boss-specials-r1";
 import {resolvePermanentSetPower,resolveCraftingPower} from "./account-permanent-sets.js?v=20261123-boss-specials-r1";
 const CATEGORIES=["Sword","Helmet","Armor","Aura","Slash"];
