@@ -1,3 +1,4 @@
+import {modeledAstralOrbTaps} from "./public-optimization-policy.js?v=20261123-boss-specials-r1";
 import { skillInfo } from "../vendor/skills.js?v=20261123-boss-specials-r1";
 import {parseExportCounter} from "./import-numbers.js?v=20261123-boss-specials-r1";
 import {attackChannelEvidence,compareAttackChannels} from "./attack-channels.js?v=20261123-boss-specials-r1";
@@ -583,7 +584,10 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
       flashZipAtBoss:combatContext.assumeFlashZipAtBoss,
       nightmareAtBoss:combatContext.assumeNightmareAtBoss,
       magnumOpusAtBoss:combatContext.assumeMagnumOpusAtBoss,
-      astralActivations,
+      astralActivations:modeledAstralOrbTaps(result.levels,astralActivations),
+      astralMaxAvailable:5,
+      idealBossAssumptionsOnly:true,
+      actualBossUptimeVerified:false,
       contractsAtMax:combatContext.assumeContractsAtMax},
     model:"TT2 weighted log-damage/gold proxy; not a gameplay performance guarantee",
     gameVersion:GAME_VERSION,importedGameVersion:settings.importedVersion??null,
