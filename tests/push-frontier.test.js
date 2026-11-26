@@ -85,18 +85,15 @@ test("calculated frontier does not treat Stage Skip as unconditional stage gain"
  assert.equal(f.exhaustiveOverSourceStageSkip,false);
 });
 
-test("all four pages expose push comparison and share their stylesheet release",()=>{
- const pages=["index.html","fr/index.html","uk/index.html","ru/index.html"];
+test("push comparison is internal only; the public form has no controls",()=>{
  const cssVersion="20261122-toast-flat-r1";
- for(const path of pages){
+ for(const path of ["index.html","fr/index.html","uk/index.html","ru/index.html"]){
   const html=readFileSync(new URL("../"+path,import.meta.url),"utf8");
-  assert.equal((html.match(/id="push-frontier-enabled"/g)||[]).length,1,path);
+  assert.doesNotMatch(html,/id="push-frontier-enabled"/);
   assert.ok(html.includes("styles.css?v="+cssVersion),path);
  }
  const app=readFileSync(new URL("../src/app.js",import.meta.url),"utf8");
  const worker=readFileSync(new URL("../src/worker.js",import.meta.url),"utf8");
- assert.match(app,/function renderPushFrontier\(result\)/);
- assert.match(app,/state\.pushFrontierEnabled=\$\("push-frontier-enabled"\)\.checked/);
- assert.match(worker,/maxConstrained:2/);
+ assert.doesNotMatch(app,/state\.pushFrontierEnabled=\$\("push-frontier-enabled"\)\.checked/);
  assert.match(worker,/const withPushFrontier=\(choice,result\)=>/);
 });
