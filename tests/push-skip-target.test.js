@@ -125,7 +125,8 @@ test("public UI removes Stage Skip targets but keeps the diagnostic code",()=>{
  const worker=readFileSync(new URL("../src/worker.js",import.meta.url),"utf8");
  assert.doesNotMatch(app,/function renderPushStageSkipOptions/);
  const view=readFileSync(new URL("../src/result-details-ui.js",import.meta.url),"utf8");
-  assert.match(view,/function renderPushSkipComparison\(result\)/);
+  assert.doesNotMatch(view,/function renderPushSkipComparison\(result\)/);
+  assert.doesNotMatch(app,/renderPushSkipComparison\(result\)/);
   assert.match(app,/createResultDetailRenderers/);
  assert.match(worker,/const withPushComparison=\(choice,selected\)=>/);
 });
