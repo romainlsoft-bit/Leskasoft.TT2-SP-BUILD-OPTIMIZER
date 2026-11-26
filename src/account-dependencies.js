@@ -4,11 +4,11 @@
  * The graph is a DAG of dependency *classes*, not an invented skill model.
  */
 import {ARTIFACT_CATALOG,EQUIPMENT_SET_CATALOG,SEASON_ARTIFACT_CATALOG} from "../vendor/account-catalog.js?v=20261123-boss-specials-r1";
-import {resolveSetCompletionDates,resolveTranscendenceAge,heroWeaponEvidence} from "./account-temporal.js?v=20261123-boss-specials-r1&season=20261124-end-season13-r1";
+import {resolveSetCompletionDates,resolveTranscendenceAge,heroWeaponEvidence} from "./account-temporal.js?v=20261123-boss-specials-r1&season=20261126-season14-r1";
 import {clanScrollEvidence} from "./account-scrolls.js?v=20261123-boss-specials-r1";
-import {extractTimedSetPower} from "./account-set-bonuses.js?v=20261123-boss-specials-r1&season=20261124-end-season13-r1";
+import {extractTimedSetPower} from "./account-set-bonuses.js?v=20261123-boss-specials-r1&season=20261126-season14-r1";
 import {resolveUniqueOwnership} from "./account-unique.js?v=20261123-boss-specials-r1";
-import {resolveMonumentEvidence} from "./account-monuments.js?v=20261123-boss-specials-r1&season=20261124-end-season13-r1";
+import {resolveMonumentEvidence} from "./account-monuments.js?v=20261123-boss-specials-r1&season=20261126-season14-r1";
 import {calculatePermanentArtifactEffects} from "./account-artifacts.js?v=20261123-boss-specials-r1";
 import {additiveDamageEvidence} from "./account-damage-pools.js?v=20261123-boss-specials-r1";
 import {resourceResearchEvidence} from "./account-research-resources.js?v=20261123-boss-specials-r1";
