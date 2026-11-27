@@ -1,3 +1,4 @@
+import {factorizedGearSearch} from "./factorized-gear-search.js?v=20261127-r1";
 import {MAX_EXHAUSTIVE_OWNED_GEAR_ASSIGNMENTS,MAX_GEAR_ENUMERATION_INPUT_LIMIT} from "./gear-search-policy.js?v=20261123-boss-specials-r1";
 /**
  * Interchangeable equipment is a separate optimization dimension, never
@@ -391,74 +392,49 @@ export function enumerateOwnedGearAssignments(profile,settings={},limit=MAX_EXHA
 
 export function gearSelectionEffects(profile,settings,selection={}){
  const items=ownedEquipment(profile);
- const shortlist=bestEquipmentByCategory(profile,settings,3);
  const selected={},selectedGear={},petWeights={},passiveWeights={};
  const presence=equipmentPetPresence(profile);
  const inventoryTruncated=profile?.sections?.equipmentInventory?.truncated===true;
  const missingExplicitSelections=[];
- // When the complete owned inventory has a small enough Cartesian space,
- // search EVERY eligible five-slot setup (not just top two primaries).
- // "Exhaustive" is relative to the sourced equipment proxy, never all
- // actual gold/damage proc effects or cross-skill interactions.
  const eligibleBySlot=Object.fromEntries(CATEGORIES.map(slot=>[slot,
   items.filter(item=>item.slot===slot&&equipmentFit(item,settings,profile))]));
- const eligibleCount=Object.fromEntries(CATEGORIES.map(slot=>[slot,
-  eligibleBySlot[slot].length]));
+ const eligibleCount=Object.fromEntries(CATEGORIES.map(slot=>[
+  slot,eligibleBySlot[slot].length]));
  const gearSearchSpace=CATEGORIES.reduce((n,slot)=>
   n*Math.max(1,selection[slot]?1:eligibleCount[slot]),1);
- const MAX_COMPLETE_GEAR_COMBINATIONS=256;
+ const options=Object.fromEntries(CATEGORIES.map(slot=>{
+  const choices=selection[slot]?
+   [eligibleBySlot[slot].find(item=>item.uid===selection[slot])??null]:
+   inventoryTruncated?[null]:eligibleBySlot[slot];
+  return [slot,choices.length?choices:[null]];
+ }));
+ // At a fixed CT and pet pair, the modeled gear objective is additive
+ // across slots except for Aura's explicit single-primary dependency.
+ // The equipment-pet score is linear in each slot's conversion weight.
+ // Compute its coefficient using the existing pet functions at unit
+ // weight; non-equipment pets are constant and excluded from this rank.
+ const ct=Number.isSafeInteger(settings?.petCombatTechniquesLevel)&&
+  settings.petCombatTechniquesLevel>=0?settings.petCombatTechniquesLevel:0;
+ const coefficients=Object.fromEntries(CATEGORIES.map(slot=>{
+  const family=presence.get(BOOST_BY_SLOT[slot]);
+  if(!family)return [slot,0];
+  const ctx={...settings,accountProfile:profile,
+   selectedDamagePet:ALL_PETS[settings.selectedDamagePet]?.type===BOOST_BY_SLOT[slot]?settings.selectedDamagePet:null,
+   selectedGoldPet:ALL_PETS[settings.selectedGoldPet]?.type===BOOST_BY_SLOT[slot]?settings.selectedGoldPet:null,
+   equipmentPetSlotWeights:{[slot]:1},
+   equipmentPetPassiveWeights:family.hasPassive?{[slot]:1}:{}};
+  return [slot,petScenarioScore(ctx,ct)+petEquipmentCombatTechniquesIncrement(ctx,ct)];
+ }));
+ const scoreSlot=(item,gear)=>{
+  if(!item)return 0;
+  const effect=equipmentEffectScore(item,settings,profile,gear);
+  const weight=effect.first===null?0:Math.max(0,effect.primarySourceWeight??0);
+  return (effect.score??0)+coefficients[item.slot]*weight;
+ };
+ const search=factorizedGearSearch(options,scoreSlot,linkedAuraTarget);
+ const autoChoices=search.selected;
  const exhaustiveWithinOwnedInventory=!inventoryTruncated&&
-  profile?.sections?.equipmentInventory?.present===true&&
-  gearSearchSpace<=MAX_COMPLETE_GEAR_COMBINATIONS;
- let gearEvaluations=0;
- // A strong Aura can make a slightly weaker standalone Sword/Helmet/Slash
- // the better *combined* choice. Enumerate every bounded two-per-slot shortlist
- // instead of choosing every primary independently; honor manual selections.
- // This is NOT a global optimum proof over unexamined inventory candidates.
- const autoChoices={...Object.fromEntries(CATEGORIES.map(slot=>[
-  slot,shortlist[slot]?.[0]??null]))};
- if(!inventoryTruncated){
-  const options=slot=>{
-   if(selection[slot]){
-    return [items.find(it=>it.uid===selection[slot]&&
-     it.slot===slot&&equipmentFit(it,settings,profile))??null];
-   }
-   if(exhaustiveWithinOwnedInventory)
-    return eligibleBySlot[slot].length?eligibleBySlot[slot]:[null];
-   return shortlist[slot]?.length?shortlist[slot]:[null];
-  };
-  let winning=-Infinity;
-  // Evaluate full owned combinations when feasible; otherwise a sourced,
-  // bounded three-per-slot shortlist. Count *actual* evaluated setups.
- for(const armor of options("Armor"))
-  for(const sword of options("Sword"))
-   for(const helmet of options("Helmet"))
-    for(const slash of options("Slash")){
-     const armorScore=armor?equipmentEffectScore(armor,settings,profile).score??0:0;
-     const gear={Sword:sword,Helmet:helmet,Slash:slash};
-     const base=[sword,helmet,slash].reduce((sum,item)=>
-      sum+(item?equipmentEffectScore(item,settings,profile).score??0:0),armorScore);
-     const auraOptions=selection.Aura?
-      [items.find(it=>it.uid===selection.Aura&&it.slot==="Aura")??null]:
-      exhaustiveWithinOwnedInventory?options("Aura"):
-       rankEquipment(eligibleBySlot.Aura,settings,profile,3,gear,presence);
-     if(!auraOptions.length)auraOptions.push(null);
-     for(const aura of auraOptions){
-      const candidateGear={...gear,Armor:armor,Aura:aura};
-     gearEvaluations++;
-     // Use the same active pet IDs as the final scenario. The pet-active
-     // gain is a ranking term only; the ledger later adds it exactly once.
-     const total=base+(aura?
-       equipmentEffectScore(aura,settings,profile,gear).score??0:0)+
-       activePetAwareGearScore(profile,settings,candidateGear,presence);
-      if(total>winning){
-       winning=total;
-       Object.assign(autoChoices,{Sword:sword,Helmet:helmet,Slash:slash,
-        Armor:armor,Aura:aura});
-      }
-     }
-    }
- }
+  profile?.sections?.equipmentInventory?.present===true;
  let independentScore=0,unresolvedAuraLinks=0,linkedAuraCount=0;
  for(const slot of ["Sword","Helmet","Armor","Slash","Aura"]){
   const key=selection[slot];
@@ -507,13 +483,14 @@ export function gearSelectionEffects(profile,settings,selection={}){
   unresolvedAmplifiersCount:Object.values(selected).reduce(
    (n,x)=>n+x.primaryAmplifierUnresolved.length,0),
   selectedSlotCount:Object.keys(selected).length,
-  gearSearch:{examinedConfigurations:gearEvaluations,
+  gearSearch:{method:"factorized-single-aura-dependency",examinedConfigurations:search.examinedConfigurations,
+   slotEvaluations:search.slotEvaluations,
    ownedInventoryConfigurations:gearSearchSpace,
    ownedInventoryEligibleBySlot:eligibleCount,
    exhaustiveWithinOwnedInventory:exhaustiveWithinOwnedInventory&&
     missingExplicitSelections.length===0,
-   shortlisted:!exhaustiveWithinOwnedInventory,
-   maxCompleteConfigurations:MAX_COMPLETE_GEAR_COMBINATIONS,
+   shortlisted:false,
+   exactForFixedCombatTechniques:exhaustiveWithinOwnedInventory&&missingExplicitSelections.length===0,
    optimizedWithPetCombatTechniquesLevel:Number.isSafeInteger(
     settings?.petCombatTechniquesLevel)?settings.petCombatTechniquesLevel:0,
    exactAcrossSP:false},
