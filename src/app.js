@@ -501,7 +501,13 @@ function renderResults(result,scroll=true){
  $("remaining").textContent=numberText(result.remaining);
  $("change-count").textContent=result.changes.length;
  const max=Math.max(1,...Object.values(result.branchTotals));
- $("branch-chart").innerHTML=Object.entries(result.branchTotals).map(([name,points])=>`<div class="branch-row"><div class="branch-header"><span>${safe(tr(name))}</span><strong>${numberText(points)} SP</strong></div><div class="progress-track"><div class="progress-fill" style="width:${points/max*100}%;background:${branchColors[name]}"></div></div></div>`).join("");
+ $("branch-chart").innerHTML=Object.entries(result.branchTotals).map(([name,points])=>`<div class="branch-row"><div class="branch-header"><span>${safe(tr(name))}</span><strong>${numberText(points)} SP</strong></div><div class="progress-track"><div class="progress-fill"></div></div></div>`).join("");
+ // Apply trusted numeric/color values through CSSOM, not inline HTML styles.
+ const fills=$("branch-chart").querySelectorAll(".progress-fill");
+ Object.entries(result.branchTotals).forEach(([name,points],index)=>{
+  fills[index].style.width=(points/max*100)+"%";
+  fills[index].style.background=branchColors[name];
+ });
  renderEquipmentRecommendations();
  renderAccountIntegration(result);
  renderAttackChannelEvidence(result);
