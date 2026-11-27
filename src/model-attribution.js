@@ -1,5 +1,5 @@
 /** Post-solve attribution of the existing skill proxy. Never changes allocations or scores. */
-import {tacticalInsightRecommendationSensitivity} from "./tactical-insight-sensitivity.js?v=20261123-boss-specials-r1&season=20261126-season14-r1&audit=20261123-ti-sensitivity-r1&dimensional=20261127-r1";
+import {tacticalInsightRecommendationSensitivity} from "./tactical-insight-sensitivity.js?v=20261123-boss-specials-r1&season=20261126-season14-r1&audit=20261123-ti-sensitivity-r1&dimensional=20261127-r1&poisonsprout=20261127-r1";
 import {spellEffectScorable,ACTIVE_SOURCE_SKILL_SPELLS} from "./spell-scenarios.js?v=20261123-boss-specials-r1";
 
 export function buildModelAttribution({result,current,scoreCache,scoreContext,tiLocal,settings,SKILL_IDS,skillInfo,BRANCH_NAMES,GAME_VERSION}){
@@ -17,7 +17,7 @@ export function buildModelAttribution({result,current,scoreCache,scoreContext,ti
         "QuickFortune","PhilosophersFlux","HelperDmgSkillBoost",
         "ClanShipVoltage","CriticalHit","HelperInspiredWeaken",
         "Transmutation","TwilightGatheringMultiCastSkill","BossTimer",
-        "MultiMonsters",
+        "MultiMonsters","PoisonedBlade","KratosSummon",
         ].includes(id)||
        (id==="HeavyStrikes"&&scoreContext.damage!=="Heavenly Strike")};
   });

@@ -15,6 +15,8 @@ export function publicOptimizationSettings(options={}){
  return {...options,
   assumeHaystActive:true,
   assumeSnapActive:true,
+  assumePoisonApplied:true,
+  assumeSproutAtMax:true,
   assumeCoordinatedOffensiveActive:true,
   assumeFlashZipAtBoss:true,
   assumeNightmareAtBoss:true,

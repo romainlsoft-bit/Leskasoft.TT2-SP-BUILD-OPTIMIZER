@@ -1,3 +1,4 @@
+import {poisonSproutEvidence} from "./poison-sprout.js?v=20261127-r1";
 import {dimensionalShiftEvidence} from "./dimensional-shift.js?v=20261123-boss-specials-r1";
 /** First-party TT2 8.4 Unity SkillTreeInfo2.0 + BonusInfo provenance.
  * These entries are not unconditional direct damage multipliers.
@@ -5,7 +6,7 @@ import {dimensionalShiftEvidence} from "./dimensional-shift.js?v=20261123-boss-s
  */
 import {skillInfo} from "../vendor/skills.js?v=20261123-boss-specials-r1";
 
-export const CONDITIONAL_SKILL_SOURCES=Object.freeze({"ClanShipStun":{"name":"Anchoring Shot","primary":"ClanShipStunDamage","condition":"stunned-target","source":"BonusInfo: bonus only while the target is stunned"},"BossTimer":{"name":"Dimensional Shift","primary":"ShadowCloneAllSkillBoost","condition":"shadow-clone-active","source":"BonusInfo: spell boost only while Shadow Clone is active"},"PoisonedBlade":{"name":"Poison Edge","primary":"UltraDaggerPoisonBoost","condition":"dagger-poison-applied","source":"BonusInfo: additive percent poison bonus; no 1+10*A conversion"},"KratosSummon":{"name":"Sprouting Salts","primary":"KratosMonsterBonusAmount","condition":"kratos-sprout-stacks","source":"BonusInfo: special-titan stack mechanics, no permanent AllDamage"}});
+export const CONDITIONAL_SKILL_SOURCES=Object.freeze({"ClanShipStun":{"name":"Anchoring Shot","primary":"ClanShipStunDamage","condition":"stunned-target","source":"BonusInfo: bonus only while the target is stunned"},"BossTimer":{"name":"Dimensional Shift","primary":"ShadowCloneAllSkillBoost","condition":"shadow-clone-active","source":"BonusInfo: spell boost only while Shadow Clone is active"},"PoisonedBlade":{"name":"Poison Edge","primary":"UltraDaggerPoisonBoost","condition":"dagger-poison-applied","source":"BonusInfo: additive percent poison bonus; one application in public ideal scenario"},"KratosSummon":{"name":"Sprouting Salts","primary":"KratosMonsterBonusAmount","condition":"kratos-sprout-stacks","source":"BonusInfo: special-titan multiplicative stacks until prestige; source cap only"}});
 export function conditionalSkillEvidence(levels={},settings={}){
  const rows=[];
  for(const [id,source] of Object.entries(CONDITIONAL_SKILL_SOURCES)){
@@ -14,13 +15,15 @@ export function conditionalSkillEvidence(levels={},settings={}){
    continue;
   const stunned=id==="ClanShipStun"&&settings.assumeBossStunned===true;
   const dimensional=id==="BossTimer"?dimensionalShiftEvidence(level,settings):null;
+  const stack=["PoisonedBlade","KratosSummon"].includes(id)?poisonSproutEvidence(id,level,settings):null;
   rows.push({
    id,name:source.name,level,bonusType:skillInfo[id].BonusTypeA,
    sourceAmount:skillInfo[id]["A"+level],
    condition:source.condition,source:source.source,
-   appliedToSkillScore:stunned||Boolean(dimensional?.scoreLog10>0),
-   assumedCondition:stunned?"explicit-boss-stunned":dimensional?.eligible?"selected-shadow-clone-max-spell-scenario":"unverified",
+   appliedToSkillScore:stunned||Boolean(dimensional?.scoreLog10>0)||Boolean(stack?.scoreLog10>0),
+   assumedCondition:stunned?"explicit-boss-stunned":dimensional?.eligible?"selected-shadow-clone-max-spell-scenario":stack?.eligible?stack.scenario:"unverified",
    ...(dimensional?{dimensionalShift:dimensional}:{}),
+   ...(stack?{stackEvidence:stack}:{}),
    actualUptimeVerified:false,conditionModelComplete:false
   });
  }

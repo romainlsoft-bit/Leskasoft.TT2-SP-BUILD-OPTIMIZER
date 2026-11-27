@@ -1,3 +1,4 @@
+import {poisonSproutEvidence} from "./poison-sprout.js?v=20261127-r1";
 import {dimensionalShiftEvidence} from "./dimensional-shift.js?v=20261123-boss-specials-r1";
 /**
  * Numerically stable, audited log10 score model for TT2 build comparison.
@@ -154,9 +155,7 @@ function sourceSkillScoreAtLevel(id,level,settings){
       return dimensionalShiftEvidence(level,settings).scoreLog10;
     case "PoisonedBlade":
     case "KratosSummon":
-      // The active-uptime, stack, or additive-percentage conversion has not
-      // been verified; never score a fabricated permanent multiplier.
-      return 0;
+      return poisonSproutEvidence(id,level,settings).scoreLog10;
     case "ForbiddenContract":
     case "RoyalContract":
       // Damage, gold and mana assumptions are source-specific. Never treat
