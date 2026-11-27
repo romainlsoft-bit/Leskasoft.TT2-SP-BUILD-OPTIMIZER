@@ -1,0 +1,7 @@
+# Effective spell constraints — issue #9
+
+The protection of imported talents with unmodeled effects is a deliberate safety policy, not a reward or a new score. Before this correction, the engine queried multicastSkillEvidence against raw settings before inserting the required level-one unlock of a verified selected active spell. For DualPet, ThunderVolley and StreamOfBlades the query could return spell-locked despite the actual solver guaranteeing the unlock. This caused an unnecessary hard floor on the imported multicast level, preventing legitimate reallocations even in the modeled maximum-spell scenario.
+
+Resolve requested minima, QoL minima and required selected-spell unlocks before checking multicast evidence. Use the resulting effective minima, matching the objective's existing gate. Deduplicate protected IDs. The policy for missing, absent or inactive spells is unchanged, as is the explicit protection of unverified Twilight Gloom C. Do not equate selected spells with measured uptime. No changes to native spell coefficients, cap formulas, contracts, account bonus routing or DP.
+
+Tests compare implicit and explicit unlocks, verify no false protection against an unconstrained equivalent solve, preserve protection for incomplete evidence, and cover all eighteen damage/gold routes. The numerical outcome in game is not yet measured. Run npm run check, the high-SP benchmarks and local E2E; no GitHub Actions.
