@@ -1,3 +1,4 @@
+import {dimensionalShiftEvidence} from "./dimensional-shift.js?v=20261123-boss-specials-r1";
 /** First-party TT2 8.4 Unity SkillTreeInfo2.0 + BonusInfo provenance.
  * These entries are not unconditional direct damage multipliers.
  * No formulas copied from the former community reduction matrix.
@@ -12,12 +13,14 @@ export function conditionalSkillEvidence(levels={},settings={}){
   if(!Number.isSafeInteger(level)||level<=0||level>Number(skillInfo[id]?.MaxLevel))
    continue;
   const stunned=id==="ClanShipStun"&&settings.assumeBossStunned===true;
+  const dimensional=id==="BossTimer"?dimensionalShiftEvidence(level,settings):null;
   rows.push({
    id,name:source.name,level,bonusType:skillInfo[id].BonusTypeA,
    sourceAmount:skillInfo[id]["A"+level],
    condition:source.condition,source:source.source,
-   appliedToSkillScore:stunned,
-   assumedCondition:stunned?"explicit-boss-stunned":"unverified",
+   appliedToSkillScore:stunned||Boolean(dimensional?.scoreLog10>0),
+   assumedCondition:stunned?"explicit-boss-stunned":dimensional?.eligible?"selected-shadow-clone-max-spell-scenario":"unverified",
+   ...(dimensional?{dimensionalShift:dimensional}:{}),
    actualUptimeVerified:false,conditionModelComplete:false
   });
  }
