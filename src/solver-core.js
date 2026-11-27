@@ -249,7 +249,7 @@ export function gridConvolutionExact(a,b,targetBudget) {
  * The rigorous coarse convolution upper bound is retained unchanged.
  */
 export function refineBranchCapacities(frontiers,initialCaps,budget,minima=[],{
- radius=40,maxPasses=8
+ radius=40,maxPasses=8,fullPairs=false
 }={}){
  if(!Array.isArray(frontiers)||!Array.isArray(initialCaps)||
     frontiers.length!==initialCaps.length||frontiers.length<1||
@@ -271,7 +271,7 @@ export function refineBranchCapacities(frontiers,initialCaps,budget,minima=[],{
  if(total>budget||!Number.isFinite(score))
   throw new RangeError("Branch capacities exceed SP budget");
  const startScore=score;
- let steps=0,passes=0;
+ let steps=0,passes=0,pairwiseStationary=false;
  for(let pass=0;pass<maxPasses;pass++){
   passes++;
   let gain=1e-10,bestMove=null;
@@ -286,23 +286,29 @@ export function refineBranchCapacities(frontiers,initialCaps,budget,minima=[],{
     gain=improvement;bestMove={i,capI:next};
    }
   }
-  // Exact per-branch budget exchanges within a bounded neighborhood.
-  // A transfer is valid only if BOTH branch states are within their
-  // verified frontiers and neither falls below mandatory minimum SP.
-  for(let i=0;i<caps.length;i++)for(let j=i+1;j<caps.length;j++)
-   for(let shift=-radius;shift<=radius;shift++){
-    if(shift===0)continue;
-    const ai=caps[i]+shift,bj=caps[j]-shift;
-    if(ai<floors[i]||ai>=frontiers[i].length||
-       bj<floors[j]||bj>=frontiers[j].length)continue;
+  // For a full pair search, exploit monotone at-most frontiers:
+  // allocating all available capacity to the pair (up to its two
+  // maxima) dominates every split with less capacity. Enumerate every
+  // feasible integer split, including those across distant tier gates.
+  // For the legacy local pass keep the original radius and pair sum.
+  for(let i=0;i<caps.length;i++)for(let j=i+1;j<caps.length;j++){
+   const maxI=frontiers[i].length-1,maxJ=frontiers[j].length-1;
+   const pairBudget=fullPairs?Math.min(maxI+maxJ,caps[i]+caps[j]+available):caps[i]+caps[j];
+   const lo=Math.max(floors[i],pairBudget-maxJ,fullPairs?0:caps[i]-radius);
+   const hi=Math.min(maxI,pairBudget-floors[j],fullPairs?maxI:caps[i]+radius);
+   const before=frontiers[i][caps[i]]+frontiers[j][caps[j]];
+   for(let ai=lo;ai<=hi;ai++){
+    const bj=pairBudget-ai;
+    if(ai===caps[i]&&bj===caps[j])continue;
     const a=frontiers[i][ai],b=frontiers[j][bj];
     if(!Number.isFinite(a)||!Number.isFinite(b))continue;
-    const improvement=a+b-frontiers[i][caps[i]]-frontiers[j][caps[j]];
+    const improvement=a+b-before;
     if(improvement>gain){
      gain=improvement;bestMove={i,j,capI:ai,capJ:bj};
     }
    }
-  if(!bestMove)break;
+  }
+  if(!bestMove){pairwiseStationary=fullPairs;break;}
   const {i,j,capI,capJ}=bestMove;
   total+=capI-caps[i];caps[i]=capI;
   if(j!==undefined){total+=capJ-caps[j];caps[j]=capJ;}
@@ -314,11 +320,12 @@ export function refineBranchCapacities(frontiers,initialCaps,budget,minima=[],{
   throw new Error("Branch refinement lost a feasible modeled score");
  return {capacities:caps,score:recomputed,initialScore:startScore,
   gain:Math.max(0,recomputed-startScore),steps,passes,
-  totalAllocatedCapacity:total,localExchangeRadius:radius,
+  totalAllocatedCapacity:total,localExchangeRadius:fullPairs?null:radius,
+  scope:fullPairs?"all-pair-splits":"local-radius",pairwiseStationary,
   globallyExact:false};
 }
 
-export function optimizeExact(skills, budget, scoreFor, _retiredMode="power", onProgress=()=>{}, {gridThreshold=12000,gridTarget=2500,branchCache=null}={}) {
+export function optimizeExact(skills, budget, scoreFor, _retiredMode="power", onProgress=()=>{}, {gridThreshold=12000,gridTarget=2500,branchCache=null,fullPairRefinement=true}={}) {
   if (!Number.isInteger(budget)||budget<0||budget>50000) throw new Error("SP budget must be from 0 to 50,000.");
   const groups=[];
   for(const skill of skills){
@@ -403,23 +410,35 @@ export function optimizeExact(skills, budget, scoreFor, _retiredMode="power", on
    branchSolutions.map(x=>x.values),capacities,budget,floorCosts,
    {radius:Math.min(512,Math.max(4,quantum*4)),maxPasses:8}):
    null;
-  const chosenCapacities=refined?.capacities??capacities;
+  // Start from the previous production refinement, so the extended search
+  // cannot trade away any previously attainable modeled score. A bounded
+  // number of complete pair sweeps costs O(branches² × budget) per pass,
+  // without recalculating branch DP or inventing a gameplay multiplier.
+  const pairRefined=gridded&&fullPairRefinement&&upperBound-refined.score>1e-8?
+   refineBranchCapacities(branchSolutions.map(x=>x.values),refined.capacities,
+    budget,floorCosts,{fullPairs:true,maxPasses:8}):null;
+  const finalRefinement=pairRefined&&pairRefined.score>=refined.score?pairRefined:refined;
+  const chosenCapacities=finalRefinement?.capacities??capacities;
   const levels={};
   for(let i=0;i<branchSolutions.length;i++)
    Object.assign(levels,branchSolutions[i].reconstruct(chosenCapacities[i]));
-  const score=refined?.score??global[selectedBudget];
+  const score=finalRefinement?.score??global[selectedBudget];
   if(score>upperBound+1e-8)
    throw new Error("Refined score exceeds the certified coarse-grid upper bound");
   return {
     levels,score,
     solver:gridded?"bounded-grid-dp":"exact-dp",
-    capacity:gridded?refined.totalAllocatedCapacity:selectedBudget,
+    capacity:gridded?finalRefinement.totalAllocatedCapacity:selectedBudget,
     optimality:gridded?{
       mode:"bounded-power",
       quantum,lowerBound:score,upperBound,
       initialLowerBound:scoreAtFullBudget,
       localRefinement:{gain:refined.gain,steps:refined.steps,
        passes:refined.passes,radius:refined.localExchangeRadius},
+      pairRefinement:pairRefined?{scope:pairRefined.scope,
+       gain:Math.max(0,score-refined.score),steps:pairRefined.steps,
+       passes:pairRefined.passes,pairwiseStationary:pairRefined.pairwiseStationary,
+       globallyExact:false}:null,
       gap:Math.max(0,upperBound-score),
       certifiedExact:Math.abs(upperBound-score)<1e-8
     }:{mode:"exact",certifiedExact:true,quantum:1,lowerBound:score,upperBound:score,gap:0}
