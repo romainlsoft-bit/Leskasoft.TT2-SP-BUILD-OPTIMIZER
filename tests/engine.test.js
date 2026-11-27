@@ -182,6 +182,9 @@ test("Combat conditions survive optimization and out-of-range taps are rejected"
    coordinatedOffensive:false,flashZipAtBoss:false,
    nightmareAtBoss:false,magnumOpusAtBoss:false,
    astralActivations:0,astralMaxAvailable:5,
+   anchoringShotStunAtBoss:false,inspiredHeroesAtBoss:false,
+   thunderVolleySpecialAtBoss:false,bladeStreamTargetAtBoss:false,
+   poisonApplications:0,sproutStacks:0,
    idealBossAssumptionsOnly:false,actualBossUptimeVerified:false,
    contractsAtMax:false});
 });

@@ -159,7 +159,9 @@ test("source ledger is not silently applied to equipment or fixed-account score"
  const engine=readFileSync(new URL("../src/engine.js",import.meta.url),"utf8");
  const effects=readFileSync(new URL("../src/effects.js",import.meta.url),"utf8");
  assert.ok(effects.includes("return baseline+skillTreeSetScore(id,level,settings)"));
- assert.ok(engine.includes("skillTreeSetAllocationEvidence"));
+ const accountBaseline=readFileSync(new URL("../src/optimization-account-baseline.js",import.meta.url),"utf8");
+ assert.ok(engine.includes("buildAccountBaseline(settings,result.levels)"));
+ assert.ok(accountBaseline.includes("skillTreeSetAllocationEvidence(settings.accountProfile,levels)"));
  assert.ok(engine.includes("addedToFixedAccount:false"));
  assert.ok(engine.includes("newlyResolvedSetEffects"));
 });
