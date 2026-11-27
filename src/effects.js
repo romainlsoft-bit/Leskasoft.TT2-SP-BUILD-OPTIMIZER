@@ -1,3 +1,4 @@
+import {probabilityCouplingSkillScore} from "./probability-coupling.js?v=20261127-r1";
 import {poisonSproutEvidence} from "./poison-sprout.js?v=20261127-r1";
 import {dimensionalShiftEvidence} from "./dimensional-shift.js?v=20261123-boss-specials-r1";
 /**
@@ -120,7 +121,9 @@ function sourceSkillScoreAtLevel(id,level,settings){
       return settings.assumeHaystActive===true ? goldWeight*lr(logB) : 0;
     case "LoadedDice":
       // Unlike Quick Fortune, B is unconditionally AllGold.
-      return r*lr(logA)+goldWeight*lr(logB);
+      return goldWeight*lr(logB)+probabilityCouplingSkillScore(id,level,settings);
+    case "LovePotion":
+      return probabilityCouplingSkillScore(id,level,settings);
     case "MultiMonsters":
       // Ambush A = multiple-Titan gold, not general Chesterson gold.
       // The native B is a group-size CAP, not an event probability.
