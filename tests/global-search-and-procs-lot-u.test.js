@@ -68,7 +68,7 @@ test("U: clamped or unsourced chance cannot become a fixed build coefficient",()
  assert.equal(scenario.families.jackpot.candidateChanceVerified,false);
  assert.equal(scenario.jackpotBinaryEvent.observedExpectedMultiplierLog10,null);
 });
-test("U: full owned inventory enumerates all eligible gear combinations when small",()=>{
+test("U: factorized search covers all eligible combinations when small",()=>{
  const p=parseAccountProfile({equipmentInventory:[
   {id:"S1",slot:"Sword",bonusType:"AllDamage",bonusAmount:"1e10"},
   {id:"S2",slot:"Sword",bonusType:"AllDamage",bonusAmount:"1e20"},
@@ -79,7 +79,8 @@ test("U: full owned inventory enumerates all eligible gear combinations when sma
  const settings=cfg(p);
  const gear=gearSelectionEffects(p,settings);
  assert.equal(gear.gearSearch.ownedInventoryConfigurations,6);
- assert.equal(gear.gearSearch.examinedConfigurations,6);
+ assert.equal(gear.gearSearch.examinedConfigurations,1);
+ assert.equal(gear.gearSearch.slotEvaluations,8);
  assert.equal(gear.gearSearch.exhaustiveWithinOwnedInventory,true);
  const swords=ownedEquipment(p).filter(x=>x.slot==="Sword");
  const manual=swords.map(sword=>gearSelectionEffects(p,settings,{Sword:sword.uid}));
@@ -87,7 +88,7 @@ test("U: full owned inventory enumerates all eligible gear combinations when sma
  near(gear.independentScore,Math.max(...manual.map(x=>x.independentScore)));
  assert.equal(gear.selected.Sword.name,"S3");
 });
-test("U: 512-item complete gear search is explicitly bounded, not falsely exhaustive",()=>{
+test("U: complete 3125-combination inventory is covered by factorized search",()=>{
  const rows=[];
  for(const slot of ["Sword","Helmet","Armor","Aura","Slash"]){
   for(let i=0;i<5;i++)rows.push({id:`${slot}${i}`,
@@ -98,9 +99,10 @@ test("U: 512-item complete gear search is explicitly bounded, not falsely exhaus
  const p=parseAccountProfile({equipmentInventory:rows});
  const gear=gearSelectionEffects(p,cfg(p));
  assert.equal(gear.gearSearch.ownedInventoryConfigurations,3125);
- assert.equal(gear.gearSearch.exhaustiveWithinOwnedInventory,false);
- assert.equal(gear.gearSearch.shortlisted,true);
- assert.ok(gear.gearSearch.examinedConfigurations<=243);
+ assert.equal(gear.gearSearch.exhaustiveWithinOwnedInventory,true);
+ assert.equal(gear.gearSearch.shortlisted,false);
+ assert.equal(gear.gearSearch.examinedConfigurations,25);
+ assert.equal(gear.gearSearch.slotEvaluations,45);
 });
 test("U: small 4x3 owned Pet/Fairy roster escapes legacy 3x3 pruning",()=>{
  const p=parseAccountProfile({petLevels:{
