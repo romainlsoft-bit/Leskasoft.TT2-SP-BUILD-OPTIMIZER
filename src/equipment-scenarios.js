@@ -1,4 +1,4 @@
-import {factorizedGearSearch} from "./factorized-gear-search.js?v=20261127-r1";
+import {factorizedGearSearch} from "./factorized-gear-search.js?v=20261123-boss-specials-r1&introduced=20261127-r1";
 import {MAX_EXHAUSTIVE_OWNED_GEAR_ASSIGNMENTS,MAX_GEAR_ENUMERATION_INPUT_LIMIT} from "./gear-search-policy.js?v=20261123-boss-specials-r1";
 /**
  * Interchangeable equipment is a separate optimization dimension, never
