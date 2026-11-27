@@ -7,9 +7,9 @@ const gear=(id,ct)=>({selected:{Sword:{id}},
 const dependencies=(calls=[])=>({
  gearFor:s=>gear(s.petCombatTechniquesLevel>=45?"B":"A",s.petCombatTechniquesLevel),
  solve:s=>{
-  calls.push(s.petEquipmentSlotWeights.Sword);
-  return {levels:{CombatTechniques:s.petEquipmentSlotWeights.Sword===2?50:0},
-   score:s.petEquipmentSlotWeights.Sword===2?20:10};
+  calls.push(s.equipmentPetSlotWeights.Sword);
+  return {levels:{CombatTechniques:s.equipmentPetSlotWeights.Sword===2?50:0},
+   score:s.equipmentPetSlotWeights.Sword===2?20:10};
  },
  score:r=>r.score,upperBoundOf:r=>r.score
 });
@@ -30,7 +30,7 @@ test("high-CT seed discovers a stronger gear/SP equilibrium missed from zero",()
 test("seed budget is bounded, omitted candidates remain explicit and prior winner is preserved",()=>{
  const deps={
   gearFor:s=>gear(s.petCombatTechniquesLevel===0?"A":s.petCombatTechniquesLevel===50?"B":"C",s.petCombatTechniquesLevel),
-  solve:s=>({levels:{CombatTechniques:s.petCombatTechniquesLevel},score:s.petEquipmentSlotWeights.Sword===1?10:1}),
+  solve:s=>({levels:{CombatTechniques:s.petCombatTechniquesLevel},score:s.equipmentPetSlotWeights.Sword===1?10:1}),
   score:r=>r.score,upperBoundOf:r=>r.score
  };
  const actual=refineGearWithCTSeeds({}, {...deps,maxAdditionalCandidates:1});
