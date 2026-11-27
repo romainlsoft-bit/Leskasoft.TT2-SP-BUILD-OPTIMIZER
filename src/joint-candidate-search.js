@@ -163,7 +163,13 @@ export function refineGearWithCTSeeds(settings,{
 }={}){
  if(!Number.isSafeInteger(maxAdditionalCandidates)||maxAdditionalCandidates<0||
     maxAdditionalCandidates>3)throw new RangeError("Additional gear candidates must be 0–3");
- const dependencies={gearFor,solve,score,upperBoundOf};
+ const gearCache=new Map();
+ const cachedGearFor=context=>{
+  const ct=context.petCombatTechniquesLevel;
+  if(!gearCache.has(ct))gearCache.set(ct,gearFor(context));
+  return gearCache.get(ct);
+ };
+ const dependencies={gearFor:cachedGearFor,solve,score,upperBoundOf};
  const baseline=refineCoupledGearAndSkills(settings,dependencies);
  const initial=baseline.best;
  const trace=[...baseline.search.trace];
@@ -179,7 +185,7 @@ export function refineGearWithCTSeeds(settings,{
  // omitted distinct candidates rather than claiming they were evaluated.
  const omitted=new Set();
  for(const initialCT of probes){
-  const gear=gearFor({...settings,petCombatTechniquesLevel:initialCT});
+  const gear=cachedGearFor({...settings,petCombatTechniquesLevel:initialCT});
   const signature=gearSignature(gear);
   if(seen.has(signature)){probeTrace.push({initialCT,signature,status:"already-solved-gear"});continue;}
   if(additional>=maxAdditionalCandidates){
@@ -212,6 +218,7 @@ export function refineGearWithCTSeeds(settings,{
     selectedAlternative:winner!==baseline,probes:probeTrace,
     additionalCandidates:additional,maxAdditionalCandidates,
     distinctSolvedGear:seen.size,omittedDistinctGear:omitted.size,
+    distinctGearProbes:gearCache.size,
     allCTLevelsExamined:false,globallyExact:false},
    globallyOptimalAcrossPetGearSP:false}};
 }

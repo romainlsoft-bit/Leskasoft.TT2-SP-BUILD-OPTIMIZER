@@ -1,0 +1,7 @@
+# CT multi-start gear/SP search — issue #9
+
+The existing CT=0 coordinate refinement may converge to one gear/SP equilibrium while a different CT level exposes a better gear combination. For the standard single-pet-pair worker path with an inventory product above the existing 32-assignment threshold, a positive SP budget and an owned equipment pet, retain the original result, then probe the imported Combat Techniques level (if valid), 50, 25, 10, 40, 5, 15, 20, 30, 35 and 45. Cache gear selection per CT within this search. Reuse the existing factorized gear selector and coordinate refinement; skip already-solved gear signatures, run at most two additional seeds with two solves each. Retain the best feasible score and union of visited bounds. Explicitly report omitted signatures, probe levels, actual extra candidates and score gain. Neither the finite probe grid nor the visited bounds imply global optimality.
+
+Small inventory full Cartesian search, diagnostic pet-pair budgets, missing/truncated inventories and accounts without equipment pets retain their previous path. No new coefficients, no modification of SP objective, no new UI setting. Performance and real TT2 gains still require qualification; additional gear scans may cost time on large inventories.
+
+Tests exercise alternative equilibria, candidate budget, seed order/deduplication and a real worker route. Qualification: npm run check; npm run bench:22k; npm run bench:issue30; npm run test:e2e. No GitHub Actions.

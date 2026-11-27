@@ -53,7 +53,7 @@ self.onmessage=event=>{
     enumerateJointGearAndSkills(chosen,{...dependencies,assignments:gearEnumeration.assignments}):
     // Only the normal single-pair path gets extra SP solves. Keep the
     // existing diagnostic pet-pair work budget and truncated inventory path.
-    sendSolverProgress&&gearEnumeration.reason==="full-owned-gear-product-exceeds-limit"&&
+    sendSolverProgress&&sp>0&&gearEnumeration.reason==="full-owned-gear-product-exceeds-limit"&&
      availablePets(chosen.accountProfile).some(p=>["SwordBoost","HelmetBoost","ArmorBoost","SlashBoost","AuraBoost"].includes(p.type))?
      refineGearWithCTSeeds(chosen,dependencies):
      refineCoupledGearAndSkills(chosen,{...dependencies,maxRounds:3});
