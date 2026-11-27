@@ -1,3 +1,4 @@
+import {coefficientBreakEven} from "./ti-break-even.js?v=20261127-r1";
 /**
  * Sensitivity of the PROPOSED vs CURRENT skill trees to the unverified
  * community Tactical Insight / HelperBoost coefficient.
@@ -87,6 +88,7 @@ export function tacticalInsightRecommendationSensitivity(current,proposed,
   heuristicExcluded:{currentScoreLog10:excludedCurrent,
    proposedScoreLog10:excludedProposed,
    proposedMinusCurrentLog10:excludedDelta},
+  coefficientSensitivity:coefficientBreakEven(excludedDelta,normalDelta),
   proposedPositiveOnlyWithCommunityCoefficient:
    normalDelta>tol&&excludedDelta<=excludedTol,
   proposedImprovesUnderBothTIModels:

@@ -455,5 +455,10 @@ export default Object.freeze({
  "Boss scenario: {poison} poison application(s), {sprout} source Sprout stacks; activation not measured.": "Сценарій боса: {poison} застосувань отрути, {sprout} накопичень Sprout від навички; активацію не виміряно.",
  "Boss spell specials: Thunder Volley {tv}; Blade Stream target {bs}.": "Особливі атаки заклинань проти боса: Thunder Volley {tv}; ціль Blade Stream {bs}.",
  "Boss scenario: Clan Ship stun {stun}; inspired hero damage {inspired}. Activation is assumed, not measured.": "Сценарій боса: оглушення кораблем клану {stun}; шкода натхненних героїв {inspired}. Активація припускається, а не вимірюється.",
- "Source-only probability interactions: credited {credited} log10; remaining unscored {residual} log10. Actual event probabilities are not verified.": "Взаємодія ймовірностей за даними навичок: враховано {credited} log10; не враховано {residual} log10. Реальні ймовірності подій не перевірено."
+ "Source-only probability interactions: credited {credited} log10; remaining unscored {residual} log10. Actual event probabilities are not verified.": "Взаємодія ймовірностей за даними навичок: враховано {credited} log10; не враховано {residual} log10. Реальні ймовірності подій не перевірено.",
+ "Tactical Insight break-even: {percent}% of the historical coefficient. {tree} wins above this threshold in the model, not necessarily in game.": "Поріг Tactical Insight: {percent}% історичного коефіцієнта. {tree} виграє вище цього порога в моделі, але не обов’язково в грі.",
+ "Proposed build": "Запропонований білд",
+ "Current build": "Поточний білд",
+ "Alternative build": "Альтернативний білд",
+ "Main build": "Основний білд"
 });
