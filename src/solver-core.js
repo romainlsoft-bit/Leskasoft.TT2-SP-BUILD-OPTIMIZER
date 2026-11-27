@@ -327,7 +327,7 @@ export function refineBranchCapacities(frontiers,initialCaps,budget,minima=[],{
   globallyExact:false};
 }
 
-export function optimizeExact(skills, budget, scoreFor, _retiredMode="power", onProgress=()=>{}, {gridThreshold=12000,gridTarget=2500,branchCache=null,fullPairRefinement=true}={}) {
+export function optimizeExact(skills, budget, scoreFor, _retiredMode="power", onProgress=()=>{}, {gridThreshold=12000,gridTarget=2500,branchCache=null,fullPairRefinement=true,initialLevels=null}={}) {
   if (!Number.isInteger(budget)||budget<0||budget>50000) throw new Error("SP budget must be from 0 to 50,000.");
   const groups=[];
   for(const skill of skills){
@@ -419,7 +419,38 @@ export function optimizeExact(skills, budget, scoreFor, _retiredMode="power", on
   const pairRefined=gridded&&fullPairRefinement&&upperBound-refined.score>1e-8?
    refineBranchCapacities(branchSolutions.map(x=>x.values),refined.capacities,
     budget,floorCosts,{fullPairs:true,maxPasses:8}):null;
-  const finalRefinement=pairRefined&&pairRefined.score>=refined.score?pairRefined:refined;
+  const gridRefinement=pairRefined&&pairRefined.score>=refined.score?pairRefined:refined;
+  let finalRefinement=gridRefinement,warmStart=null;
+  // The imported tree supplies ONLY a second capacity vector, never a
+  // trusted allocation or a score from another account/scenario. Exact
+  // branch frontiers reconstruct levels under the current constraints.
+  if(gridded&&fullPairRefinement&&initialLevels&&upperBound-gridRefinement.score>1e-8){
+   const importedCaps=groups.map(group=>group.skills.reduce((sum,skill)=>{
+    const level=initialLevels[skill.id]??0;
+    return Number.isSafeInteger(level)&&level>=0&&level<skill.costs.length?
+     sum+skill.costs[level]:NaN;
+   },0));
+   const importedSpent=importedCaps.reduce((sum,x)=>sum+x,0);
+   if(Number.isSafeInteger(importedSpent)&&importedSpent>0&&importedSpent<=budget){
+    const seed=importedCaps.map((cap,i)=>
+     Math.max(floorCosts[i],Math.min(cap,branchSolutions[i].values.length-1)));
+    const seedSpent=seed.reduce((sum,x)=>sum+x,0);
+    if(seedSpent<=budget&&seed.every((cap,i)=>Number.isFinite(branchSolutions[i].values[cap]))){
+     const identical=seed.every((cap,i)=>cap===gridRefinement.capacities[i]);
+     if(!identical){
+      const alternate=refineBranchCapacities(branchSolutions.map(x=>x.values),
+       seed,budget,floorCosts,{fullPairs:true,maxPasses:8});
+      const selected=alternate.score>gridRefinement.score;
+      if(selected)finalRefinement=alternate;
+      warmStart={status:"evaluated",importedSpent,seedCapacity:seedSpent,
+       initialScore:alternate.initialScore,refinedScore:alternate.score,
+       selected,gain:Math.max(0,alternate.score-gridRefinement.score),
+       steps:alternate.steps,passes:alternate.passes,
+       pairwiseStationary:alternate.pairwiseStationary};
+     }else warmStart={status:"same-capacities",selected:false,gain:0};
+    }else warmStart={status:"incompatible-capacities",selected:false,gain:0};
+   }else warmStart={status:"empty-or-invalid-budget",selected:false,gain:0};
+  }
   const chosenCapacities=finalRefinement?.capacities??capacities;
   const levels={};
   for(let i=0;i<branchSolutions.length;i++)
@@ -438,9 +469,10 @@ export function optimizeExact(skills, budget, scoreFor, _retiredMode="power", on
       localRefinement:{gain:refined.gain,steps:refined.steps,
        passes:refined.passes,radius:refined.localExchangeRadius},
       pairRefinement:pairRefined?{scope:pairRefined.scope,
-       gain:Math.max(0,score-refined.score),steps:pairRefined.steps,
+       gain:Math.max(0,gridRefinement.score-refined.score),steps:pairRefined.steps,
        passes:pairRefined.passes,pairwiseStationary:pairRefined.pairwiseStationary,
        globallyExact:false}:null,
+      warmStart,
       gap:Math.max(0,upperBound-score),
       certifiedExact:Math.abs(upperBound-score)<1e-8
     }:{mode:"exact",certifiedExact:true,quantum:1,lowerBound:score,upperBound:score,gap:0}
