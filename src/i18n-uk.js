@@ -454,5 +454,6 @@ export default Object.freeze({
  "Skip to main content": "Перейти до основного вмісту",
  "Boss scenario: {poison} poison application(s), {sprout} source Sprout stacks; activation not measured.": "Сценарій боса: {poison} застосувань отрути, {sprout} накопичень Sprout від навички; активацію не виміряно.",
  "Boss spell specials: Thunder Volley {tv}; Blade Stream target {bs}.": "Особливі атаки заклинань проти боса: Thunder Volley {tv}; ціль Blade Stream {bs}.",
- "Boss scenario: Clan Ship stun {stun}; inspired hero damage {inspired}. Activation is assumed, not measured.": "Сценарій боса: оглушення кораблем клану {stun}; шкода натхненних героїв {inspired}. Активація припускається, а не вимірюється."
+ "Boss scenario: Clan Ship stun {stun}; inspired hero damage {inspired}. Activation is assumed, not measured.": "Сценарій боса: оглушення кораблем клану {stun}; шкода натхненних героїв {inspired}. Активація припускається, а не вимірюється.",
+ "Source-only probability interactions: credited {credited} log10; remaining unscored {residual} log10. Actual event probabilities are not verified.": "Взаємодія ймовірностей за даними навичок: враховано {credited} log10; не враховано {residual} log10. Реальні ймовірності подій не перевірено."
 });

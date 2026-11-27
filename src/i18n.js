@@ -6,9 +6,9 @@ export const NATIVE_LANGUAGE_NAMES = {en:"English",fr:"Français",uk:"Украї
 // Catalogs are independent; English uses the source messages.
 export const translations=Object.create(null);
 const loaders=Object.freeze({
- fr:()=>import("./i18n-fr.js?v=20261123-boss-specials-r1&locale=20261127-audit56-r1&poisonsprout=20261127-r1&specialspells=20261127-r1&warlordboss=20261127-r1"),
- uk:()=>import("./i18n-uk.js?v=20261123-boss-specials-r1&locale=20261127-audit56-r1&poisonsprout=20261127-r1&specialspells=20261127-r1&warlordboss=20261127-r1"),
- ru:()=>import("./i18n-ru.js?v=20261123-boss-specials-r1&locale=20261127-audit56-r1&poisonsprout=20261127-r1&specialspells=20261127-r1&warlordboss=20261127-r1")
+ fr:()=>import("./i18n-fr.js?v=20261123-boss-specials-r1&locale=20261127-audit56-r1&poisonsprout=20261127-r1&specialspells=20261127-r1&warlordboss=20261127-r1&proccoupling=20261127-r1"),
+ uk:()=>import("./i18n-uk.js?v=20261123-boss-specials-r1&locale=20261127-audit56-r1&poisonsprout=20261127-r1&specialspells=20261127-r1&warlordboss=20261127-r1&proccoupling=20261127-r1"),
+ ru:()=>import("./i18n-ru.js?v=20261123-boss-specials-r1&locale=20261127-audit56-r1&poisonsprout=20261127-r1&specialspells=20261127-r1&warlordboss=20261127-r1&proccoupling=20261127-r1")
 });
 const pending=new Map();
 
