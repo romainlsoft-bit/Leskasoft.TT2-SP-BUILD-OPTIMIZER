@@ -135,7 +135,7 @@ for(const {damage,gold} of compare){
    assert.ok(result.spent>=sp*.95,`Pet/Fairy spent only ${result.spent} / ${sp} SP`);
   console.log(JSON.stringify({damage,gold,SP:sp,spent:result.spent,
    elapsedMs:Math.round(elapsedMs),approximate:result.optimality.mode!=="exact",
-   scoreGap:result.optimality.gap,pairRefinement:result.optimality.pairRefinement??null,scoreLedger:modeled,
+   scoreGap:result.optimality.gap,pairRefinement:result.optimality.pairRefinement??null,warmStart:result.optimality.warmStart??null,scoreLedger:modeled,
    pushSkipTarget:result.pushSkipTarget,
    unresolvedEffects:result.accountIntegration.unmodeledEffects,
    importedAccount:Boolean(localExport),progressEvents:progress.length,
