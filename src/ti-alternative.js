@@ -8,7 +8,7 @@
  * The same final pet, equipment, spells, constraints and budget are reused.
  */
 import {skillInfo} from "../vendor/skills.js?v=20261123-boss-specials-r1";
-import {scoreAtLevel} from "./effects.js?v=20261123-boss-specials-r1&season=20261126-season14-r1&score=20261123-cadence-separated-r1&ember=20261123-ember-fire-sword-gate-r1&jackpot=20261123-native-jackpot-expectation-r1&mc=20261123-multicast-no-guessed-x10-r1&crit=20261124-cleaving-crit-event-r1&ambush=20261124-ambush-conditional-gold-r1&dimensional=20261127-r1&poisonsprout=20261127-r1";
+import {scoreAtLevel} from "./effects.js?v=20261123-boss-specials-r1&season=20261126-season14-r1&score=20261123-cadence-separated-r1&ember=20261123-ember-fire-sword-gate-r1&jackpot=20261123-native-jackpot-expectation-r1&mc=20261123-multicast-no-guessed-x10-r1&crit=20261124-cleaving-crit-event-r1&ambush=20261124-ambush-conditional-gold-r1&dimensional=20261127-r1&poisonsprout=20261127-r1&proccoupling=20261127-r1";
 import {sourceSpent} from "./investment-audit.js?v=20261123-boss-specials-r1&poisonsprout=20261127-r1";
 
 const IDS=Object.keys(skillInfo);
