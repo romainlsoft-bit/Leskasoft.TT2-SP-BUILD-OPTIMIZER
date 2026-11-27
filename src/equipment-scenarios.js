@@ -9,7 +9,7 @@ import {MAX_EXHAUSTIVE_OWNED_GEAR_ASSIGNMENTS,MAX_GEAR_ENUMERATION_INPUT_LIMIT} 
 import {ARTIFACT_CATALOG} from "../vendor/account-catalog.js?v=20261123-boss-specials-r1";
 import {equipmentEffectReduction,EQUIPMENT_AURA_TARGETS} from "./equipment-reductions.js?v=20261123-boss-specials-r1";
 import {calculatePermanentArtifactEffects} from "./account-artifacts.js?v=20261123-boss-specials-r1";
-import {petPassiveEvidence,logPassivePetMultiplier,petScenarioScore,ALL_PETS,verifiedEquipmentPetAmplifierTarget} from "./pet-scenarios.js?v=20261123-boss-specials-r1&season=20261126-season14-r1";
+import {petPassiveEvidence,logPassivePetMultiplier,petScenarioScore,petEquipmentCombatTechniquesIncrement,ALL_PETS,verifiedEquipmentPetAmplifierTarget} from "./pet-scenarios.js?v=20261123-boss-specials-r1&season=20261126-season14-r1";
 import {petLevelEvidence} from "./account-pet-levels.js?v=20261123-boss-specials-r1&season=20261126-season14-r1";
 import {extractFixedAccountPower} from "./account-power.js?v=20261123-boss-specials-r1&season=20261126-season14-r1";
 import {resolveGemstoneEvidence} from "./account-gemstones.js?v=20261123-boss-specials-r1";
@@ -98,21 +98,37 @@ const equipmentBoostCache=new WeakMap();
  * has already been separated from its passive by petScenarioScore; this
  * function is used ONLY to choose gear, never added to independentScore.
  */
-function activePetAwareGearScore(profile,settings,gear){
- const weights={};
+function equipmentPetPresence(profile){
+ const families=new Map();
+ for(const pet of petPassiveEvidence(profile).entries){
+  if(!(pet.level>0))continue;
+  const previous=families.get(pet.bonusType);
+  families.set(pet.bonusType,{hasPassive:previous?.hasPassive===true||pet.passiveFraction>0});
+ }
+ return families;
+}
+function recordEquipmentPetWeight(slot,effect,presence,weights,passiveWeights){
+ const family=presence.get(BOOST_BY_SLOT[slot]);
+ const weight=effect.first===null?0:Math.max(0,effect.primarySourceWeight??0);
+ if(!family||!(weight>0))return;
+ weights[slot]=weight;
+ if(family.hasPassive)passiveWeights[slot]=weight;
+}
+function activePetAwareGearScore(profile,settings,gear,presence){
+ const weights={},passiveWeights={};
  for(const slot of CATEGORIES){
   const item=gear[slot];
   if(!item)continue;
-  const modeled=equipmentEffectScore(item,settings,profile,gear);
-  if(modeled.first===null)continue;
-  const weight=modeled.primarySourceWeight;
-  if(Number.isFinite(weight)&&weight>0)weights[slot]=weight;
+  recordEquipmentPetWeight(slot,equipmentEffectScore(item,settings,profile,gear),
+   presence,weights,passiveWeights);
  }
- return petScenarioScore({...settings,accountProfile:profile,
-  equipmentPetSlotWeights:weights},
-  Number.isSafeInteger(settings?.petCombatTechniquesLevel)&&
-   settings.petCombatTechniquesLevel>=0?
-   settings.petCombatTechniquesLevel:0);
+ const context={...settings,accountProfile:profile,
+  equipmentPetSlotWeights:weights,equipmentPetPassiveWeights:passiveWeights};
+ const level=Number.isSafeInteger(settings?.petCombatTechniquesLevel)&&
+  settings.petCombatTechniquesLevel>=0?settings.petCombatTechniquesLevel:0;
+ // Same two terms as the final ledger plus CT skill increment. This is
+ // ONLY a ranking term: independentScore still excludes both.
+ return petScenarioScore(context,level)+petEquipmentCombatTechniquesIncrement(context,level);
 }
 /** Equipment pet bonus chain: five Exotic pet passives -> Restored Rune
  * Heart -> equipment primary; alongside Ring of Calisto and slot-specific
@@ -239,7 +255,7 @@ function equipmentEffectScore(item,settings,profile,selectedGear={}){
   score:first===null&&secondaries.known.length===0?
    null:(first??0)+amp+secondaries.score};
 }
-function rankEquipment(items,settings,profile,limit,selected={}){
+function rankEquipment(items,settings,profile,limit,selected={},presence=equipmentPetPresence(profile)){
  const ranked=items.map(item=>{
   const estimatedScore=equipmentEffectScore(item,settings,profile,selected).score;
   // Ranking must include the selected pet when the slot's damage-source
@@ -247,7 +263,7 @@ function rankEquipment(items,settings,profile,limit,selected={}){
   // a shortlist heuristic; full pet×gear×SP global optimality is unproven.
   const gear={...selected,[item.slot]:item};
   const petAwareScore=estimatedScore===null?null:
-   estimatedScore+activePetAwareGearScore(profile,settings,gear);
+   estimatedScore+activePetAwareGearScore(profile,settings,gear,presence);
   return {...item,estimatedScore,petAwareScore};
  }).sort((a,b)=>(b.petAwareScore??-Infinity)-(a.petAwareScore??-Infinity)
    ||a.displayName.localeCompare(b.displayName));
@@ -312,12 +328,12 @@ export function petCandidateGearWeightEnvelope(profile,settings={}){
 export function bestEquipmentByCategory(profile,settings,limit=2){
  const incomplete=profile?.sections?.equipmentInventory?.truncated===true;
  const list=incomplete?[]:ownedEquipment(profile);
- const output={},selected={};
+ const output={},selected={},presence=equipmentPetPresence(profile);
  // Targets MUST precede Aura: its primary effect is linked to precisely one
  // already selected Sword, Helmet or Slash, never independent damage.
  for(const slot of ["Sword","Helmet","Armor","Slash","Aura"]){
   const suitable=list.filter(item=>item.slot===slot&&equipmentFit(item,settings,profile));
-  output[slot]=rankEquipment(suitable,settings,profile,limit,selected);
+  output[slot]=rankEquipment(suitable,settings,profile,limit,selected,presence);
   if(output[slot][0])selected[slot]=output[slot][0];
  }
  if(!GUNBLADE_BUILDS.has(settings.damage)){
@@ -377,6 +393,7 @@ export function gearSelectionEffects(profile,settings,selection={}){
  const items=ownedEquipment(profile);
  const shortlist=bestEquipmentByCategory(profile,settings,3);
  const selected={},selectedGear={},petWeights={},passiveWeights={};
+ const presence=equipmentPetPresence(profile);
  const inventoryTruncated=profile?.sections?.equipmentInventory?.truncated===true;
  const missingExplicitSelections=[];
  // When the complete owned inventory has a small enough Cartesian space,
@@ -424,7 +441,7 @@ export function gearSelectionEffects(profile,settings,selection={}){
      const auraOptions=selection.Aura?
       [items.find(it=>it.uid===selection.Aura&&it.slot==="Aura")??null]:
       exhaustiveWithinOwnedInventory?options("Aura"):
-       rankEquipment(eligibleBySlot.Aura,settings,profile,3,gear);
+       rankEquipment(eligibleBySlot.Aura,settings,profile,3,gear,presence);
      if(!auraOptions.length)auraOptions.push(null);
      for(const aura of auraOptions){
       const candidateGear={...gear,Armor:armor,Aura:aura};
@@ -433,7 +450,7 @@ export function gearSelectionEffects(profile,settings,selection={}){
      // gain is a ranking term only; the ledger later adds it exactly once.
      const total=base+(aura?
        equipmentEffectScore(aura,settings,profile,gear).score??0:0)+
-       activePetAwareGearScore(profile,settings,candidateGear);
+       activePetAwareGearScore(profile,settings,candidateGear,presence);
       if(total>winning){
        winning=total;
        Object.assign(autoChoices,{Sword:sword,Helmet:helmet,Slash:slash,
@@ -442,8 +459,6 @@ export function gearSelectionEffects(profile,settings,selection={}){
      }
     }
  }
- const equippedPets=new Map(petPassiveEvidence(profile).entries
-  .filter(x=>x.level>0).map(x=>[x.bonusType,x]));
  let independentScore=0,unresolvedAuraLinks=0,linkedAuraCount=0;
  for(const slot of ["Sword","Helmet","Armor","Slash","Aura"]){
   const key=selection[slot];
@@ -477,13 +492,7 @@ export function gearSelectionEffects(profile,settings,selection={}){
     type:x.bonusType,score:x.score,reduction:x.reduction,source:x.source})),
    unmodeledSecondaryTypes:effect.secondaries.unknown.map(x=>x.bonusType)};
   if(effect.score!==null)independentScore+=effect.score;
-  const equipmentPet=equippedPets.get(BOOST_BY_SLOT[slot]);
-  const primaryWeight=effect.first===null?0:
-   Math.max(0,effect.primarySourceWeight??0);
-  if(equipmentPet&&primaryWeight>0){
-   petWeights[slot]=primaryWeight;
-   if(equipmentPet.passiveFraction>0)passiveWeights[slot]=primaryWeight;
-  }
+  recordEquipmentPetWeight(slot,effect,presence,petWeights,passiveWeights);
  }
  const petLevelReport=petLevelEvidence(profile);
  return {selected,independentScore,
