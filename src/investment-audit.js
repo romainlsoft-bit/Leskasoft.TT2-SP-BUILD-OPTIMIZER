@@ -46,6 +46,8 @@ function protectedReason(id,settings){
   return "boss-stun-uptime-not-verified";
  if(id==="HelperDmgQTE"&&Number(settings.astralActivations??0)===0)
   return "astral-orb-activation-not-verified";
+ if(id==="PoisonedBlade")return "poison-application-not-assumed";
+ if(id==="KratosSummon")return "sprout-stack-activation-not-assumed";
  if(id==="CritSkillBoost")return "lightning-strike-count-unverified";
  if(id==="TwilightGatheringMultiCastSkill")
   return "twilight-gloom-target-activation-unverified";
