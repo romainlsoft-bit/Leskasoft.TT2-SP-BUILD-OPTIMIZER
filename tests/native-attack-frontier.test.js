@@ -117,8 +117,10 @@ test("native comparison remains internal and is removed from four localized page
   assert.ok(html.includes("src/app.js?v=20261123-boss-specials-r1"));
  }
  const worker=readFileSync(new URL("../src/worker.js",import.meta.url),"utf8");
- assert.match(worker,/exploreNativeAttackDamageFrontier\(fixed,/);
- assert.match(worker,/maxConstrained:2,baselineResult:result/);
+ const decision=readFileSync(new URL("../src/final-candidate-decision.js",import.meta.url),"utf8");
+ assert.match(worker,/createFinalCandidateDecision\(settings,/);
+ assert.match(decision,/exploreNativeAttackDamageFrontier\(fixed,/);
+ assert.match(decision,/maxConstrained:2,baselineResult:result/);
 });
 
 test("native modifier probing tries the closest feasible upgrade before an ambitious tier",()=>{

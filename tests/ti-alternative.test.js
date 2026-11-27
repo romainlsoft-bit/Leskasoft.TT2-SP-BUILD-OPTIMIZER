@@ -155,7 +155,9 @@ test("real optimizer can be used for the second allocation with unchanged SP con
 test("frontend displays only the extra build JSON; no hit damage entry or Actions",()=>{
  const app=readFileSync(new URL("../src/app.js",import.meta.url),"utf8");
  const worker=readFileSync(new URL("../src/worker.js",import.meta.url),"utf8");
- assert.match(worker,/exploreTacticalInsightAlternative\(context,result,/);
+ const decision=readFileSync(new URL("../src/final-candidate-decision.js",import.meta.url),"utf8");
+ assert.match(worker,/createFinalCandidateDecision\(settings,/);
+ assert.match(decision,/exploreTacticalInsightAlternative\(context,result,/);
  const details=readFileSync(new URL("../src/result-details-ui.js",import.meta.url),"utf8");
   assert.match(details,/exportBuild\(alt\.levels\)/);
  assert.match(details,/alt\?\.status==="explored"/);
