@@ -1,3 +1,4 @@
+import {coefficientBreakEven} from "./ti-break-even.js?v=20261127-r1";
 /**
  * Produce ONE optional, fully feasible SP alternative under the existing
  * "exclude unverified Tactical Insight" scenario, only after a selected
@@ -96,6 +97,7 @@ export function exploreTacticalInsightAlternative(settings={},original=null,{
    alternativeMinusOriginalLog10:alternativeNormal-originalNormal},
   excludedTI:{originalLog10:originalExcluded,alternativeLog10:alternativeExcluded,
    alternativeMinusOriginalLog10:gainExcluded},
+  coefficientSensitivity:coefficientBreakEven(gainExcluded,alternativeNormal-originalNormal),
   originalScoreUnchanged:true,petGearContextReused:true,
   oneExtraSPOptimization:true,allSixDamageAndThreeGoldTypes:true,
   representsUnverifiedHeuristicExclusion:true,

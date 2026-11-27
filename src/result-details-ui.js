@@ -70,6 +70,12 @@ function renderModelAttribution(result){
     damage:ti.damageGainLog10.toFixed(3),gold:ti.goldGainLog10.toFixed(3)}))+"</p>":
   audit.tacticalInsightCommunityWeightExcluded===true?
   "<p class='hint'>"+safe(tr("Experimental: the unverified community Tactical Insight coefficient was excluded from this allocation. This is a sensitivity comparison, not evidence of zero in-game benefit or a proven stronger build."))+"</p>":"";
+ const thresholdNotice=(data,positive,negative)=>{
+  if(data?.status!=="crossing")return "";
+  return "<p class='hint'>"+safe(tr("Tactical Insight break-even: {percent}% of the historical coefficient. {tree} wins above this threshold in the model, not necessarily in game.",{
+   percent:(100*data.crossingFraction).toFixed(2),
+   tree:tr(data.aboveThreshold==="positive"?positive:negative)}))+"</p>";
+ };
  const comparison=audit.tacticalInsightSensitivity;
  const sensitivity=comparison?.status==="compared-same-model-context"?
   "<p class='hint'>"+safe(tr(
@@ -82,6 +88,7 @@ function renderModelAttribution(result){
     "Warning: the proposed allocation only wins under the unverified Tactical Insight coefficient. Compare both trees in the game's Stats panel before applying it."))+"</p>":"")+
   "<p class='hint'>"+safe(tr(
    "This compares two existing trees only, without reoptimizing or predicting stages. Other uncertain skills remain unchanged."))+"</p>":"";
+ const currentThreshold=thresholdNotice(comparison?.coefficientSensitivity,"Proposed build","Current build");
  const alt=result.tacticalInsightAlternative;
  const altView=alt?.status==="explored"?
   "<h4>"+safe(tr("Tactical Insight: alternative SP allocation"))+"</h4>"+
@@ -92,6 +99,7 @@ function renderModelAttribution(result){
     excluded:alt.excludedTI.alternativeMinusOriginalLog10.toFixed(3),
     community:alt.community.alternativeMinusOriginalLog10.toFixed(3)
    }))+"</p>"+
+  thresholdNotice(alt.coefficientSensitivity,"Alternative build","Main build")+
   "<label>"+safe(tr("Alternative build JSON (copy to compare in game)"))+
   "<textarea readonly rows='5' class='export-json' aria-label='Alternative TI build JSON'>"+
   safe(exportBuild(alt.levels))+"</textarea></label>":"";
@@ -110,7 +118,7 @@ function renderModelAttribution(result){
  el.innerHTML="<summary>"+safe(tr("Why the proxy invests in these trees"))+
   "</summary><p class='hint'>"+
   safe(tr("Modeled skill contributions only; a high contribution is not proof of real combat power. The comparison does not alter the build."))+
-  "</p>"+experimental+sensitivity+jackpotNotice+critNotice+ambushNotice+couplingNotice+branches.join("")+
+  "</p>"+experimental+sensitivity+currentThreshold+jackpotNotice+critNotice+ambushNotice+couplingNotice+branches.join("")+
   "<h4>"+safe(tr("Largest modeled talent contributions"))+"</h4>"+top.join()+altView;
 }
 /** One observed hit from the CURRENT tree only; the recommendation is

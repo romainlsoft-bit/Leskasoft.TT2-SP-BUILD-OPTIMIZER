@@ -454,5 +454,10 @@ export default Object.freeze({
  "Boss scenario: {poison} poison application(s), {sprout} source Sprout stacks; activation not measured.": "Scénario de boss : {poison} application(s) de poison, {sprout} cumuls Sprout du talent ; activation non mesurée.",
  "Boss spell specials: Thunder Volley {tv}; Blade Stream target {bs}.": "Attaques de sorts contre le boss : Thunder Volley {tv} ; cible Blade Stream {bs}.",
  "Boss scenario: Clan Ship stun {stun}; inspired hero damage {inspired}. Activation is assumed, not measured.": "Scénario de boss : étourdissement du vaisseau de clan {stun} ; dégâts des héros inspirés {inspired}. Activation supposée, non mesurée.",
- "Source-only probability interactions: credited {credited} log10; remaining unscored {residual} log10. Actual event probabilities are not verified.": "Interactions de probabilités issues des talents : {credited} log10 intégrés ; {residual} log10 non intégrés. Les probabilités réelles ne sont pas vérifiées."
+ "Source-only probability interactions: credited {credited} log10; remaining unscored {residual} log10. Actual event probabilities are not verified.": "Interactions de probabilités issues des talents : {credited} log10 intégrés ; {residual} log10 non intégrés. Les probabilités réelles ne sont pas vérifiées.",
+ "Tactical Insight break-even: {percent}% of the historical coefficient. {tree} wins above this threshold in the model, not necessarily in game.": "Seuil d’équilibre de Tactical Insight : {percent} % du coefficient historique. {tree} gagne au-dessus de ce seuil dans le modèle, pas nécessairement en jeu.",
+ "Proposed build": "Build proposé",
+ "Current build": "Build actuel",
+ "Alternative build": "Build alternatif",
+ "Main build": "Build principal"
 });
