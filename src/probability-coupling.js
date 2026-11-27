@@ -42,6 +42,7 @@ function expected(p,m){
  // Loaded Dice. Reject changed domains rather than assume monotonicity
  // across a probability cap (where the lower-bound proof can fail).
  if(!Number.isFinite(p)||p<0||p>1)throw new RangeError("Source probability exceeds unit interval");
+ if(m===0||p===0)return 0;
  const value=binaryExpectedMultiplierLog10(p,m);
  if(value===null||!Number.isFinite(value))throw new Error("Invalid expectation");
  return value;
