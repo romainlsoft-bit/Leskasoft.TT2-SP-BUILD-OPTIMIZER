@@ -15,7 +15,7 @@ export function buildModelAttribution({result,current,scoreCache,scoreContext,ti
       conditionalSourceUnverified:id==="HelperBoost"||
        ["ForbiddenContract","RoyalContract","TerrifyingPact",
         "QuickFortune","PhilosophersFlux","HelperDmgSkillBoost",
-        "ClanShipVoltage","CriticalHit","HelperInspiredWeaken",
+        "ClanShipVoltage","CriticalHit","HelperInspiredWeaken","ClanShipStun",
         "Transmutation","TwilightGatheringMultiCastSkill","BossTimer",
         "MultiMonsters","PoisonedBlade","KratosSummon",
         ].includes(id)||
