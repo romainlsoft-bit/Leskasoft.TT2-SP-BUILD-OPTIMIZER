@@ -1,3 +1,4 @@
+import {dimensionalShiftEvidence} from "./dimensional-shift.js?v=20261123-boss-specials-r1";
 /**
  * Numerically stable, audited log10 score model for TT2 build comparison.
  * This is a damage/gold proxy, not a model of real farming speed or all
@@ -147,6 +148,10 @@ function sourceSkillScoreAtLevel(id,level,settings){
     case "ClanShipStun":
       return settings.assumeBossStunned===true?r*lr(logA):0;
     case "BossTimer":
+      // Dimensional Shift amplifies the primary effect of each selected
+      // spell while Shadow Clone is active. Only the existing conditional
+      // spell proxy weights are used, never a fixed count of all spells.
+      return dimensionalShiftEvidence(level,settings).scoreLog10;
     case "PoisonedBlade":
     case "KratosSummon":
       // The active-uptime, stack, or additive-percentage conversion has not
