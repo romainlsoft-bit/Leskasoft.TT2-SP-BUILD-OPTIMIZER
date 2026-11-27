@@ -1,3 +1,4 @@
+import {spellSelectionEvidence} from "./spell-scenarios.js?v=20261123-boss-specials-r1";
 /**
  * Public optimizer contract. Retired controls must never be restored by
  * localStorage, shared links, or a stale worker caller.
@@ -12,7 +13,16 @@ export const IDEAL_BOSS_ORB_TAPS=5;
 export function publicOptimizationSettings(options={}){
  if(!options||typeof options!=="object"||Array.isArray(options))
   throw new TypeError("Public optimization settings must be an object");
+ // Both special attacks require the corresponding active spell. The
+ // engine guarantees the talent unlock before building the score table.
+ // These are hypothetical push hits, never measured activation.
+ const selection=spellSelectionEvidence(options);
+ const maximum=options.assumeMaxSpells===true||
+  (options.assumeMaxSpells!==false&&Number(options.maxStage)>=15000);
+ const selected=id=>maximum&&selection.valid&&selection.ids.includes(id);
  return {...options,
+  assumeThunderVolleySpecialHit:options.damage==="Clan Ship"&&selected("ThunderVolley"),
+  assumeDaggerTargetMarked:options.damage==="Dagger"&&selected("StreamOfBlades"),
   assumeHaystActive:true,
   assumeSnapActive:true,
   assumePoisonApplied:true,
