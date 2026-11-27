@@ -246,6 +246,8 @@ export function gridConvolutionExact(a,b,targetBudget) {
  * coefficient. This monotone local exchange never decreases the candidate
  * score, never exceeds the total budget and never claims global optimality.
  *
+ * fullPairs optionally checks every feasible pair split, including unused
+ * capacity; callers must supply nondecreasing at-most-budget frontiers.
  * The rigorous coarse convolution upper bound is retained unchanged.
  */
 export function refineBranchCapacities(frontiers,initialCaps,budget,minima=[],{
@@ -302,7 +304,7 @@ export function refineBranchCapacities(frontiers,initialCaps,budget,minima=[],{
     if(ai===caps[i]&&bj===caps[j])continue;
     const a=frontiers[i][ai],b=frontiers[j][bj];
     if(!Number.isFinite(a)||!Number.isFinite(b))continue;
-    const improvement=a+b-before;
+    const improvement=fullPairs?a+b-before:a+b-frontiers[i][caps[i]]-frontiers[j][caps[j]];
     if(improvement>gain){
      gain=improvement;bestMove={i,j,capI:ai,capJ:bj};
     }
