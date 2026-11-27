@@ -14,7 +14,7 @@ test("English requires no catalog and each locale is loaded on demand, once",asy
  assert.equal(second,"fr");
  assert.deepEqual(Object.keys(translations),["fr"]);
  const french=translations.fr;
- assert.equal(Object.keys(french).length,451);
+ assert.equal(Object.keys(french).length,452);
  assert.equal(Object.isFrozen(french),true);
  assert.notEqual(t("Skill Points","fr"),"Skill Points");
  assert.equal(await loadLocale("fr"),"fr");
@@ -22,9 +22,9 @@ test("English requires no catalog and each locale is loaded on demand, once",asy
  assert.equal(t("Skill Points","uk"),"Skill Points");
  await loadLocale("uk");
  assert.deepEqual(Object.keys(translations),["fr","uk"]);
- assert.equal(Object.keys(translations.uk).length,452);
+ assert.equal(Object.keys(translations.uk).length,453);
  await loadLocale("ru");
- assert.equal(Object.keys(translations.ru).length,451);
+ assert.equal(Object.keys(translations.ru).length,452);
  for(const lang of ["fr","uk","ru"]){
   const key="{phase}: {completed}/{total} complete. You can cancel at any time.";
   const rendered=t(key,lang,{phase:"TEST",completed:3,total:6});
