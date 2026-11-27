@@ -7,7 +7,7 @@ import {calculateModeledScenario} from "./calculation-ledger.js?v=20261123-boss-
 import {selectPetPair} from "./pet-pair-search.js?v=20261123-boss-specials-r1";
 import {bestEquipmentByCategory,gearSelectionEffects,petCandidateGearWeightEnvelope,
  enumerateOwnedGearAssignments}
- from "./equipment-scenarios.js?v=20261123-boss-specials-r1&season=20261126-season14-r1&security=20261126-audit56-r1&gearct=20261127-r1";
+ from "./equipment-scenarios.js?v=20261123-boss-specials-r1&season=20261126-season14-r1&security=20261126-audit56-r1&gearct=20261127-r1&gearfactor=20261127-r1";
 import {refineCoupledGearAndSkills,enumerateJointGearAndSkills}
  from "./joint-candidate-search.js?v=20261123-boss-specials-r1&security=20261126-audit56-r1";
 import {modeledCandidateUpperBound} from "./model-score-bounds.js?v=20261123-boss-specials-r1";
