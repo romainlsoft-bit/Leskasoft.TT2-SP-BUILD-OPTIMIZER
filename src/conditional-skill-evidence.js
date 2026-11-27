@@ -1,4 +1,4 @@
-import {poisonSproutEvidence} from "./poison-sprout.js?v=20261127-r1";
+import {poisonSproutEvidence} from "./poison-sprout.js?v=20261123-boss-specials-r1&introduced=20261127-r1";
 import {dimensionalShiftEvidence} from "./dimensional-shift.js?v=20261123-boss-specials-r1";
 /** First-party TT2 8.4 Unity SkillTreeInfo2.0 + BonusInfo provenance.
  * These entries are not unconditional direct damage multipliers.

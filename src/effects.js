@@ -1,5 +1,5 @@
-import {probabilityCouplingSkillScore} from "./probability-coupling.js?v=20261127-r1";
-import {poisonSproutEvidence} from "./poison-sprout.js?v=20261127-r1";
+import {probabilityCouplingSkillScore} from "./probability-coupling.js?v=20261123-boss-specials-r1&introduced=20261127-r1";
+import {poisonSproutEvidence} from "./poison-sprout.js?v=20261123-boss-specials-r1&introduced=20261127-r1";
 import {dimensionalShiftEvidence} from "./dimensional-shift.js?v=20261123-boss-specials-r1";
 /**
  * Numerically stable, audited log10 score model for TT2 build comparison.
