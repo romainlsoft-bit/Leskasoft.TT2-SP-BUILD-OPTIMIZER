@@ -3,7 +3,7 @@ import {dimensionalShiftEvidence} from "./dimensional-shift.js?v=20261123-boss-s
 import {buildModelAttribution} from "./model-attribution.js?v=20261123-boss-specials-r1&dimensional=20261127-r1&poisonsprout=20261127-r1";
 import {buildAccountBaseline} from "./optimization-account-baseline.js?v=20261123-boss-specials-r1";
 import {VERIFIED_SKILL_CATALOG_VERSION,VERIFIED_SKILL_CATALOG_DATASET,gameVersionEvidence} from "./game-version-policy.js?v=20261123-boss-specials-r1";
-import {modeledAstralOrbTaps} from "./public-optimization-policy.js?v=20261123-boss-specials-r1&poisonsprout=20261127-r1";
+import {modeledAstralOrbTaps} from "./public-optimization-policy.js?v=20261123-boss-specials-r1&poisonsprout=20261127-r1&specialspells=20261127-r1";
 import { skillInfo } from "../vendor/skills.js?v=20261123-boss-specials-r1";
 import {parseExportCounter} from "./import-numbers.js?v=20261123-boss-specials-r1";
 import {attackChannelEvidence,compareAttackChannels} from "./attack-channels.js?v=20261123-boss-specials-r1";
@@ -14,7 +14,7 @@ import { optimizeExact } from "./solver-core.js?v=20261123-boss-specials-r1&pair
 import { scoreAtLevel } from "./effects.js?v=20261123-boss-specials-r1&season=20261126-season14-r1&score=20261123-cadence-separated-r1&ember=20261123-ember-fire-sword-gate-r1&jackpot=20261123-native-jackpot-expectation-r1&mc=20261123-multicast-no-guessed-x10-r1&crit=20261124-cleaving-crit-event-r1&ambush=20261124-ambush-conditional-gold-r1&dimensional=20261127-r1&poisonsprout=20261127-r1";
 import { parseAccountProfile } from "./account-profile.js?v=20261123-boss-specials-r1";
 import {resolveSpellCaps} from "./spell-caps.js?v=20261123-boss-specials-r1";
-import {resolveSpellScenario,spellSelectionEvidence,SPELL_CAP_SKILLS,MULTICAST_SKILL_SPELLS,ACTIVE_SOURCE_SKILL_SPELLS,multicastSkillEvidence} from "./spell-scenarios.js?v=20261123-boss-specials-r1";
+import {spellEffectScorable,resolveSpellScenario,spellSelectionEvidence,SPELL_CAP_SKILLS,MULTICAST_SKILL_SPELLS,ACTIVE_SOURCE_SKILL_SPELLS,multicastSkillEvidence} from "./spell-scenarios.js?v=20261123-boss-specials-r1";
 import {ACTIVE_SPELL_CAPS} from "../vendor/active-spell-caps.js?v=20261123-boss-specials-r1";
 import {resolveManaEvidence} from "./mana-evidence.js?v=20261123-boss-specials-r1";
 import {accountSourceCoverage} from "./account-source-coverage.js?v=20261123-boss-specials-r1&season=20261126-season14-r1";
@@ -487,6 +487,12 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
       nightmareAtBoss:combatContext.assumeNightmareAtBoss,
       magnumOpusAtBoss:combatContext.assumeMagnumOpusAtBoss,
       astralActivations:modeledAstralOrbTaps(result.levels,astralActivations),
+      thunderVolleySpecialAtBoss:scoreContext.damage==="Clan Ship"&&
+       scoreContext.assumeThunderVolleySpecialHit===true&&
+       spellEffectScorable("ThunderVolley",scoreContext)&&result.levels.ClanShipVoltage>0,
+      bladeStreamTargetAtBoss:scoreContext.damage==="Dagger"&&
+       scoreContext.assumeDaggerTargetMarked===true&&
+       spellEffectScorable("StreamOfBlades",scoreContext)&&result.levels.CriticalHit>0,
       astralMaxAvailable:5,
       poisonApplications:poisonSproutEvidence("PoisonedBlade",result.levels.PoisonedBlade,scoreContext).modeledStacks,
       sproutStacks:poisonSproutEvidence("KratosSummon",result.levels.KratosSummon,scoreContext).modeledStacks,

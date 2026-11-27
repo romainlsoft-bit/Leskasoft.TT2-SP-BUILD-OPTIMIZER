@@ -451,5 +451,6 @@ export default Object.freeze({
  "Imported TT2 version {version} is not validated against skill catalog {catalog}. Check your imported skills before applying the build.": "Версия экспорта TT2 {version} не проверена с каталогом навыков {catalog}. Проверьте импортированные навыки перед применением билда.",
  "Unable to erase saved browser data. Check your browser storage permissions.": "Не удалось удалить сохранённые данные. Проверьте разрешения браузера на хранение данных.",
  "Skip to main content": "Перейти к основному содержимому",
- "Boss scenario: {poison} poison application(s), {sprout} source Sprout stacks; activation not measured.": "Сценарий босса: {poison} применений яда, {sprout} накоплений Sprout от навыка; активация не измерена."
+ "Boss scenario: {poison} poison application(s), {sprout} source Sprout stacks; activation not measured.": "Сценарий босса: {poison} применений яда, {sprout} накоплений Sprout от навыка; активация не измерена.",
+ "Boss spell specials: Thunder Volley {tv}; Blade Stream target {bs}.": "Особые атаки заклинаний против босса: Thunder Volley {tv}; цель Blade Stream {bs}."
 });
