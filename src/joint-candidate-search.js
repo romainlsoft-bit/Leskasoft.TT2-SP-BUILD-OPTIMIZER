@@ -15,12 +15,14 @@ import {MAX_EXHAUSTIVE_OWNED_GEAR_ASSIGNMENTS} from "./gear-search-policy.js?v=2
 const SLOTS=Object.freeze(["Sword","Helmet","Armor","Slash","Aura"]);
 export const gearSignature=gear=>JSON.stringify(SLOTS.map(k=>
  gear?.selected?.[k]?.id??null));
-export function refineCoupledGearAndSkills(settings,{gearFor,solve,score,upperBoundOf,maxRounds=3}={}){
+export function refineCoupledGearAndSkills(settings,{gearFor,solve,score,upperBoundOf,maxRounds=3,initialCT=0}={}){
  if(typeof gearFor!=="function"||typeof solve!=="function"||typeof score!=="function")
   throw new TypeError("Joint gear/SP search requires gearFor, solve and score");
  if(!Number.isSafeInteger(maxRounds)||maxRounds<1||maxRounds>5)
   throw new RangeError("Joint gear/SP rounds must be 1–5");
- let ct=0,best=null,bestRow=null,converged=false,cycleDetected=false;
+ if(!Number.isSafeInteger(initialCT)||initialCT<0||initialCT>50)
+  throw new RangeError("Initial Combat Techniques level must be 0–50");
+ let ct=initialCT,best=null,bestRow=null,converged=false,cycleDetected=false;
  const visited=new Set(),trace=[];
  for(let round=0;round<maxRounds;round++){
   const requested={...settings,petCombatTechniquesLevel:ct};
@@ -148,4 +150,68 @@ export function enumerateJointGearAndSkills(settings,{
   globallyOptimalAcrossPetGearSP:false,
   bestSeenNotLastAssumed:true,stoppedAtMaxRounds:false
  }};
+}
+
+/**
+ * Bounded multistart coordinate search for a large owned inventory.
+ * Probe different CT levels using the factorized gear selector, solve
+ * only newly discovered gear signatures, and retain the best feasible
+ * result across all runs. The probe grid is not a global certificate.
+ */
+export function refineGearWithCTSeeds(settings,{
+ gearFor,solve,score,upperBoundOf,maxAdditionalCandidates=2
+}={}){
+ if(!Number.isSafeInteger(maxAdditionalCandidates)||maxAdditionalCandidates<0||
+    maxAdditionalCandidates>3)throw new RangeError("Additional gear candidates must be 0–3");
+ const dependencies={gearFor,solve,score,upperBoundOf};
+ const baseline=refineCoupledGearAndSkills(settings,dependencies);
+ const initial=baseline.best;
+ const trace=[...baseline.search.trace];
+ const seen=new Set(trace.map(row=>row.signature));
+ const imported=Number(settings.currentLevels?.CombatTechniques??0);
+ const probes=[...new Set([
+  ...(Number.isSafeInteger(imported)&&imported>=0&&imported<=50?[imported]:[]),
+  50,25,10,40,5,15,20,30,35,45
+ ])].filter(level=>level!==0);
+ let winner=baseline,best=initial,additional=0;
+ const probeTrace=[];
+ // Scan cheaply even when additional solve budget is exhausted: expose
+ // omitted distinct candidates rather than claiming they were evaluated.
+ const omitted=new Set();
+ for(const initialCT of probes){
+  const gear=gearFor({...settings,petCombatTechniquesLevel:initialCT});
+  const signature=gearSignature(gear);
+  if(seen.has(signature)){probeTrace.push({initialCT,signature,status:"already-solved-gear"});continue;}
+  if(additional>=maxAdditionalCandidates){
+   omitted.add(signature);
+   probeTrace.push({initialCT,signature,status:"solve-budget-exhausted"});continue;
+  }
+  const candidate=refineCoupledGearAndSkills(settings,{
+   ...dependencies,initialCT,maxRounds:2
+  });
+  additional++;
+  for(const row of candidate.search.trace){seen.add(row.signature);trace.push(row);}
+  probeTrace.push({initialCT,signature,status:"evaluated",evaluations:candidate.search.evaluations});
+  if(candidate.best.adjustedScore>best.adjustedScore+1e-10){
+   best=candidate.best;winner=candidate;
+  }
+ }
+ for(const signature of seen)omitted.delete(signature);
+ const winningRow=winner.search.trace.find(row=>
+  row.signature===gearSignature(best.gearSelection)&&
+  row.ctForGear===best.context.petCombatTechniquesLevel&&
+  row.adjustedScore===best.adjustedScore);
+ const envelope=visitedScoreEnvelope(trace);
+ return {best:{...best,scoreUpperBound:envelope.upperBound,boundUnresolved:envelope.unresolved},
+  search:{...winner.search,method:"bounded-multistart-fixed-CT-gear",
+   evaluations:trace.length,trace,scoreEnvelope:envelope,
+   comparisonBounds:rankVisitedCandidateBounds(trace,winningRow),
+   allExaminedGearSpacesComplete:trace.every(row=>row.exhaustiveGearSearch),
+   ctSeedSearch:{baselineScore:initial.adjustedScore,selectedScore:best.adjustedScore,
+    gain:Math.max(0,best.adjustedScore-initial.adjustedScore),
+    selectedAlternative:winner!==baseline,probes:probeTrace,
+    additionalCandidates:additional,maxAdditionalCandidates,
+    distinctSolvedGear:seen.size,omittedDistinctGear:omitted.size,
+    allCTLevelsExamined:false,globallyExact:false},
+   globallyOptimalAcrossPetGearSP:false}};
 }

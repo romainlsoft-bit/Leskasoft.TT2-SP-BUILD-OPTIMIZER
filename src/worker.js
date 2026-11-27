@@ -8,8 +8,8 @@ import {selectPetPair} from "./pet-pair-search.js?v=20261123-boss-specials-r1";
 import {bestEquipmentByCategory,gearSelectionEffects,petCandidateGearWeightEnvelope,
  enumerateOwnedGearAssignments}
  from "./equipment-scenarios.js?v=20261123-boss-specials-r1&season=20261126-season14-r1&security=20261126-audit56-r1&gearct=20261127-r1&gearfactor=20261127-r1";
-import {refineCoupledGearAndSkills,enumerateJointGearAndSkills}
- from "./joint-candidate-search.js?v=20261123-boss-specials-r1&security=20261126-audit56-r1";
+import {refineCoupledGearAndSkills,enumerateJointGearAndSkills,refineGearWithCTSeeds}
+ from "./joint-candidate-search.js?v=20261123-boss-specials-r1&security=20261126-audit56-r1&ctseeds=20261127-r1";
 import {modeledCandidateUpperBound} from "./model-score-bounds.js?v=20261123-boss-specials-r1";
 import {rerankVisitedContractPetPairs} from "./contract-pet-rerank.js?v=20261123-boss-specials-r1";
 
@@ -51,7 +51,12 @@ self.onmessage=event=>{
     upperBoundOf:modeledCandidateUpperBound};
    const refined=useFullGearEnumeration?
     enumerateJointGearAndSkills(chosen,{...dependencies,assignments:gearEnumeration.assignments}):
-    refineCoupledGearAndSkills(chosen,{...dependencies,maxRounds:3});
+    // Only the normal single-pair path gets extra SP solves. Keep the
+    // existing diagnostic pet-pair work budget and truncated inventory path.
+    sendSolverProgress&&gearEnumeration.reason==="full-owned-gear-product-exceeds-limit"&&
+     availablePets(chosen.accountProfile).some(p=>["SwordBoost","HelmetBoost","ArmorBoost","SlashBoost","AuraBoost"].includes(p.type))?
+     refineGearWithCTSeeds(chosen,dependencies):
+     refineCoupledGearAndSkills(chosen,{...dependencies,maxRounds:3});
    if(!refined.best)throw new Error("Joint pet/gear/SP search found no candidate");
    const winning=refined.best;
    const modeledScenario=calculateModeledScenario(
