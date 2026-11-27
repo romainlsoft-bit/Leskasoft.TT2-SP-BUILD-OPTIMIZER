@@ -450,5 +450,6 @@ export default Object.freeze({
  "Imported TT2 version {version} is newer than the verified skill catalog {catalog}. Compatibility with newer gameplay mechanics is not fully validated.": "Версия экспорта TT2 {version} новее проверенного каталога навыков {catalog}. Совместимость с более новыми игровыми механиками ещё не полностью подтверждена.",
  "Imported TT2 version {version} is not validated against skill catalog {catalog}. Check your imported skills before applying the build.": "Версия экспорта TT2 {version} не проверена с каталогом навыков {catalog}. Проверьте импортированные навыки перед применением билда.",
  "Unable to erase saved browser data. Check your browser storage permissions.": "Не удалось удалить сохранённые данные. Проверьте разрешения браузера на хранение данных.",
- "Skip to main content": "Перейти к основному содержимому"
+ "Skip to main content": "Перейти к основному содержимому",
+ "Boss scenario: {poison} poison application(s), {sprout} source Sprout stacks; activation not measured.": "Сценарий босса: {poison} применений яда, {sprout} накоплений Sprout от навыка; активация не измерена."
 });

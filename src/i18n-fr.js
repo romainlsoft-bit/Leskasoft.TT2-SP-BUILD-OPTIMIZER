@@ -450,5 +450,6 @@ export default Object.freeze({
  "Imported TT2 version {version} is newer than the verified skill catalog {catalog}. Compatibility with newer gameplay mechanics is not fully validated.": "L’export TT2 {version} est plus récent que le catalogue de compétences vérifié {catalog}. La compatibilité avec les nouvelles mécaniques de jeu n’est pas entièrement validée.",
  "Imported TT2 version {version} is not validated against skill catalog {catalog}. Check your imported skills before applying the build.": "L’export TT2 {version} n’est pas validé avec le catalogue de compétences {catalog}. Vérifiez les compétences importées avant d’appliquer le build.",
  "Unable to erase saved browser data. Check your browser storage permissions.": "Impossible d’effacer les données enregistrées. Vérifiez les autorisations de stockage du navigateur.",
- "Skip to main content": "Aller au contenu principal"
+ "Skip to main content": "Aller au contenu principal",
+ "Boss scenario: {poison} poison application(s), {sprout} source Sprout stacks; activation not measured.": "Scénario de boss : {poison} application(s) de poison, {sprout} cumuls Sprout du talent ; activation non mesurée."
 });
