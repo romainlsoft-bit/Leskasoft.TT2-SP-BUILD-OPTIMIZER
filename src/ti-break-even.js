@@ -14,7 +14,9 @@ export function coefficientBreakEven(excludedDelta,communityDelta){
   sa>=0&&sb>=0?"positive-nonnegative-throughout":
   "negative-nonpositive-throughout";
  // Interpolate the endpoints rather than introducing a new skill weight.
- const crossingFraction=status==="crossing"?Math.abs(a)/(Math.abs(a)+Math.abs(b)):null;
+ const scale=Math.max(Math.abs(a),Math.abs(b));
+ const crossingFraction=status==="crossing"?
+  (Math.abs(a)/scale)/(Math.abs(a)/scale+Math.abs(b)/scale):null;
  return {schema:"tt2-ti-affine-sensitivity-v1",status,
   excludedDelta:a,communityDelta:b,
   crossingFraction,aboveThreshold:status==="crossing"?(sb>0?"positive":"negative"):null,

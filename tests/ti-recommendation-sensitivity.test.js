@@ -37,6 +37,12 @@ test("Pet/Fairy synthetic regression reverses when TI community coefficient is r
  assert.equal(r.proposedPositiveOnlyWithCommunityCoefficient,true);
  assert.equal(r.proposedImprovesUnderBothTIModels,false);
  assert.deepEqual(r.tacticalInsightLevels,{current:1,proposed:30});
+ const threshold=r.coefficientSensitivity;
+ assert.equal(threshold.status,"crossing");
+ assert.equal(threshold.aboveThreshold,"positive");
+ close((1-threshold.crossingFraction)*r.heuristicExcluded.proposedMinusCurrentLog10+
+  threshold.crossingFraction*r.community.proposedMinusCurrentLog10,0);
+ assert.equal(threshold.coefficientCalibrated,false);
 });
 test("only TI coefficient changes; other skill score unchanged",()=>{
  for(const damage of DAMAGE_TYPES)for(const gold of GOLD_TYPES){
