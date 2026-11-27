@@ -23,6 +23,11 @@ export function publicOptimizationSettings(options={}){
  return {...options,
   assumeThunderVolleySpecialHit:options.damage==="Clan Ship"&&selected("ThunderVolley"),
   assumeDaggerTargetMarked:options.damage==="Dagger"&&selected("StreamOfBlades"),
+  // Ideal boss attempt assumes a Clan Ship is available, as for the
+  // existing Coordinated Offensive scenario. Explicit no-ship evidence
+  // disables the stun. The talent must actually be purchased.
+  assumeBossStunned:Number(options.maxStage)>=700&&options.clanShipAvailable!==false,
+  assumeInspiredHelpersActive:selected("HelperBoost"),
   assumeHaystActive:true,
   assumeSnapActive:true,
   assumePoisonApplied:true,

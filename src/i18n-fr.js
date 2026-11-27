@@ -452,5 +452,6 @@ export default Object.freeze({
  "Unable to erase saved browser data. Check your browser storage permissions.": "Impossible d’effacer les données enregistrées. Vérifiez les autorisations de stockage du navigateur.",
  "Skip to main content": "Aller au contenu principal",
  "Boss scenario: {poison} poison application(s), {sprout} source Sprout stacks; activation not measured.": "Scénario de boss : {poison} application(s) de poison, {sprout} cumuls Sprout du talent ; activation non mesurée.",
- "Boss spell specials: Thunder Volley {tv}; Blade Stream target {bs}.": "Attaques de sorts contre le boss : Thunder Volley {tv} ; cible Blade Stream {bs}."
+ "Boss spell specials: Thunder Volley {tv}; Blade Stream target {bs}.": "Attaques de sorts contre le boss : Thunder Volley {tv} ; cible Blade Stream {bs}.",
+ "Boss scenario: Clan Ship stun {stun}; inspired hero damage {inspired}. Activation is assumed, not measured.": "Scénario de boss : étourdissement du vaisseau de clan {stun} ; dégâts des héros inspirés {inspired}. Activation supposée, non mesurée."
 });

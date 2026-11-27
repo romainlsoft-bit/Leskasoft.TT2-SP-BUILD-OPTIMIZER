@@ -1,9 +1,9 @@
 import {poisonSproutEvidence} from "./poison-sprout.js?v=20261127-r1";
 import {dimensionalShiftEvidence} from "./dimensional-shift.js?v=20261123-boss-specials-r1";
-import {buildModelAttribution} from "./model-attribution.js?v=20261123-boss-specials-r1&dimensional=20261127-r1&poisonsprout=20261127-r1";
+import {buildModelAttribution} from "./model-attribution.js?v=20261123-boss-specials-r1&dimensional=20261127-r1&poisonsprout=20261127-r1&warlordboss=20261127-r1";
 import {buildAccountBaseline} from "./optimization-account-baseline.js?v=20261123-boss-specials-r1";
 import {VERIFIED_SKILL_CATALOG_VERSION,VERIFIED_SKILL_CATALOG_DATASET,gameVersionEvidence} from "./game-version-policy.js?v=20261123-boss-specials-r1";
-import {modeledAstralOrbTaps} from "./public-optimization-policy.js?v=20261123-boss-specials-r1&poisonsprout=20261127-r1&specialspells=20261127-r1";
+import {modeledAstralOrbTaps} from "./public-optimization-policy.js?v=20261123-boss-specials-r1&poisonsprout=20261127-r1&specialspells=20261127-r1&warlordboss=20261127-r1";
 import { skillInfo } from "../vendor/skills.js?v=20261123-boss-specials-r1";
 import {parseExportCounter} from "./import-numbers.js?v=20261123-boss-specials-r1";
 import {attackChannelEvidence,compareAttackChannels} from "./attack-channels.js?v=20261123-boss-specials-r1";
@@ -487,6 +487,8 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
       nightmareAtBoss:combatContext.assumeNightmareAtBoss,
       magnumOpusAtBoss:combatContext.assumeMagnumOpusAtBoss,
       astralActivations:modeledAstralOrbTaps(result.levels,astralActivations),
+      anchoringShotStunAtBoss:scoreContext.assumeBossStunned===true&&result.levels.ClanShipStun>0,
+      inspiredHeroesAtBoss:scoreContext.assumeInspiredHelpersActive===true&&result.levels.HelperInspiredWeaken>0,
       thunderVolleySpecialAtBoss:scoreContext.damage==="Clan Ship"&&
        scoreContext.assumeThunderVolleySpecialHit===true&&
        spellEffectScorable("ThunderVolley",scoreContext)&&result.levels.ClanShipVoltage>0,

@@ -4,9 +4,9 @@ import {gameVersionEvidence} from "./game-version-policy.js?v=20261123-boss-spec
 import {VERIFIED_NEXT_SEASON_START_UTC} from "./current-season-policy.js?v=20261123-boss-specials-r1&season=20261126-season14-r1";
 import {restoreSavedBuild,persistSavedBuild,eraseSavedBrowserData,storeLanguage} from "./browser-persistence.js?v=20261123-boss-specials-r1&storage=20261126-audit56-r1";
 import {createShareableBuildLink,readSharedBuild} from "./share-link-protocol.js?v=20261123-boss-specials-r1&storage=20261126-audit56-r1";
-import {publicOptimizationSettings} from "./public-optimization-policy.js?v=20261123-boss-specials-r1&poisonsprout=20261127-r1&specialspells=20261127-r1";
-import {SKILLS,SKILL_IDS,BRANCH_NAMES,PRESETS,DAMAGE_TYPES,GOLD_TYPES,parseExport,exportBuild,ownedSetFlags,capCurrentMaxStage,CURRENT_MAIN_GAME_STAGE_CAP} from "./engine.js?v=20261123-boss-specials-r1&season=20261126-season14-r1&compat=20261126-audit56-r1&score=20261123-cadence-separated-r1&audit=20261123-ti-sensitivity-r1&ember=20261123-ember-fire-sword-gate-r1&jackpot=20261123-native-jackpot-expectation-r1&mc=20261123-multicast-no-guessed-x10-r1&crit=20261124-cleaving-crit-event-r1&ambush=20261124-ambush-conditional-gold-r1&ideal=20261126-boss-r1&architecture=20261127-audit56-r1&pairrefine=20261127-r1&spellconstraints=20261127-r1&dimensional=20261127-r1&warmstart=20261127-r1&poisonsprout=20261127-r1&specialspells=20261127-r1";
-import { t, localizeDocument, SUPPORTED_LANGUAGES, loadLocale } from "./i18n.js?v=20261123-boss-specials-r1&season=20261126-season14-r1&ui=20261123-hide-observed-hit-r1&audit=20261123-ti-sensitivity-r1&alt=20261123-ti-second-tree-r1&ideal=20261126-boss-r1&security=20261126-audit56-r1&compat=20261126-audit56-r1&locale=20261127-audit56-r1&poisonsprout=20261127-r1&specialspells=20261127-r1";
+import {publicOptimizationSettings} from "./public-optimization-policy.js?v=20261123-boss-specials-r1&poisonsprout=20261127-r1&specialspells=20261127-r1&warlordboss=20261127-r1";
+import {SKILLS,SKILL_IDS,BRANCH_NAMES,PRESETS,DAMAGE_TYPES,GOLD_TYPES,parseExport,exportBuild,ownedSetFlags,capCurrentMaxStage,CURRENT_MAIN_GAME_STAGE_CAP} from "./engine.js?v=20261123-boss-specials-r1&season=20261126-season14-r1&compat=20261126-audit56-r1&score=20261123-cadence-separated-r1&audit=20261123-ti-sensitivity-r1&ember=20261123-ember-fire-sword-gate-r1&jackpot=20261123-native-jackpot-expectation-r1&mc=20261123-multicast-no-guessed-x10-r1&crit=20261124-cleaving-crit-event-r1&ambush=20261124-ambush-conditional-gold-r1&ideal=20261126-boss-r1&architecture=20261127-audit56-r1&pairrefine=20261127-r1&spellconstraints=20261127-r1&dimensional=20261127-r1&warmstart=20261127-r1&poisonsprout=20261127-r1&specialspells=20261127-r1&warlordboss=20261127-r1";
+import { t, localizeDocument, SUPPORTED_LANGUAGES, loadLocale } from "./i18n.js?v=20261123-boss-specials-r1&season=20261126-season14-r1&ui=20261123-hide-observed-hit-r1&audit=20261123-ti-sensitivity-r1&alt=20261123-ti-second-tree-r1&ideal=20261126-boss-r1&security=20261126-audit56-r1&compat=20261126-audit56-r1&locale=20261127-audit56-r1&poisonsprout=20261127-r1&specialspells=20261127-r1&warlordboss=20261127-r1";
 import { readClipboardText } from "./clipboard.js?v=20261123-boss-specials-r1";
 import {resetAccountDependentOptions} from "./import-session-reset.js?v=20261123-boss-specials-r1&ideal=20261126-boss-r1";
 import { profileCoverage } from "./account-profile.js?v=20261123-boss-specials-r1";
@@ -405,7 +405,7 @@ function optimize(){
  status("Checking prerequisites and calculating the best allocation for the chosen scoring model…");
  const revision=++calculationRevision;
  const requestContext=publicOptimizationSettings(keepContractsConservative(structuredClone(state)));
- const running=new Worker(new URL("./worker.js?v=20261123-boss-specials-r1&season=20261126-season14-r1&score=20261123-cadence-separated-r1&audit=20261123-ti-sensitivity-r1&alt=20261123-ti-second-tree-r1&ember=20261123-ember-fire-sword-gate-r1&jackpot=20261123-native-jackpot-expectation-r1&mc=20261123-multicast-no-guessed-x10-r1&crit=20261124-cleaving-crit-event-r1&ambush=20261124-ambush-conditional-gold-r1&ideal=20261126-boss-r1&security=20261126-audit56-r1&compat=20261126-audit56-r1&architecture=20261127-audit56-r1&pairrefine=20261127-r1&spellconstraints=20261127-r1&dimensional=20261127-r1&gearct=20261127-r1&warmstart=20261127-r1&gearfactor=20261127-r1&ctseeds=20261127-r1&poisonsprout=20261127-r1&specialspells=20261127-r1",import.meta.url),{type:"module"});
+ const running=new Worker(new URL("./worker.js?v=20261123-boss-specials-r1&season=20261126-season14-r1&score=20261123-cadence-separated-r1&audit=20261123-ti-sensitivity-r1&alt=20261123-ti-second-tree-r1&ember=20261123-ember-fire-sword-gate-r1&jackpot=20261123-native-jackpot-expectation-r1&mc=20261123-multicast-no-guessed-x10-r1&crit=20261124-cleaving-crit-event-r1&ambush=20261124-ambush-conditional-gold-r1&ideal=20261126-boss-r1&security=20261126-audit56-r1&compat=20261126-audit56-r1&architecture=20261127-audit56-r1&pairrefine=20261127-r1&spellconstraints=20261127-r1&dimensional=20261127-r1&gearct=20261127-r1&warmstart=20261127-r1&gearfactor=20261127-r1&ctseeds=20261127-r1&poisonsprout=20261127-r1&specialspells=20261127-r1&warlordboss=20261127-r1",import.meta.url),{type:"module"});
  worker=running;
  running.onmessage=event=>{
    if(revision!==calculationRevision||worker!==running)return;
@@ -488,6 +488,9 @@ function renderResults(result,scroll=true){
  $("combat-assumptions-summary").textContent+=" · "+tr("Boss spell specials: Thunder Volley {tv}; Blade Stream target {bs}.",
   {tv:tr(assumptions.thunderVolleySpecialAtBoss?"yes":"no"),
    bs:tr(assumptions.bladeStreamTargetAtBoss?"yes":"no")});
+ $("combat-assumptions-summary").textContent+=" · "+tr("Boss scenario: Clan Ship stun {stun}; inspired hero damage {inspired}. Activation is assumed, not measured.",
+  {stun:tr(assumptions.anchoringShotStunAtBoss?"yes":"no"),
+   inspired:tr(assumptions.inspiredHeroesAtBoss?"yes":"no")});
  const guarded=result.protectedSkills||[];
  if(guarded.length){
    const names=guarded.map(id=>SKILLS[id]?.Name||id).join(", ");
