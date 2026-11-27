@@ -166,6 +166,35 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
     (combatContext.assumeMaxSpells!==false&&Number(combatContext.maxStage)>=15000);
   const selectedModeledSpell=id=>maximumSpellsAssumed&&
     spellSelection.valid&&spellSelection.ids.includes(id);
+  if(settings.qol==="recommended"){
+    const pref=qosFloors(settings.damage,settings.gold,SP);
+    for(const [id,v] of Object.entries(pref))if(id in min)min[id]=Math.max(min[id],Number(v)||0);
+  }
+  for(const [id,v] of Object.entries(settings.minimums||{})){
+    if(!(id in min))continue;
+    const lvl=Number(v);
+    if(!Number.isInteger(lvl)||lvl<0||lvl>skillInfo[id].MaxLevel)throw new Error("Invalid minimum for "+skillInfo[id].Name);
+    min[id]=Math.max(min[id],lvl);
+  }
+  // A selected and modeled spell is a HARD loadout constraint. Its
+  // unlock must not disappear while DP optimizes only marginal skill gains;
+  // otherwise the final ledger loses a nonconstant baseline and DP bounds
+  // do not apply to the final score.
+  const selectedSpellUnlocks=[];
+  if(spellSelection.valid&&!spellCapEvidenceIsIncomplete){
+    for(const id of spellSelection.ids){
+      const requirement=ACTIVE_SPELL_CAPS[id]?.required;
+      if(!requirement||requirement==="None")continue;
+      if(!Object.hasOwn(skillInfo,requirement))
+       throw new Error("Unknown selected spell unlock requirement: "+id);
+      min[requirement]=Math.max(min[requirement],1);
+      selectedSpellUnlocks.push(requirement);
+    }
+  }
+  // Determine multicast uncertainty against the same effective spell
+  // unlocks that will be passed to the scoring table. A selected spell
+  // is not "locked" merely because its guaranteed unlock was implicit.
+  const protectionContext={...combatContext,minimums:min};
   const uncertainSkills=[
     ...(spellCapEvidenceIsIncomplete?Object.keys(SPELL_CAP_SKILLS):[]),
     // The community score previously credited these spell effects even
@@ -188,7 +217,7 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
     ...(combatContext.assumeInspiredHelpersActive===true?[]:
       ["HelperInspiredWeaken"]),
     ...Object.keys(MULTICAST_SKILL_SPELLS).filter(id=>
-      !multicastSkillEvidence(id,Math.max(1,current[id]),combatContext).modeled),
+      !multicastSkillEvidence(id,Math.max(1,current[id]),protectionContext).modeled),
     ...(combatContext.assumeContractsAtMax||contractReallocationAllowed?[]:
       ["ForbiddenContract","RoyalContract","TerrifyingPact"]),
     ...(combatContext.assumeHaystActive?[]:["QuickFortune"]),
@@ -217,22 +246,12 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
       combatContext.lightningStrikeHits<=2000?[]:["CritSkillBoost"])
   ];
   if(settings.protectUnmodeledSkills!==false&&!settings.preserveCurrent){
-    for(const id of uncertainSkills){
+    for(const id of new Set(uncertainSkills)){
       if(current[id]>0){
         min[id]=Math.max(min[id],current[id]);
         protectedSkills.push(id);
       }
     }
-  }
-  if(settings.qol==="recommended"){
-    const pref=qosFloors(settings.damage,settings.gold,SP);
-    for(const [id,v] of Object.entries(pref))if(id in min)min[id]=Math.max(min[id],Number(v)||0);
-  }
-  for(const [id,v] of Object.entries(settings.minimums||{})){
-    if(!(id in min))continue;
-    const lvl=Number(v);
-    if(!Number.isInteger(lvl)||lvl<0||lvl>skillInfo[id].MaxLevel)throw new Error("Invalid minimum for "+skillInfo[id].Name);
-    min[id]=Math.max(min[id],lvl);
   }
   // A two-point observed TI scenario is only justified WITHIN its
   // measured interval. The lower level's SP cost is a real hard minimum.
@@ -244,21 +263,6 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
   const pushSkipRequested=resolvePushSkipTarget(combatContext);
   for(const [id,level] of Object.entries(pushSkipRequested.requiredLevels))
     min[id]=Math.max(min[id],level);
-  // A selected and modeled spell is a HARD loadout constraint. Its
-  // unlock must not disappear while DP optimizes only marginal skill gains;
-  // otherwise the final ledger loses a nonconstant baseline and DP bounds
-  // do not apply to the final score.
-  const selectedSpellUnlocks=[];
-  if(spellSelection.valid&&!spellCapEvidenceIsIncomplete){
-    for(const id of spellSelection.ids){
-      const requirement=ACTIVE_SPELL_CAPS[id]?.required;
-      if(!requirement||requirement==="None")continue;
-      if(!Object.hasOwn(skillInfo,requirement))
-       throw new Error("Unknown selected spell unlock requirement: "+id);
-      min[requirement]=Math.max(min[requirement],1);
-      selectedSpellUnlocks.push(requirement);
-    }
-  }
   if(combatContext.assumeContractsAtMax){
     // Opt-in means both contracts exist and reach full bonus at the boss.
     // Minimums also make the conditional Terrifying Pact score consistent.
