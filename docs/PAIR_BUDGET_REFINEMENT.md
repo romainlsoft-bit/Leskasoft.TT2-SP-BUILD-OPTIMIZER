@@ -1,0 +1,7 @@
+# Full pair budget refinement — issue #9
+
+Above 12,000 SP the additive optimizer first computes exact branch frontiers, a coarse grid combination, and the previous integer local-radius refinement. The new pass starts from that feasible result. For each pair (i,j), fix other branch budgets. Let P=min(max_i+max_j, cap_i+cap_j+unallocated). For every integer x in [max(min_i,P-max_j),min(max_i,P-min_j)], evaluate F_i(x)+F_j(P-x). Both frontiers are nondecreasing at-most-budget functions, so any smaller feasible split can be padded to this total without reducing score. The best strictly improving move is accepted; at most eight passes, with a final nondecrease guard. No recalculation of branch DP is needed. The old coarse upper bound is unchanged. Complexity per pass O(branch_count² × budget) with constant extra storage. Pairwise stationarity is not global optimality, and neither implies better real gameplay.
+
+The benchmark reports pairRefinement gain, steps, passes and stationarity separately from the legacy local pass. A solver-only option fullPairRefinement=false exists for regression comparisons, not a public user setting. Tests use distant gates, mandatory minima, independently enumerated pair splits and exact small-budget reference scores. No scoring coefficients or game assumptions are changed.
+
+Qualification: npm run check; npm run bench:22k; npm run bench:issue30; npm run bench:push; npm run test:e2e. Compare timing and score gaps, and validate actual builds in game separately. No GitHub Actions.

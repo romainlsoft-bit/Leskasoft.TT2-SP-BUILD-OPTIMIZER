@@ -8,7 +8,7 @@ import {attackChannelEvidence,compareAttackChannels} from "./attack-channels.js?
 import {bossPushEvidence} from "./boss-push-evidence.js?v=20261123-boss-specials-r1";
 import {resolvePushSkipTarget,verifyPushSkipTarget} from "./push-skip-target.js?v=20261123-boss-specials-r1";
 import { baseline } from "../vendor/qol-baseline.js?v=20261123-boss-specials-r1";
-import { optimizeExact } from "./solver-core.js?v=20261123-boss-specials-r1";
+import { optimizeExact } from "./solver-core.js?v=20261123-boss-specials-r1&pairrefine=20261127-r1";
 import { scoreAtLevel } from "./effects.js?v=20261123-boss-specials-r1&season=20261126-season14-r1&score=20261123-cadence-separated-r1&ember=20261123-ember-fire-sword-gate-r1&jackpot=20261123-native-jackpot-expectation-r1&mc=20261123-multicast-no-guessed-x10-r1&crit=20261124-cleaving-crit-event-r1&ambush=20261124-ambush-conditional-gold-r1";
 import { parseAccountProfile } from "./account-profile.js?v=20261123-boss-specials-r1";
 import {resolveSpellCaps} from "./spell-caps.js?v=20261123-boss-specials-r1";
