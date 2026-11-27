@@ -87,6 +87,12 @@ test("Pet/Fairy yields a genuinely different full-tree option under TI uncertain
  assert.ok(report.community.alternativeMinusOriginalLog10<0);
  assert.ok(report.excludedTI.alternativeMinusOriginalLog10>0);
  assert.ok(report.changedSkillCount>=2);
+ const threshold=report.coefficientSensitivity;
+ assert.equal(threshold.status,"crossing");
+ assert.equal(threshold.aboveThreshold,"negative");
+ assert.ok(Math.abs((1-threshold.crossingFraction)*report.excludedTI.alternativeMinusOriginalLog10+
+  threshold.crossingFraction*report.community.alternativeMinusOriginalLog10)<1e-8);
+ assert.equal(threshold.changesAllocation,false);
 });
 test("stable ranking, measured TI, and contract comparison never launch an expensive solve",()=>{
  let calls=0;
