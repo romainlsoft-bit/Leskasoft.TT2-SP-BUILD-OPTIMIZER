@@ -14,7 +14,7 @@ import {petLevelEvidence} from "./account-pet-levels.js?v=20261123-boss-specials
 import {resolveGemstoneEvidence} from "./account-gemstones.js?v=20261123-boss-specials-r1";
 import {formatLogMultiplier} from "./account-power.js?v=20261123-boss-specials-r1&season=20261126-season14-r1";
 import {availablePets} from "./pet-scenarios.js?v=20261123-boss-specials-r1&season=20261126-season14-r1";
-import {bestEquipmentByCategory,EQUIPMENT_CATEGORIES} from "./equipment-scenarios.js?v=20261123-boss-specials-r1&season=20261126-season14-r1&security=20261126-audit56-r1";
+import {bestEquipmentByCategory,EQUIPMENT_CATEGORIES} from "./equipment-scenarios.js?v=20261123-boss-specials-r1&season=20261126-season14-r1&security=20261126-audit56-r1&gearct=20261127-r1";
 const $=id=>document.getElementById(id);
 let locale="en";
 let lastStatus={message:"Import your account or enter your skill points to begin.",type:"",params:{}};
@@ -405,7 +405,7 @@ function optimize(){
  status("Checking prerequisites and calculating the best allocation for the chosen scoring model…");
  const revision=++calculationRevision;
  const requestContext=publicOptimizationSettings(keepContractsConservative(structuredClone(state)));
- const running=new Worker(new URL("./worker.js?v=20261123-boss-specials-r1&season=20261126-season14-r1&score=20261123-cadence-separated-r1&audit=20261123-ti-sensitivity-r1&alt=20261123-ti-second-tree-r1&ember=20261123-ember-fire-sword-gate-r1&jackpot=20261123-native-jackpot-expectation-r1&mc=20261123-multicast-no-guessed-x10-r1&crit=20261124-cleaving-crit-event-r1&ambush=20261124-ambush-conditional-gold-r1&ideal=20261126-boss-r1&security=20261126-audit56-r1&compat=20261126-audit56-r1&architecture=20261127-audit56-r1&pairrefine=20261127-r1&spellconstraints=20261127-r1&dimensional=20261127-r1",import.meta.url),{type:"module"});
+ const running=new Worker(new URL("./worker.js?v=20261123-boss-specials-r1&season=20261126-season14-r1&score=20261123-cadence-separated-r1&audit=20261123-ti-sensitivity-r1&alt=20261123-ti-second-tree-r1&ember=20261123-ember-fire-sword-gate-r1&jackpot=20261123-native-jackpot-expectation-r1&mc=20261123-multicast-no-guessed-x10-r1&crit=20261124-cleaving-crit-event-r1&ambush=20261124-ambush-conditional-gold-r1&ideal=20261126-boss-r1&security=20261126-audit56-r1&compat=20261126-audit56-r1&architecture=20261127-audit56-r1&pairrefine=20261127-r1&spellconstraints=20261127-r1&dimensional=20261127-r1&gearct=20261127-r1",import.meta.url),{type:"module"});
  worker=running;
  running.onmessage=event=>{
    if(revision!==calculationRevision||worker!==running)return;
