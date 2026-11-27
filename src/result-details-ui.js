@@ -103,10 +103,14 @@ function renderModelAttribution(result){
   "<p class='hint'>"+safe(tr("Ambush Multiple Titan Gold is conditional on encountering a multi-Titan group. The proxy uses only the documented 1% base group chance; your real chance, spawn distribution and other modifiers are not verified. Max Multiple Titan Count is not a probability."))+"</p>":"";
  const jackpotNotice=Number(result.jackpotSourceOnly?.level??0)>0?
   "<p class='hint'>"+safe(tr("Transmutation Jackpot Gold is scored as a source-only chance-weighted gold event, not permanent All Gold. Your account's actual Jackpot chance and event mix are not verified."))+"</p>":"";
+ const coupling=result.probabilityCoupling;
+ const couplingNotice=coupling?.sourceOnlyJointIncrementLog10>0?
+  "<p class='hint'>"+safe(tr("Source-only probability interactions: credited {credited} log10; remaining unscored {residual} log10. Actual event probabilities are not verified.",
+   {credited:coupling.creditedIncrementLog10.toFixed(5),residual:coupling.residualUnscoredLog10.toFixed(5)}))+"</p>":"";
  el.innerHTML="<summary>"+safe(tr("Why the proxy invests in these trees"))+
   "</summary><p class='hint'>"+
   safe(tr("Modeled skill contributions only; a high contribution is not proof of real combat power. The comparison does not alter the build."))+
-  "</p>"+experimental+sensitivity+jackpotNotice+critNotice+ambushNotice+branches.join("")+
+  "</p>"+experimental+sensitivity+jackpotNotice+critNotice+ambushNotice+couplingNotice+branches.join("")+
   "<h4>"+safe(tr("Largest modeled talent contributions"))+"</h4>"+top.join()+altView;
 }
 /** One observed hit from the CURRENT tree only; the recommendation is
