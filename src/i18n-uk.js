@@ -460,5 +460,7 @@ export default Object.freeze({
  "Proposed build": "Запропонований білд",
  "Current build": "Поточний білд",
  "Alternative build": "Альтернативний білд",
- "Main build": "Основний білд"
+ "Main build": "Основний білд",
+ "Probability interactions: alternative SP allocation": "Взаємодії ймовірностей: альтернативний розподіл SP",
+ "Alternative minus main build: {gain} log10 including source-only probability interactions. This local search does not certify global optimality or predict stages.": "Альтернативний білд мінус основний: {gain} log10 з урахуванням взаємодій імовірностей за вихідними таблицями. Локальний пошук не гарантує глобального оптимуму й не прогнозує етапи."
 });

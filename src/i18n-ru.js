@@ -459,5 +459,7 @@ export default Object.freeze({
  "Proposed build": "Предлагаемый билд",
  "Current build": "Текущий билд",
  "Alternative build": "Альтернативный билд",
- "Main build": "Основной билд"
+ "Main build": "Основной билд",
+ "Probability interactions: alternative SP allocation": "Взаимодействия вероятностей: альтернативное распределение SP",
+ "Alternative minus main build: {gain} log10 including source-only probability interactions. This local search does not certify global optimality or predict stages.": "Альтернативный билд минус основной: {gain} log10 с учётом взаимодействий вероятностей по исходным таблицам. Локальный поиск не гарантирует глобальный оптимум и не предсказывает этапы."
 });

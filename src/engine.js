@@ -1,3 +1,4 @@
+import {refineProbabilityAllocation} from "./probability-joint-refinement.js?v=20261123-boss-specials-r1&procjoint=20261128-r1";
 import {probabilityCouplingEvidence} from "./probability-coupling.js?v=20261123-boss-specials-r1&introduced=20261127-r1&procfloors=20261128-r1";
 import {poisonSproutEvidence} from "./poison-sprout.js?v=20261123-boss-specials-r1&introduced=20261127-r1";
 import {dimensionalShiftEvidence} from "./dimensional-shift.js?v=20261123-boss-specials-r1";
@@ -298,6 +299,18 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
     scoreCache.set(id,scores);
   }
   const result=optimizeExact(skills,SP,(skill,level)=>scoreCache.get(skill.id)[level],"power",onProgress,{branchCache,initialLevels:current});
+  // Test local SP exchanges against the additive proxy plus its exact
+  // source-only residual. Keep the additive certificate and primary tree
+  // independent. Skip routes with no possible modeled joint increment.
+  const coupling=probabilityCouplingEvidence(result.levels,scoreContext);
+  const maxCouplingLevels=Object.fromEntries(skills.map(k=>[k.id,k.excluded?k.min:k.max]));
+  const jointPotential=probabilityCouplingEvidence(maxCouplingLevels,scoreContext);
+  const probabilityJointAlternative=jointPotential.sourceOnlyJointIncrementLog10>0?
+   refineProbabilityAllocation({skills,budget:SP,levels:result.levels,
+    scoreFor:(skill,n)=>scoreCache.get(skill.id)[n],
+    residualFor:levels=>probabilityCouplingEvidence(levels,scoreContext).residualUnscoredLog10}):
+   {schema:"tt2-local-probability-joint-alternative-v1",status:"not-applicable",
+    appliedToRecommendation:false,sourceOnly:true,realStageGainPredicted:false};
   const modelAttribution=buildModelAttribution({result,current,scoreCache,scoreContext,tiLocal,settings,SKILL_IDS,skillInfo,BRANCH_NAMES,GAME_VERSION});
   const points=spentPoints(result.levels);
   if(points>SP)throw new Error("Internal validation failed: allocation exceeds SP budget.");
@@ -358,7 +371,7 @@ export function optimizeBuild(settings,onProgress,branchCache=null){
      spellSelection.valid&&!spellCapEvidenceIsIncomplete,
     spellCaps,spellScenario,manaEvidence,contractScenario,conditionalSkills,lightningStrike,
     jackpotSourceOnly,criticalSourceOnly,ambushSourceOnly,
-    probabilityCoupling:probabilityCouplingEvidence(result.levels,scoreContext),
+    probabilityCoupling:coupling,probabilityJointAlternative,
     accountIntegration:{
       skillTreeSetPower:{
        applied:skillTreeSetPower.applied,recognized:skillTreeSetPower.recognized,
