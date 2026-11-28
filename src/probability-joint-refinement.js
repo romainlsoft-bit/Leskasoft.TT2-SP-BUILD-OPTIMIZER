@@ -30,10 +30,14 @@ export function refineProbabilityAllocation({skills,budget,levels,scoreFor,resid
  const sum=(tree)=>skills.reduce((s,k)=>s+score(k,tree[k.id]),0);
  const spend=(tree)=>skills.reduce((s,k)=>s+k.costs[tree[k.id]],0);
  const cache=new Map();
- const residual=tree=>{
-  const key=PROBABILITY_PARTNERS.map(id=>tree[id]??0).join("/");
+ // The residual depends ONLY on these five coordinates. Avoid copying
+ // the full 72-skill tree for every candidate (most are rejected).
+ const residual=(tree,a=null,na=0,b=null,nb=0)=>{
+  const coordinates=PROBABILITY_PARTNERS.map(id=>
+   id===a?.id?na:id===b?.id?nb:tree[id]??0);
+  const key=coordinates.join("/");
   if(!cache.has(key)){
-   const value=residualFor(tree);
+   const value=residualFor(Object.fromEntries(PROBABILITY_PARTNERS.map((id,i)=>[id,coordinates[i]])));
    if(!Number.isFinite(value)||value<0)throw new Error("Invalid probability residual");
    cache.set(key,value);
   }
@@ -51,12 +55,12 @@ export function refineProbabilityAllocation({skills,budget,levels,scoreFor,resid
    if(b&&(nb<b.min||nb>(b.excluded?b.min:b.max)||nb===lb))return;
    const cost=spent+a.costs[na]-a.costs[la]+(b?b.costs[nb]-b.costs[lb]:0);
    if(cost>budget)return;
-   const trial={...best,[a.id]:na};
-   if(b)trial[b.id]=nb;
    const v=additive+score(a,na)-score(a,la)+(b?score(b,nb)-score(b,lb):0);
-   const extra=residual(trial),joint=v+extra;
+   const extra=residual(best,a,na,b,nb),joint=v+extra;
    evaluated++;
    if(joint<=(selected?.joint??(additive+correction))+TOL)return;
+   const trial={...best,[a.id]:na};
+   if(b)trial[b.id]=nb;
    if(!isFeasibleSkillAllocation(skills,trial,budget))return;
    selected={trial,joint,v,extra,cost};
   };

@@ -36,7 +36,7 @@ test("hard floors, exclusions, cap, parent and ordered branch gates cannot be vi
   assert.equal(isFeasibleSkillAllocation(skills,{...levels,...patch},4),false);
  assert.equal(isFeasibleSkillAllocation(skills,levels,3),false);
  const report=refineProbabilityAllocation({skills,budget:4,levels,
-  scoreFor:()=>0,residualFor:t=>100*(t.LovePotion+t.LoadedDice+t.MultiMonsters)-t.filler});
+  scoreFor:(k,n)=>k.id==="filler"?-n:0,residualFor:t=>100*(t.LovePotion+t.LoadedDice+t.MultiMonsters)});
  assert.equal(report.status,"no-improvement-in-tested-neighborhood");
  assert.equal(report.stationary,true);
 });
