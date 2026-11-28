@@ -63,31 +63,52 @@ function events(levels,settings){
    log:magnitude("MultiMonsters",level("MultiMonsters",levels)),guaranteed:false}
  ];
 }
-function diceGain(levels,n,settings){
+function eventDiceGain(event,n,settings){
  const factor=dice(n,settings);
- if(factor===1)return 0;
- return events(levels,settings).reduce((sum,event)=>{
-  if(event.guaranteed)return sum;
-  return sum+weight(event.id,settings)*Math.max(0,
-   expected(event.p*factor,event.log)-expected(event.p,event.log));
- },0);
+ if(factor===1||event.guaranteed)return 0;
+ return weight(event.id,settings)*Math.max(0,
+  expected(event.p*factor,event.log)-expected(event.p,event.log));
+}
+function diceGain(levels,n,settings){
+ return events(levels,settings).reduce((sum,event)=>sum+eventDiceGain(event,n,settings),0);
+}
+function reverseGains(id,n,floors,settings){
+ const before=level(id,floors);
+ if(n<=before)return {love:0,hayst:0};
+ // Move along one coordinate from the guaranteed floor vector.
+ // For Ambush the Love Potion probability remains fixed to its floor.
+ const upgraded={...floors,[id]:n};
+ const love=id==="MultiMonsters"?Math.max(0,
+  loveGain(n,level("LovePotion",floors),settings)-
+  loveGain(before,level("LovePotion",floors),settings)):0;
+ const oldEvent=events(floors,settings).find(e=>e.id===id);
+ const newEvent=events(upgraded,settings).find(e=>e.id===id);
+ const diceFloor=level("LoadedDice",floors);
+ const hayst=Math.max(0,eventDiceGain(newEvent,diceFloor,settings)-
+  eventDiceGain(oldEvent,diceFloor,settings));
+ return {love,hayst};
 }
 export function probabilityCouplingSkillScore(id,n,settings={}){
- if(!["LovePotion","LoadedDice"].includes(id))return 0;
+ if(!ids.includes(id))return 0;
  const floors=settings.minimums??{};
  n=level(id,{[id]:n});
  if(id==="LovePotion")return loveGain(level("MultiMonsters",floors),n,settings);
- return diceGain(floors,n,settings);
+ if(id==="LoadedDice")return diceGain(floors,n,settings);
+ const reverse=reverseGains(id,n,floors,settings);
+ return reverse.love+reverse.hayst;
 }
 export function probabilityCouplingEvidence(levels={},settings={}){
  const chosen=Object.fromEntries(ids.map(id=>[id,level(id,levels)]));
  const floors=Object.fromEntries(ids.map(id=>[id,level(id,settings.minimums)]));
  const love=loveGain(chosen.MultiMonsters,chosen.LovePotion,settings);
  const hayst=diceGain(chosen,chosen.LoadedDice,settings);
- const creditedLove=probabilityCouplingSkillScore("LovePotion",chosen.LovePotion,settings);
- const creditedHayst=probabilityCouplingSkillScore("LoadedDice",chosen.LoadedDice,settings);
+ const reverse=Object.fromEntries(["HeavyStrikes","Transmutation","MultiMonsters"].map(id=>
+  [id,reverseGains(id,chosen[id],floors,settings)]));
+ const creditedLove=probabilityCouplingSkillScore("LovePotion",chosen.LovePotion,settings)+reverse.MultiMonsters.love;
+ const creditedHayst=probabilityCouplingSkillScore("LoadedDice",chosen.LoadedDice,settings)+
+  Object.values(reverse).reduce((sum,row)=>sum+row.hayst,0);
  const total=love+hayst,credited=creditedLove+creditedHayst;
- return {schema:"tt2-floor-anchored-probability-coupling-v1",floors,chosen,
+ return {schema:"tt2-floor-anchored-probability-coupling-v2",floors,chosen,reverseCredits:reverse,
   haystFactor:dice(chosen.LoadedDice,settings),
   sourceOnlyJointIncrementLog10:total,creditedIncrementLog10:credited,
   residualUnscoredLog10:Math.max(0,total-credited),

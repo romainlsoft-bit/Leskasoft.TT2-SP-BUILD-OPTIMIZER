@@ -1,4 +1,4 @@
-import {probabilityCouplingSkillScore} from "./probability-coupling.js?v=20261123-boss-specials-r1&introduced=20261127-r1";
+import {probabilityCouplingSkillScore} from "./probability-coupling.js?v=20261123-boss-specials-r1&introduced=20261127-r1&procfloors=20261128-r1";
 import {poisonSproutEvidence} from "./poison-sprout.js?v=20261123-boss-specials-r1&introduced=20261127-r1";
 import {dimensionalShiftEvidence} from "./dimensional-shift.js?v=20261123-boss-specials-r1";
 /**
@@ -48,7 +48,7 @@ function sourceSkillScoreAtLevel(id,level,settings){
       // Only Heavenly Strike guarantees its critical hit; the other
       // five builds must not score A as if every hit were critical.
       // Use a source-only event expectation, not the old unconditional A.
-      return r*cleavingStrikeSourceEvidence(level,settings.damage).sourceExpectedLog10;
+      return r*cleavingStrikeSourceEvidence(level,settings.damage).sourceExpectedLog10+probabilityCouplingSkillScore(id,level,settings);
     case "PetBonusBoost":
       // Source A = permanent PetDamage. Source B = TapBoostSkillAmount:
       // Fire Sword damage, not unconditional pet damage. Only credit B
@@ -129,7 +129,8 @@ function sourceSkillScoreAtLevel(id,level,settings){
       // The native B is a group-size CAP, not an event probability.
       // Use only the guide's documented base 1% multi-Titan chance
       // as a clearly labeled source-only conditional expectation.
-      return r*ambushSourceEventEvidence(level).sourceOnlyExpectedGoldLog10;
+      return r*ambushSourceEventEvidence(level).sourceOnlyExpectedGoldLog10+
+       probabilityCouplingSkillScore(id,level,settings);
     case "Transmutation":
       // A = JackpotGold, B = JackpotGoldChance. This is a conditional
       // eligible-event reward, NOT unconditional All Gold. With no
@@ -137,7 +138,8 @@ function sourceSkillScoreAtLevel(id,level,settings){
       // score the source-only (B) expected-event scenario, not log10(A).
       // Its report explicitly disclaims a verified in-game expectation.
       return goldWeight*num(reductions.Transmutation?.[settings.gold])*
-       transmutationSourceEventEvidence(level).sourceOnlyExpectedGoldLog10;
+       transmutationSourceEventEvidence(level).sourceOnlyExpectedGoldLog10+
+       probabilityCouplingSkillScore(id,level,settings);
     // Native BonusInfo declares these as mana capacity / regeneration
     // resources, not direct damage or gold. Historical 0.05 reduction
     // factors were QoL proxies without a verified damage conversion.

@@ -14,7 +14,9 @@ test("coupled source gains are additive score terms, not post-solve account bonu
   const e=result.probabilityCoupling;
   const love=probabilityCouplingSkillScore("LovePotion",result.levels.LovePotion,cfg);
   const dice=probabilityCouplingSkillScore("LoadedDice",result.levels.LoadedDice,cfg);
-  near(e.creditedIncrementLog10,love+dice);
+  const reverse=["HeavyStrikes","Transmutation","MultiMonsters"].reduce((sum,id)=>
+   sum+probabilityCouplingSkillScore(id,result.levels[id],cfg),0);
+  near(e.creditedIncrementLog10,love+dice+reverse);
   const l=result.modelAttribution.entries.find(r=>r.id==="LovePotion");
   const d=result.modelAttribution.entries.find(r=>r.id==="LoadedDice");
   near(l.scoreLog10,love);
