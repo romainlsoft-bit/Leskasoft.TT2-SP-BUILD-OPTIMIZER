@@ -459,5 +459,7 @@ export default Object.freeze({
  "Proposed build": "Build proposé",
  "Current build": "Build actuel",
  "Alternative build": "Build alternatif",
- "Main build": "Build principal"
+ "Main build": "Build principal",
+ "Probability interactions: alternative SP allocation": "Interactions de probabilités : allocation alternative de SP",
+ "Alternative minus main build: {gain} log10 including source-only probability interactions. This local search does not certify global optimality or predict stages.": "Build alternatif moins build principal : {gain} log10, interactions de probabilités issues des tables comprises. Cette recherche locale ne certifie pas l’optimalité globale et ne prédit pas les stages."
 });

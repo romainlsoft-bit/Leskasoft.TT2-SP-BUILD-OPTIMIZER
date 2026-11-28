@@ -25,5 +25,18 @@ test("coupled source gains are additive score terms, not post-solve account bonu
   assert.ok(result.spent<=1000);
   assert.equal(e.residualAddedToScore,false);
   assert.equal(e.globallyExactJointModel,false);
+  const joint=result.probabilityJointAlternative;
+  assert.ok(joint);
+  assert.equal(joint.appliedToRecommendation,false);
+  if(joint.status==="improved"){
+   assert.ok(joint.gainLog10>0);
+   near(joint.originalAdditiveLog10,result.score);
+   near(joint.originalResidualLog10,e.residualUnscoredLog10);
+   near(joint.gainLog10,joint.alternativeAdditiveLog10+joint.alternativeResidualLog10-
+    joint.originalAdditiveLog10-joint.originalResidualLog10);
+   const full=probabilityCouplingEvidence(joint.levels,cfg);
+   near(full.residualUnscoredLog10,joint.alternativeResidualLog10);
+   assert.ok(joint.spent<=1000);
+  }
  }
 });

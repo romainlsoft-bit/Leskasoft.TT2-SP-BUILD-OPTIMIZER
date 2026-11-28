@@ -115,11 +115,19 @@ function renderModelAttribution(result){
  const couplingNotice=coupling?.sourceOnlyJointIncrementLog10>0?
   "<p class='hint'>"+safe(tr("Source-only probability interactions: credited {credited} log10; remaining unscored {residual} log10. Actual event probabilities are not verified.",
    {credited:coupling.creditedIncrementLog10.toFixed(5),residual:coupling.residualUnscoredLog10.toFixed(5)}))+"</p>":"";
+ const joint=result.probabilityJointAlternative;
+ const jointView=joint?.status==="improved"?
+  "<h4>"+safe(tr("Probability interactions: alternative SP allocation"))+"</h4>"+
+  "<p class='hint'>"+safe(tr("Alternative minus main build: {gain} log10 including source-only probability interactions. This local search does not certify global optimality or predict stages.",
+   {gain:joint.gainLog10.toFixed(5)}))+"</p>"+
+  "<label>"+safe(tr("Alternative build JSON (copy to compare in game)"))+
+  "<textarea readonly rows='5' class='export-json' aria-label='Probability alternative build JSON'>"+
+  safe(exportBuild(joint.levels))+"</textarea></label>":"";
  el.innerHTML="<summary>"+safe(tr("Why the proxy invests in these trees"))+
   "</summary><p class='hint'>"+
   safe(tr("Modeled skill contributions only; a high contribution is not proof of real combat power. The comparison does not alter the build."))+
   "</p>"+experimental+sensitivity+currentThreshold+jackpotNotice+critNotice+ambushNotice+couplingNotice+branches.join("")+
-  "<h4>"+safe(tr("Largest modeled talent contributions"))+"</h4>"+top.join()+altView;
+  "<h4>"+safe(tr("Largest modeled talent contributions"))+"</h4>"+top.join()+altView+jointView;
 }
 /** One observed hit from the CURRENT tree only; the recommendation is
  * deliberately shown as source evidence, not as a projected hit value.
