@@ -51,3 +51,34 @@ test("maximum source-only coupling remains finite and small for Hayst",()=>{
  assert.ok(e.loadedDice.jointIncrementLog10<=2.4*Math.log10(1.085)+1e-8);
  assert.ok(e.lovePotion.jointIncrementLog10>0.9);
 });
+
+
+test("fixed Love Potion captures all its source-only Ambush interaction at any feasible Ambush level",()=>{
+ for(let love=0;love<=9;love++)for(let ambush=0;ambush<=50;ambush++){
+  const minimums={LovePotion:love,MultiMonsters:Math.floor(ambush/2)};
+  const e=probabilityCouplingEvidence({LovePotion:love,MultiMonsters:ambush},{...cfg,minimums});
+  near(e.lovePotion.creditedIncrementLog10,e.lovePotion.jointIncrementLog10);
+  near(e.residualUnscoredLog10,0);
+  assert.ok(e.reverseCredits.MultiMonsters.love>=0);
+ }
+});
+test("fixed Loaded Dice captures full eligible event upgrades at fixed Love Potion",()=>{
+ for(let dice=0;dice<=30;dice++){
+  for(const damage of ["Pet","Heavenly Strike"])for(const gold of ["Fairy","HoG","Chesterson"]){
+   const minimums={LoadedDice:dice,HeavyStrikes:1,Transmutation:1,MultiMonsters:1,LovePotion:5};
+   const levels={...minimums,HeavyStrikes:50,Transmutation:60,MultiMonsters:50};
+   const e=probabilityCouplingEvidence(levels,{...cfg,damage,gold,minimums});
+   near(e.creditedIncrementLog10,e.sourceOnlyJointIncrementLog10);
+   near(e.residualUnscoredLog10,0);
+   if(damage==="Heavenly Strike")assert.equal(e.reverseCredits.HeavyStrikes.hayst,0);
+   if(gold!=="Chesterson")assert.equal(e.reverseCredits.MultiMonsters.love,0);
+  }
+ }
+});
+test("reverse contributions vanish without guaranteed partner levels or active Hayst",()=>{
+ for(const id of ["HeavyStrikes","Transmutation","MultiMonsters"]){
+  const n=Number(skillInfo[id].MaxLevel);
+  assert.equal(probabilityCouplingSkillScore(id,n,cfg),0);
+  assert.equal(probabilityCouplingSkillScore(id,n,{...cfg,minimums:{LoadedDice:30},assumeHaystActive:false}),0);
+ }
+});
