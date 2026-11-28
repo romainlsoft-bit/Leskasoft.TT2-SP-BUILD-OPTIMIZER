@@ -1,7 +1,7 @@
-import {probabilityCouplingEvidence} from "./probability-coupling.js?v=20261123-boss-specials-r1&introduced=20261127-r1";
+import {probabilityCouplingEvidence} from "./probability-coupling.js?v=20261123-boss-specials-r1&introduced=20261127-r1&procfloors=20261128-r1";
 import {poisonSproutEvidence} from "./poison-sprout.js?v=20261123-boss-specials-r1&introduced=20261127-r1";
 import {dimensionalShiftEvidence} from "./dimensional-shift.js?v=20261123-boss-specials-r1";
-import {buildModelAttribution} from "./model-attribution.js?v=20261123-boss-specials-r1&dimensional=20261127-r1&poisonsprout=20261127-r1&warlordboss=20261127-r1&proccoupling=20261127-r1&tithreshold=20261127-r1&integrity=20261127-r2";
+import {buildModelAttribution} from "./model-attribution.js?v=20261123-boss-specials-r1&dimensional=20261127-r1&poisonsprout=20261127-r1&warlordboss=20261127-r1&proccoupling=20261127-r1&tithreshold=20261127-r1&integrity=20261127-r2&procfloors=20261128-r1";
 import {buildAccountBaseline} from "./optimization-account-baseline.js?v=20261123-boss-specials-r1";
 import {VERIFIED_SKILL_CATALOG_VERSION,VERIFIED_SKILL_CATALOG_DATASET,gameVersionEvidence} from "./game-version-policy.js?v=20261123-boss-specials-r1";
 import {modeledAstralOrbTaps} from "./public-optimization-policy.js?v=20261123-boss-specials-r1&poisonsprout=20261127-r1&specialspells=20261127-r1&warlordboss=20261127-r1";
@@ -12,7 +12,7 @@ import {bossPushEvidence} from "./boss-push-evidence.js?v=20261123-boss-specials
 import {resolvePushSkipTarget,verifyPushSkipTarget} from "./push-skip-target.js?v=20261123-boss-specials-r1";
 import { baseline } from "../vendor/qol-baseline.js?v=20261123-boss-specials-r1";
 import { optimizeExact } from "./solver-core.js?v=20261123-boss-specials-r1&pairrefine=20261127-r1&warmstart=20261127-r1";
-import { scoreAtLevel } from "./effects.js?v=20261123-boss-specials-r1&season=20261126-season14-r1&score=20261123-cadence-separated-r1&ember=20261123-ember-fire-sword-gate-r1&jackpot=20261123-native-jackpot-expectation-r1&mc=20261123-multicast-no-guessed-x10-r1&crit=20261124-cleaving-crit-event-r1&ambush=20261124-ambush-conditional-gold-r1&dimensional=20261127-r1&poisonsprout=20261127-r1&proccoupling=20261127-r1&integrity=20261127-r2";
+import { scoreAtLevel } from "./effects.js?v=20261123-boss-specials-r1&season=20261126-season14-r1&score=20261123-cadence-separated-r1&ember=20261123-ember-fire-sword-gate-r1&jackpot=20261123-native-jackpot-expectation-r1&mc=20261123-multicast-no-guessed-x10-r1&crit=20261124-cleaving-crit-event-r1&ambush=20261124-ambush-conditional-gold-r1&dimensional=20261127-r1&poisonsprout=20261127-r1&proccoupling=20261127-r1&integrity=20261127-r2&procfloors=20261128-r1";
 import { parseAccountProfile } from "./account-profile.js?v=20261123-boss-specials-r1";
 import {resolveSpellCaps} from "./spell-caps.js?v=20261123-boss-specials-r1";
 import {spellEffectScorable,resolveSpellScenario,spellSelectionEvidence,SPELL_CAP_SKILLS,MULTICAST_SKILL_SPELLS,ACTIVE_SOURCE_SKILL_SPELLS,multicastSkillEvidence} from "./spell-scenarios.js?v=20261123-boss-specials-r1";

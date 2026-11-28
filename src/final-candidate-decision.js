@@ -2,7 +2,7 @@
 import {proposeContractScenarioBuild} from "./contract-multi-scenarios.js?v=20261123-boss-specials-r1";
 import {explorePushParetoFrontier} from "./push-frontier.js?v=20261123-boss-specials-r1";
 import {exploreNativeAttackDamageFrontier} from "./attack-damage-frontier.js?v=20261123-boss-specials-r1";
-import {exploreTacticalInsightAlternative} from "./ti-alternative.js?v=20261123-boss-specials-r1&season=20261126-season14-r1&alt=20261123-ti-second-tree-r1&dimensional=20261127-r1&poisonsprout=20261127-r1&proccoupling=20261127-r1&tithreshold=20261127-r1&integrity=20261127-r2";
+import {exploreTacticalInsightAlternative} from "./ti-alternative.js?v=20261123-boss-specials-r1&season=20261126-season14-r1&alt=20261123-ti-second-tree-r1&dimensional=20261127-r1&poisonsprout=20261127-r1&proccoupling=20261127-r1&tithreshold=20261127-r1&integrity=20261127-r2&procfloors=20261128-r1";
 import {calculateModeledScenario} from "./calculation-ledger.js?v=20261123-boss-specials-r1&season=20261126-season14-r1";
 
 export function createFinalCandidateDecision(settings,solve){
